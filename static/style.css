@@ -1,0 +1,1179 @@
+/* ================================================================= */
+/*    全域樣式 (Global Styles)                                        */
+/* ================================================================= */
+
+/* CSS 變數定義 */
+:root {
+    /* 顏色系統 */
+    --primary-orange: #FF9100;
+    --primary-orange-hover: #FF7700;
+    --primary-orange-light: #FFE5D1;
+    --text-primary: #333;
+    --text-secondary: #666;
+    --text-light: #999;
+    --text-white: #fff;
+    --background-card: #fff;
+    --background-page: #f0f2f5;
+    --background-hover: #f5f5f5;
+    --background-active: #ffeedd;
+    --background-message-giver: #e6f7f8; /* 新增 Giver 訊息背景色變數 */
+    --border-color-light: #e0e0e0;
+    --border-color-default: #ddd;
+    --border-color-medium: #ccc; 
+    --border-color-avatar: #d7d6d6;
+    --scrollbar-track-color: #f1f1f1; /* 新增滾動條軌道顏色變數 */
+    --scrollbar-thumb-color: #c1c1c1; /* 新增滾動條按鈕顏色變數 */
+    --scrollbar-thumb-color-hover: #a8a8a8; /* 新增滾動條按鈕懸停顏色變數 */
+    
+    /* 字體大小 */
+    --font-size-sm: 12px;
+    --font-size-md: 14px;
+    --font-size-lg: 16px;
+    --font-size-xl: 18px;
+    --font-weight-semibold: 600; /* 新增字體粗細 */
+    
+    /* 間距系統 */
+    --spacing-zero: 0px;
+    --spacing-xs: 3px;
+    --spacing-sm: 8px;
+    --spacing-md: 10px;
+    --spacing-lg: 15px;
+    --spacing-xl: 20px;
+    --spacing-vertical-divider: 45px;
+    
+    /* 尺寸系統 */
+    --avatar-size-xs: 40px;
+    --avatar-size-md: 90px;
+    --card-width-default: 400px;
+    --chat-height-default: 400px;
+    
+    /* 邊框圓角 */
+    --border-radius-sm: 8px;
+    --border-radius-card: 12px;
+    --border-radius-button: 20px;
+    --border-radius-circle: 50%;
+    
+    /* 邊框寬度 */
+    --border-width-thin: 1px;
+    --border-width-medium: 2px;
+    
+    /* 陰影與效果 */
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.1);
+    --shadow-modal: 0 10px 30px rgba(0, 0, 0, 0.2); /* 新增 Modal 陰影變數 */
+    --shadow-dropdown: 0 2px 10px rgba(0, 0, 0, 0.15); /* 新增下拉選單陰影變數 */
+    --transition-default: all 0.3s ease;
+    --backdrop-filter: blur(2px);
+} 
+
+* {
+    box-sizing: border-box;
+    /* 把所有元素大小改成 border-box */
+}
+
+html,
+body { /* CSS 選擇器 html, body 代表「整張網頁」 */
+    width: 100%;
+    height: 100%;
+    margin: var(--spacing-zero); /* 清除預設邊界 */
+    padding: var(--spacing-zero); /* 清除預設邊界 */ 
+    font-family: 'Lato', 'Noto Sans TC', sans-serif;
+    background-color: var(--background-page);
+    overflow-x: hidden; /* 水平捲軸 */
+    overflow-y: auto; /* 垂直捲軸 */
+}
+
+
+/* ================================================================= */
+/*    Giver 卡片樣式 (Giver Card Styles) */
+/* ================================================================= */
+
+.giverCard {
+    /* 1. 定位 (Positioning) */
+    /* 無定位屬性 */
+
+    /* 2. 佈局 (Layout) */
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; /* 使子元素寬度與卡片相同 */
+
+    /* 3. 盒模型 (Box Model) */
+    width: 100%;
+    max-width: var(--card-width-default);
+    padding: var(--spacing-md);
+    margin: 0 0 var(--spacing-md) 0;
+
+    /* 4. 排版 (Typographic) */
+    /* 無排版屬性 */
+
+    /* 5. 視覺 (Visual) */
+    background-color: var(--background-card);
+    border-radius: var(--border-radius-card);
+    box-shadow: var(--shadow-card);
+
+    /* 6. 其他 (Miscellaneous) */
+    /* 無其他屬性 */
+}
+
+.giverCard__pointer {
+    cursor: pointer;
+}
+
+/* 第一部分：Giver 資訊 */
+.giverCard__avatar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.giverCard__avatar-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: var(--avatar-size-md);
+    height: var(--avatar-size-md);
+    margin-right: var(--spacing-sm);
+}
+
+.giverCard__avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--border-radius-circle);
+    border: var(--border-width-medium) solid var(--border-color-avatar);
+    object-fit: cover;
+}
+
+.giverCard__user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    flex-grow: 1; /* 佔據剩餘空間 */
+    height: var(--avatar-size-md);
+    padding: var(--spacing-md) var(--spacing-zero);
+    margin-bottom: var(--spacing-lg);
+} 
+
+.giverCard__icon-gray {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+/* 使用者資訊文字樣式 */
+.giverCard__name {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+.giverCard__title, 
+.giverCard__company {
+    font-size: var(--font-size-md);
+    color: var(--text-primary);
+}
+
+/* 第二部分：諮詢統計 */
+.giverCard__count {
+    display: flex;
+    justify-content: space-around; /* 改為 space-around 讓項目平均分佈 */
+    align-items: center; /* 讓項目垂直置中對齊 */
+    width: 100%;
+    padding: var(--spacing-sm) 0; /* 增加上下內邊距 */ 
+    margin-top: var(--spacing-zero); /* 增加與上方元素的間距 */
+}
+
+.giverCard__count-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center; 
+    flex-grow: 1; /* 讓每個 item 平均佔據空間 */
+}
+
+.giverCard__count-value {
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+.giverCard__count-label {   
+    font-size: var(--font-size-md);
+    color: var(--text-secondary);
+}
+
+.giverCard__divider {
+    width: var(--border-width-thin);
+    height: var(--spacing-vertical-divider);
+    background-color: var(--border-color-light);
+    /* 調整分隔線顏色 */
+}
+
+/* 第三部分：服務項目 */
+/* 主題按鈕樣式 */
+.btn-topic {
+    white-space: nowrap;
+    /* 防止文字換行 */
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: transparent;
+    /* 預設背景透明 */
+    border: var(--border-width-thin) solid var(--border-color-default);
+    border-radius: var(--border-radius-button);
+    color: var(--text-secondary);
+    transition: var(--transition-default);
+}
+
+.btn-topic:hover {
+    background-color: var(--background-hover);
+    border-color: var(--border-color-medium);
+    color: var(--text-primary);
+}
+
+.btn-topic.active {
+    background-color: var(--background-active);
+    border-color: var(--primary-orange);
+    color: var(--primary-orange);
+}
+
+.btn-topic-sm {
+    white-space: nowrap;
+    /* 防止文字換行 */
+    padding: var(--spacing-zero) var(--spacing-sm);
+    background-color: var(--background-active);
+    color: var(--primary-orange-hover);
+    border-radius: var(--border-radius-button);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    transition: var(--transition-default);
+}
+
+/* 如果按鈕組裡的文字描述是分開的，確保它們保持在同一行 */
+.topic-label {
+    white-space: nowrap;
+    margin-right: var(--spacing-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+.giverCard__topic { 
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start; /* 讓按鈕靠左對齊 */
+    flex-wrap: nowrap;
+    gap: var(--spacing-sm);/* 按鈕之間的間距 */
+    width: 100%;
+    margin-bottom: var(--spacing-md);
+    overflow: hidden; /* 防止按鈕超出容器 */
+}
+
+.giverCard__topic .btn-topic {
+    flex-shrink: 0; /* 防止按鈕縮小 */
+    white-space: nowrap; /* 防止文字換行 */
+    margin: var(--spacing-zero); /* 移除預設的 margin */
+}
+
+.giverCard__topic .fa-chevron-right {
+    margin-left: auto; /* 將箭頭靠右對齊 */
+    flex-shrink: 0; /* 防止箭頭縮小 */
+    display: none; /* 預設不顯示 */
+}
+
+/* 第四部分：諮詢按鈕 */
+.giverCard__action {
+    margin-top: var(--spacing-sm);
+    text-align: center;
+}
+
+.giverCard__action-button {
+    /* 1. 定位 (Positioning) */
+    /* 無定位屬性 */
+
+    /* 2. 佈局 (Layout) */
+    display: block; /* 使按鈕佔滿一行 */
+
+    /* 3. 盒模型 (Box Model) */
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-sm);
+    box-sizing: border-box;
+
+    /* 4. 排版 (Typographic) */
+    font-size: var(--font-size-md);
+    text-align: center;
+    text-decoration: none;
+
+    /* 5. 視覺 (Visual) */
+    background-color: var(--primary-orange);
+    color: var(--text-white);
+    border: none;
+    border-radius: var(--border-radius-sm);
+
+    /* 6. 其他 (Miscellaneous) */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.giverCard__action-button:hover {
+    background-color: var(--primary-orange-hover);
+}
+
+/* 橘色按鈕樣式 */
+.btn.btn-orange {
+    background-color: var(--primary-orange);
+    border-color: var(--primary-orange);
+    color: var(--text-white);
+    transition: var(--transition-default);
+}
+
+.btn.btn-orange:hover,
+.btn.btn-orange:focus {
+    background-color: var(--primary-orange-hover);
+    border-color: var(--primary-orange-hover);
+    color: var(--text-white);
+}
+
+/* ================================================================= */
+/*    聊天對話框樣式 (Chat Modal Styles)                            */
+/* ================================================================= */
+
+.modal-content {
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-header {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: var(--border-width-thin) solid var(--border-color-default);
+    position: relative;
+}
+
+.modal-title {
+    margin: 0;
+    text-align: center;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);    
+}
+
+.modal-body {
+    position: relative;
+    background-color: var(--background-card);
+    backdrop-filter: var(--backdrop-filter);
+}
+
+.chat-messages {
+    background-color: var(--background-card);    
+    position: relative;
+    z-index: 1;
+    backdrop-filter: var(--backdrop-filter);
+    height: var(--chat-height-default);
+    overflow-y: auto;
+}
+
+/* ================================================================= */
+/*    聊天對話框關閉按鈕樣式 (Chat Modal Close Button Styles)      */
+/* ================================================================= */
+
+/* 基礎關閉按鈕樣式 (可複用) */
+.btn-close-base {
+    background: none;
+    border: none;
+    font-size: var(--font-size-xl);    
+    color: var(--text-light);
+    cursor: pointer;
+    border-radius: var(--border-radius-circle);
+    transition: var(--transition-default);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+/* 標題關閉按鈕樣式 */
+.btn-close-header {
+    position: absolute;
+    top: 50%;
+    right: var(--spacing-sm);
+    transform: translateY(-50%);
+    padding: var(--spacing-sm);
+    width: var(--spacing-sm);
+    height: var(--spacing-sm);
+    z-index: 3;
+}
+
+.btn-close-header:hover {
+    background-color: var(--background-hover);   
+    color: var(--text-primary);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.btn-close-header:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+/* 訊息關閉按鈕樣式 (目前未使用，但已抽象化) */
+.btn-close-message {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    width: var(--spacing-sm);
+    height: var(--spacing-sm);
+}
+
+/* ================================================================= */
+/*    聊天對話框頭像樣式 (Chat Modal Avatar Styles)                  */
+/* ================================================================= */
+
+.avatar-modal {
+    width: var(--avatar-size-xs);
+    height: var(--avatar-size-xs);
+    margin-right: var(--spacing-lg);
+    border-radius: var(--border-radius-circle);
+    border: var(--border-width-medium) solid var(--border-color-avatar);
+    object-fit: cover;
+}
+
+/* ================================================================= */
+/*    聊天對話框訊息樣式 (Chat Modal Message Styles)                */
+/* ================================================================= */
+
+.message {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: var(--spacing-sm);
+    font-size: var(--font-size-lg);
+}
+
+.message-content {
+    border-radius: var(--border-radius-sm);
+    position: relative;
+    background-color: var(--background-message-giver);
+    max-width: 80%; /* 限制訊息內容最大寬度 */   
+    display: inline-block; /* 讓容器寬度由內容決定 */
+    padding: var(--spacing-sm);
+}
+
+.message-title {
+    font-size: var(--font-size-lg); 
+    color: var(--text-primary);
+    width: 100%; /* 寬度充滿父容器 */
+    margin-bottom: var(--spacing-sm); /* 與按鈕的間距 */
+}
+
+/* ================================================================= */
+/*    聊天選項按鈕樣式 (Chat Options Buttons Styles)                */
+/* ================================================================= */
+
+.chat-options-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    width: max-content;
+    /* 讓容器寬度等於最寬的按鈕 */
+}
+
+.chat-options-buttons .btn-option {
+    border-color: transparent;
+    color: var(--primary-orange);
+    background-color: var(--background-card);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    text-align: left;
+    padding: var(--spacing-sm) var(--spacing-md);
+    align-self: flex-start;
+}
+
+/* 選項按鈕特殊樣式 */
+.chat-option-btn {
+    cursor: pointer;
+    text-align: center;
+    font-weight: var(--font-weight-semibold);
+}
+
+.chat-option-btn[data-option="schedule"] {
+    font-weight: var(--font-weight-semibold);
+}
+
+.chat-option-btn[data-option="skip"] {
+    font-weight: normal;
+}
+
+/* 響應式設計 */
+@media (max-width: 576px) {
+    .chat-options-buttons {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .chat-options-buttons .btn {
+        width: 100%;
+        min-width: auto;
+    }
+}
+
+/* Giver 訊息樣式 */
+.giver-message {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+}
+
+.giver-message .d-flex.align-items-center {
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+.giver-message .avatar-modal,
+.giver-message .chat-avatar-modal {
+    margin-right: var(--spacing-sm);
+}
+.giver-message .message-content {
+    margin-right: 0;
+    padding: var(--spacing-sm);
+}
+
+@media (max-width: 576px) {
+    .giver-message {
+        flex-direction: column;
+        gap: 0;
+    }
+    .giver-message .message-content {
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* 使用者訊息樣式 */
+.user-message {
+    justify-content: flex-end; /* 讓使用者訊息容器靠右 */
+}
+
+.user-message .message-content {
+    background-color: var(--primary-orange-light); /* 覆寫局部變數的值 */
+    color: var(--text-primary);
+    display: inline-block;
+    padding: var(--spacing-sm); /* 為使用者訊息也加上 padding */
+}
+
+/* 訊息時間戳記 */
+.message-time {
+    font-size: var(--font-size-sm);
+    color: var(--text-light);
+    margin-top: var(--spacing-sm);
+}
+
+/* ================================================================= */
+/*    聊天對話框輸入區域樣式 (Chat Modal Input Styles)              */
+/* ================================================================= */
+
+/* 聊天輸入區域 */
+.chat-input {
+    background-color: var(--background-card);
+    border-top: var(--border-width-thin) solid var(--border-color-default);
+    position: relative;
+    z-index: 1;
+    backdrop-filter: var(--backdrop-filter);
+}
+
+.chat-input .form-control {
+    border-radius: var(--border-radius-button) 0 0 var(--border-radius-button);
+    border: var(--border-width-thin) solid var(--border-color-default); 
+}
+
+.chat-input .btn {
+    border-radius: 0 var(--border-radius-button) var(--border-radius-button) 0;
+    border: var(--border-width-thin) solid var(--primary-orange);
+}
+
+/* 滾動條樣式 */
+.chat-messages::-webkit-scrollbar {
+    width: var(--spacing-sm);
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-color);
+    border-radius: var(--border-radius-sm);
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-color);
+    border-radius: var(--border-radius-sm);
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-color-hover);
+}
+
+/* 載入動畫 */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-sm);
+}
+
+.typing-indicator .dot {
+    width: var(--spacing-sm);
+    height: var(--spacing-sm);
+    border-radius: var(--border-radius-circle);
+    background-color: var(--text-light);
+    margin: var(--spacing-zero) var(--spacing-sm);
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-indicator .dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-indicator .dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing {
+    0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ================================================================= */
+/*    確認對話框樣式 (Confirm Modal Styles)                          */
+/* ================================================================= */
+
+/* 確認對話框樣式 */
+#confirm-modal .modal-dialog {
+    max-width: var(--card-width-default);
+}
+
+#confirm-modal .modal-content {
+    border-radius: var(--border-radius-card);
+    border: none;
+    box-shadow: var(--shadow-modal);
+}
+
+#confirm-modal .modal-header {
+    padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-zero) var(--spacing-sm);
+}
+
+#confirm-modal .modal-body {
+    padding: var(--spacing-zero) var(--spacing-sm) var(--spacing-sm) var(--spacing-sm);
+}
+
+#confirm-modal .modal-footer {
+    padding: var(--spacing-sm);
+}
+
+#confirm-modal .modal-title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary); 
+}
+
+#confirm-modal .btn {
+    flex-grow: 1; /* 讓按鈕平均分配容器寬度 */
+    padding: var(--spacing-sm) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    font-weight: var(--font-weight-semibold);
+    transition: var(--transition-default);
+}
+
+#confirm-modal .btn-outline-secondary {
+    border-color: var(--primary-orange-light);
+    color: var(--primary-orange);
+    background-color: transparent;
+}
+
+#confirm-modal .btn-outline-secondary:hover {
+    background-color: var(--primary-orange-light);
+    border-color: var(--primary-orange-light);
+    color: var(--primary-orange-hover);
+}
+
+#confirm-modal .btn-orange {
+    background-color: var(--primary-orange);
+    border-color: var(--primary-orange);
+    color: var(--text-white);
+}
+
+#confirm-modal .btn-orange:hover {
+    background-color: var(--primary-orange-hover);
+    border-color: var(--primary-orange-hover);
+    color: var(--text-white);
+}
+
+/* 確保按鈕在同一列 */
+#confirm-modal .modal-footer .d-flex {
+    gap: var(--spacing-sm);
+}
+
+/* ================================================================= */
+/*    響應式設計 (Responsive Design)                                */
+/* ================================================================= */
+
+/* 響應式設計：針對小螢幕設備（如手機）的樣式調整 */
+@media (max-width: 768px) {
+    /* 調整導覽列 Logo 圖片大小 */
+    .navbar-brand img {
+        height: 30px;
+    }
+
+    .giverCard {
+        max-width: 100%;
+        margin: 0 0 var(--spacing-sm) 0;
+    }
+
+    .loading-indicator {
+        padding: var(--spacing-lg);
+    }
+
+    .error-message {
+        padding: var(--spacing-lg);
+    }
+}
+
+/* ================================================================= */
+/*    載入指示器與錯誤訊息樣式 (Loading & Error Message Styles)     */
+/* ================================================================= */
+
+/* 載入指示器 */
+.loading-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: var(--spacing-xl);
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow-modal);
+    z-index: 9999;
+    text-align: center;
+}
+
+/* 錯誤訊息 */
+.error-message {
+    position: fixed;
+    top: var(--spacing-xl);
+    right: var(--spacing-xl);
+    z-index: 9999;
+    max-width: var(--card-width-default);
+}
+
+/* 響應式設計：手機版載入指示器調整 */
+@media (max-width: 768px) {
+    .loading-indicator {
+        padding: var(--spacing-lg);
+        margin: 0 var(--spacing-md);
+        width: calc(100% - var(--spacing-md) * 2);
+        max-width: 300px;
+    }
+    
+    .error-message {
+        top: var(--spacing-md);
+        right: var(--spacing-md);
+        left: var(--spacing-md);
+        max-width: none;
+    }
+}
+
+/* ================================================================= */
+/*    分頁器樣式 (Pagination Styles) */
+/* ================================================================= */
+
+.pagination {
+    margin-top: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.pagination__item {
+    margin: var(--spacing-zero);
+}
+
+.pagination__item--active .pagination__link {
+    background-color: transparent;
+    color: var(--primary-orange);
+    font-weight: var(--font-weight-semibold);
+    border: none;
+}
+
+.pagination__item--disabled .pagination__link {
+    background-color: transparent;
+    color: var(--text-light);
+    cursor: default;
+} */
+
+.pagination__item--disabled .pagination__link:hover {
+    background-color: transparent;
+    color: var(--text-light);
+}
+
+.pagination__link {
+    background-color: transparent;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin: var(--spacing-zero);
+    text-decoration: none;
+    transition: var(--transition-default);
+    color: var(--text-primary);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    font-weight: var(--font-weight-semibold);
+}
+
+.pagination__link:hover {
+    background-color: var(--primary-orange-light);
+    border: transparent;
+    color: var(--text-primary);
+}
+
+.pagination__link--prev,
+.pagination__link--next,
+.pagination__link--page {
+    color: var(--text-primary);
+}
+
+.pagination__link--prev:hover,
+.pagination__link--next:hover,
+.pagination__link--page:hover {
+    background-color: var(--primary-orange-light);
+    color: var(--text-primary);
+}
+
+/* ================================================================= */
+/*    日期選擇器樣式 (Date Picker Styles)                            */
+/* ================================================================= */
+
+.date-picker-container {
+    width: 100%;
+    max-width: 350px;
+    margin: 0 auto;
+}
+
+.date-picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 10px;
+}
+
+.date-picker-header button {
+    background: none;
+    border: 1px solid var(--border-color-default);
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: var(--transition-default);
+}
+
+.date-picker-header button:hover {
+    background-color: var(--background-hover);
+    border-color: var(--primary-orange);
+}
+
+.date-picker-header span {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+.date-picker-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 10px;
+}
+
+.weekday {
+    text-align: center;
+    padding: 10px 5px;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-secondary);
+    background-color: var(--background-hover);
+    border-radius: 4px;
+}
+
+.date-picker-calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.date-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color-light);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition-default);
+    font-size: var(--font-size-sm);
+    background-color: var(--background-card);
+}
+
+.date-cell:hover {
+    background-color: var(--background-hover);
+    border-color: var(--primary-orange);
+}
+
+.date-cell.selected {
+    background-color: var(--primary-orange);
+    color: var(--text-white);
+    border-color: var(--primary-orange);
+}
+
+.date-cell.disabled {
+    color: var(--text-light);
+    background-color: var(--background-page);
+    cursor: not-allowed;
+    border-color: var(--border-color-light);
+}
+
+.date-cell.today {
+    border-color: var(--primary-orange);
+    font-weight: var(--font-weight-semibold);
+}
+
+.date-cell.other-month {
+    color: var(--text-light);
+    background-color: var(--background-page);
+}
+
+/* ================================================================= */
+/*    表單樣式 (Form Styles)                                         */
+/* ================================================================= */
+
+/* 預約表單初始狀態 */
+#schedule-form {
+    display: none;
+}
+
+.schedule-form {
+    background-color: var(--primary-orange-light);
+    border-radius: var(--border-radius-card);
+    padding: 20px;
+    border: 1px solid var(--border-color-light);
+}
+
+.schedule-form .form-label {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.schedule-form .form-control {
+    border: 1px solid var(--border-color-default);
+    border-radius: var(--border-radius-sm);
+    padding: 10px 12px;
+    font-size: var(--font-size-md);
+    transition: var(--transition-default);
+}
+
+.schedule-form .form-control:focus {
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 0 0.2rem rgba(255, 145, 0, 0.25);
+    outline: none;
+}
+
+.schedule-form .form-control:read-only {
+    background-color: var(--background-hover);
+    cursor: pointer;
+}
+
+.schedule-form textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.schedule-form .btn-orange {
+    background-color: var(--primary-orange);
+    border-color: var(--primary-orange);
+    color: var(--text-white);
+    padding: 10px 20px;
+    border-radius: var(--border-radius-button);
+    font-weight: var(--font-weight-semibold);
+    transition: var(--transition-default);
+}
+
+.schedule-form .btn-orange:hover {
+    background-color: var(--primary-orange-hover);
+    border-color: var(--primary-orange-hover);
+    color: var(--text-white);
+}
+
+/* 時間輸入欄位的特殊樣式 */
+.schedule-form input[type="text"][id*="time"] {
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+/* 表單元素樣式 */
+#schedule-notes {
+    min-height: 3em;
+    resize: vertical;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .date-picker-container {
+        max-width: 100%;
+    }
+    
+    .date-picker-header {
+        padding: 0 5px;
+    }
+    
+    .date-cell {
+        font-size: 12px;
+    }
+    
+    .schedule-form {
+        padding: 15px;
+    }
+    
+    .schedule-form .row {
+        margin: 0;
+    }
+    
+    .schedule-form .col-md-6 {
+        padding: 0 5px;
+    }
+}
+
+th {
+    white-space: nowrap;
+    text-align: center;
+}
+
+.schedule-edit-btn,
+.schedule-delete-btn {
+  white-space: nowrap;
+  min-width: 2.5em;
+}
+
+/* 手機寬度下，調整欄按鈕垂直排列 */
+@media (max-width: 576px) {
+    .schedule-table .d-flex.justify-content-center {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+        align-items: center;
+    }
+}
+
+/* ================================================================= */
+/*    JavaScript 動態樣式類別 (JavaScript Dynamic Style Classes)     */
+/* ================================================================= */
+
+/* Giver 卡片包裝器樣式 */
+.giver-card-wrapper {
+    width: 320px;
+}
+
+/* 分頁器容器樣式 */
+.paginator-container {
+    display: flex;
+    justify-content: center;
+}
+
+/* Giver 面板置中樣式 */
+.giver-panel-centered {
+    justify-content: center;
+}
+
+/* 隱藏元素樣式 */
+.hidden {
+    display: none;
+}
+
+.visible {
+    display: block;
+}
+
+/* 彈性佈局樣式 */
+.flex-nowrap {
+    flex-wrap: nowrap;
+}
+
+.flex-wrap {
+    flex-wrap: wrap;
+}
+
+/* 顯示樣式 */
+.inline {
+    display: inline;
+}
+
+/* 聊天選項按鈕容器隱藏 */
+.chat-options-hidden {
+    display: none;
+}
+
+/* 表單顯示/隱藏 */
+#schedule-form.schedule-form-visible {
+    display: block;
+}
+
+#schedule-form.schedule-form-hidden {
+    display: none;
+}
+
+/* Modal 相關樣式 */
+.modal-dialog-large {
+    height: 90vh;
+}
+
+.modal-content-full {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-body-scrollable {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+/* 按鈕顯示/隱藏 */
+.btn-visible {
+    display: block;
+}
+
+.btn-hidden {
+    display: none;
+}
+
+/* 容器顯示/隱藏 */
+.container-visible {
+    display: block;
+}
+
+.container-hidden {
+    display: none;
+}
+
+/* 錯誤訊息顯示/隱藏 */
+.error-visible {
+    display: block;
+}
+
+.error-hidden {
+    display: none;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .giver-card-wrapper {
+        width: 100%;
+        max-width: 320px;
+    }
+}
+
