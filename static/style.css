@@ -8,19 +8,30 @@
     --primary-orange: #FF9100;
     --primary-orange-hover: #FF7700;
     --primary-orange-light: #FFE5D1;
+
+    /* 文字顏色系統 */
     --text-primary: #333;
     --text-secondary: #666;
     --text-light: #999;
-    --text-white: #fff;
+    --text-white: #fff; 
+
+    /* 背景顏色系統 */
     --background-card: #fff;
     --background-page: #f0f2f5;
     --background-hover: #f5f5f5;
     --background-active: #ffeedd;
     --background-message-giver: #e6f7f8;
+    --background-transparent: transparent;
+    --background-disabled: #666;
+
+    /* 邊框顏色系統 */
     --border-color-light: #e0e0e0;
     --border-color-default: #ddd;
     --border-color-medium: #ccc; 
-    --border-color-avatar: #d7d6d6;
+    --border-color-avatar: #d7d6d6; 
+    
+    /* 滾動條系統 */
+    --scrollbar-width-default: 6px;
     --scrollbar-track-color: #f1f1f1;
     --scrollbar-thumb-color: #c1c1c1;
     --scrollbar-thumb-color-hover: #a8a8a8;
@@ -40,18 +51,36 @@
     --spacing-lg: 15px;
     --spacing-xl: 20px;
     --spacing-vertical-divider: 45px;
-    
+
+    /* 最大寬度系統 */
+    --max-width-80: 80%;
+    --max-width-350: 350px;
+    --max-width-400: 400px;
+
+    /* 行高系統 */
+    --line-height-1: 1;
+
     /* 尺寸系統 */
     --avatar-size-xs: 40px;
     --avatar-size-md: 90px;
-    --card-width-default: 400px;
+    --card-width-default: 320px;
     --chat-height-default: 400px;
+
+    /* 比例系統 */
+    --aspect-ratio-1: 1;
+
+    /* 寬度系統 */
+    --width-auto: auto;
+    --width-fit-content: fit-content;
+    --width-max-content: max-content;
+    --width-min-content: min-content;
     
     /* 邊框系統 */
+    --border-radius-xs: 4px;
     --border-radius-sm: 8px;
     --border-radius-card: 12px;
     --border-radius-button: 20px;
-    --border-radius-circle: 50%;
+    --border-radius-circle: 50%;    
     --border-width-thin: 1px;
     --border-width-medium: 2px;
     
@@ -61,65 +90,527 @@
     --shadow-dropdown: 0 2px 10px rgba(0, 0, 0, 0.15);
     --transition-default: all 0.3s ease;
     --backdrop-filter: blur(2px);
+    
+    /* 顯示系統 */
+    --display-hidden: none;
+    --display-visible: block;
+    --display-inline: inline;
+    --display-block: block;
+    --display-flex: flex;
+    --display-grid: grid;
+    --display-inline-block: inline-block;
+    --display-none: none;
+
+    /* box-sizing 系統 */
+    --box-sizing-border-box: border-box;
+
+    /* object-fit 系統 */
+    --object-fit-cover: cover;
+    --object-fit-contain: contain;
+    --object-fit-fill: fill;
+    --object-fit-none: none;
+    --object-fit-scale-down: scale-down;
+
+    /* flex 系統 */
+    --flex-nowrap: nowrap;
+    --flex-wrap: wrap;
+    --flex-direction-column: column;
+    --flex-direction-row: row;
+    --flex-direction-row-reverse: row-reverse;
+    --flex-direction-column-reverse: column-reverse;
+    --flex-wrap-nowrap: nowrap;
+    --flex-wrap-wrap: wrap;
+    --flex-wrap-wrap-reverse: wrap-reverse;
+    --flex-wrap-reverse: wrap-reverse;
+    --flex-wrap-nowrap-reverse: nowrap-reverse;
+    --flex-wrap-wrap-reverse: wrap-reverse;
+    --flex-wrap-nowrap-reverse: nowrap-reverse;
+    --flex-grow-1: 1;
+    --flex-grow-0: 0;
+    --flex-grow-auto: auto;
+    --flex-grow-initial: initial;
+    --flex-grow-inherit: inherit;
+    --flex-grow-unset: unset;
+    --flex-shrink-0: 0;
+    --flex-shrink-1: 1;
+    --flex-shrink-auto: auto;
+    --flex-shrink-initial: initial;
+    --flex-shrink-inherit: inherit;
+    --flex-shrink-unset: unset;
+
+    /* 對齊系統 */
+    --align-center: center;
+    --align-start: flex-start;
+    --align-end: flex-end;
+    --align-stretch: stretch;
+    --align-baseline: baseline;
+    --align-left: left;
+    --align-right: right;
+    --align-top: top;
+    --align-bottom: bottom;
+
+    /* 分佈系統 */
+    --justify-center: center;
+    --justify-start: flex-start;
+    --justify-end: flex-end;
+    --justify-between: space-between;
+    --justify-around: space-around;
+    --justify-evenly: space-evenly;
+    
+    /* 文字系統 */
+    --white-space-nowrap: nowrap;
+    --white-space-normal: normal;
+    --white-space-pre: pre;
+    --white-space-pre-wrap: pre-wrap;
+    --white-space-pre-line: pre-line;
+    
+    /* cursor 系統 */
+    --cursor-pointer: pointer;
+    --cursor-default: default;
+    --cursor-not-allowed: not-allowed;
+    --cursor-text: text;
+    --cursor-move: move;
+    --cursor-grab: grab;
+    --cursor-grabbing: grabbing;
+    
+    /* overflow 系統 */
+    --overflow-hidden: hidden;
+    --overflow-auto: auto;
+    --overflow-scroll: scroll;
+    --overflow-visible: visible;
+    
+    /* position 系統 */
+    --position-relative: relative;
+    --position-absolute: absolute;
+    --position-fixed: fixed;
+    --position-static: static;
+    --position-sticky: sticky;
+    
+    /* z-index 系統 */
+    --z-index-dropdown: 1000;
+    --z-index-modal: 1050;
+    --z-index-tooltip: 1100;
+    --z-index-loading: 9999;
+    --z-index-base: 1;
+
+    /* resize 系統 */
+    --resize-vertical: vertical;
+    --resize-horizontal: horizontal;
+    --resize-both: both;
+    --resize-none: none;
+
+    /* min-height 系統 */   
+    --min-height-80: 80px;
+    --min-height-3em: 3em;
+    --min-height-100: 100%;
+    --min-height-auto: auto;
+
+    /* outline 系統 */
+    --outline-none: none;
+    
+    /* 特殊值 */
+    --transparent: transparent;
+    --none: none;
+    --auto: auto;
+    --white: white;
+    
+    /* 常用組合值 */
+    --padding-zero-sm: var(--spacing-zero) var(--spacing-sm);
+    --padding-zero-auto: var(--spacing-zero) var(--auto);
+    --padding-sm-zero: var(--spacing-sm) var(--spacing-zero);
+    --padding-sm-sm: var(--spacing-sm) var(--spacing-sm);
+    --padding-sm-md: var(--spacing-sm) var(--spacing-md);
+    --padding-md-zero: var(--spacing-md) var(--spacing-zero);
+    --padding-md-lg: var(--spacing-md) var(--spacing-lg);
+    
+    --margin-zero-sm: var(--spacing-zero) var(--spacing-zero) var(--spacing-sm) var(--spacing-zero);
+    --margin-zero-md: var(--spacing-zero) var(--spacing-zero) var(--spacing-md) var(--spacing-zero);
+    --margin-zero-auto: var(--spacing-zero) var(--auto) var(--spacing-zero) var(--auto);
+    --margin-auto: var(--spacing-zero) var(--auto); 
+
+    --border-thin-light: var(--border-width-thin) solid var(--border-color-light);
+    --border-thin-default: var(--border-width-thin) solid var(--border-color-default);
+    --border-medium-avatar: var(--border-width-medium) solid var(--border-color-avatar);
+    --border-none: none;
+    --border-transparent: transparent;
+
+    /* text-decoration 系統 */
+    --text-decoration-none: none;
 } 
 
 /* 全域重置 */
 * {
-    box-sizing: border-box;
+    box-sizing: var(--box-sizing-border-box);
 }
 
 html,
-body { /* CSS 選擇器 html, body 代表「整張網頁」 */
+body { /* CSS 選擇器 html, body 代表「整張網頁」 */
     width: 100%;
     height: 100%;
     margin: var(--spacing-zero); /* 清除預設邊界 */
     padding: var(--spacing-zero); /* 清除預設邊界 */ 
     font-family: 'Lato', 'Noto Sans TC', sans-serif;
     background-color: var(--background-page);
-    overflow-x: hidden; /* 水平捲軸 */
-    overflow-y: auto; /* 垂直捲軸 */
+    overflow-x: var(--overflow-hidden); /* 水平捲軸 */
+    overflow-y: var(--overflow-auto); /* 垂直捲軸 */
 }
 
+/* ================================================================= */
+/*    工具類別 (Utility Classes)                                      */
+/* ================================================================= */
+
+/* 顯示/隱藏工具類別 */
+.u-hidden,
+.container-hidden,
+.error-hidden,
+.btn-hidden,
+.chat-options-hidden,
+#schedule-form.schedule-form-hidden {
+    display: var(--display-hidden);
+}
+
+.u-visible,
+.container-visible,
+.error-visible,
+.btn-visible,
+#schedule-form.schedule-form-visible {
+    display: var(--display-visible);
+}
+
+.u-inline {
+    display: var(--display-inline);
+}
+
+.u-block {
+    display: var(--display-block);
+}
+
+.u-flex {
+    display: var(--display-flex);
+}
+
+.u-grid {
+    display: var(--display-grid);
+}
+
+/* 彈性佈局工具類別 */
+.u-flex-nowrap {
+    flex-wrap: var(--flex-nowrap);
+}
+
+.u-flex-wrap {
+    flex-wrap: var(--flex-wrap);
+}
+
+/* 對齊工具類別 */
+.u-align-center {
+    align-items: var(--align-center);
+}
+
+.u-align-start {
+    align-items: var(--align-start);
+}
+
+.u-align-end {
+    align-items: var(--align-end);
+}
+
+.u-align-stretch {
+    align-items: var(--align-stretch);
+}
+
+.u-align-baseline {
+    align-items: var(--align-baseline);
+}
+
+/* 分佈工具類別 */
+.u-justify-center {
+    justify-content: var(--justify-center);
+}
+
+.u-justify-start {
+    justify-content: var(--justify-start);
+}
+
+.u-justify-end {
+    justify-content: var(--justify-end);
+}
+
+.u-justify-between {
+    justify-content: var(--justify-between);
+}
+
+.u-justify-around {
+    justify-content: var(--justify-around);
+}
+
+.u-justify-evenly {
+    justify-content: var(--justify-evenly);
+}
+
+/* 常用組合工具類別 */
+.u-flex-center {
+    display: var(--display-flex);
+    align-items: var(--align-center);
+    justify-content: var(--justify-center);
+}
+
+.u-flex-between {
+    display: var(--display-flex);
+    align-items: var(--align-center);
+    justify-content: var(--justify-between);
+}
+
+.u-flex-start {
+    display: var(--display-flex);
+    align-items: var(--align-center);
+    justify-content: var(--justify-start);
+}
+
+.u-flex-end {
+    display: var(--display-flex);
+    align-items: var(--align-center);
+    justify-content: var(--justify-end);
+}
+
+/* cursor 工具類別 */
+.u-cursor-pointer {
+    cursor: var(--cursor-pointer);
+}
+
+.u-cursor-default {
+    cursor: var(--cursor-default);
+}
+
+.u-cursor-not-allowed {
+    cursor: var(--cursor-not-allowed);
+}
+
+.u-cursor-text {
+    cursor: var(--cursor-text);
+}
+
+/* overflow 工具類別 */
+.u-overflow-hidden {
+    overflow: var(--overflow-hidden);
+}
+
+.u-overflow-auto {
+    overflow: var(--overflow-auto);
+}
+
+.u-overflow-scroll {
+    overflow: var(--overflow-scroll);
+}
+
+.u-overflow-visible {
+    overflow: var(--overflow-visible);
+}
+
+/* position 工具類別 */
+.u-position-relative {
+    position: var(--position-relative);
+}
+
+.u-position-absolute {
+    position: var(--position-absolute);
+}
+
+.u-position-fixed {
+    position: var(--position-fixed);
+}
+
+.u-position-static {
+    position: var(--position-static);
+}
+
+.u-position-sticky {
+    position: var(--position-sticky);
+}
+
+/* z-index 工具類別 */
+.u-z-dropdown {
+    z-index: var(--z-index-dropdown);
+}
+
+.u-z-modal {
+    z-index: var(--z-index-modal);
+}
+
+.u-z-tooltip {
+    z-index: var(--z-index-tooltip);
+}
+
+.u-z-loading {
+    z-index: var(--z-index-loading);
+}
+
+.u-z-base {
+    z-index: var(--z-index-base);
+}
+
+/* 容器工具類別 */
+.giver-card-wrapper {
+    width: var(--card-width-default);
+}
+
+.paginator-container {
+    display: var(--display-flex);
+    justify-content: var(--justify-center);
+}
+
+.giver-panel-centered {
+    justify-content: var(--justify-center);
+}
 
 /* ================================================================= */
-/*    Giver 卡片樣式 (Giver Card Styles) */
+/*    按鈕樣式 (Button Styles)                                        */
+/* ================================================================= */
+
+/* 基礎按鈕樣式 */
+.btn {
+    transition: var(--transition-default);
+    cursor: var(--cursor-pointer);
+    border: var(--none);
+    border-radius: var(--border-radius-sm);
+    font-weight: var(--font-weight-semibold);
+    text-decoration: var(--none);
+    display: var(--display-inline-block);
+    text-align: var(--align-center);
+}
+
+/* 橘色按鈕 */
+.btn-orange,
+.btn.btn-orange {
+    background-color: var(--primary-orange);
+    border-color: var(--primary-orange);
+    color: var(--text-white);
+    transition: var(--transition-default);
+}
+
+.btn-orange:hover,
+.btn-orange:focus,
+.btn.btn-orange:hover,
+.btn.btn-orange:focus {
+    background-color: var(--primary-orange-hover);
+    border-color: var(--primary-orange-hover);
+    color: var(--text-white);
+}
+
+/* 主題按鈕 */
+.btn-topic {
+    white-space: var(--white-space-nowrap); /* 防止文字換行 */
+    padding: var(--padding-sm-md);
+    background-color: var(--transparent);
+    border: var(--border-thin-default);
+    border-radius: var(--border-radius-button);
+    color: var(--text-secondary);
+    transition: var(--transition-default);
+    cursor: var(--cursor-pointer);
+}
+
+.btn-topic:hover {
+    background-color: var(--background-hover);
+    border-color: var(--border-color-medium);
+    color: var(--text-primary);
+}
+
+.btn-topic.active {
+    background-color: var(--background-active);
+    border-color: var(--primary-orange);
+    color: var(--primary-orange);
+}
+
+.btn-topic-sm {
+    white-space: var(--white-space-nowrap);
+    padding: var(--padding-zero-sm);
+    background-color: var(--background-active);
+    color: var(--primary-orange-hover);
+    border-radius: var(--border-radius-button);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    transition: var(--transition-default);
+    border: var(--none);
+}
+
+/* 關閉按鈕 */
+.btn-close-base {
+    background: var(--none);
+    border: var(--none);
+    font-size: var(--font-size-xl);    
+    color: var(--text-light);
+    cursor: var(--cursor-pointer);
+    border-radius: var(--border-radius-circle);
+    transition: var(--transition-default);
+    display: var(--display-flex);
+    align-items: var(--align-center);
+    justify-content: var(--justify-center);
+    line-height: var(--line-height-1);
+}
+
+.btn-close-header {
+    position: var(--position-absolute);
+    top: 50%;
+    right: var(--spacing-sm);
+    transform: translateY(-50%);
+    padding: var(--spacing-sm);
+    width: var(--spacing-sm);
+    height: var(--spacing-sm);
+    z-index: 3;
+}
+
+.btn-close-header:hover {
+    background-color: var(--background-hover);   
+    color: var(--text-primary);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.btn-close-header:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.btn-close-message {
+    position: var(--position-absolute);
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    width: var(--spacing-sm);
+    height: var(--spacing-sm);
+}
+
+/* ================================================================= */
+/*    Giver 卡片樣式 (Giver Card Styles)                             */
 /* ================================================================= */
 
 .giverCard {
-    /* 1. 定位 (Positioning) */
-    /* 無定位屬性 */
-
-    /* 2. 佈局 (Layout) */
-    display: flex;
-    flex-direction: column;
-    align-items: stretch; /* 使子元素寬度與卡片相同 */
-
-    /* 3. 盒模型 (Box Model) */
+    display: var(--display-flex);
+    flex-direction: var(--flex-direction-column);
+    align-items: var(--align-stretch);
     width: 100%;
     max-width: var(--card-width-default);
     padding: var(--spacing-md);
-    margin: 0 0 var(--spacing-md) 0;
+    margin: var(--margin-zero-md);
     background-color: var(--background-card);
     border-radius: var(--border-radius-card);
     box-shadow: var(--shadow-card);
 }
 
 .giverCard__pointer {
-    cursor: pointer;
+    cursor: var(--cursor-pointer);
 }
 
 /* 第一部分：Giver 頭像區域 */
 .giverCard__avatar {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+    display: var(--display-flex);
+    flex-direction: var(--flex-direction-row);
+    align-items: var(--align-center);
+    justify-content: var(--justify-between);
 }
 
 .giverCard__avatar-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: var(--display-flex);
+    justify-content: var(--justify-center);
+    align-items: var(--align-center);
     width: var(--avatar-size-md);
     height: var(--avatar-size-md);
     margin-right: var(--spacing-sm);
@@ -129,17 +620,17 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
     width: 100%;
     height: 100%;
     border-radius: var(--border-radius-circle);
-    border: var(--border-width-medium) solid var(--border-color-avatar);
-    object-fit: cover;
+    border: var(--border-medium-avatar);
+    object-fit: var(--object-fit-cover);
 }
 
 .giverCard__user-info {
-    display: flex;
-    flex-direction: column;
-    align-items: left;
-    flex-grow: 1; /* 佔據剩餘空間 */
+    display: var(--display-flex);
+    flex-direction: var(--flex-direction-column);
+    align-items: var(--align-left);
+    flex-grow: var(--flex-grow-1); /* 佔據剩餘空間 */
     height: var(--avatar-size-md);
-    padding: var(--spacing-md) var(--spacing-zero);
+    padding: var(--padding-md-zero);
     margin-bottom: var(--spacing-lg);
 } 
 
@@ -162,21 +653,21 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
 
 /* 第二部分：統計資訊 */
 .giverCard__count {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
+    display: var(--display-flex);
+    justify-content: var(--justify-around);
+    align-items: var(--align-center);
     width: 100%;
-    padding: var(--spacing-sm) 0;
+    padding: var(--padding-sm-zero);
     margin-top: var(--spacing-zero);
 }
 
 .giverCard__count-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center; 
-    flex-grow: 1; /* 讓每個 item 平均佔據空間 */
+    display: var(--display-flex);
+    flex-direction: var(--flex-direction-column);
+    align-items: var(--align-center);
+    justify-content: var(--justify-center);
+    text-align: var(--align-center); 
+    flex-grow: var(--flex-grow-1); /* 讓每個 item 平均佔據空間 */
 }
 
 .giverCard__count-value {
@@ -197,95 +688,57 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
     background-color: var(--border-color-light);
 }
 
-/* 第三部分：服務項目 */
-/* 主題按鈕樣式 */
-.btn-topic {
-    white-space: nowrap;
-    /* 防止文字換行 */
-    padding: var(--spacing-sm) var(--spacing-md);
-    background-color: transparent;
-    /* 預設背景透明 */
-    border: var(--border-width-thin) solid var(--border-color-default);
-    border-radius: var(--border-radius-button);
-    color: var(--text-secondary);
-    transition: var(--transition-default);
-}
-
-.btn-topic:hover {
-    background-color: var(--background-hover);
-    border-color: var(--border-color-medium);
-    color: var(--text-primary);
-}
-
-.btn-topic.active {
-    background-color: var(--background-active);
-    border-color: var(--primary-orange);
-    color: var(--primary-orange);
-}
-
-.btn-topic-sm {
-    white-space: nowrap;
-    /* 防止文字換行 */
-    padding: var(--spacing-zero) var(--spacing-sm);
-    background-color: var(--background-active);
-    color: var(--primary-orange-hover);
-    border-radius: var(--border-radius-button);
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-semibold);
-    transition: var(--transition-default);
-}
-
-/* 如果按鈕組裡的文字描述是分開的，確保它們保持在同一行 */
+/* 第三部分：主題標籤 */
 .topic-label {
-    white-space: nowrap;
+    white-space: var(--white-space-nowrap);
     margin-right: var(--spacing-lg);
     font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
 }
 
 .giverCard__topic { 
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start; /* 讓按鈕靠左對齊 */
-    flex-wrap: nowrap;
+    display: var(--display-flex);
+    flex-direction: var(--flex-direction-row);
+    align-items: var(--align-center);
+    justify-content: var(--justify-start); /* 讓按鈕靠左對齊 */
+    flex-wrap: var(--flex-wrap-nowrap);
     gap: var(--spacing-sm);/* 按鈕之間的間距 */
     width: 100%;
     margin-bottom: var(--spacing-md);
-    overflow: hidden; /* 防止按鈕超出容器 */
+    overflow: var(--overflow-hidden); /* 防止按鈕超出容器 */
 }
 
 .giverCard__topic .btn-topic {
-    flex-shrink: 0; /* 防止按鈕縮小 */
-    white-space: nowrap; /* 防止文字換行 */
+    flex-shrink: var(--flex-shrink-0); /* 防止按鈕縮小 */
+    white-space: var(--white-space-nowrap); /* 防止文字換行 */
     margin: var(--spacing-zero); /* 移除預設的 margin */
 }
 
 .giverCard__topic .fa-chevron-right {
-    margin-left: auto; /* 將箭頭靠右對齊 */
-    flex-shrink: 0; /* 防止箭頭縮小 */
-    display: none; /* 預設不顯示 */
+    margin-left: var(--margin-auto); /* 將箭頭靠右對齊 */
+    flex-shrink: var(--flex-shrink-0); /* 防止箭頭縮小 */
+    display: var(--display-none); /* 預設不顯示 */ 
 }
 
 /* 第四部分：諮詢按鈕 */
 .giverCard__action {
     margin-top: var(--spacing-sm);
-    text-align: center;
+    text-align: var(--align-center);
 }
 
 .giverCard__action-button {
-    display: block; /* 使按鈕佔滿一行 */
+    display: var(--display-block); /* 使按鈕佔滿一行 */
     width: 100%;
-    padding: var(--spacing-sm) var(--spacing-sm);
-    box-sizing: border-box;
+    padding: var(--padding-sm-sm);
+    box-sizing: var(--box-sizing-border-box);
     font-size: var(--font-size-md);
-    text-align: center;
-    text-decoration: none;
+    text-align: var(--align-center);
+    text-decoration: var(--none);
     background-color: var(--primary-orange);
     color: var(--text-white);
-    border: none;
+    border: var(--none);
     border-radius: var(--border-radius-sm);
-    cursor: pointer;
+    cursor: var(--cursor-pointer);
     transition: background-color 0.3s ease;
 }
 
@@ -293,343 +746,65 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
     background-color: var(--primary-orange-hover);
 }
 
-/* 橘色按鈕樣式 */
-.btn.btn-orange {
-    background-color: var(--primary-orange);
-    border-color: var(--primary-orange);
-    color: var(--text-white);
-    transition: var(--transition-default);
-}
-
-.btn.btn-orange:hover,
-.btn.btn-orange:focus {
-    background-color: var(--primary-orange-hover);
-    border-color: var(--primary-orange-hover);
-    color: var(--text-white);
-}
-
 /* ================================================================= */
-/*    聊天對話框樣式 (Chat Modal Styles)                            */
+/*    Modal 樣式 (Modal Styles)                                       */
 /* ================================================================= */
 
 .modal-content {
-    position: relative;
-    overflow: hidden;
+    position: var(--position-relative);
+    overflow: var(--overflow-hidden);
 }
 
 .modal-header {
     height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--spacing-md) var(--spacing-lg);
-    border-bottom: var(--border-width-thin) solid var(--border-color-default);
-    position: relative;
+    display: var(--display-flex);
+    align-items: var(--align-center);
+    justify-content: var(--justify-center);
+    padding: var(--padding-md-lg);
+    border-bottom: var(--border-thin-default);
+    position: var(--position-relative);
 }
 
 .modal-title {
-    margin: 0;
-    text-align: center;
+    margin: var(--spacing-zero);
+    text-align: var(--align-center);
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
     color: var(--text-primary);    
 }
 
 .modal-body {
-    position: relative;
+    position: var(--position-relative);
     background-color: var(--background-card);
     backdrop-filter: var(--backdrop-filter);
 }
 
-.chat-messages {
-    background-color: var(--background-card);    
-    position: relative;
-    z-index: 1;
-    backdrop-filter: var(--backdrop-filter);
-    height: var(--chat-height-default);
-    overflow-y: auto;
+.modal-dialog-large {
+    height: 90vh;
+}
+
+.modal-content-full {
+    height: 100%;
+    display: var(--display-flex);  
+    flex-direction: var(--flex-direction-column);
+}
+
+.modal-body-scrollable {
+    flex-grow: var(--flex-grow-1);
+    overflow-y: var(--overflow-auto);
 }
 
 /* ================================================================= */
-/*    聊天對話框關閉按鈕樣式 (Chat Modal Close Button Styles)      */
+/*    確認 Modal (Confirm Modal)                                      */
 /* ================================================================= */
 
-/* 基礎關閉按鈕樣式 (可複用) */
-.btn-close-base {
-    background: none;
-    border: none;
-    font-size: var(--font-size-xl);    
-    color: var(--text-light);
-    cursor: pointer;
-    border-radius: var(--border-radius-circle);
-    transition: var(--transition-default);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-}
-
-/* 標題關閉按鈕樣式 */
-.btn-close-header {
-    position: absolute;
-    top: 50%;
-    right: var(--spacing-sm);
-    transform: translateY(-50%);
-    padding: var(--spacing-sm);
-    width: var(--spacing-sm);
-    height: var(--spacing-sm);
-    z-index: 3;
-}
-
-.btn-close-header:hover {
-    background-color: var(--background-hover);   
-    color: var(--text-primary);
-    transform: translateY(-50%) scale(1.1);
-}
-
-.btn-close-header:active {
-    transform: translateY(-50%) scale(0.95);
-}
-
-/* 訊息關閉按鈕樣式 (目前未使用，但已抽象化) */
-.btn-close-message {
-    position: absolute;
-    top: var(--spacing-sm);
-    right: var(--spacing-sm);
-    padding: var(--spacing-sm);
-    width: var(--spacing-sm);
-    height: var(--spacing-sm);
-}
-
-/* ================================================================= */
-/*    聊天對話框頭像樣式 (Chat Modal Avatar Styles)                  */
-/* ================================================================= */
-
-.avatar-modal {
-    width: var(--avatar-size-xs);
-    height: var(--avatar-size-xs);
-    margin-right: var(--spacing-lg);
-    border-radius: var(--border-radius-circle);
-    border: var(--border-width-medium) solid var(--border-color-avatar);
-    object-fit: cover;
-}
-
-/* ================================================================= */
-/*    聊天對話框訊息樣式 (Chat Modal Message Styles)                */
-/* ================================================================= */
-
-.message {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    margin-bottom: var(--spacing-sm);
-    font-size: var(--font-size-lg);
-}
-
-.message-content {
-    border-radius: var(--border-radius-sm);
-    position: relative;
-    background-color: var(--background-message-giver);
-    max-width: 80%; /* 限制訊息內容最大寬度 */   
-    display: inline-block; /* 讓容器寬度由內容決定 */
-    padding: var(--spacing-sm);
-}
-
-.message-title {
-    font-size: var(--font-size-lg); 
-    color: var(--text-primary);
-    width: 100%; /* 寬度充滿父容器 */
-    margin-bottom: var(--spacing-sm); /* 與按鈕的間距 */
-}
-
-/* ================================================================= */
-/*    聊天選項按鈕樣式 (Chat Options Buttons Styles)                */
-/* ================================================================= */
-
-.chat-options-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
-    width: max-content;
-    /* 讓容器寬度等於最寬的按鈕 */
-}
-
-.chat-options-buttons .btn-option {
-    border-color: transparent;
-    color: var(--primary-orange);
-    background-color: var(--background-card);
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-semibold);
-    text-align: left;
-    padding: var(--spacing-sm) var(--spacing-md);
-    align-self: flex-start;
-}
-
-/* 選項按鈕特殊樣式 */
-.chat-option-btn {
-    cursor: pointer;
-    text-align: center;
-    font-weight: var(--font-weight-semibold);
-}
-
-.chat-option-btn[data-option="schedule"] {
-    font-weight: var(--font-weight-semibold);
-}
-
-.chat-option-btn[data-option="skip"] {
-    font-weight: normal;
-}
-
-/* 響應式設計 */
-@media (max-width: 576px) {
-    .chat-options-buttons {
-        flex-direction: column;
-        gap: var(--spacing-sm);
-    }
-
-    .chat-options-buttons .btn {
-        width: 100%;
-        min-width: auto;
-    }
-}
-
-/* Giver 訊息樣式 */
-.giver-message {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-xs);
-}
-
-.giver-message .d-flex.align-items-center {
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-sm);
-}
-.giver-message .avatar-modal,
-.giver-message .chat-avatar-modal {
-    margin-right: var(--spacing-sm);
-}
-.giver-message .message-content {
-    margin-right: 0;
-    padding: var(--spacing-sm);
-}
-
-@media (max-width: 576px) {
-    .giver-message {
-        flex-direction: column;
-        gap: 0;
-    }
-    .giver-message .message-content {
-        min-width: 0;
-        width: 100%;
-        max-width: 100%;
-    }
-}
-
-/* 使用者訊息樣式 */
-.user-message {
-    justify-content: flex-end; /* 讓使用者訊息容器靠右 */
-}
-
-.user-message .message-content {
-    background-color: var(--primary-orange-light); /* 覆寫局部變數的值 */
-    color: var(--text-primary);
-    display: inline-block;
-    padding: var(--spacing-sm); /* 為使用者訊息也加上 padding */
-}
-
-/* 訊息時間戳記 */
-.message-time {
-    font-size: var(--font-size-sm);
-    color: var(--text-light);
-    margin-top: var(--spacing-sm);
-}
-
-/* ================================================================= */
-/*    聊天對話框輸入區域樣式 (Chat Modal Input Styles)              */
-/* ================================================================= */
-
-/* 聊天輸入區域 */
-.chat-input {
-    background-color: var(--background-card);
-    border-top: var(--border-width-thin) solid var(--border-color-default);
-    position: relative;
-    z-index: 1;
-    backdrop-filter: var(--backdrop-filter);
-}
-
-.chat-input .form-control {
-    border-radius: var(--border-radius-button) 0 0 var(--border-radius-button);
-    border: var(--border-width-thin) solid var(--border-color-default); 
-}
-
-.chat-input .btn {
-    border-radius: 0 var(--border-radius-button) var(--border-radius-button) 0;
-    border: var(--border-width-thin) solid var(--primary-orange);
-}
-
-/* 滾動條樣式 */
-.chat-messages::-webkit-scrollbar {
-    width: var(--spacing-sm);
-}
-
-.chat-messages::-webkit-scrollbar-track {
-    background: var(--scrollbar-track-color);
-    border-radius: var(--border-radius-sm);
-}
-
-.chat-messages::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb-color);
-    border-radius: var(--border-radius-sm);
-}
-
-.chat-messages::-webkit-scrollbar-thumb:hover {
-    background: var(--scrollbar-thumb-color-hover);
-}
-
-/* 載入動畫 */
-.typing-indicator {
-    display: flex;
-    align-items: center;
-    padding: var(--spacing-sm);
-}
-
-.typing-indicator .dot {
-    width: var(--spacing-sm);
-    height: var(--spacing-sm);
-    border-radius: var(--border-radius-circle);
-    background-color: var(--text-light);
-    margin: var(--spacing-zero) var(--spacing-sm);
-    animation: typing 1.4s infinite ease-in-out;
-}
-
-.typing-indicator .dot:nth-child(1) { animation-delay: -0.32s; }
-.typing-indicator .dot:nth-child(2) { animation-delay: -0.16s; }
-
-@keyframes typing {
-    0%, 80%, 100% {
-        transform: scale(0.8);
-        opacity: 0.5;
-    }
-    40% {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-/* ================================================================= */
-/*    確認對話框樣式 (Confirm Modal Styles)                          */
-/* ================================================================= */
-
-/* 確認對話框樣式 */
 #confirm-modal .modal-dialog {
     max-width: var(--card-width-default);
 }
 
 #confirm-modal .modal-content {
     border-radius: var(--border-radius-card);
-    border: none;
+    border: var(--none);
     box-shadow: var(--shadow-modal);
 }
 
@@ -652,8 +827,8 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
 }
 
 #confirm-modal .btn {
-    flex-grow: 1; /* 讓按鈕平均分配容器寬度 */
-    padding: var(--spacing-sm) var(--spacing-sm);
+    flex-grow: var(--flex-grow-1);
+    padding: var(--padding-sm-sm);
     border-radius: var(--border-radius-sm);
     font-weight: var(--font-weight-semibold);
     transition: var(--transition-default);
@@ -662,7 +837,7 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
 #confirm-modal .btn-outline-secondary {
     border-color: var(--primary-orange-light);
     color: var(--primary-orange);
-    background-color: transparent;
+    background-color: var(--transparent);
 }
 
 #confirm-modal .btn-outline-secondary:hover {
@@ -683,82 +858,201 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
     color: var(--text-white);
 }
 
-/* 確保按鈕在同一列 */
 #confirm-modal .modal-footer .d-flex {
     gap: var(--spacing-sm);
 }
 
 /* ================================================================= */
-/*    響應式設計 (Responsive Design)                                */
+/*    聊天樣式 (Chat Styles)                                          */
 /* ================================================================= */
 
-/* 響應式設計：針對小螢幕設備（如手機）的樣式調整 */
-@media (max-width: 768px) {
-    /* 調整導覽列 Logo 圖片大小 */
-    .navbar-brand img {
-        height: 30px;
-    }
-
-    .giverCard {
-        max-width: 100%;
-        margin: 0 0 var(--spacing-sm) 0;
-    }
-
-    .loading-indicator {
-        padding: var(--spacing-lg);
-    }
-
-    .error-message {
-        padding: var(--spacing-lg);
-    }
+.chat-messages {
+    background-color: var(--background-card);    
+    position: var(--position-relative);
+    z-index: var(--z-index-base);
+    backdrop-filter: var(--backdrop-filter);
+    height: var(--chat-height-default);
+    overflow-y: var(--overflow-auto);
 }
 
-/* ================================================================= */
-/*    載入指示器與錯誤訊息樣式 (Loading & Error Message Styles)     */
-/* ================================================================= */
+/* 滾動條樣式 */
+.chat-messages::-webkit-scrollbar {
+    width: var(--scrollbar-width-default);
+}
 
-/* 載入指示器 */
-.loading-indicator {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    padding: var(--spacing-xl);
+.chat-messages::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-color);
     border-radius: var(--border-radius-sm);
-    box-shadow: var(--shadow-modal);
-    z-index: 9999;
-    text-align: center;
 }
 
-/* 錯誤訊息 */
-.error-message {
-    position: fixed;
-    top: var(--spacing-xl);
-    right: var(--spacing-xl);
-    z-index: 9999;
-    max-width: var(--card-width-default);
+.chat-messages::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-color);
+    border-radius: var(--border-radius-sm);
 }
 
-/* 響應式設計：手機版載入指示器調整 */
-@media (max-width: 768px) {
-    .loading-indicator {
-        padding: var(--spacing-lg);
-        margin: 0 var(--spacing-md);
-        width: calc(100% - var(--spacing-md) * 2);
-        max-width: 300px;
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-color-hover);
+}
+
+/* 頭像 */
+.avatar-modal {
+    width: var(--avatar-size-xs);
+    height: var(--avatar-size-xs);
+    margin-right: var(--spacing-lg);
+    border-radius: var(--border-radius-circle);
+    border: var(--border-medium-avatar);
+    object-fit: var(--object-fit-cover);
+}
+
+/* 訊息 */
+.message {
+    display: var(--display-flex);
+    flex-direction: var(--flex-direction-row);
+    align-items: var(--align-center);
+    justify-content: var(--justify-start);
+    padding: var(--spacing-sm);
+}
+
+.message-content {
+    display: var(--display-flex);
+    flex-direction: var(--flex-direction-column);
+    align-items: var(--align-start);
+    justify-content: var(--justify-start);
+    flex-grow: var(--flex-grow-1);
+    padding: var(--padding-sm-md);
+    border-radius: var(--border-radius-sm);
+    background-color: var(--background-message-giver);
+    max-width: var(--max-width-80); /* 限制訊息內容最大寬度 */
+}
+
+.message-title {
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.message-time {
+    font-size: var(--font-size-sm);
+    color: var(--text-light);
+    margin-top: var(--spacing-xs);
+}
+
+/* Giver 訊息 */
+.giver-message { 
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.giver-message .avatar-modal,
+.giver-message .chat-avatar-modal {
+    margin-right: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+}
+
+.giver-message .message-content {
+    margin-bottom: var(--spacing-xs);
+}
+
+/* 使用者訊息 */
+.user-message {
+    display: var(--display-flex);
+    justify-content: var(--justify-end);
+    background-color: var(--background-card);
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.user-message .message-content {
+    background-color: var(--primary-orange-light);
+    color: var(--text-primary);
+    max-width: var(--max-width-80);
+    /* 限制訊息內容最大寬度 */
+}
+
+/* 聊天選項 */
+.chat-options-buttons {
+    display: var(--display-flex);
+    flex-direction: var(--flex-direction-column); /* 讓其子元素垂直堆疊 */
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+}
+
+.chat-options-buttons .btn-option {
+    flex: var(--flex-grow-1);
+    padding: var(--padding-sm-md);
+    border-radius: var(--border-radius-sm);
+    background-color: var(--background-card);
+    text-align: var(--align-center);
+    color: var(--primary-orange);
+    transition: var(--transition-default);
+}
+
+.chat-option-btn {
+    background-color: var(--background-hover);
+    color: var(--text-primary);
+    border: var(--border-thin-default);
+}
+
+.chat-option-btn[data-option="schedule"] {
+    background-color: var(--primary-orange);
+    color: var(--text-white);
+}
+
+.chat-option-btn[data-option="skip"] {
+    background-color: var(--background-hover);
+    color: var(--text-secondary);
+}
+
+/* 聊天輸入 */
+.chat-input {
+    padding: var(--spacing-md);
+    border-top: var(--border-thin-default);
+}
+
+.chat-input .form-control {
+    border-radius: var(--border-radius-sm);
+    border: var(--border-thin-default);
+}
+
+.chat-input .btn {
+    border-radius: var(--border-radius-sm);
+    margin-left: var(--spacing-sm);
+}
+
+/* 打字指示器 */
+.typing-indicator {
+    display: var(--display-flex);
+    align-items: var(--align-center);
+    padding: var(--spacing-sm);
+}
+
+.typing-indicator .dot {
+    width: var(--spacing-sm);
+    height: var(--spacing-sm);
+    border-radius: var(--border-radius-circle);
+    background-color: var(--text-light);
+    margin: var(--margin-zero-sm);
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-indicator .dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-indicator .dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing {
+    0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
     }
-    
-    .error-message {
-        top: var(--spacing-md);
-        right: var(--spacing-md);
-        left: var(--spacing-md);
-        max-width: none;
+    40% {
+        transform: scale(1);
+        opacity: 1;
     }
 }
 
 /* ================================================================= */
-/*    分頁器樣式 (Pagination Styles) */
+/*    分頁器樣式 (Pagination Styles)                                 */
 /* ================================================================= */
 
 .pagination {
@@ -771,40 +1065,38 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
 }
 
 .pagination__item--active .pagination__link {
-    background-color: transparent;
+    background-color: var(--background-transparent);
     color: var(--primary-orange);
     font-weight: var(--font-weight-semibold);
-    border: none;
+    border: var(--border-none);
 }
 
 .pagination__item--disabled .pagination__link {
-    background-color: transparent;
+    background-color: var(--background-transparent);
     color: var(--text-light);
-    cursor: default;
+    cursor: var(--cursor-default);
 }
 
 .pagination__item--disabled .pagination__link:hover {
-    background-color: transparent;
+    background-color: var(--background-transparent);
     color: var(--text-light);
 }
 
 .pagination__link {
-    background-color: transparent;
-    border: none;
+    background-color: var(--background-transparent);
+    border: var(--border-none);
     border-radius: var(--border-radius-sm);
     padding: var(--spacing-sm) var(--spacing-md);
     margin: var(--spacing-zero);
-    text-decoration: none;
+    text-decoration: var(--text-decoration-none);
     transition: var(--transition-default);
     color: var(--text-primary);
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--border-radius-sm);
     font-weight: var(--font-weight-semibold);
 }
 
 .pagination__link:hover {
     background-color: var(--primary-orange-light);
-    border: transparent;
+    border: var(--border-transparent);
     color: var(--text-primary);
 }
 
@@ -827,24 +1119,24 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
 
 .date-picker-container {
     width: 100%;
-    max-width: 350px;
-    margin: 0 auto;
+    max-width: var(--max-width-350);
+    margin: var(--margin-zero-auto);
 }
 
 .date-picker-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 0 10px;
+    display: var(--display-flex);
+    justify-content: var(--justify-space-between);
+    align-items: var(--align-center);
+    margin-bottom: var(--spacing-xl);
+    padding: var(--padding-zero-sm);
 }
 
 .date-picker-header button {
-    background: none;
-    border: 1px solid var(--border-color-default);
-    border-radius: 4px;
-    padding: 5px 10px;
-    cursor: pointer;
+    background: var(--none);   
+    border: var(--border-thin-default);
+    border-radius: var(--border-radius-xs);
+    padding: var(--padding-sm-md);
+    cursor: var(--cursor-pointer);
     transition: var(--transition-default);
 }
 
@@ -860,36 +1152,36 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
 }
 
 .date-picker-weekdays {
-    display: grid;
+    display: var(--display-grid);
     grid-template-columns: repeat(7, 1fr);
-    gap: 2px;
-    margin-bottom: 10px;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
 }
 
 .weekday {
-    text-align: center;
-    padding: 10px 5px;
+    text-align: var(--align-center);
+    padding: var(--padding-sm-md);
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-semibold);
     color: var(--text-secondary);
     background-color: var(--background-hover);
-    border-radius: 4px;
+    border-radius: var(--border-radius-xs);
 }
 
 .date-picker-calendar {
-    display: grid;
+    display: var(--display-grid);
     grid-template-columns: repeat(7, 1fr);
-    gap: 2px;
+    gap: var(--spacing-xs);
 }
 
 .date-cell {
-    aspect-ratio: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border-color-light);
-    border-radius: 4px;
-    cursor: pointer;
+    aspect-ratio: var(--aspect-ratio-1);
+    display: var(--display-flex);
+    align-items: var(--align-center);
+    justify-content: var(--justify-center);
+    border: var(--border-thin-default);
+    border-radius: var(--border-radius-xs);
+    cursor: var(--cursor-pointer);
     transition: var(--transition-default);
     font-size: var(--font-size-sm);
     background-color: var(--background-card);
@@ -907,9 +1199,9 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
 }
 
 .date-cell.disabled {
-    color: var(--text-light);
-    background-color: var(--background-page);
-    cursor: not-allowed;
+    color: var(--text-primary);
+    background-color: var(--background-disabled);
+    cursor: var(--cursor-not-allowed);
     border-color: var(--border-color-light);
 }
 
@@ -929,51 +1221,52 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
 
 /* 預約表單初始狀態 */
 #schedule-form {
-    display: none;
+    display: var(--display-none);
 }
 
 .schedule-form {
     background-color: var(--primary-orange-light);
     border-radius: var(--border-radius-card);
-    padding: 20px;
-    border: 1px solid var(--border-color-light);
+    padding: var(--spacing-xl);
+    border: var(--border-thin-default);
 }
 
 .schedule-form .form-label {
     font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
-    margin-bottom: 8px;
+    margin-bottom: var(--spacing-xs);
 }
 
 .schedule-form .form-control {
-    border: 1px solid var(--border-color-default);
+    border: var(--border-thin-default);
     border-radius: var(--border-radius-sm);
-    padding: 10px 12px;
+    padding: var(--padding-sm-md);
+    text-align: var(--align-center);
     font-size: var(--font-size-md);
     transition: var(--transition-default);
 }
 
 .schedule-form .form-control:focus {
     border-color: var(--primary-orange);
-    box-shadow: 0 0 0 0.2rem rgba(255, 145, 0, 0.25);
-    outline: none;
+    box-shadow: var(--shadow-focus);
+    outline: var(--outline-none);
 }
 
 .schedule-form .form-control:read-only {
     background-color: var(--background-hover);
-    cursor: pointer;
+    cursor: var(--cursor-pointer);
 }
 
 .schedule-form textarea.form-control {
-    resize: vertical;
-    min-height: 80px;
+    resize: var(--resize-vertical);
+    min-height: var(--min-height-80);
 }
 
 .schedule-form .btn-orange {
     background-color: var(--primary-orange);
     border-color: var(--primary-orange);
     color: var(--text-white);
-    padding: 10px 20px;
+    padding: var(--padding-sm-md);
     border-radius: var(--border-radius-button);
     font-weight: var(--font-weight-semibold);
     transition: var(--transition-default);
@@ -988,18 +1281,82 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
 /* 時間輸入欄位的特殊樣式 */
 .schedule-form input[type="text"][id*="time"] {
     font-family: 'Courier New', monospace;
-    text-align: center;
+    text-align: var(--align-center);
     letter-spacing: 1px;
 }
 
 /* 表單元素樣式 */
 #schedule-notes {
-    min-height: 3em;
-    resize: vertical;
+    min-height: var(--min-height-3em);
+    resize: var(--resize-vertical);
 }
 
-/* 響應式設計 */
+/* 表格樣式 */
+th {
+    white-space: var(--white-space-nowrap);
+    text-align: var(--align-center);
+}
+
+.schedule-edit-btn,
+.schedule-delete-btn {
+    white-space: var(--white-space-nowrap);
+    min-width: 2.5em;
+}
+
+/* ================================================================= */
+/*    載入與錯誤樣式 (Loading & Error Styles)                        */
+/* ================================================================= */
+
+.loading-indicator {
+    position: var(--position-fixed);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--white);
+    padding: var(--spacing-xl);
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow-modal);
+    z-index: var(--z-index-loading);
+    text-align: var(--align-center);
+}
+
+.error-message {
+    position: var(--position-fixed);
+    top: var(--spacing-xl);
+    right: var(--spacing-xl);
+    z-index: var(--z-index-loading);
+    max-width: var(--card-width-default);
+}
+
+/* ================================================================= */
+/*    響應式設計 (Responsive Design)                                 */
+/* ================================================================= */
+
+/* 平板與手機 (768px 以下) */
 @media (max-width: 768px) {
+    .navbar-brand img {
+        height: 30px;
+    }
+
+    .giverCard {
+        max-width: 100%;
+        margin: 0 0 var(--spacing-sm) 0;
+    }
+
+    .loading-indicator {
+        padding: var(--spacing-lg);
+        margin: 0 var(--spacing-md);
+        width: calc(100% - var(--spacing-md) * 2);
+        max-width: 300px;
+    }
+    
+    .error-message {
+        top: var(--spacing-md);
+        right: var(--spacing-md);
+        left: var(--spacing-md);
+        max-width: none;
+    }
+
     .date-picker-container {
         max-width: 100%;
     }
@@ -1023,133 +1380,37 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
     .schedule-form .col-md-6 {
         padding: 0 5px;
     }
-}
 
-th {
-    white-space: nowrap;
-    text-align: center;
-}
-
-.schedule-edit-btn,
-.schedule-delete-btn {
-  white-space: nowrap;
-  min-width: 2.5em;
-}
-
-/* 手機寬度下，調整欄按鈕垂直排列 */
-@media (max-width: 576px) {
-    .schedule-table .d-flex.justify-content-center {
-        flex-direction: column;
-        gap: var(--spacing-xs);
-        align-items: center;
+    .giver-card-wrapper {
+        width: 100%;
+        max-width: var(--card-width-default);
     }
 }
 
-/* ================================================================= */
-/*    JavaScript 動態樣式類別 (JavaScript Dynamic Style Classes)     */
-/* ================================================================= */
+/* 手機 (576px 以下) */
+@media (max-width: 576px) {
+    .chat-options-buttons {
+        flex-direction: var(--flex-direction-column);
+        gap: var(--spacing-sm);
+    }
 
-/* Giver 卡片包裝器樣式 */
-.giver-card-wrapper {
-    width: 320px;
-}
-
-/* 分頁器容器樣式 */
-.paginator-container {
-    display: flex;
-    justify-content: center;
-}
-
-/* Giver 面板置中樣式 */
-.giver-panel-centered {
-    justify-content: center;
-}
-
-/* 隱藏元素樣式 */
-.hidden {
-    display: none;
-}
-
-.visible {
-    display: block;
-}
-
-/* 彈性佈局樣式 */
-.flex-nowrap {
-    flex-wrap: nowrap;
-}
-
-.flex-wrap {
-    flex-wrap: wrap;
-}
-
-/* 顯示樣式 */
-.inline {
-    display: inline;
-}
-
-/* 聊天選項按鈕容器隱藏 */
-.chat-options-hidden {
-    display: none;
-}
-
-/* 表單顯示/隱藏 */
-#schedule-form.schedule-form-visible {
-    display: block;
-}
-
-#schedule-form.schedule-form-hidden {
-    display: none;
-}
-
-/* Modal 相關樣式 */
-.modal-dialog-large {
-    height: 90vh;
-}
-
-.modal-content-full {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.modal-body-scrollable {
-    flex-grow: 1;
-    overflow-y: auto;
-}
-
-/* 按鈕顯示/隱藏 */
-.btn-visible {
-    display: block;
-}
-
-.btn-hidden {
-    display: none;
-}
-
-/* 容器顯示/隱藏 */
-.container-visible {
-    display: block;
-}
-
-.container-hidden {
-    display: none;
-}
-
-/* 錯誤訊息顯示/隱藏 */
-.error-visible {
-    display: block;
-}
-
-.error-hidden {
-    display: none;
-}
-
-/* 響應式設計 */
-@media (max-width: 768px) {
-    .giver-card-wrapper {
+    .chat-options-buttons .btn {
         width: 100%;
-        max-width: 320px;
+        margin: var(--spacing-zero);
+    }
+
+    .giver-message {
+        padding: var(--spacing-sm);
+    }
+
+    .giver-message .message-content {
+        margin-left: var(--spacing-zero);
+    }
+
+    .schedule-table .d-flex.justify-content-center {
+        flex-direction: var(--flex-direction-column);
+        gap: var(--spacing-xs);
+        align-items: var(--align-center);
     }
 }
 

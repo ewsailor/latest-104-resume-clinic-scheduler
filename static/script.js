@@ -1982,7 +1982,7 @@ const DOM = {
     createGiverAvatar: () => {
       console.log('DOM.message.createGiverAvatar called');
       
-      const avatarContainer = DOM.createElement('div', 'd-flex align-items-center mb-2');
+      const avatarContainer = DOM.createElement('div', 'd-flex align-items-center');
       const avatarImg = DOM.createElement('img');
       avatarImg.id = 'chat-giver-avatar-small';
       avatarImg.src = '/static/chat-avatar.svg';
