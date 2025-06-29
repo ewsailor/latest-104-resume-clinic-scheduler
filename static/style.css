@@ -16,21 +16,21 @@
     --background-page: #f0f2f5;
     --background-hover: #f5f5f5;
     --background-active: #ffeedd;
-    --background-message-giver: #e6f7f8; /* 新增 Giver 訊息背景色變數 */
+    --background-message-giver: #e6f7f8;
     --border-color-light: #e0e0e0;
     --border-color-default: #ddd;
     --border-color-medium: #ccc; 
     --border-color-avatar: #d7d6d6;
-    --scrollbar-track-color: #f1f1f1; /* 新增滾動條軌道顏色變數 */
-    --scrollbar-thumb-color: #c1c1c1; /* 新增滾動條按鈕顏色變數 */
-    --scrollbar-thumb-color-hover: #a8a8a8; /* 新增滾動條按鈕懸停顏色變數 */
+    --scrollbar-track-color: #f1f1f1;
+    --scrollbar-thumb-color: #c1c1c1;
+    --scrollbar-thumb-color-hover: #a8a8a8;
     
-    /* 字體大小 */
+    /* 字體系統 */
     --font-size-sm: 12px;
     --font-size-md: 14px;
     --font-size-lg: 16px;
     --font-size-xl: 18px;
-    --font-weight-semibold: 600; /* 新增字體粗細 */
+    --font-weight-semibold: 600;
     
     /* 間距系統 */
     --spacing-zero: 0px;
@@ -47,27 +47,25 @@
     --card-width-default: 400px;
     --chat-height-default: 400px;
     
-    /* 邊框圓角 */
+    /* 邊框系統 */
     --border-radius-sm: 8px;
     --border-radius-card: 12px;
     --border-radius-button: 20px;
     --border-radius-circle: 50%;
-    
-    /* 邊框寬度 */
     --border-width-thin: 1px;
     --border-width-medium: 2px;
     
-    /* 陰影與效果 */
+    /* 效果系統 */
     --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.1);
-    --shadow-modal: 0 10px 30px rgba(0, 0, 0, 0.2); /* 新增 Modal 陰影變數 */
-    --shadow-dropdown: 0 2px 10px rgba(0, 0, 0, 0.15); /* 新增下拉選單陰影變數 */
+    --shadow-modal: 0 10px 30px rgba(0, 0, 0, 0.2);
+    --shadow-dropdown: 0 2px 10px rgba(0, 0, 0, 0.15);
     --transition-default: all 0.3s ease;
     --backdrop-filter: blur(2px);
 } 
 
+/* 全域重置 */
 * {
     box-sizing: border-box;
-    /* 把所有元素大小改成 border-box */
 }
 
 html,
@@ -101,24 +99,16 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
     max-width: var(--card-width-default);
     padding: var(--spacing-md);
     margin: 0 0 var(--spacing-md) 0;
-
-    /* 4. 排版 (Typographic) */
-    /* 無排版屬性 */
-
-    /* 5. 視覺 (Visual) */
     background-color: var(--background-card);
     border-radius: var(--border-radius-card);
     box-shadow: var(--shadow-card);
-
-    /* 6. 其他 (Miscellaneous) */
-    /* 無其他屬性 */
 }
 
 .giverCard__pointer {
     cursor: pointer;
 }
 
-/* 第一部分：Giver 資訊 */
+/* 第一部分：Giver 頭像區域 */
 .giverCard__avatar {
     display: flex;
     flex-direction: row;
@@ -158,7 +148,6 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
     color: var(--text-secondary);
 }
 
-/* 使用者資訊文字樣式 */
 .giverCard__name {
     font-size: var(--font-size-xl);
     font-weight: var(--font-weight-semibold);
@@ -171,14 +160,14 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
     color: var(--text-primary);
 }
 
-/* 第二部分：諮詢統計 */
+/* 第二部分：統計資訊 */
 .giverCard__count {
     display: flex;
-    justify-content: space-around; /* 改為 space-around 讓項目平均分佈 */
-    align-items: center; /* 讓項目垂直置中對齊 */
+    justify-content: space-around;
+    align-items: center;
     width: 100%;
-    padding: var(--spacing-sm) 0; /* 增加上下內邊距 */ 
-    margin-top: var(--spacing-zero); /* 增加與上方元素的間距 */
+    padding: var(--spacing-sm) 0;
+    margin-top: var(--spacing-zero);
 }
 
 .giverCard__count-item {
@@ -206,7 +195,6 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
     width: var(--border-width-thin);
     height: var(--spacing-vertical-divider);
     background-color: var(--border-color-light);
-    /* 調整分隔線顏色 */
 }
 
 /* 第三部分：服務項目 */
@@ -286,29 +274,17 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
 }
 
 .giverCard__action-button {
-    /* 1. 定位 (Positioning) */
-    /* 無定位屬性 */
-
-    /* 2. 佈局 (Layout) */
     display: block; /* 使按鈕佔滿一行 */
-
-    /* 3. 盒模型 (Box Model) */
     width: 100%;
     padding: var(--spacing-sm) var(--spacing-sm);
     box-sizing: border-box;
-
-    /* 4. 排版 (Typographic) */
     font-size: var(--font-size-md);
     text-align: center;
     text-decoration: none;
-
-    /* 5. 視覺 (Visual) */
     background-color: var(--primary-orange);
     color: var(--text-white);
     border: none;
     border-radius: var(--border-radius-sm);
-
-    /* 6. 其他 (Miscellaneous) */
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
@@ -805,7 +781,7 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
     background-color: transparent;
     color: var(--text-light);
     cursor: default;
-} */
+}
 
 .pagination__item--disabled .pagination__link:hover {
     background-color: transparent;

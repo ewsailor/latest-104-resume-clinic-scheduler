@@ -42,35 +42,53 @@ WEEKDAY_MAP_REVERSE = {v: k for k, v in WEEKDAY_MAP.items()}
 
 # 資料庫依賴
 def get_db():
+    logger.info("get_db() called: 建立資料庫連線")
     db = SessionLocal()  # 建立資料庫連線：每次操作資料庫，會透過 SessionLocal() 建立一個 session 實例（db）來操作。
     try:
+        logger.info("get_db() yield: 傳遞資料庫連線給處理函式")
         yield db  # 傳給處理請求的函式使用，執行查詢/新增/修改操作，每次請求建立一個 session，避免多個使用者共享同一個連線
     finally:
+        logger.info("get_db() cleanup: 關閉資料庫連線")
         db.close()  # 每次請求結束後，無論有沒有錯誤發生，都自動關閉 session 連線，避免資源浪費、外洩
 
 # 工具函數
 def convert_weekday_to_english(weekday: str) -> str:
     """將中文星期轉換為英文"""
-    return WEEKDAY_MAP_REVERSE.get(weekday, weekday)
+    logger.info(f"convert_weekday_to_english() called: {weekday}")
+    result = WEEKDAY_MAP_REVERSE.get(weekday, weekday)
+    logger.info(f"convert_weekday_to_english() result: {result}")
+    return result
 
 def convert_weekday_to_chinese(weekday: str) -> str:
     """將英文星期轉換為中文"""
-    return WEEKDAY_MAP.get(weekday, weekday)
+    logger.info(f"convert_weekday_to_chinese() called: {weekday}")
+    result = WEEKDAY_MAP.get(weekday, weekday)
+    logger.info(f"convert_weekday_to_chinese() result: {result}")
+    return result
 
 def format_time_for_response(time_obj) -> str:
     """格式化時間物件為字串"""
+    logger.info(f"format_time_for_response() called: {time_obj}")
     if hasattr(time_obj, 'strftime'):
-        return time_obj.strftime('%H:%M')
-    return str(time_obj)
+        result = time_obj.strftime('%H:%M')
+    else:
+        result = str(time_obj)
+    logger.info(f"format_time_for_response() result: {result}")
+    return result
 
 def format_date_for_response(date_obj) -> str:
     """格式化日期物件為字串"""
+    logger.info(f"format_date_for_response() called: {date_obj}")
     if hasattr(date_obj, 'isoformat'):
-        return date_obj.isoformat()
-    return str(date_obj)
+        result = date_obj.isoformat()
+    else:
+        result = str(date_obj)
+    logger.info(f"format_date_for_response() result: {result}")
+    return result
 
 def check_schedule_overlap(db: Session, schedule_date: date, start_time: time, end_time: time, exclude_id: Optional[int] = None) -> bool:
     """檢查排程時間是否重疊"""
+    logger.info(f"check_schedule_overlap() called: date={schedule_date}, start={start_time}, end={end_time}, exclude_id={exclude_id}")
     query = db.query(Schedule).filter(
         Schedule.date == schedule_date,
         (
@@ -87,11 +105,14 @@ def check_schedule_overlap(db: Session, schedule_date: date, start_time: time, e
     if exclude_id:
         query = query.filter(Schedule.id != exclude_id)
     
-    return query.first() is not None
+    result = query.first() is not None
+    logger.info(f"check_schedule_overlap() result: {result}")
+    return result
 
 def schedule_to_response_dict(schedule: Schedule) -> dict:
     """將 Schedule 物件轉換為回應字典"""
-    return {
+    logger.info(f"schedule_to_response_dict() called: schedule_id={schedule.id}")
+    result = {
         "id": schedule.id,
         "name": schedule.name,
         "date": format_date_for_response(schedule.date),
@@ -100,6 +121,8 @@ def schedule_to_response_dict(schedule: Schedule) -> dict:
         "end": format_time_for_response(schedule.end_time),
         "note": schedule.note
     }
+    logger.info(f"schedule_to_response_dict() result: {result}")
+    return result
 
 # 掛載路由
 app.include_router(giver.router)
@@ -117,11 +140,18 @@ templates = Jinja2Templates(directory="app/templates")
 # 根路由
 @app.get("/", response_class=HTMLResponse)  # 有人用 GET 方法請求網站根目錄（例如 http://127.0.0.1:8000/）時，執行函式 read_index(request: Request)。  
 async def read_index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    logger.info("read_index() called: 處理根路由請求")
+    logger.info(f"read_index() request: {request.url}")
+    result = templates.TemplateResponse("index.html", {"request": request})
+    logger.info("read_index() completed: 返回 HTML 模板")
+    return result
 
 @app.get("/reload-check")
 def reload_check():
-    return {"reloaded_at": last_reload_time.isoformat()}
+    logger.info("reload_check() called: 檢查應用程式重載狀態")
+    result = {"reloaded_at": last_reload_time.isoformat()}
+    logger.info(f"reload_check() result: {result}")
+    return result
 
 # ===== CRUD API ===== 
 @app.get("/schedules")

@@ -465,6 +465,7 @@ const FormValidator = {
 
   // 生成重複時段詳細錯誤訊息
   generateDuplicateScheduleMessage: (newSchedule, existingSchedules) => {
+    console.log('FormValidator.generateDuplicateScheduleMessage called', { newSchedule, existingSchedules });
     const conflictingSchedules = [];
     
     existingSchedules.forEach((schedule, index) => {
@@ -1224,6 +1225,7 @@ const TEMPLATES = {
 
     // 時段表格模板
     scheduleTable: (schedules) => {
+      console.log('TEMPLATES.chat.scheduleTable called', { schedules });
       let tableRows = '';
       schedules.forEach((schedule, index) => {
         const scheduleNumber = index + 1;
@@ -1364,6 +1366,7 @@ const TEMPLATES = {
 
     // 新增：成功提供時間的模板
     successProvideTime: (schedules) => {
+      console.log('TEMPLATES.chat.successProvideTime called', { schedules });
       let tableRows = '';
       schedules.forEach((schedule, index) => {
         const scheduleNumber = index + 1;
@@ -1481,6 +1484,7 @@ const TEMPLATES = {
     
     // 新增：預約成功訊息和表格模板
     reservationSuccessMessageAndTable: (demoTimeOptions, provideMyTimeOption) => {
+      console.log('TEMPLATES.chat.reservationSuccessMessageAndTable called', { demoTimeOptions, provideMyTimeOption });
       const totalCount = demoTimeOptions.length + (provideMyTimeOption ? 1 : 0);
       
       // 生成表格行
@@ -1556,6 +1560,7 @@ const TEMPLATES = {
 
     // 新增：預約成功表格模板
     reservationSuccessTable: (demoTimeOptions, provideMyTimeOption, isUpdate = false) => {
+      console.log('TEMPLATES.chat.reservationSuccessTable called', { demoTimeOptions, provideMyTimeOption, isUpdate });
       const totalCount = demoTimeOptions.length + (provideMyTimeOption ? 1 : 0);
       
       // 根據是否為更新模式選擇訊息
@@ -1638,6 +1643,7 @@ const TEMPLATES = {
 
     // 新增：取消成功訊息和表格模板
     cancelSuccessMessageAndTable: (demoTimeOptions, provideMyTimeOption) => {
+      console.log('TEMPLATES.chat.cancelSuccessMessageAndTable called', { demoTimeOptions, provideMyTimeOption });
       const totalCount = demoTimeOptions.length + (provideMyTimeOption ? 1 : 0);
       
       // 生成表格行
@@ -3013,9 +3019,11 @@ const DOM = {
     
     // 設定表單事件
     setupScheduleForm: (editIndex = null) => {
+      console.log('DOM.chat.setupScheduleForm called: 設定表單事件');
       const form = document.getElementById('time-schedule-form');
       if (form) {
         form.onsubmit = (e) => {
+          console.log('DOM.chat.setupScheduleForm: 表單提交事件觸發');
           e.preventDefault();
           const dateInput = document.getElementById('schedule-date');
           const startTimeInput = document.getElementById('schedule-start-time');
@@ -3027,8 +3035,10 @@ const DOM = {
             endTime: endTimeInput?.value || '',
             notes: notesInput?.value || ''
           };
+          console.log('DOM.chat.setupScheduleForm: 表單資料', formData);
           const validationResult = FormValidator.validateScheduleForm(formData);
           if (!validationResult.isValid) {
+            console.warn('DOM.chat.setupScheduleForm: 表單驗證失敗', validationResult);
             FormValidator.showValidationError(validationResult.message, form);
             return;
           }
@@ -3073,6 +3083,7 @@ const DOM = {
           }
           // 編輯模式：覆蓋原本那一筆
           if (editIndex !== null && editIndex !== undefined) {
+            console.log('DOM.chat.setupScheduleForm: 編輯模式，覆蓋原本的時段');
             const schedules = ChatStateManager.getProvidedSchedules();
             schedules[editIndex] = { ...schedules[editIndex], ...formData };
             ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, schedules);
@@ -3767,24 +3778,38 @@ const DOM = {
       
       // 內部重繪表格的函式
       function renderTable() {
+        console.log('renderTable() called: 重繪時段表格');
         const schedules = ChatStateManager.getProvidedSchedules();
-        return TEMPLATES.chat.scheduleTable(schedules);
+        console.log('renderTable() schedules:', schedules);
+        const result = TEMPLATES.chat.scheduleTable(schedules);
+        console.log('renderTable() completed: 表格模板已生成');
+        return result;
       }
       
       // 真正渲染與事件綁定
       function mountTable() {
+        console.log('mountTable() called: 渲染與事件綁定表格');
         const chatMessages = document.getElementById('chat-messages');
-        if (!chatMessages) return;
+        if (!chatMessages) {
+          console.warn('mountTable() error: 找不到 chat-messages 元素');
+          return;
+        }
+        console.log('mountTable() 開始移除舊的時段表格訊息泡泡');
         // 先移除所有舊的時段表格訊息泡泡
         chatMessages.querySelectorAll('.giver-message .schedule-table').forEach(table => {
           const bubble = table.closest('.giver-message');
           if (bubble) bubble.remove();
         });
+        console.log('mountTable() 插入新的表格訊息');
         // 插入新的表格訊息
         chatMessages.insertAdjacentHTML('beforeend', renderTable());          
         // 綁定表格內按鈕事件
         const table = chatMessages.querySelector('.giver-message:last-child table');
-        if (!table) return;
+        if (!table) {
+          console.warn('mountTable() error: 找不到新插入的表格');
+          return;
+        }
+        console.log('mountTable() 綁定編輯按鈕事件');
         // 編輯按鈕
         table.querySelectorAll('.schedule-edit-btn').forEach(btn => {
           btn.addEventListener('click', function() {
@@ -3792,15 +3817,18 @@ const DOM = {
             const idx = parseInt(tr.getAttribute('data-index'));
             const schedules = ChatStateManager.getProvidedSchedules();
             const schedule = schedules[idx];
+            console.log('mountTable() 編輯按鈕被點擊:', { idx, schedule });
             // 直接呼叫 handleSingleTime 進入編輯模式
             DOM.chat.handleSingleTime(idx, schedule);
           });
         });
+        console.log('mountTable() 綁定刪除按鈕事件');
         // 刪除按鈕
         table.querySelectorAll('.schedule-delete-btn').forEach(btn => {
           btn.addEventListener('click', function() {
             const tr = btn.closest('tr');
             const idx = parseInt(tr.getAttribute('data-index'));
+            console.log('mountTable() 刪除按鈕被點擊:', { idx });
             // 彈出確認
             UIComponents.confirmDialog({
               title: '刪除時段',
@@ -3808,6 +3836,7 @@ const DOM = {
               confirmText: '刪除',
               cancelText: '取消',
               onConfirm: () => {
+                console.log('mountTable() 確認刪除時段:', { idx });
                 // 刪除狀態
                 let schedules = ChatStateManager.getProvidedSchedules();
                 schedules.splice(idx, 1);
@@ -3817,13 +3846,14 @@ const DOM = {
             });
           });
         });
+        console.log('mountTable() 綁定下方動作按鈕事件');
         // 綁定下方動作按鈕
         const afterBtns = chatMessages.querySelectorAll('#after-view-all-options .btn-option');
         afterBtns.forEach(btn => {
           btn.addEventListener('click', (e) => {
             const option = btn.getAttribute('data-option');
             const optionText = btn.textContent.trim();
-            console.log('after-view-all-options 按鈕被點擊:', { option, optionText });
+            console.log('mountTable() after-view-all-options 按鈕被點擊:', { option, optionText });
             if (option === 'single-time') {
               DOM.chat.handleSingleTime();
             } else if (option === 'multiple-times') {
@@ -3844,8 +3874,10 @@ const DOM = {
             }
           });
         });
+        console.log('mountTable() 滾動到底部');
         // 滾動到底部
         chatMessages.scrollTop = chatMessages.scrollHeight;
+        console.log('mountTable() completed: 表格渲染與事件綁定完成');
       }
       
       setTimeout(() => {
@@ -5302,6 +5334,7 @@ const ErrorHandler = {
 
   // 處理錯誤
   handle: (error, type = ERROR_TYPES.UNKNOWN, context = {}) => {
+    console.log('ErrorHandler.handle called: 處理錯誤', { error, type, context });
     const handler = ErrorHandler.handlers[type];
     if (!handler) {
       console.error('DOM.errorHandler.handle: 未找到錯誤處理器:', type);
@@ -5324,6 +5357,7 @@ const ErrorHandler = {
 
   // 顯示錯誤訊息
   showError: (error, options = {}) => {
+    console.log('ErrorHandler.showError called: 顯示錯誤訊息', { error, options });
     const {
       duration = CONFIG.UI.ERROR_DISPLAY_TIME,
       showNotification = true,
@@ -5358,6 +5392,7 @@ const ErrorHandler = {
 
   // 顯示成功訊息
   showSuccess: (message, options = {}) => {
+    console.log('ErrorHandler.showSuccess called: 顯示成功訊息', { message, options });
     const {
       duration = CONFIG.UI.ERROR_DISPLAY_TIME,
       showNotification = true
@@ -5384,6 +5419,7 @@ const ErrorHandler = {
 
   // 顯示資訊訊息
   showInfo: (message, options = {}) => {
+    console.log('ErrorHandler.showInfo called: 顯示資訊訊息', { message, options });
     const {
       duration = CONFIG.UI.ERROR_DISPLAY_TIME,
       showNotification = true
@@ -5412,6 +5448,7 @@ const ErrorHandler = {
   utils: {
     // 獲取錯誤統計
     getStats: () => {
+      console.log('ErrorHandler.utils.getStats called: 獲取錯誤統計');
       const stats = {
         total: ErrorHandler.errorHistory.length,
         byType: {},
@@ -5448,16 +5485,19 @@ const ErrorHandler = {
 
     // 清理錯誤歷史
     clearHistory: () => {
+      console.log('ErrorHandler.utils.clearHistory called: 清理錯誤歷史');
       ErrorHandler.errorHistory = [];
     },
 
     // 獲取最近的錯誤
     getRecentErrors: (count = 10) => {
+      console.log('ErrorHandler.utils.getRecentErrors called: 獲取最近的錯誤', { count });
       return ErrorHandler.errorHistory.slice(-count);
     },
 
     // 檢查是否有特定類型的錯誤
     hasErrorType: (type) => {
+      console.log('ErrorHandler.utils.hasErrorType called: 檢查是否有特定類型的錯誤', { type });
       return ErrorHandler.errorHistory.some(error => error.type === type);
     },
 
@@ -5513,6 +5553,7 @@ const Logger = {
 
   // 記錄日誌
   log: (level, message, data = null, context = {}) => {
+    console.log('Logger.log called: 記錄日誌', { level, message, data, context });
     if (level < Logger.config.level) {
       return;
     }
@@ -5593,22 +5634,27 @@ const Logger = {
 
   // 便捷方法
   debug: (message, data = null, context = {}) => {
+    console.log('Logger.debug called: 記錄 DEBUG 日誌', { message, data, context });
     return Logger.log(LOGGER_LEVELS.DEBUG, message, data, context);
   },
 
   info: (message, data = null, context = {}) => {
+    console.log('Logger.info called: 記錄 INFO 日誌', { message, data, context });
     return Logger.log(LOGGER_LEVELS.INFO, message, data, context);
   },
 
   warn: (message, data = null, context = {}) => {
+    console.log('Logger.warn called: 記錄 WARN 日誌', { message, data, context });
     return Logger.log(LOGGER_LEVELS.WARN, message, data, context);
   },
 
   error: (message, data = null, context = {}) => {
+    console.log('Logger.error called: 記錄 ERROR 日誌', { message, data, context });
     return Logger.log(LOGGER_LEVELS.ERROR, message, data, context);
   },
 
   fatal: (message, data = null, context = {}) => {
+    console.log('Logger.fatal called: 記錄 FATAL 日誌', { message, data, context });
     return Logger.log(LOGGER_LEVELS.FATAL, message, data, context);
   },
 
@@ -6194,6 +6240,11 @@ DOM.events.add(document, 'DOMContentLoaded', function() {
 
 // === 新增：表單欄位初始化 function ===
 function initScheduleFormInputs(formElement) {
+  console.log('initScheduleFormInputs() called: 初始化表單欄位');
+  console.log('initScheduleFormInputs() formElement:', formElement);
+  
+  // 日期 input
+  console.log('initScheduleFormInputs called: 初始化表單欄位');
   // 日期 input
   const dateInput = formElement.querySelector('#schedule-date');
   if (dateInput) {
