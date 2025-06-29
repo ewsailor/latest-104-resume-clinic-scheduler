@@ -16,9 +16,37 @@ from app.schemas.schedule import (
     ScheduleResponse  # 用於回傳排程資料
 )
 import logging
+from logging.handlers import RotatingFileHandler
+import os
 
-# 設定日誌
-logging.basicConfig(level=logging.INFO)
+# 建立 logs 目錄
+os.makedirs('logs', exist_ok=True)
+
+# 設定日誌格式
+log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+date_format = '%Y-%m-%d %H:%M:%S'
+
+# 設定檔案日誌處理器
+file_handler = RotatingFileHandler(
+    'logs/app.log',
+    maxBytes=1024*1024,  # 1MB
+    backupCount=5,
+    encoding='utf-8'
+)
+file_handler.setFormatter(logging.Formatter(log_format, date_format))
+
+# 設定控制台日誌處理器
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(logging.Formatter(log_format, date_format))
+
+# 設定根日誌器
+logging.basicConfig(
+    level=logging.INFO,
+    handlers=[file_handler, console_handler],
+    format=log_format,
+    datefmt=date_format
+)
+
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Resume Clinic Scheduler", version="1.0.0") # 定義叫 app 的 FastAPI 應用實例，所有 API 路由（像 /, /users, /products）都掛在這個 app 上。
@@ -152,6 +180,31 @@ def reload_check():
     result = {"reloaded_at": last_reload_time.isoformat()}
     logger.info(f"reload_check() result: {result}")
     return result
+
+@app.post("/api/logs")
+async def receive_client_logs(log_data: dict):
+    """接收客戶端日誌"""
+    try:
+        logger.info("收到客戶端日誌", {
+            "level": log_data.get("level"),
+            "message": log_data.get("message"),
+            "logger": log_data.get("logger"),
+            "timestamp": log_data.get("timestamp"),
+            "url": log_data.get("url"),
+            "userAgent": log_data.get("userAgent")
+        })
+        
+        # 如果有額外資料，也記錄下來
+        if log_data.get("data"):
+            logger.debug("客戶端日誌詳細資料", log_data["data"])
+            
+        return {"status": "received", "timestamp": datetime.now().isoformat()}
+    except Exception as e:
+        logger.error(f"處理客戶端日誌時發生錯誤: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="處理日誌時發生錯誤"
+        )
 
 # ===== CRUD API ===== 
 @app.get("/schedules")
