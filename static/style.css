@@ -449,16 +449,8 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
 }
 
 /* 容器工具類別 */
-.giver-card-wrapper {
-    width: var(--card-width-default);
-}
-
 .paginator-container {
     display: var(--display-flex);
-    justify-content: var(--justify-center);
-}
-
-.giver-panel-centered {
     justify-content: var(--justify-center);
 }
 
@@ -586,7 +578,7 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
     flex-direction: var(--flex-direction-column);
     align-items: var(--align-stretch);
     width: 100%;
-    max-width: var(--card-width-default);
+    /* max-width: var(--card-width-default); */
     padding: var(--spacing-md);
     margin: var(--margin-zero-md);
     background-color: var(--background-card);
@@ -596,6 +588,7 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
 
 .giverCard__pointer {
     cursor: var(--cursor-pointer);
+    border: var(--none);
 }
 
 /* 第一部分：Giver 頭像區域 */
@@ -626,7 +619,7 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
 .giverCard__user-info {
     display: var(--display-flex);
     flex-direction: var(--flex-direction-column);
-    align-items: var(--align-left);
+    align-items: var(--align-start);
     flex-grow: var(--flex-grow-1); /* 佔據剩餘空間 */
     height: var(--avatar-size-md);
     padding: var(--padding-md-zero);
@@ -1378,11 +1371,6 @@ th {
     
     .schedule-form .col-md-6 {
         padding: 0 5px;
-    }
-
-    .giver-card-wrapper {
-        width: 100%;
-        max-width: var(--card-width-default);
     }
 }
 

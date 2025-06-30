@@ -61,7 +61,7 @@
 
     <main class="container-fluid mt-5 mr-5 ml-5" role="main">
         <!-- Giver 列表 -->
-        <section class="row" id="giver-panel" aria-label="諮詢師列表">
+        <section class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" id="giver-panel" aria-label="諮詢師列表">
             <div class="col-sm-3">
                 <article class="mb-4">
                     <button class="giverCard giverCard__pointer" data-id="1" type="button" aria-label="選擇王零一進行諮詢">
@@ -123,7 +123,7 @@
         <nav aria-label="分頁導覽">
             <ul class="pagination paginator-container" id="paginator" role="navigation">
                 <li class="pagination__item pagination__item--disabled">
-                    <a class="pagination__link pagination__link--prev" href="#" aria-label="前往上一頁"
+                    <a class="pagination__link pagination__link--prev" href="#" data-page="prev" aria-label="前往上一頁"
                         aria-disabled="true">上一頁</a>
                 </li>
                 <li class="pagination__item pagination__item--active">
@@ -134,7 +134,7 @@
                     <a class="pagination__link pagination__link--page" data-page="2" href="#" aria-label="第 2 頁">2</a>
                 </li>
                 <li class="pagination__item">
-                    <a class="pagination__link pagination__link--next" href="#" aria-label="前往下一頁">下一頁</a>
+                    <a class="pagination__link pagination__link--next" href="#" data-page="next" aria-label="前往下一頁">下一頁</a>
                 </li>
             </ul>
         </nav>
