@@ -1,77 +1,84 @@
-<!DOCTYPE html>  
+<!DOCTYPE html>
 <html lang="zh-Hant">
 
-<head>  
-    <meta charset="UTF-8" />    
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">  
-    <title>104 履歷診療室-諮詢時間預約</title>  
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">  
-    <link rel="stylesheet" href="/static/style.css">  
-    <link rel="icon" href="/static/favicon.png" type="image/x-icon" />  
-</head>  
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="104 履歷診療室 - 專業職涯諮詢服務，提供履歷健診、模擬面試、職涯諮詢等服務">
+    <meta name="keywords" content="履歷健診,模擬面試,職涯諮詢,104,履歷診療室">
 
-<body>  
+    <!-- 預載入關鍵資源 -->
+    <link rel="preload" href="/static/style.css" as="style">
+    <link rel="preload" href="/static/script.js" as="script">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+    <title>104 履歷診療室-諮詢時間預約</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- 自定義樣式 -->
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="/static/favicon.png" type="image/x-icon" />
+</head>
+
+<body>
     <!-- 導覽列 -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light position-relative">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light position-relative" role="navigation" aria-label="主要導覽">
         <div class="container-fluid justify-content-center position-relative">
             <button class="navbar-toggler position-absolute start-0" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-                aria-label="Toggle navigation">
+                aria-label="切換導覽選單">
                 <span class="navbar-toggler-icon"></span>
             </button>
-    
-            <a class="navbar-brand mx-auto" href="#">
-                <img 
-                    src="/static/logo-header.svg" 
-                    alt="104 履歷診療室" 
-                >
+
+            <a class="navbar-brand mx-auto" href="#" aria-label="回到首頁">
+                <img src="/static/logo-header.svg" alt="104 履歷診療室">
                 <span class="visually-hidden">104 履歷診療室</span>
-            </a>            
-    
+            </a>
+
             <div class="position-absolute end-0 me-3 d-flex align-items-center">
-                <a href="#" class="btn btn-sm">登入/註冊</a>
+                <a href="#" class="btn btn-sm" aria-label="登入或註冊帳號">登入/註冊</a>
             </div>
-    
+
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="#">人力銀行</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">My104</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">找工作</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">求職秘笈</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">職涯服務</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">職場測驗</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">學習資源</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">所有服務</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" aria-label="前往人力銀行">人力銀行</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" aria-label="前往 My104">My104</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" aria-label="找工作">找工作</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" aria-label="求職秘笈">求職秘笈</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" aria-label="職涯服務">職涯服務</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" aria-label="職場測驗">職場測驗</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" aria-label="學習資源">學習資源</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" aria-label="所有服務">所有服務</a></li>
                 </ul>
             </div>
         </div>
     </nav>
-    
-    <main class="container-fluid mt-5 mr-5 ml-5">
+
+    <main class="container-fluid mt-5 mr-5 ml-5" role="main">
         <!-- Giver 列表 -->
-        <div class="row" id="giver-panel">
+        <section class="row" id="giver-panel" aria-label="諮詢師列表">
             <div class="col-sm-3">
-                <div class="mb-4"> 
-                    <div class="giverCard giverCard__pointer" data-id="1" role="button" tabindex="0">
-                        <div class="giverCard__avatar"> 
+                <article class="mb-4">
+                    <button class="giverCard giverCard__pointer" data-id="1" type="button" aria-label="選擇王零一進行諮詢">
+                        <div class="giverCard__avatar">
                             <div class="giverCard__avatar-container">
-                                <img
-                                    src="https://randomuser.me/api/portraits/men/1.jpg"
-                                    alt="王零一 的頭像" 
-                                    class="giverCard__avatar-img"
-                                >
+                                <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="王零一的頭像"
+                                    class="giverCard__avatar-img">
                             </div>
 
                             <div class="giverCard__user-info">
                                 <div class="giverCard__name">
                                     <span>王零一</span>
-                                    <i class="fa-solid fa-chevron-right giverCard__icon-gray"></i>
+                                    <i class="fa-solid fa-chevron-right giverCard__icon-gray" aria-hidden="true"></i>
                                 </div>
                                 <div class="giverCard__title">Python 工程師</div>
                                 <div class="giverCard__company">王零一-資訊科技公司</div>
-                            </div> 
+                            </div>
                         </div>
 
                         <div class="giverCard__count">
@@ -79,62 +86,63 @@
                                 <span class="giverCard__count-value">106 人</span>
                                 <p class="giverCard__count-label">已諮詢</p>
                             </div>
-                            <div class="giverCard__divider"></div>
+                            <div class="giverCard__divider" aria-hidden="true"></div>
                             <div class="giverCard__count-item">
                                 <span class="giverCard__count-value">2 天</span>
                                 <p class="giverCard__count-label">平均回覆時間</p>
                             </div>
-                            <div class="giverCard__divider"></div>
+                            <div class="giverCard__divider" aria-hidden="true"></div>
                             <div class="giverCard__count-item">
                                 <span class="giverCard__count-value">4 年</span>
                                 <p class="giverCard__count-label">工作經驗</p>
                             </div>
                         </div>
 
-                        <div class="giverCard__topic">                            
-                            <div class="btn-topic-sm" data-topic="履歷健診">履歷健診</div>
-                            <div class="btn-topic-sm" data-topic="模擬面試">模擬面試</div>
-                            <div class="btn-topic-sm" data-topic="職涯諮詢">職涯諮詢</div>
-                            <div class="btn-topic-sm" data-topic="職業/產業經驗分享">職業/產業經驗分享</div>
-                            <div class="btn-topic-sm" data-topic="英文履歷健診">英文履歷健診</div>
-                            <div class="btn-topic-sm" data-topic="英文模擬面試">英文模擬面試</div>
-                            <i class="fa-solid fa-chevron-right giverCard__icon-gray"></i>
+                        <div class="giverCard__topic">
+                            <span class="btn-topic-sm" data-topic="履歷健診">履歷健診</span>
+                            <span class="btn-topic-sm" data-topic="模擬面試">模擬面試</span>
+                            <span class="btn-topic-sm" data-topic="職涯諮詢">職涯諮詢</span>
+                            <span class="btn-topic-sm" data-topic="職業/產業經驗分享">職業/產業經驗分享</span>
+                            <span class="btn-topic-sm" data-topic="英文履歷健診">英文履歷健診</span>
+                            <span class="btn-topic-sm" data-topic="英文模擬面試">英文模擬面試</span>
+                            <i class="fa-solid fa-chevron-right giverCard__icon-gray" aria-hidden="true"></i>
                         </div>
 
                         <div class="giverCard__action">
-                            <button 
-                                data-gtm-check="Giver列表_我要諮詢" 
-                                class="btn btn-orange giverCard__action-button"
-                                data-id="${id}">
+                            <button data-gtm-check="Giver列表_我要諮詢" class="btn btn-orange giverCard__action-button"
+                                data-id="1" aria-label="我要諮詢王零一">
                                 我要諮詢
                             </button>
                         </div>
-                    </div>
-                </div>
+                    </button>
+                </article>
             </div>
-        </div>
-    
+        </section>
+
         <!-- 分頁器 -->
-        <nav aria-label="Page navigation">
-            <ul class="pagination paginator-container" id="paginator">
+        <nav aria-label="分頁導覽">
+            <ul class="pagination paginator-container" id="paginator" role="navigation">
                 <li class="pagination__item pagination__item--disabled">
-                    <a class="pagination__link pagination__link--prev">上一頁</a>
+                    <a class="pagination__link pagination__link--prev" href="#" aria-label="前往上一頁"
+                        aria-disabled="true">上一頁</a>
                 </li>
                 <li class="pagination__item pagination__item--active">
-                    <a class="pagination__link pagination__link--page" data-page="1">1</a>
+                    <a class="pagination__link pagination__link--page" data-page="1" href="#" aria-label="第 1 頁"
+                        aria-current="page">1</a>
                 </li>
                 <li class="pagination__item">
-                    <a class="pagination__link pagination__link--page" data-page="2">2</a>
+                    <a class="pagination__link pagination__link--page" data-page="2" href="#" aria-label="第 2 頁">2</a>
                 </li>
                 <li class="pagination__item">
-                    <a class="pagination__link pagination__link--next" href="#">下一頁</a>
+                    <a class="pagination__link pagination__link--next" href="#" aria-label="前往下一頁">下一頁</a>
                 </li>
             </ul>
         </nav>
     </main>
 
     <!-- 聊天對話框 -->
-    <div class="modal fade" id="giver-modal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
+    <div class="modal fade" id="giver-modal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true"
+        role="dialog">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -142,67 +150,82 @@
                 </div>
                 <div class="modal-body p-0">
                     <!-- 聊天訊息區域 -->
-                    <div id="chat-messages" class="chat-messages p-3">
+                    <div id="chat-messages" class="chat-messages p-3" role="log" aria-live="polite">
                         <!-- 新增諮詢時間區域 -->
                         <div class="message giver-message">
                             <div class="d-flex align-items-center mb-2">
-                                <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+                                <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver 頭像"
+                                    class="chat-avatar-modal">
                             </div>
                             <div class="message-content">
-                                <p class="message-title">如想與 Giver 進行諮詢，例如線上模擬面試、即時文字訊息往返，請點此預約 Giver 時間。。</p>
+                                <p class="message-title">如想與 Giver 進行諮詢，例如線上模擬面試、即時文字訊息往返，請點此預約 Giver 時間。</p>
                                 <!-- 直接顯示的選項按鈕 -->
-                                <div class="chat-options-buttons">
-                                    <button class="btn btn-outline btn-option" data-option="schedule">
+                                <div class="chat-options-buttons" role="group" aria-label="諮詢選項">
+                                    <button class="btn btn-outline btn-option" data-option="schedule"
+                                        aria-label="預約 Giver 時間">
                                         我想預約 Giver 時間
                                     </button>
-                                    <button class="btn btn-outline btn-option" data-option="skip">
+                                    <button class="btn btn-outline btn-option" data-option="skip" aria-label="暫不預約">
                                         暫不預約 Giver 時間
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- 提供單筆方便時段表單 -->
                         <div id="schedule-form" class="message user-message">
                             <div class="message-content">
                                 <p class="message-title">請提供您的方便時段：</p>
-                                <form id="time-schedule-form" class="schedule-form">
+                                <form id="time-schedule-form" class="schedule-form" aria-label="預約時間表單">
                                     <div class="form-group mb-3">
-                                        <label for="schedule-date" class="form-label">年日期 <span class="text-danger">*</span></label>
-                                        <input type="text" id="schedule-date" class="form-control" placeholder="請選擇日期" readonly required>
+                                        <label for="schedule-date" class="form-label">年日期 <span class="text-danger"
+                                                aria-label="必填欄位">*</span></label>
+                                        <input type="text" id="schedule-date" class="form-control" placeholder="請選擇日期"
+                                            readonly required aria-describedby="date-help">
+                                        <div id="date-help" class="form-text visually-hidden">請點擊此欄位選擇日期</div>
                                     </div>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group mb-3">
-                                                <label for="schedule-start-time" class="form-label">起（幾時幾分）<span class="text-danger">*</span></label>
-                                                <input type="text" id="schedule-start-time" class="form-control" placeholder="例：14:30" required>
+                                                <label for="schedule-start-time" class="form-label">起（幾時幾分）<span
+                                                        class="text-danger" aria-label="必填欄位">*</span></label>
+                                                <input type="text" id="schedule-start-time" class="form-control"
+                                                    placeholder="例：14:30" required aria-describedby="start-time-help">
+                                                <div id="start-time-help" class="form-text">請輸入 24 小時制時間格式，例如：14:30
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group mb-3">
-                                                <label for="schedule-end-time" class="form-label">迄（幾時幾分）<span class="text-danger">*</span></label>
-                                                <input type="text" id="schedule-end-time" class="form-control" placeholder="例：15:30" required>
+                                                <label for="schedule-end-time" class="form-label">迄（幾時幾分）<span
+                                                        class="text-danger" aria-label="必填欄位">*</span></label>
+                                                <input type="text" id="schedule-end-time" class="form-control"
+                                                    placeholder="例：15:30" required aria-describedby="end-time-help">
+                                                <div id="end-time-help" class="form-text">請輸入 24 小時制時間格式，例如：15:30</div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="form-group mb-3">
                                         <label for="schedule-notes" class="form-label">備註</label>
-                                        <textarea id="schedule-notes" class="form-control" placeholder="請輸入備註（非必填）"></textarea>
+                                        <textarea id="schedule-notes" class="form-control" placeholder="請輸入備註（非必填）"
+                                            aria-describedby="notes-help"></textarea>
+                                        <div id="notes-help" class="form-text">可選填，請描述您希望諮詢的內容或特殊需求</div>
                                     </div>
                                     <div class="d-flex justify-content-end">
-                                        <button type="submit" class="btn btn-orange">輸入完成</button>
+                                        <button type="submit" class="btn btn-orange" aria-label="提交預約表單">輸入完成</button>
                                     </div>
                                 </form>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- 輸入訊息區域 -->
                     <div class="chat-input p-3 border-top">
                         <div class="input-group">
-                            <input type="text" id="chat-input-message" class="form-control" placeholder="請選擇以上選項" aria-label="選擇選項">
-                            <button class="btn-topic btn-gray" type="button" id="chat-send-btn">
-                                <i class="fas fa-paper-plane"></i>
+                            <input type="text" id="chat-input-message" class="form-control" placeholder="請選擇以上選項"
+                                aria-label="輸入訊息">
+                            <button class="btn-topic btn-gray" type="button" id="chat-send-btn" aria-label="發送訊息">
+                                <i class="fas fa-paper-plane" aria-hidden="true"></i>
                             </button>
                         </div>
                     </div>
@@ -212,11 +235,12 @@
     </div>
 
     <!-- 確認對話框 -->
-    <div class="modal fade" id="confirm-modal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal fade" id="confirm-modal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true"
+        role="dialog">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉對話框"></button>
                 </div>
                 <div class="modal-body text-center px-4">
                     <h5 class="modal-title mb-3" id="confirmModalLabel">差幾步就能完成申請囉！</h5>
@@ -224,10 +248,10 @@
                 </div>
                 <div class="modal-footer border-0 pt-0">
                     <div class="d-flex justify-content-between w-100">
-                        <button type="button" class="btn btn-outline-secondary" id="leave-btn">
+                        <button type="button" class="btn btn-outline-secondary" id="leave-btn" aria-label="離開申請流程">
                             忍痛離開
                         </button>
-                        <button type="button" class="btn btn-orange" id="continue-btn">
+                        <button type="button" class="btn btn-orange" id="continue-btn" aria-label="繼續完成申請">
                             繼續完成
                         </button>
                     </div>
@@ -237,54 +261,54 @@
     </div>
 
     <!-- 日期選擇器 Modal -->
-    <div class="modal fade" id="date-picker-modal" tabindex="-1" aria-labelledby="datePickerModalLabel" aria-hidden="true">
+    <div class="modal fade" id="date-picker-modal" tabindex="-1" aria-labelledby="datePickerModalLabel"
+        aria-hidden="true" role="dialog">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="datePickerModalLabel">選擇日期</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉日期選擇器"></button>
                 </div>
                 <div class="modal-body">
                     <div class="date-picker-container">
                         <div class="date-picker-header">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="prev-month">
-                                <i class="fas fa-chevron-left"></i>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="prev-month"
+                                aria-label="上個月">
+                                <i class="fas fa-chevron-left" aria-hidden="true"></i>
                             </button>
-                            <span id="current-month-year" class="fw-bold"></span>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="next-month">
-                                <i class="fas fa-chevron-right"></i>
+                            <span id="current-month-year" class="fw-bold" aria-live="polite"></span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="next-month"
+                                aria-label="下個月">
+                                <i class="fas fa-chevron-right" aria-hidden="true"></i>
                             </button>
                         </div>
-                        <div class="date-picker-weekdays">
-                            <div class="weekday">一</div>
-                            <div class="weekday">二</div>
-                            <div class="weekday">三</div>
-                            <div class="weekday">四</div>
-                            <div class="weekday">五</div>
-                            <div class="weekday">六</div>
-                            <div class="weekday">日</div>
+                        <div class="date-picker-weekdays" role="rowgroup" aria-label="星期標題">
+                            <div class="weekday" role="columnheader">一</div>
+                            <div class="weekday" role="columnheader">二</div>
+                            <div class="weekday" role="columnheader">三</div>
+                            <div class="weekday" role="columnheader">四</div>
+                            <div class="weekday" role="columnheader">五</div>
+                            <div class="weekday" role="columnheader">六</div>
+                            <div class="weekday" role="columnheader">日</div>
                         </div>
-                        <div id="date-picker-calendar" class="date-picker-calendar">
+                        <div id="date-picker-calendar" class="date-picker-calendar" role="grid" aria-label="日期選擇">
                             <!-- 日期格子將由 JavaScript 動態生成 -->
                         </div>
                     </div>
                 </div>
-                <!-- <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-orange" id="confirm-date">確定</button>
-                </div> -->
             </div>
         </div>
     </div>
 
+    <!-- 載入順序優化：先載入外部依賴 -->
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.7/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
         crossorigin="anonymous"></script>
 
-    <!-- 先載入日誌工具 -->
+    <!-- 再載入自定義腳本 -->
     <script src="/static/js/logger.js"></script>
-    <!-- 再載入主要腳本 -->
-    <script src="/static/script.js" defer></script>  
-</body>  
-</html>  
+    <script src="/static/script.js"></script>
+</body>
+
+</html>

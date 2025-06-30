@@ -68,14 +68,14 @@ const CONFIG = {
     GIVER_CARD_AVATAR_IMG: 'giverCard__avatar-img',
     GIVER_CARD_USER_INFO: 'giverCard__user-info',
     GIVER_CARD_NAME: 'giverCard__name',
-    GIVER_CARD_ICON_GRAY: 'giverCard__icon-gray',
+    GIVER_CARD_ICON_GRAY: 'giverCard__icon-gray aria-hidden="true"',
     GIVER_CARD_TITLE: 'giverCard__title',
     GIVER_CARD_COMPANY: 'giverCard__company',
     GIVER_CARD_COUNT: 'giverCard__count',
     GIVER_CARD_COUNT_ITEM: 'giverCard__count-item',
     GIVER_CARD_COUNT_VALUE: 'giverCard__count-value',
     GIVER_CARD_COUNT_LABEL: 'giverCard__count-label',
-    GIVER_CARD_DIVIDER: 'giverCard__divider',
+    GIVER_CARD_DIVIDER: 'giverCard__divider aria-hidden="true"',
     GIVER_CARD_TOPIC: 'giverCard__topic',
     GIVER_CARD_TOPIC_BUTTON: 'btn-topic-sm',
     GIVER_CARD_ACTION: 'giverCard__action',
@@ -974,7 +974,7 @@ const TEMPLATES = {
     // 生成服務項目按鈕 HTML
     const topicButtonsHTML = Array.isArray(giverCard__topic) 
       ? giverCard__topic.map(topic => 
-          `<div class="${CONFIG.CLASSES.GIVER_CARD_TOPIC_BUTTON}" data-topic="${topic}">${topic}</div>`
+          `<span class="${CONFIG.CLASSES.GIVER_CARD_TOPIC_BUTTON}" data-topic="${topic}">${topic}</span>`
         ).join('')
       : '';
 

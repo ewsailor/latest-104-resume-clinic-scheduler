@@ -210,8 +210,7 @@
     
     /* 特殊值 */
     --transparent: transparent;
-    --none: none;
-    --auto: auto;
+    --none: none; 
     --white: white;
     
     /* 常用組合值 */
