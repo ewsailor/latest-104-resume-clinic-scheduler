@@ -1,3 +1,4 @@
+// =================================================================
 const CONFIG = {
   // 全域實例
   INSTANCES: {
@@ -2703,8 +2704,14 @@ const DOM = {
               DOM.chat.addGiverResponse('您已取消所有預約時段。<br><br>如果仍想預約 Giver 時間，請在聊天對話框輸入「預約時間」的文字，謝謝。');
             } else {
               // 如果還有其他預約，在聊天對話框最下方新增一個新的訊息泡泡
-              const visibleRows = document.querySelectorAll('.reservation-success-table tbody tr:not([style*="display: none"]), .reservation-table tbody tr:not([style*="display: none"])');
-              DOM.chat.addCancelSuccessMessage(visibleRows);
+              // const visibleRows = document.querySelectorAll('.reservation-success-table tbody tr:not([style*="display: none"]), .reservation-table tbody tr:not([style*="display: none"])');
+              // DOM.chat.addCancelSuccessMessage(visibleRows);
+              const allRows = document.querySelectorAll('.reservation-success-table tbody tr, .reservation-table tbody tr');
+              const activeRows = Array.from(allRows).filter(row => {
+                const cancelBtn = row.querySelector('.cancel-reservation-btn');
+                return cancelBtn && !cancelBtn.disabled && !cancelBtn.classList.contains('btn-secondary');
+              });
+              DOM.chat.addCancelSuccessMessage(activeRows);
             }
           }, 500);          
         },
