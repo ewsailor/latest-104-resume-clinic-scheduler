@@ -1,7 +1,3 @@
-// =================================================================
-//   配置管理 (Configuration Management)
-// =================================================================
-
 const CONFIG = {
   // 全域實例
   INSTANCES: {
@@ -948,17 +944,17 @@ const TEMPLATES = {
   // Giver 卡片模板
   giverCard: (giver) => {
     console.log('TEMPLATES.giverCard called', { giver });
-    const {
-      id,
-      name = CONFIG.DEFAULTS.GIVER.NAME,
-      title = CONFIG.DEFAULTS.GIVER.TITLE,
-      company = CONFIG.DEFAULTS.GIVER.COMPANY,
-      consulted = CONFIG.DEFAULTS.GIVER.CONSULTED,
-      average_responding_time = CONFIG.DEFAULTS.GIVER.RESPONDING_TIME,
-      experience = CONFIG.DEFAULTS.GIVER.EXPERIENCE,
-      image,
-      giverCard__topic = []
-    } = giver;
+      const {
+        id,
+        name = CONFIG.DEFAULTS.GIVER.NAME,
+        title = CONFIG.DEFAULTS.GIVER.TITLE,
+        company = CONFIG.DEFAULTS.GIVER.COMPANY,
+        consulted = CONFIG.DEFAULTS.GIVER.CONSULTED,
+        average_responding_time = CONFIG.DEFAULTS.GIVER.RESPONDING_TIME,
+        experience = CONFIG.DEFAULTS.GIVER.EXPERIENCE,
+        image,
+        giverCard__topic = []
+      } = giver;
     console.log('giverCard template variables:', {
       id,
       name,
@@ -972,56 +968,56 @@ const TEMPLATES = {
     });
 
     // 生成服務項目按鈕 HTML
-    const topicButtonsHTML = Array.isArray(giverCard__topic) 
-      ? giverCard__topic.map(topic => 
-          `<span class="${CONFIG.CLASSES.GIVER_CARD_TOPIC_BUTTON}" data-topic="${topic}">${topic}</span>`
-        ).join('')
-      : '';
+      const topicButtonsHTML = Array.isArray(giverCard__topic) 
+        ? giverCard__topic.map(topic => 
+            `<span class="${CONFIG.CLASSES.GIVER_CARD_TOPIC_BUTTON}" data-topic="${topic}">${topic}</span>`
+          ).join('')
+        : '';
 
-    const imageUrl = image || CONFIG.API.POSTER_URL + CONFIG.DEFAULTS.GIVER.IMAGE;
+      const imageUrl = image || CONFIG.API.POSTER_URL + CONFIG.DEFAULTS.GIVER.IMAGE;
 
-    return `
-      <article class="${CONFIG.CLASSES.GIVER_CARD_WRAPPER}"> 
-        <button class="${CONFIG.CLASSES.GIVER_CARD} ${CONFIG.CLASSES.GIVER_CARD_POINTER}" data-id="${id}" type="button" aria-label="選擇${name}進行諮詢">
-          <div class="${CONFIG.CLASSES.GIVER_CARD_AVATAR}"> 
-            <div class="${CONFIG.CLASSES.GIVER_CARD_AVATAR_CONTAINER}">
-              <img
-                src="${imageUrl}"
-                alt="${name} 的頭像" 
-                class="${CONFIG.CLASSES.GIVER_CARD_AVATAR_IMG}"
-              >
-            </div>
-
-            <div class="${CONFIG.CLASSES.GIVER_CARD_USER_INFO}">
-              <div class="${CONFIG.CLASSES.GIVER_CARD_NAME}">
-                <span>${name}</span>
-                <i class="fa-solid fa-chevron-right ${CONFIG.CLASSES.GIVER_CARD_ICON_GRAY}" aria-hidden="true"></i>
+      return `
+        <article class="${CONFIG.CLASSES.GIVER_CARD_WRAPPER}"> 
+          <button class="${CONFIG.CLASSES.GIVER_CARD} ${CONFIG.CLASSES.GIVER_CARD_POINTER}" data-id="${id}" type="button" aria-label="選擇${name}進行諮詢">
+            <div class="${CONFIG.CLASSES.GIVER_CARD_AVATAR}"> 
+              <div class="${CONFIG.CLASSES.GIVER_CARD_AVATAR_CONTAINER}">
+                <img
+                  src="${imageUrl}"
+                  alt="${name} 的頭像" 
+                  class="${CONFIG.CLASSES.GIVER_CARD_AVATAR_IMG}"
+                >
               </div>
-              <div class="${CONFIG.CLASSES.GIVER_CARD_TITLE}">${title}</div>
-              <div class="${CONFIG.CLASSES.GIVER_CARD_COMPANY}">${company}</div>
-            </div> 
-          </div>
 
-          <div class="${CONFIG.CLASSES.GIVER_CARD_COUNT}">
-            <div class="${CONFIG.CLASSES.GIVER_CARD_COUNT_ITEM}">
-              <span class="${CONFIG.CLASSES.GIVER_CARD_COUNT_VALUE}">${consulted} 人</span>
-              <p class="${CONFIG.CLASSES.GIVER_CARD_COUNT_LABEL}">已諮詢</p>
+              <div class="${CONFIG.CLASSES.GIVER_CARD_USER_INFO}">
+                <div class="${CONFIG.CLASSES.GIVER_CARD_NAME}">
+                  <span>${name}</span>
+                  <i class="fa-solid fa-chevron-right ${CONFIG.CLASSES.GIVER_CARD_ICON_GRAY}" aria-hidden="true"></i>
+                </div>
+                <div class="${CONFIG.CLASSES.GIVER_CARD_TITLE}">${title}</div>
+                <div class="${CONFIG.CLASSES.GIVER_CARD_COMPANY}">${company}</div>
+              </div> 
             </div>
-            <div class="${CONFIG.CLASSES.GIVER_CARD_DIVIDER}" aria-hidden="true"></div>
-            <div class="${CONFIG.CLASSES.GIVER_CARD_COUNT_ITEM}">
-              <span class="${CONFIG.CLASSES.GIVER_CARD_COUNT_VALUE}">${average_responding_time} 天</span>
-              <p class="${CONFIG.CLASSES.GIVER_CARD_COUNT_LABEL}">平均回覆時間</p>
-            </div>
-            <div class="${CONFIG.CLASSES.GIVER_CARD_DIVIDER}" aria-hidden="true"></div>
-            <div class="${CONFIG.CLASSES.GIVER_CARD_COUNT_ITEM}">
-              <span class="${CONFIG.CLASSES.GIVER_CARD_COUNT_VALUE}">${experience} 年</span>
-              <p class="${CONFIG.CLASSES.GIVER_CARD_COUNT_LABEL}">工作經驗</p>
-            </div>
-          </div>
 
-          <div class="${CONFIG.CLASSES.GIVER_CARD_TOPIC}">                            
-            ${topicButtonsHTML}
-            <i class="fa-solid fa-chevron-right ${CONFIG.CLASSES.GIVER_CARD_ICON_GRAY}" aria-hidden="true"></i>
+            <div class="${CONFIG.CLASSES.GIVER_CARD_COUNT}">
+              <div class="${CONFIG.CLASSES.GIVER_CARD_COUNT_ITEM}">
+                <span class="${CONFIG.CLASSES.GIVER_CARD_COUNT_VALUE}">${consulted} 人</span>
+                <p class="${CONFIG.CLASSES.GIVER_CARD_COUNT_LABEL}">已諮詢</p>
+              </div>
+              <div class="${CONFIG.CLASSES.GIVER_CARD_DIVIDER}" aria-hidden="true"></div>
+              <div class="${CONFIG.CLASSES.GIVER_CARD_COUNT_ITEM}">
+                <span class="${CONFIG.CLASSES.GIVER_CARD_COUNT_VALUE}">${average_responding_time} 天</span>
+                <p class="${CONFIG.CLASSES.GIVER_CARD_COUNT_LABEL}">平均回覆時間</p>
+              </div>
+              <div class="${CONFIG.CLASSES.GIVER_CARD_DIVIDER}" aria-hidden="true"></div>
+              <div class="${CONFIG.CLASSES.GIVER_CARD_COUNT_ITEM}">
+                <span class="${CONFIG.CLASSES.GIVER_CARD_COUNT_VALUE}">${experience} 年</span>
+                <p class="${CONFIG.CLASSES.GIVER_CARD_COUNT_LABEL}">工作經驗</p>
+              </div>
+            </div>
+
+            <div class="${CONFIG.CLASSES.GIVER_CARD_TOPIC}">                            
+              ${topicButtonsHTML}
+              <i class="fa-solid fa-chevron-right ${CONFIG.CLASSES.GIVER_CARD_ICON_GRAY}" aria-hidden="true"></i>
           </div>
 
           <div class="${CONFIG.CLASSES.GIVER_CARD_ACTION}">
@@ -1042,47 +1038,50 @@ const TEMPLATES = {
   <div class="col-sm-3">${cardHTML}</div>
   `,
 
-  // 分頁器項目模板
-  paginatorItem: (pageNumber) => `
-    <li class="${CONFIG.CLASSES.PAGINATOR_ITEM} ${pageNumber === appState.currentPage ? CONFIG.CLASSES.PAGINATOR_ITEM_ACTIVE : CONFIG.CLASSES.PAGINATOR_ITEM_DISABLED}">
-      <a class="${CONFIG.CLASSES.PAGINATOR_LINK} ${CONFIG.CLASSES.PAGINATOR_LINK_PAGE}" href="#" data-page="${pageNumber}" aria-label="第 ${pageNumber} 頁">${pageNumber}</a>
-    </li>
-  `,
+  // 分頁導覽模板
+  paginator: {
+    // 頁碼按鈕模板
+    item: (pageNumber) => `
+      <li class="${CONFIG.CLASSES.PAGINATOR_ITEM} ${pageNumber === appState.currentPage ? CONFIG.CLASSES.PAGINATOR_ITEM_ACTIVE : CONFIG.CLASSES.PAGINATOR_ITEM_DISABLED}">
+        <a class="${CONFIG.CLASSES.PAGINATOR_LINK} ${CONFIG.CLASSES.PAGINATOR_LINK_PAGE}" href="#" data-page="${pageNumber}" aria-label="第 ${pageNumber} 頁">${pageNumber}</a>
+      </li>
+    `,
 
-  // 分頁器容器模板
-  paginatorContainer: () => '<ul class="pagination paginator-container" role="navigation" aria-label="分頁導覽">',
+    // 分頁導覽容器模板
+    container: () => '<ul class="pagination paginator-container" role="navigation" aria-label="分頁導覽">',
 
-  // 分頁器上一頁按鈕模板
-  paginatorPrevButton: () => `
-    <li class="${CONFIG.CLASSES.PAGINATOR_ITEM} ${CONFIG.CLASSES.PAGINATOR_ITEM_DISABLED}">
-      <a class="${CONFIG.CLASSES.PAGINATOR_LINK} ${CONFIG.CLASSES.PAGINATOR_LINK_PREV}" href="#" data-page="prev" aria-label="前往上一頁" aria-disabled="true">
-        <i class="fas fa-chevron-left"></i>
-      </a>
-    </li>
-  `,
+    // 上一頁按鈕模板
+    prevButton: () => `
+      <li class="${CONFIG.CLASSES.PAGINATOR_ITEM} ${CONFIG.CLASSES.PAGINATOR_ITEM_DISABLED}">
+        <a class="${CONFIG.CLASSES.PAGINATOR_LINK} ${CONFIG.CLASSES.PAGINATOR_LINK_PREV}" href="#" data-page="prev" aria-label="前往上一頁" aria-disabled="true">
+          <i class="fas fa-chevron-left"></i>
+        </a>
+      </li>
+    `,
 
-  // 分頁器下一頁按鈕模板
-  paginatorNextButton: () => `
-    <li class="${CONFIG.CLASSES.PAGINATOR_ITEM}">
-      <a class="${CONFIG.CLASSES.PAGINATOR_LINK} ${CONFIG.CLASSES.PAGINATOR_LINK_NEXT}" href="#" data-page="next" aria-label="前往下一頁">
-        <i class="fas fa-chevron-right"></i>
-      </a>
-    </li>
-  `,
+    // 下一頁按鈕模板
+    nextButton: () => `
+      <li class="${CONFIG.CLASSES.PAGINATOR_ITEM}">
+        <a class="${CONFIG.CLASSES.PAGINATOR_LINK} ${CONFIG.CLASSES.PAGINATOR_LINK_NEXT}" href="#" data-page="next" aria-label="前往下一頁">
+          <i class="fas fa-chevron-right"></i>
+        </a>
+      </li>
+    `,
 
-  // 分頁器省略號模板
-  paginatorEllipsis: () => `
-    <li class="${CONFIG.CLASSES.PAGINATOR_ITEM} ${CONFIG.CLASSES.PAGINATOR_ITEM_ACTIVE}">
-      <span class="${CONFIG.CLASSES.PAGINATOR_LINK} ${CONFIG.CLASSES.PAGINATOR_LINK_PAGE}" aria-hidden="true">...</span>
-    </li>
-  `,
+    // 省略號模板
+    ellipsis: () => `
+      <li class="${CONFIG.CLASSES.PAGINATOR_ITEM} ${CONFIG.CLASSES.PAGINATOR_ITEM_ACTIVE}">
+        <span class="${CONFIG.CLASSES.PAGINATOR_LINK} ${CONFIG.CLASSES.PAGINATOR_LINK_PAGE}" aria-hidden="true">...</span>
+      </li>
+    `,
 
-  // 分頁器頁碼模板
-  paginatorPageNumber: (pageNumber, isActive) => `
-    <li class="${CONFIG.CLASSES.PAGINATOR_ITEM} ${isActive ? CONFIG.CLASSES.PAGINATOR_ITEM_ACTIVE : CONFIG.CLASSES.PAGINATOR_ITEM_DISABLED}">
-      <a class="${CONFIG.CLASSES.PAGINATOR_LINK} ${CONFIG.CLASSES.PAGINATOR_LINK_PAGE}" href="#" data-page="${pageNumber}" aria-label="第 ${pageNumber} 頁" ${isActive ? 'aria-current="page"' : ''}>${pageNumber}</a>
-    </li>
-  `,
+    // 頁碼按鈕模板
+    pageNumber: (pageNumber, isActive) => `
+      <li class="${CONFIG.CLASSES.PAGINATOR_ITEM} ${isActive ? CONFIG.CLASSES.PAGINATOR_ITEM_ACTIVE : CONFIG.CLASSES.PAGINATOR_ITEM_DISABLED}">
+        <a class="${CONFIG.CLASSES.PAGINATOR_LINK} ${CONFIG.CLASSES.PAGINATOR_LINK_PAGE}" href="#" data-page="${pageNumber}" aria-label="第 ${pageNumber} 頁" ${isActive ? 'aria-current="page"' : ''}>${pageNumber}</a>
+      </li>
+    `,
+  },
 
   // 無資料提示模板
   noDataMessage: () => `
@@ -5129,10 +5128,10 @@ const DOM = {
       }
       
       // 生成分頁 HTML
-      let paginatorHTML = TEMPLATES.paginatorContainer();
+      let paginatorHTML = TEMPLATES.paginator.container();
       
       // 上一頁按鈕
-      paginatorHTML += TEMPLATES.paginatorPrevButton();
+      paginatorHTML += TEMPLATES.paginator.prevButton();
       
       // 頁碼按鈕
       const currentPage = appState.currentPage || 1;
@@ -5148,28 +5147,28 @@ const DOM = {
       
       // 第一頁
       if (startPage > 1) {
-        paginatorHTML += TEMPLATES.paginatorItem(1);
+        paginatorHTML += TEMPLATES.paginator.item(1);
         if (startPage > 2) {
-          paginatorHTML += TEMPLATES.paginatorEllipsis();
+          paginatorHTML += TEMPLATES.paginator.ellipsis();
         }
       }
       
       // 頁碼
       for (let i = startPage; i <= endPage; i++) {
         const isActive = i === currentPage;
-        paginatorHTML += TEMPLATES.paginatorPageNumber(i, isActive);
+        paginatorHTML += TEMPLATES.paginator.pageNumber(i, isActive);
       }
       
       // 最後一頁
       if (endPage < totalPages) {
         if (endPage < totalPages - 1) {
-          paginatorHTML += TEMPLATES.paginatorEllipsis();
+          paginatorHTML += TEMPLATES.paginator.ellipsis();
         }
-        paginatorHTML += TEMPLATES.paginatorItem(totalPages);
+        paginatorHTML += TEMPLATES.paginator.item(totalPages);
       }
       
       // 下一頁按鈕
-      paginatorHTML += TEMPLATES.paginatorNextButton();
+      paginatorHTML += TEMPLATES.paginator.nextButton();
       
       paginatorHTML += '</ul>';
       paginator.innerHTML = paginatorHTML;
