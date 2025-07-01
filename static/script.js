@@ -2668,50 +2668,28 @@ const DOM = {
           
           // 添加使用者訊息
           DOM.chat.addUserMessage(`我要取消：${timeSlot}`);
-          
-          // 隱藏該行
+                    
+          // 從 DOM 移除該行
           const tableRow = button.closest('tr');
           if (tableRow) {
-            tableRow.style.display = 'none';
+            tableRow.remove();
           }
-          
-          // 更新狀態為已取消
-          const statusCell = tableRow?.querySelector('td:nth-child(3)');
-          if (statusCell) {
-            statusCell.textContent = '已取消';
-            statusCell.className = 'text-center text-danger';
-          }
-          
-          // 更新按鈕文字
-          button.textContent = '已取消';
-          button.disabled = true;
-          button.classList.remove('btn-outline-danger');
-          button.classList.add('btn-secondary');
 
           // 檢查是否還有其他預約
           setTimeout(() => {
-            // 立即檢查是否還有其他未取消的預約按鈕
-            const allCancelButtons = document.querySelectorAll('.cancel-reservation-btn:not(.btn-secondary)');
-            const remainingButtons = Array.from(allCancelButtons).filter(btn => !btn.disabled);
-
+            // 直接獲取現存的所有預約行（因為已取消的行已被移除）
+            const allRows = document.querySelectorAll('.reservation-success-table tbody tr, .reservation-table tbody tr');
+            
             console.log('檢查剩餘預約時段:', {
-              totalButtons: allCancelButtons.length,
-              remainingButtons: remainingButtons.length
+              totalRows: allRows.length
             });
 
-            if (remainingButtons.length === 0) {
+            if (allRows.length === 0) {
               // 如果沒有其他預約，顯示取消訊息
               DOM.chat.addGiverResponse('您已取消所有預約時段。<br><br>如果仍想預約 Giver 時間，請在聊天對話框輸入「預約時間」的文字，謝謝。');
             } else {
-              // 如果還有其他預約，在聊天對話框最下方新增一個新的訊息泡泡
-              // const visibleRows = document.querySelectorAll('.reservation-success-table tbody tr:not([style*="display: none"]), .reservation-table tbody tr:not([style*="display: none"])');
-              // DOM.chat.addCancelSuccessMessage(visibleRows);
-              const allRows = document.querySelectorAll('.reservation-success-table tbody tr, .reservation-table tbody tr');
-              const activeRows = Array.from(allRows).filter(row => {
-                const cancelBtn = row.querySelector('.cancel-reservation-btn');
-                return cancelBtn && !cancelBtn.disabled && !cancelBtn.classList.contains('btn-secondary');
-              });
-              DOM.chat.addCancelSuccessMessage(activeRows);
+              // 如果還有其他預約，直接使用現存的行
+              DOM.chat.addCancelSuccessMessage(allRows);
             }
           }, 500);          
         },
@@ -2726,13 +2704,13 @@ const DOM = {
     addCancelSuccessMessage: (visibleRows) => {
       console.log('DOM.chat.addCancelSuccessMessage called：新增取消成功訊息泡泡');
       
-      // 分析剩餘的預約選項
+      // 分析剩餘的預約選項（直接使用現存的行，因為已取消的行已被移除）
       const remainingOptions = [];
       visibleRows.forEach(row => {
         const cancelBtn = row.querySelector('.cancel-reservation-btn');
         if (cancelBtn) {
           const option = cancelBtn.getAttribute('data-option');
-          // 修正：從正確的欄位獲取時段資訊
+          // 從正確的欄位獲取時段資訊
           const timeSlotCell = row.querySelector('td:nth-child(3)'); // 時段欄位
           const timeSlot = timeSlotCell ? timeSlotCell.textContent.trim() : '';
           
