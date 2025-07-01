@@ -2498,6 +2498,49 @@ const DOM = {
       }
     },
     
+    // 設定聊天輸入區域的額外功能按鈕事件監聽器
+    setupChatExtraButtons: () => {
+      console.log('DOM.chat.setupChatExtraButtons called：設定聊天輸入區域的額外功能按鈕');
+      const extraButtons = document.querySelectorAll('.chat-extra-buttons .btn[data-option]');
+      
+      extraButtons.forEach(button => {
+        // 先移除舊的事件監聽器，避免重複綁定
+        const newBtn = button.cloneNode(true);
+        button.parentNode.replaceChild(newBtn, button);
+        
+        // 重新綁定事件監聽器
+        DOM.events.add(newBtn, 'click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const option = newBtn.getAttribute('data-option');
+          const optionText = newBtn.textContent.trim();
+          console.log('聊天額外功能按鈕被點擊:', { option, optionText });
+          
+          // 添加使用者選擇的訊息
+          DOM.chat.addUserMessage(optionText);
+          
+          // 處理不同的選項
+          switch (option) {
+            case 'view-giver-times':
+              DOM.chat.handleViewTimes();
+              break;
+            case 'provide-single-time':
+              DOM.chat.handleSingleTime();
+              break;
+            case 'provide-multiple-times':
+              DOM.chat.handleMultipleTimes();
+              break;
+            case 'view-my-times':
+              DOM.chat.handleViewAllSchedules();
+              break;
+            default:
+              console.warn('未知的聊天額外功能選項:', option);
+          }
+        });
+      });
+    },
+
     // 設定預約選項按鈕事件監聽器
     setupScheduleOptionButtons: () => {
       console.log('DOM.chat.setupScheduleOptionButtons called：設定預約選項按鈕');
@@ -4099,6 +4142,9 @@ const DOM = {
           // 確保 modal 有正確的 tabindex
           modalElement.setAttribute('tabindex', '-1');
           modalElement.removeAttribute('inert');
+          
+          // 設定聊天輸入區域的額外功能按鈕事件監聽器
+          DOM.chat.setupChatExtraButtons();
         });
       }
     },
