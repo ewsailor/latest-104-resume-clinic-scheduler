@@ -2439,7 +2439,7 @@ const DOM = {
       
       // 模擬 Giver 回覆
       setTimeout(() => {
-        const response = '好的，您選擇暫不預約 Giver 時間。<br><br>如未來有需要預約 Giver 時間，只要在對話框輸入「預約時間」，就可以再次預約 Giver 時間囉！<br><br>有其他問題需要協助嗎？';
+        const response = '好的，您選擇暫不預約 Giver 時間。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？';
         DOM.chat.addGiverResponse(response);
       }, 1000);
     },
@@ -2729,7 +2729,7 @@ const DOM = {
 
             if (allRows.length === 0) {
               // 如果沒有其他預約，顯示取消訊息
-              DOM.chat.addGiverResponse('您已取消所有預約時段。<br><br>如果仍想預約 Giver 時間，請在聊天對話框輸入「預約時間」的文字，謝謝。');
+              DOM.chat.addGiverResponse('您已取消所有預約時段。<br><br>如果仍想預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。');
             } else {
               // 如果還有其他預約，直接使用現存的行
               DOM.chat.addCancelSuccessMessage(allRows);
@@ -2780,7 +2780,7 @@ const DOM = {
       if (totalCount === 0) {
         // 如果沒有剩餘時段，不生成任何訊息泡泡
         console.log('沒有剩餘時段，顯示取消所有預約時段訊息');
-        DOM.chat.addGiverResponse('您已取消所有預約時段。<br><br>如果仍想預約 Giver 時間，請在聊天對話框輸入「預約時間」的文字，謝謝。');
+        DOM.chat.addGiverResponse('您已取消所有預約時段。<br><br>如果仍想預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。');
         return;
       }
       
@@ -3155,7 +3155,7 @@ const DOM = {
                         newSchedules.splice(idx, 1);
                         ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, newSchedules);
                         if (newSchedules.length === 0) {
-                          DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，只要在對話框輸入「預約時間」，就可以再次預約 Giver 時間囉！<br><br>有其他問題需要協助嗎？');
+                          DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
                         } else {
                           const newUpdatedHTML = TEMPLATES.chat.successProvideTime(newSchedules);
                           const newCurrentMessage = chatMessages.querySelector('.success-provide-table')?.closest('.giver-message');
@@ -3203,7 +3203,7 @@ const DOM = {
                           newSchedules.splice(idx, 1);
                           ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, newSchedules);
                           if (newSchedules.length === 0) {
-                            DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，只要在對話框輸入「預約時間」，就可以再次預約 Giver 時間囉！<br><br>有其他問題需要協助嗎？');
+                            DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
                           } else {
                             const newUpdatedHTML = TEMPLATES.chat.scheduleTable(newSchedules);
                             const newCurrentMessage = chatMessages.querySelector('.schedule-table')?.closest('.giver-message');
@@ -3927,7 +3927,7 @@ const DOM = {
     handleCancelSchedule: () => {
       console.log('DOM.chat.handleCancelSchedule called：處理取消預約選項');
       setTimeout(() => {
-        const response = '好的，已取消預約。<br><br>如未來有需要預約 Giver 時間，只要在對話框輸入「預約時間」，就可以再次預約 Giver 時間囉！<br><br>有其他問題需要協助嗎？';
+        const response = '好的，已取消預約。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？';
         DOM.chat.addGiverResponse(response);
       }, 1000);
     },
@@ -3978,7 +3978,7 @@ const DOM = {
                   // 重新渲染表格
                   if (schedules.length === 0) {
                     // 如果沒有時段了，顯示取消訊息
-                    DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，只要在對話框輸入「預約時間」，就可以再次預約 Giver 時間囉！<br><br>有其他問題需要協助嗎？');
+                    DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
                   } else {
                     // 重新渲染表格
                     const updatedHTML = TEMPLATES.chat.successProvideTime(schedules);
@@ -4011,7 +4011,7 @@ const DOM = {
                               newSchedules.splice(newIdx, 1);
                               ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, newSchedules);
                               if (newSchedules.length === 0) {
-                                DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，只要在對話框輸入「預約時間」，就可以再次預約 Giver 時間囉！<br><br>有其他問題需要協助嗎？');
+                                DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
                               } else {
                                 const newUpdatedHTML = TEMPLATES.chat.successProvideTime(newSchedules);
                                 const newCurrentMessage = chatMessages.querySelector('.success-provide-table').closest('.giver-message');
@@ -4078,14 +4078,7 @@ const DOM = {
         // 清空輸入框
         chatInput.value = '';
         
-        // 檢查是否為預約時間關鍵字
-        if (message === '預約時間') {
-          console.log('DOM.chat.setupInputControls: 檢測到預約時間關鍵字，顯示預約選項');
-          // 顯示預約選項按鈕
-          setTimeout(() => {
-            DOM.chat.showScheduleOptionsWithViewAll();
-          }, 1000);
-        } else if (ChatStateManager.isMultipleTimesMode()) {
+        if (ChatStateManager.isMultipleTimesMode()) {
           // 處理多筆時段輸入
           console.log('DOM.chat.setupInputControls: 處理多筆時段輸入', message);
           DOM.chat.handleMultipleTimesSubmission(message);
