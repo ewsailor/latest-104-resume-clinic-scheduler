@@ -855,14 +855,14 @@ const UIInteraction = {
   // 顯示確認對話框
   showConfirmDialog: (options) => {
     console.log('UIInteraction.showConfirmDialog called', { options });
-    const {
+    const { // options 是一個物件，預設為以下屬性：
       title = '確認',
       message = '您確定要執行此操作嗎？',
       confirmText = '確定',
       cancelText = '取消',
-      onConfirm = () => {},
-      onCancel = () => {},
-      cleanupBackdrop = true // 新增選項，控制是否清理 backdrop
+      onConfirm = () => {}, // 預設為空函式
+      onCancel = () => {}, // 預設為空函式
+      cleanupBackdrop = true // 預設為 true，控制是否清理 backdrop 背景遮罩
     } = options;
     
     // 更新確認對話框內容
@@ -876,20 +876,20 @@ const UIInteraction = {
     if (confirmBtn) DOM.utils.setTextContent(confirmBtn, confirmText);
     if (cancelBtn) DOM.utils.setTextContent(cancelBtn, cancelText);
     
-    //  確認按鈕事件監聽器
+    // 確認按鈕事件監聽器：當使用者點擊確認按鈕時，會執行 onConfirm 函式，這通常是實際要執行的業務邏輯（如刪除資料、取消預約等）
     const confirmHandler = () => {
       console.log('confirmHandler called');
-      onConfirm();
+      onConfirm(); // 執行傳入的 onConfirm 函式，這通常是實際要執行的業務邏輯（如刪除資料、取消預約等）
       const modal = bootstrap.Modal.getInstance(DOM.confirm.modal());
       if (modal) {
-        modal.hide();
+        modal.hide(); // 隱藏對話框
         // 只有在需要清理 backdrop 時才清理
         if (cleanupBackdrop) {
           setTimeout(() => {
             const backdrop = document.querySelector('.modal-backdrop');
             if (backdrop) backdrop.remove();
             document.body.classList.remove('modal-open');
-            document.body.style.paddingRight = '';
+            document.body.style.paddingRight = ''; // paddingRight 樣式是 Bootstrap 為防止頁面跳動而添加的樣式
             // 強制處理焦點問題
             document.body.focus();
           }, 150);
@@ -897,10 +897,10 @@ const UIInteraction = {
       }
     };
     
-    // 取消按鈕事件監聽器
+    // 取消按鈕事件監聽器：當使用者點擊取消按鈕時，會執行 onCancel 函式，這通常是實際要執行的業務邏輯（如取消預約等）
     const cancelHandler = () => {
       console.log('cancelHandler called');
-      onCancel();
+      onCancel(); // 執行傳入的 onCancel 函式，這通常是實際要執行的業務邏輯（如取消預約等）
       const modal = bootstrap.Modal.getInstance(DOM.confirm.modal());
       if (modal) {
         modal.hide();
@@ -917,21 +917,20 @@ const UIInteraction = {
     };
     
     // 移除舊的事件監聽器：解決重覆綁定事件監聽器
-    if (confirmBtn) {
+    if (confirmBtn) { // 如果確認按鈕存在
       // 使用 cloneNode 來移除所有舊的事件監聽器
-      const newConfirmBtn = confirmBtn.cloneNode(true);
-      confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-      newConfirmBtn.addEventListener('click', confirmHandler);
+      const newConfirmBtn = confirmBtn.cloneNode(true); // 複製確認按鈕
+      confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn); // 替換確認按鈕
+      newConfirmBtn.addEventListener('click', confirmHandler); // 綁定確認按鈕的事件監聽器
     }
     
-    if (cancelBtn) {
-      // 使用 cloneNode 來移除所有舊的事件監聽器
-      const newCancelBtn = cancelBtn.cloneNode(true);
-      cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
-      newCancelBtn.addEventListener('click', cancelHandler);
+    if (cancelBtn) { // 如果取消按鈕存在
+      const newCancelBtn = cancelBtn.cloneNode(true); // 複製取消按鈕
+      cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn); // 替換取消按鈕
+      newCancelBtn.addEventListener('click', cancelHandler); // 綁定取消按鈕的事件監聽器
     }
     
-    // 顯示對話框
+    // 顯示確認對話框，讓使用者可以看到確認對話框並進行相應的操作。
     const modal = new bootstrap.Modal(DOM.confirm.modal());
     modal.show();
   }
@@ -2685,11 +2684,11 @@ const DOM = {
       }
     },
 
-    // 處理取消預約時段
+    // 取消預約時段
     handleCancelReservationTime: (option, button) => {
-      console.log('DOM.chat.handleCancelReservationTime called：處理取消預約時段', { option });
+      console.log('DOM.chat.handleCancelReservationTime called：取消預約時段', { option });
       
-      // 獲取時段名稱
+      // 獲取時段名稱：根據 option 的值，設定 timeSlot 的值
       let timeSlot = '';
       if (option === 'demo-time-1') {
         timeSlot = '【Demo】預約 2025/07/07（週一）20:00~22:00';
@@ -2699,7 +2698,7 @@ const DOM = {
         timeSlot = '提供我方便的時間給 Giver';
       }
       
-      // 跳出確認 modal
+      // 跳出確認 modal：使用 UIComponents.confirmDialog 函式，顯示一個確認對話框，讓使用者可以確認是否取消預約。
       UIComponents.confirmDialog({
         title: '確認取消預約',
         message: `確定取消預約此時段嗎？${timeSlot}`,
@@ -4202,8 +4201,8 @@ const DOM = {
             document.body.classList.remove('modal-open');
             document.body.style.paddingRight = '';
             
-            // 強制處理焦點問題
-            DOM.chat.forceFocusToBody();
+            // 強制處理焦點問題：當使用者關閉對話框時，強制將焦點移到 body，避免使用者無法操作其他元素。
+            DOM.chat.forceFocusToBody(); 
           }, 150);
         }
       });
@@ -4219,7 +4218,7 @@ const DOM = {
         return;
       }
       
-      DOM.message.addToChat(messageElement);
+      DOM.message.addToChat(messageElement); // 將使用者訊息添加到聊天區域
       
       // 使用 ChatStateManager 記錄訊息歷史
       ChatStateManager.addUserMessage(message);
