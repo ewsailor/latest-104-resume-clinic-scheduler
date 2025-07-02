@@ -1162,7 +1162,8 @@ const TEMPLATES = {
               <label for="schedule-notes" class="form-label">備註</label>
               <textarea id="schedule-notes" class="form-control" rows="3" placeholder="請輸入備註（非必填）"></textarea>
             </div>
-            <div class="d-flex justify-content-end">
+            <div class="d-flex justify-content-end gap-2">
+              <button type="button" class="btn btn-outline-secondary" id="cancel-schedule-form">取消</button>
               <button type="submit" class="btn btn-orange">輸入完成</button>
             </div>
           </form>
@@ -2884,6 +2885,29 @@ const DOM = {
       DOM.chat.handleCancelSchedule();
     },
 
+    // 處理取消表單
+    handleCancelScheduleForm: (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      console.log('取消表單按鈕被點擊');
+      
+      // 隱藏表單
+      const scheduleForm = document.getElementById('schedule-form');
+      if (scheduleForm) {
+        scheduleForm.classList.remove('schedule-form-visible');
+        scheduleForm.classList.add('schedule-form-hidden');
+      }
+      
+      // 添加使用者訊息
+      DOM.chat.addUserMessage('取消提供時段');
+      
+      // 顯示取消訊息
+      setTimeout(() => {
+        DOM.chat.addGiverResponse('已取消提供時段。<br><br>如果仍想預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。');
+      }, 1000);
+    },
+
     // 更新預約表格
     updateReservationTable: (visibleRows) => {
       console.log('DOM.chat.updateReservationTable called：更新預約表格', { visibleRowsCount: visibleRows.length });
@@ -3195,6 +3219,15 @@ const DOM = {
       console.log('DOM.chat.setupScheduleForm called: 設定表單事件');
       const form = document.getElementById('time-schedule-form');
       if (form) {
+        // 綁定取消按鈕事件（使用事件委派避免重複綁定）
+        const cancelBtn = document.getElementById('cancel-schedule-form');
+        if (cancelBtn) {
+          // 先移除舊的事件監聽器（如果存在）
+          cancelBtn.removeEventListener('click', DOM.chat.handleCancelScheduleForm);
+          
+          // 添加新的事件監聽器
+          cancelBtn.addEventListener('click', DOM.chat.handleCancelScheduleForm);
+        }
         form.onsubmit = (e) => {
           console.log('DOM.chat.setupScheduleForm: 表單提交事件觸發');
           e.preventDefault();
