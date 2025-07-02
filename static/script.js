@@ -918,8 +918,8 @@ const DateUtils = {
   },
   
   // 新增：取得今天日期的格式化字串
-  getTodayFormatted: function() {
-    return this.formatDate(this.getToday());
+  getTodayFormatted: () => {
+    return DateUtils.formatDate(DateUtils.getToday());
   }
 };
 
@@ -4250,17 +4250,17 @@ const DOM = {
       console.log('DOM.chat.handleViewAllSchedules: 已提供的時段資料', providedSchedules);
       
       // 重繪表格（內部函式）：生成時段表格的 HTML 內容
-      function renderTable() {
+      const renderTable = () => {
         console.log('renderTable() called: 重繪時段表格');
         const schedules = ChatStateManager.getProvidedSchedules();
         console.log('renderTable() schedules:', schedules);
         const result = TEMPLATES.chat.scheduleTable(schedules);
         console.log('renderTable() completed: 表格模板已生成');
         return result;
-      }
+      };
       
       // 真正渲染與事件綁定（內部函式）：渲染表格並綁定相關事件
-      function mountTable() {
+      const mountTable = () => {
         console.log('mountTable() called: 渲染與事件綁定表格');
         const chatMessages = document.getElementById('chat-messages');
         if (!chatMessages) {
@@ -4288,7 +4288,7 @@ const DOM = {
         // 滾動到底部
         chatMessages.scrollTop = chatMessages.scrollHeight;
         console.log('mountTable() completed: 表格渲染與事件綁定完成');
-      }
+      };
       
       setTimeout(() => {
         if (providedSchedules.length === 0) {
@@ -6583,7 +6583,7 @@ DOM.events.add(document, 'DOMContentLoaded', function() {
 
 // === 新增：表單欄位初始化 function ===
 // 初始化時段表單的輸入欄位，設定預設值和事件監聽器
-function initScheduleFormInputs(formElement) {
+const initScheduleFormInputs = (formElement) => {
   console.log('initScheduleFormInputs() called: 初始化表單欄位');
   console.log('initScheduleFormInputs() formElement:', formElement);
   
