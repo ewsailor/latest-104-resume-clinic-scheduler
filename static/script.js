@@ -1351,6 +1351,24 @@ const TEMPLATES = {
       </div>
     `,
 
+    // 新增：您目前還沒有預約任何 Giver 時間的模板
+    noBookedTimesWithButtons: () => `
+      <div class="message giver-message">
+        <div class="d-flex align-items-center">
+          <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+        </div>
+        <div class="message-content">
+          <p class="message-title">您目前還沒有預約任何 Giver 時間。請選擇以下選項：</p>
+          <div class="chat-options-buttons mt-2">
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">查看 Giver 方便的時間</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">提供單筆方便時段</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">提供多筆方便時段</button>
+            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">取消本次預約 Giver 時間</button>
+          </div>
+        </div>
+      </div>
+    `,
+
     // 新增：多筆時段功能在建置中的模板
     multipleTimesUnderConstruction: () => `
       <div class="message giver-message">
@@ -1437,13 +1455,13 @@ const TEMPLATES = {
             <div class="form-check mb-2">
               <input class="form-check-input" type="checkbox" id="time-option-1" data-option="demo-time-1">
               <label class="form-check-label" for="time-option-1">
-                【Demo】預約 2025/07/07（週一）20:00~22:00
+                【Demo】預約 2025/08/02（週六）20:00~22:00
               </label>
             </div>
             <div class="form-check mb-2">
               <input class="form-check-input" type="checkbox" id="time-option-2" data-option="demo-time-2">
               <label class="form-check-label" for="time-option-2">
-                【Demo】預約 2025/07/08（週二）20:00~22:00
+                【Demo】預約 2025/08/03（週日）20:00~22:00
               </label>
             </div>
             <div class="form-check mb-2">
@@ -1497,8 +1515,8 @@ const TEMPLATES = {
       // Demo 時間選項
       demoTimeOptions.forEach(option => {
         const timeSlot = option.option === 'demo-time-1' 
-          ? '【Demo】預約 2025/07/07（週一）20:00~22:00'
-          : '【Demo】預約 2025/07/08（週二）20:00~22:00';
+          ? '【Demo】預約 2025/08/02（週六）20:00~22:00'
+          : '【Demo】預約 2025/08/03（週日）20:00~22:00';
         
         tableRows += `
           <tr>
@@ -1561,6 +1579,59 @@ const TEMPLATES = {
       `;
     },
 
+    // 新增：已預約時間訊息和表格模板
+    bookedTimesMessageAndTable: (bookedSchedules) => {
+      console.log('TEMPLATES.chat.bookedTimesMessageAndTable called', { bookedSchedules });
+      
+      // 生成表格行
+      let tableRows = '';
+      let rowIndex = 1;
+      
+      bookedSchedules.forEach(schedule => {
+        tableRows += `
+          <tr>
+            <td class="text-center">${rowIndex}</td>
+            <td class="text-center text-warning">${schedule.status}</td>
+            <td class="text-center">${schedule.timeSlot}</td>
+            <td class="text-center">-</td>
+            <td class="text-center">
+              <button class="btn btn-sm btn-outline-danger cancel-reservation-btn" data-option="${schedule.option}">
+                取消預約此時段
+              </button>
+            </td>
+          </tr>
+        `;
+        rowIndex++;
+      });
+      
+      return `
+        <div class="message giver-message">
+          <div class="d-flex align-items-center">
+            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+          </div>
+          <div class="message-content">
+            <p class="message-title">✅ 預約已送出！<br><br>Giver 已收到您對上述時段的預約通知，請耐心等待對方確認回覆。<br><br>⚠️貼心提醒：<br><br>Giver 可能因臨時狀況無法如期面談，請以對方回覆確認為準，謝謝您的體諒！<br><br>以下是您的預約時段：</p>
+            <div class="table-responsive mt-2">
+              <table class="table table-sm table-bordered table-hover reservation-success-table">
+                <thead class="table-light">
+                  <tr>
+                    <th class="text-center">序</th>
+                    <th class="text-center">狀態</th>
+                    <th class="text-center">時段</th>
+                    <th class="text-center">備註</th>
+                    <th class="text-center">調整</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${tableRows}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    },
+
     // 新增：預約成功表格模板
     reservationSuccessTable: (demoTimeOptions, provideMyTimeOption, isUpdate = false) => {
       console.log('TEMPLATES.chat.reservationSuccessTable called', { demoTimeOptions, provideMyTimeOption, isUpdate });
@@ -1578,8 +1649,8 @@ const TEMPLATES = {
       // Demo 時間選項
       demoTimeOptions.forEach(option => {
         const timeSlot = option.option === 'demo-time-1' 
-          ? '【Demo】預約 2025/07/07（週一）20:00~22:00'
-          : '【Demo】預約 2025/07/08（週二）20:00~22:00';
+          ? '【Demo】預約 2025/08/02（週六）20:00~22:00'
+          : '【Demo】預約 2025/08/03（週日）20:00~22:00';
         
         tableRows += `
           <tr>
@@ -1656,8 +1727,8 @@ const TEMPLATES = {
       // Demo 時間選項
       demoTimeOptions.forEach(option => {
         const timeSlot = option.option === 'demo-time-1' 
-          ? '【Demo】預約 2025/07/07（週一）20:00~22:00'
-          : '【Demo】預約 2025/07/08（週二）20:00~22:00';
+          ? '【Demo】預約 2025/08/02（週六）20:00~22:00'
+          : '【Demo】預約 2025/08/03（週日）20:00~22:00';
         
         tableRows += `
           <tr>
@@ -2530,6 +2601,9 @@ const DOM = {
             case 'view-giver-times':
               DOM.chat.handleViewTimes();
               break;
+            case 'view-my-booked-times':
+              DOM.chat.handleViewMyBookedTimes();
+              break;
             case 'provide-single-time':
               DOM.chat.handleSingleTime();
               break;
@@ -2697,9 +2771,9 @@ const DOM = {
       // 獲取時段名稱：根據 option 的值，設定 timeSlot 的值
       let timeSlot = '';
       if (option === 'demo-time-1') {
-        timeSlot = '【Demo】預約 2025/07/07（週一）20:00~22:00';
+        timeSlot = '【Demo】預約 2025/08/02（週六）20:00~22:00';
       } else if (option === 'demo-time-2') {
-        timeSlot = '【Demo】預約 2025/07/08（週二）20:00~22:00';
+        timeSlot = '【Demo】預約 2025/08/03（週日）20:00~22:00';
       } else if (option === 'provide-my-time') {
         timeSlot = '提供我方便的時間給 Giver';
       }
@@ -2713,6 +2787,12 @@ const DOM = {
         onConfirm: () => {
           // 使用者確認取消預約
           console.log('使用者確認取消預約:', timeSlot);
+          
+          // 從 ChatStateManager 中移除被取消的預約時段
+          const bookedSchedules = ChatStateManager.getBookedSchedules();
+          const updatedBookedSchedules = bookedSchedules.filter(schedule => schedule.option !== option);
+          ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES, updatedBookedSchedules);
+          console.log('DOM.chat.handleCancelReservationTime: 已從 ChatStateManager 移除預約時段', { option, remainingCount: updatedBookedSchedules.length });
           
           // 添加使用者訊息
           DOM.chat.addUserMessage(`我要取消：${timeSlot}`);
@@ -2751,27 +2831,21 @@ const DOM = {
     addCancelSuccessMessage: (visibleRows) => {
       console.log('DOM.chat.addCancelSuccessMessage called：新增取消成功訊息泡泡', { visibleRowsCount: visibleRows.length });
       
-      // 分析剩餘的預約選項（直接使用現存的行，因為已取消的行已被移除）
-      const remainingOptions = [];
-      visibleRows.forEach(row => {
-        const cancelBtn = row.querySelector('.cancel-reservation-btn');
-        if (cancelBtn) {
-          const option = cancelBtn.getAttribute('data-option');
-          // 從正確的欄位獲取時段資訊
-          const timeSlotCell = row.querySelector('td:nth-child(3)'); // 時段欄位
-          const timeSlot = timeSlotCell ? timeSlotCell.textContent.trim() : ''; // 如果找到該 <td> 元素，則獲取其文本內容並去除首尾空白
-          
-          if (option && timeSlot) { // 如果成功獲取到選項和時段，則將其添加到 remainingOptions 陣列中
-            remainingOptions.push({ option, label: timeSlot });
-          }
-        }
-      });
+      // 從 ChatStateManager 獲取剩餘的預約時段
+      const remainingBookedSchedules = ChatStateManager.getBookedSchedules();
+      console.log('DOM.chat.addCancelSuccessMessage: 剩餘的預約時段', remainingBookedSchedules);
       
-      if (visibleRows.length === 0) {
+      if (remainingBookedSchedules.length === 0) {
         // 如果沒有剩餘時段，不生成任何訊息泡泡
         DOM.chat.addGiverResponse('您已取消所有預約時段。<br><br>如果仍想預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。');
         return;
       }
+      
+      // 將 ChatStateManager 中的資料轉換為模板需要的格式
+      const remainingOptions = remainingBookedSchedules.map(schedule => ({
+        option: schedule.option,
+        label: schedule.timeSlot
+      }));
       
       // 生成取消成功訊息泡泡 HTML
       const cancelSuccessHTML = TEMPLATES.chat.cancelSuccessMessageAndTable(remainingOptions);
@@ -2802,6 +2876,10 @@ const DOM = {
     // 處理取消全部預約
     handleCancelAllReservations: () => {
       console.log('DOM.chat.handleCancelAllReservations called：處理取消全部預約');
+      
+      // 清空 ChatStateManager 中的預約時段
+      ChatStateManager.clearBookedSchedules();
+      console.log('DOM.chat.handleCancelAllReservations: 已清空所有預約時段');
       
       DOM.chat.handleCancelSchedule();
     },
@@ -2951,6 +3029,36 @@ const DOM = {
     handleMultipleDemoTimeSelection: (demoTimeOptions, provideMyTimeOption) => {
       console.log('DOM.chat.handleMultipleDemoTimeSelection called：處理多個 Demo 時間選項', { demoTimeOptions, provideMyTimeOption });
       
+      // 將預約資料儲存到 ChatStateManager
+      const bookedSchedules = [];
+      
+      // 處理 Demo 時間選項
+      demoTimeOptions.forEach(option => {
+        const timeSlot = option.option === 'demo-time-1' 
+          ? '【Demo】預約 2025/08/02（週六）20:00~22:00'
+          : '【Demo】預約 2025/08/03（週日）20:00~22:00';
+        
+        bookedSchedules.push({
+          type: 'demo',
+          option: option.option,
+          timeSlot: timeSlot,
+          status: '預約 Giver 時間成功，待 Giver 回覆'
+        });
+      });
+      
+      // 處理提供我的時間選項
+      if (provideMyTimeOption) {
+        bookedSchedules.push({
+          type: 'provide-my-time',
+          option: 'provide-my-time',
+          timeSlot: '提供我方便的時間給 Giver',
+          status: '預約 Giver 時間成功，待 Giver 回覆'
+        });
+      }
+      
+      // 儲存預約資料
+      ChatStateManager.addBookedSchedules(bookedSchedules);
+      
       setTimeout(() => {
         // 顯示預約成功訊息和表格
         const reservationSuccessHTML = TEMPLATES.chat.reservationSuccessMessageAndTable(demoTimeOptions, provideMyTimeOption);
@@ -2976,6 +3084,36 @@ const DOM = {
           chatMessages.insertAdjacentHTML('beforeend', noGiverTimesHTML);
           // 綁定按鈕事件
           DOM.chat.setupScheduleOptionButtons();
+          // 滾動到底部
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+      }, 1000);
+    },
+    
+    // 處理查看我已預約的時間選項
+    handleViewMyBookedTimes: () => {
+      console.log('DOM.chat.handleViewMyBookedTimes called：處理查看我已預約的時間選項');
+      
+      // 檢查是否有已預約的時間
+      const bookedSchedules = ChatStateManager.getBookedSchedules();
+      console.log('DOM.chat.handleViewMyBookedTimes: 已預約的時段', bookedSchedules);
+      
+      setTimeout(() => {
+        const chatMessages = document.getElementById('chat-messages');
+        if (chatMessages) {
+          if (bookedSchedules.length > 0) {
+            // 有預約時段，顯示預約成功訊息和表格
+            const bookedTimesHTML = TEMPLATES.chat.bookedTimesMessageAndTable(bookedSchedules);
+            chatMessages.insertAdjacentHTML('beforeend', bookedTimesHTML);
+            // 綁定表格按鈕事件
+            DOM.chat.setupReservationTableButtons();
+          } else {
+            // 沒有預約時段，顯示「您目前還沒有預約任何 Giver 時間」訊息和按鈕
+            const noBookedTimesHTML = TEMPLATES.chat.noBookedTimesWithButtons();
+            chatMessages.insertAdjacentHTML('beforeend', noBookedTimesHTML);
+            // 綁定按鈕事件
+            DOM.chat.setupScheduleOptionButtons();
+          }
           // 滾動到底部
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
@@ -6446,6 +6584,7 @@ const ChatStateManager = {
       MESSAGE_HISTORY: 'messageHistory',
       LAST_MESSAGE_TIME: 'lastMessageTime',
       PROVIDED_SCHEDULES: 'providedSchedules',
+      BOOKED_SCHEDULES: 'bookedSchedules',
       IS_MULTIPLE_TIMES_MODE: 'isMultipleTimesMode',
       SELECTED_DATE: 'selectedDate'
     },
@@ -6457,6 +6596,7 @@ const ChatStateManager = {
       messageHistory: [],
       lastMessageTime: null,
       providedSchedules: [],
+      bookedSchedules: [],
       isMultipleTimesMode: false,
       selectedDate: null
     },
@@ -6476,6 +6616,7 @@ const ChatStateManager = {
     messageHistory: [],
     lastMessageTime: null,
     providedSchedules: [],
+    bookedSchedules: [],
     isMultipleTimesMode: false,
     selectedDate: null
   },
@@ -6568,6 +6709,7 @@ const ChatStateManager = {
       [ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY]: [],
       [ChatStateManager.CONFIG.STATE_KEYS.LAST_MESSAGE_TIME]: new Date(),
       [ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES]: [],
+      [ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES]: [],
       [ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE]: false,
       [ChatStateManager.CONFIG.STATE_KEYS.SELECTED_DATE]: null
     };
@@ -6718,6 +6860,7 @@ const ChatStateManager = {
       isActive: state[ChatStateManager.CONFIG.STATE_KEYS.IS_ACTIVE],
       currentGiver: state[ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER],
       providedSchedulesCount: state[ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES].length,
+      bookedSchedulesCount: state[ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES].length,
       isMultipleTimesMode: state[ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE]
     };
     
@@ -6749,6 +6892,66 @@ const ChatStateManager = {
   clearProvidedSchedules: () => {
     console.log('ChatStateManager.clearProvidedSchedules called');
     ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, []);
+  },
+  
+  // 獲取已預約時段列表
+  getBookedSchedules: () => {
+    console.log('ChatStateManager.getBookedSchedules called');
+    const bookedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES);
+    return [...bookedSchedules];
+  },
+  
+  // 添加預約時段
+  addBookedSchedule: (schedule) => {
+    console.log('ChatStateManager.addBookedSchedule called', { schedule });
+    
+    const bookedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES);
+    
+    // 檢查是否會超過長度限制
+    if (bookedSchedules.length >= ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
+      console.warn('ChatStateManager.addBookedSchedule: 已達到預約時段數量限制');
+      return false;
+    }
+    
+    // 添加新預約時段
+    bookedSchedules.push({
+      ...schedule,
+      timestamp: new Date()
+    });
+    
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES, bookedSchedules);
+    console.log('ChatStateManager.addBookedSchedule: 預約時段已添加到列表');
+    return true;
+  },
+  
+  // 批量添加預約時段
+  addBookedSchedules: (schedules) => {
+    console.log('ChatStateManager.addBookedSchedules called', { schedules });
+    
+    const bookedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES);
+    
+    // 檢查是否會超過長度限制
+    if (bookedSchedules.length + schedules.length > ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
+      console.warn('ChatStateManager.addBookedSchedules: 批量添加會超過長度限制');
+      return false;
+    }
+    
+    // 批量添加預約時段
+    const newSchedules = schedules.map(schedule => ({
+      ...schedule,
+      timestamp: new Date()
+    }));
+    
+    bookedSchedules.push(...newSchedules);
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES, bookedSchedules);
+    console.log('ChatStateManager.addBookedSchedules: 批量預約時段已添加到列表');
+    return true;
+  },
+  
+  // 清空已預約時段列表
+  clearBookedSchedules: () => {
+    console.log('ChatStateManager.clearBookedSchedules called');
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES, []);
   },
   
   // 檢查聊天是否活躍
@@ -6832,6 +7035,7 @@ const ChatStateManager = {
         return value === null || value instanceof Date;
         
       case ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES:
+      case ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES:
         return Array.isArray(value);
         
       case ChatStateManager.CONFIG.STATE_KEYS.SELECTED_DATE:
@@ -6849,6 +7053,7 @@ const ChatStateManager = {
     console.log('統計資料:', ChatStateManager.getStats());
     console.log('訊息歷史:', ChatStateManager.getMessageHistory());
     console.log('已提供時段:', ChatStateManager.getProvidedSchedules());
+    console.log('已預約時段:', ChatStateManager.getBookedSchedules());
     console.log('監聽器數量:', ChatStateManager._listeners.size);
     console.groupEnd();
   },
