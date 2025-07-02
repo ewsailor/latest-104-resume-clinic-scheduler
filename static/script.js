@@ -1,4 +1,4 @@
-// =================================================================
+
 const CONFIG = {
   // 全域實例
   INSTANCES: {
@@ -159,7 +159,7 @@ const BusinessLogic = {
   chat: {
     // 驗證訊息
     validateMessage: (message) => {
-      console.log('BusinessLogic.chat.validateMessage called', { message });
+      Logger.debug('BusinessLogic.chat.validateMessage called', { message });
       if (!message || typeof message !== 'string') return false;
       if (message.trim().length === 0) return false;
       if (message.length > CONFIG.CHAT.MAX_MESSAGE_LENGTH) return false;
@@ -167,7 +167,7 @@ const BusinessLogic = {
     },
     // 生成回應
     generateResponse: (userMessage) => {
-      console.log('BusinessLogic.chat.generateResponse called', { userMessage });
+      Logger.debug('BusinessLogic.chat.generateResponse called', { userMessage });
       const responses = [
         '謝謝您的諮詢！我會盡快回覆您。',
         '您的問題很有價值，讓我為您詳細說明。',
@@ -207,13 +207,13 @@ const DateUtils = {
     const day = String(d.getDate()).padStart(2, '0');
     
     const formatted = `${year}/${month}/${day}`;
-    console.log('DateUtils.formatDate: 格式化結果', { original: date, formatted });
+    Logger.debug('DateUtils.formatDate: 格式化結果', { original: date, formatted });
     return formatted;
   },
   
   // 格式化時間為 HH:MM
   formatTime: (date) => {
-    console.log('DateUtils.formatTime called', { date });
+    Logger.debug('DateUtils.formatTime called', { date });
     if (!date) return '';
     
     const d = new Date(date);
@@ -223,13 +223,13 @@ const DateUtils = {
     const minutes = String(d.getMinutes()).padStart(2, '0');
     
     const formatted = `${hours}:${minutes}`;
-    console.log('DateUtils.formatTime: 格式化結果', { original: date, formatted });
+    Logger.debug('DateUtils.formatTime: 格式化結果', { original: date, formatted });
     return formatted;
   },
   
   // 格式化為本地時間字串
   formatToLocalTime: (date) => {
-    console.log('DateUtils.formatToLocalTime called', { date });
+    Logger.debug('DateUtils.formatToLocalTime called', { date });
     if (!date) return '';
     
     const d = new Date(date);
@@ -241,30 +241,30 @@ const DateUtils = {
       hour12: false
     });
     
-    console.log('DateUtils.formatToLocalTime: 格式化結果', { original: date, formatted });
+    Logger.debug('DateUtils.formatToLocalTime: 格式化結果', { original: date, formatted });
     return formatted;
   },
   
   // 獲取今天的日期
   getToday: () => {
-    console.log('DateUtils.getToday called');
+    Logger.debug('DateUtils.getToday called');
     const today = new Date();
-    console.log('DateUtils.getToday: 今天日期', today);
+    Logger.debug('DateUtils.getToday: 今天日期', today);
     return today;
   },
   
   // 比較兩個時間字串 (HH:MM 格式)
   compareTimes: (time1, time2) => {
-    console.log('DateUtils.compareTimes called', { time1, time2 });
+    Logger.debug('DateUtils.compareTimes called', { time1, time2 });
     
     if (!time1 || !time2) {
-      console.warn('DateUtils.compareTimes: 時間參數為空', { time1, time2 });
+      Logger.warn('DateUtils.compareTimes: 時間參數為空', { time1, time2 });
       return 0;
     }
     
     // 將時間字串轉換為分鐘數（內部工具函式）
     const parseTime = (timeStr) => {
-      console.log('DateUtils.compareTimes.parseTime called', { timeStr });
+      Logger.debug('DateUtils.compareTimes.parseTime called', { timeStr });
       const [hours, minutes] = timeStr.split(':').map(Number);
       return hours * 60 + minutes;
     };
@@ -273,7 +273,7 @@ const DateUtils = {
     const minutes2 = parseTime(time2);
     
     const result = minutes1 - minutes2;
-    console.log('DateUtils.compareTimes: 比較結果', { time1, time2, minutes1, minutes2, result });
+    Logger.debug('DateUtils.compareTimes: 比較結果', { time1, time2, minutes1, minutes2, result });
     return result;
   },
   
@@ -945,7 +945,7 @@ const UIInteraction = {
 const TEMPLATES = {
   // Giver 卡片模板
   giverCard: (giver) => {
-    console.log('TEMPLATES.giverCard called', { giver });
+    Logger.debug('TEMPLATES.giverCard called', { giver });
       const {
         id,
         name = CONFIG.DEFAULTS.GIVER.NAME,
@@ -957,7 +957,7 @@ const TEMPLATES = {
         image,
         giverCard__topic = []
       } = giver;
-    console.log('giverCard template variables:', {
+    Logger.debug('giverCard template variables:', {
       id,
       name,
       title,
@@ -1229,7 +1229,7 @@ const TEMPLATES = {
 
     // 時段表格模板
     scheduleTable: (schedules) => {
-      console.log('TEMPLATES.chat.scheduleTable called', { schedules });
+      Logger.debug('TEMPLATES.chat.scheduleTable called', { schedules });
       let tableRows = '';
       schedules.forEach((schedule, index) => {
         const scheduleNumber = index + 1;
@@ -1506,7 +1506,7 @@ const TEMPLATES = {
     
     // 新增：預約成功訊息和表格模板
     reservationSuccessMessageAndTable: (demoTimeOptions, provideMyTimeOption) => {
-      console.log('TEMPLATES.chat.reservationSuccessMessageAndTable called', { demoTimeOptions, provideMyTimeOption });
+      Logger.debug('TEMPLATES.chat.reservationSuccessMessageAndTable called', { demoTimeOptions, provideMyTimeOption });
       const totalCount = demoTimeOptions.length + (provideMyTimeOption ? 1 : 0);
       
       // 生成表格行
@@ -1582,7 +1582,7 @@ const TEMPLATES = {
 
     // 新增：已預約時間訊息和表格模板
     bookedTimesMessageAndTable: (bookedSchedules) => {
-      console.log('TEMPLATES.chat.bookedTimesMessageAndTable called', { bookedSchedules });
+      Logger.debug('TEMPLATES.chat.bookedTimesMessageAndTable called', { bookedSchedules });
       
       // 生成表格行
       let tableRows = '';
@@ -1806,13 +1806,13 @@ const DOM = {
   
   // 創建元素
   createElement: (tag, className = '', innerHTML = '') => {
-    console.log('DOM.createElement called', { tag, className, innerHTML });
+    Logger.debug('DOM.createElement called', { tag, className, innerHTML });
     
     const element = document.createElement(tag);
     if (className) element.className = className;
     if (innerHTML) element.innerHTML = innerHTML;
     
-    console.log('元素創建完成:', element);
+    Logger.debug('元素創建完成:', element);
     return element;
   },
   
@@ -1820,41 +1820,41 @@ const DOM = {
   utils: {
     // 安全地設置文字內容（防止 XSS）
     setTextContent: (element, text) => {
-      console.log('DOM.utils.setTextContent called', { element, text });
+      Logger.debug('DOM.utils.setTextContent called', { element, text });
       if (element) {
         element.textContent = text;
       } else {
-        console.error('無法設置文字內容，元素不存在');
+        Logger.error('無法設置文字內容，元素不存在');
       }
     },
     
     // 安全地設置 HTML 內容
     setInnerHTML: (element, html) => {
-      console.log('DOM.utils.setInnerHTML called', { element, html });
+      Logger.debug('DOM.utils.setInnerHTML called', { element, html });
       if (element) {
         element.innerHTML = html;
       } else {
-        console.error('無法設置 HTML 內容，元素不存在');
+        Logger.error('無法設置 HTML 內容，元素不存在');
       }
     },
     
     // 添加事件監聽器
     addEventListener: (element, event, handler, options = {}) => {
-      console.log('DOM.utils.addEventListener called', { element, event, handler, options });
+      Logger.debug('DOM.utils.addEventListener called', { element, event, handler, options });
       if (element) {
         element.addEventListener(event, handler, options);
       } else {
-        console.error('無法添加事件監聽器，元素不存在');
+        Logger.error('無法添加事件監聽器，元素不存在');
       }
     },
     
     // 移除事件監聽器
     removeEventListener: (element, event, handler, options = {}) => {
-      console.log('DOM.utils.removeEventListener called', { element, event, handler, options });
+      Logger.debug('DOM.utils.removeEventListener called', { element, event, handler, options });
       if (element) {
         element.removeEventListener(event, handler, options);
       } else {
-        console.error('無法移除事件監聽器，元素不存在');
+        Logger.error('無法移除事件監聽器，元素不存在');
       }    
     },
     
@@ -2890,7 +2890,7 @@ const DOM = {
       e.preventDefault();
       e.stopPropagation();
       
-      console.log('取消表單按鈕被點擊');
+      Logger.debug('取消表單按鈕被點擊');
       
       // 隱藏表單
       const scheduleForm = document.getElementById('schedule-form');
@@ -5828,7 +5828,11 @@ const Logger = {
     enableConsole: true,
     enableStorage: false,
     maxLogs: 1000,
-    storageKey: 'app_logs'
+    storageKey: 'app_logs',
+    // 新增：開發環境控制
+    isDebug: true, // 設為 false 可關閉所有日誌輸出
+    // 新增：環境檢測
+    isProduction: false // 設為 true 時會關閉大部分日誌
   },
 
   // 日誌記錄
@@ -5836,9 +5840,18 @@ const Logger = {
 
   // 記錄日誌
   log: (level, message, data = null, context = {}) => {
-    console.log('Logger.log called: 記錄日誌', { level, message, data, context });
+    // 在生產環境中，只記錄錯誤和致命錯誤
+    if (Logger.config.isProduction && level < LOGGER_LEVELS.ERROR) {
+      return null;
+    }
+    
+    // 如果關閉調試模式，跳過調試和資訊日誌
+    if (!Logger.config.isDebug && level < LOGGER_LEVELS.WARN) {
+      return null;
+    }
+    
     if (level < Logger.config.level) {
-      return;
+      return null;
     }
 
     const logEntry = {
@@ -7081,14 +7094,14 @@ const ChatStateManager = {
   
   // 調試功能
   debug: () => {
-    console.group('ChatStateManager.debug called：聊天狀態調試資訊');
-    console.log('當前狀態:', ChatStateManager.getState());
-    console.log('統計資料:', ChatStateManager.getStats());
-    console.log('訊息歷史:', ChatStateManager.getMessageHistory());
-    console.log('已提供時段:', ChatStateManager.getProvidedSchedules());
-    console.log('已預約時段:', ChatStateManager.getBookedSchedules());
-    console.log('監聽器數量:', ChatStateManager._listeners.size);
-    console.groupEnd();
+    Logger.group('ChatStateManager.debug called：聊天狀態調試資訊');
+    Logger.log('當前狀態:', ChatStateManager.getState());
+    Logger.log('統計資料:', ChatStateManager.getStats());
+    Logger.log('訊息歷史:', ChatStateManager.getMessageHistory());
+    Logger.log('已提供時段:', ChatStateManager.getProvidedSchedules());
+    Logger.log('已預約時段:', ChatStateManager.getBookedSchedules());
+    Logger.log('監聽器數量:', ChatStateManager._listeners.size);
+    Logger.groupEnd();
   },
   
   // 匯出狀態（用於持久化）
