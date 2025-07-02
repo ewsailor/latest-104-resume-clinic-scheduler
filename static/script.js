@@ -1,4 +1,3 @@
-
 const CONFIG = {
   // 全域實例
   INSTANCES: {
@@ -128,6 +127,391 @@ const CONFIG = {
 const BASE_URL = CONFIG.API.BASE_URL;
 const POSTER_URL = CONFIG.API.POSTER_URL;
 const GIVERS_PER_PAGE = CONFIG.PAGINATION.GIVERS_PER_PAGE;
+
+// =================================================================
+//   統一事件委派管理器 (Event Delegation Manager)
+// =================================================================
+
+const EventManager = {
+  // 事件處理器映射
+  handlers: new Map(),
+  
+  // 初始化事件委派
+  init() {
+    console.log('EventManager: 初始化事件委派系統');
+    
+    // 綁定全域點擊事件委派
+    document.addEventListener('click', this.handleGlobalClick.bind(this));
+    
+    // 綁定全域提交事件委派
+    document.addEventListener('submit', this.handleGlobalSubmit.bind(this));
+    
+    // 綁定全域變更事件委派
+    document.addEventListener('change', this.handleGlobalChange.bind(this));
+    
+    console.log('EventManager: 事件委派系統初始化完成');
+  },
+  
+  // 全域點擊事件委派處理
+  handleGlobalClick(e) {
+    const target = e.target;
+    
+    // 處理各種按鈕類型
+    if (target.matches('.btn-option')) {
+      this.handleOptionButton(target, e);
+    } else if (target.matches('.edit-provide-btn, .schedule-edit-btn')) {
+      this.handleEditButton(target, e);
+    } else if (target.matches('.delete-provide-btn, .schedule-delete-btn')) {
+      this.handleDeleteButton(target, e);
+    } else if (target.matches('.cancel-reservation-btn')) {
+      this.handleCancelReservation(target, e);
+    } else if (target.matches('.cancel-schedule-form')) {
+      this.handleCancelScheduleForm(target, e);
+    } else if (target.matches('.calendar-day')) {
+      this.handleCalendarDayClick(target, e);
+    } else if (target.matches('.date-input')) {
+      this.handleDateInputClick(target, e);
+    }
+  },
+  
+  // 全域提交事件委派處理
+  handleGlobalSubmit(e) {
+    console.log('EventManager: 全域提交事件觸發', { target: e.target.id });
+    if (e.target.matches('#time-schedule-form')) {
+      e.preventDefault();
+      console.log('EventManager: 處理時間表單提交');
+      this.handleScheduleFormSubmit(e.target, e);
+    }
+  },
+  
+  // 全域變更事件委派處理
+  handleGlobalChange(e) {
+    if (e.target.matches('.schedule-date, .schedule-start-time, .schedule-end-time')) {
+      this.handleScheduleInputChange(e.target, e);
+    }
+  },
+  
+  // 處理選項按鈕
+  handleOptionButton(btn, e) {
+    const option = btn.getAttribute('data-option');
+    const optionText = btn.textContent.trim();
+    Logger.info('EventManager: 選項按鈕被點擊', { option, optionText });
+    
+    // 處理不同選項
+    switch (option) {
+      case 'single-time':
+        DOM.chat.addUserMessage('繼續提供單筆方便時段');
+        DOM.chat.handleSingleTime();
+        break;
+      case 'multiple-times':
+        DOM.chat.addUserMessage('繼續提供多筆方便時段');
+        DOM.chat.handleMultipleTimes();
+        break;
+      case 'view-all':
+        DOM.chat.handleViewAllSchedules();
+        break;
+      case 'finish':
+        DOM.chat.addUserMessage('已新增完成所有時段，請協助送出給 Giver');
+        setTimeout(() => {
+          DOM.chat.handleSuccessProvideTime();
+        }, 1000);
+        break;
+      case 'cancel':
+        DOM.chat.addUserMessage('取消本次預約 Giver 時間');
+        DOM.chat.handleCancelSchedule();
+        break;
+      default:
+        Logger.warn('EventManager: 未知的選項按鈕', { option });
+    }
+    
+    // 隱藏按鈕區塊
+    const optionsContainer = btn.closest('.chat-options-buttons');
+    if (optionsContainer) {
+      optionsContainer.classList.remove('container-visible');
+      optionsContainer.classList.add('chat-options-hidden');
+    }
+  },
+  
+  // 處理編輯按鈕
+  handleEditButton(btn, e) {
+    const tr = btn.closest('tr');
+    const idx = parseInt(tr.getAttribute('data-index'));
+    const schedules = ChatStateManager.getProvidedSchedules();
+    const schedule = schedules[idx];
+    Logger.info('EventManager: 編輯按鈕被點擊', { idx, schedule });
+    DOM.chat.handleSingleTime(idx, schedule);
+  },
+  
+  // 處理刪除按鈕
+  handleDeleteButton(btn, e) {
+    const tr = btn.closest('tr');
+    const idx = parseInt(tr.getAttribute('data-index'));
+    const isProvideTable = btn.closest('.success-provide-table');
+    
+    Logger.info('EventManager: 刪除按鈕被點擊', { idx, isProvideTable });
+    
+    const dialogConfig = isProvideTable ? {
+      title: '取消提供時間',
+      message: '確定要取消提供此時間嗎？',
+      confirmText: '取消提供',
+      cancelText: '保留'
+    } : {
+      title: '刪除時段',
+      message: '確定要刪除此時段嗎？',
+      confirmText: '刪除',
+      cancelText: '取消'
+    };
+    
+    UIComponents.confirmDialog({
+      ...dialogConfig,
+      onConfirm: () => {
+        let schedules = ChatStateManager.getProvidedSchedules();
+        schedules.splice(idx, 1);
+        ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, schedules);
+        
+        if (schedules.length === 0) {
+          DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
+        } else {
+          // 更新對應的表格
+          const chatMessages = document.getElementById('chat-messages');
+          if (chatMessages) {
+            if (isProvideTable) {
+              const successMessage = chatMessages.querySelector('.success-provide-table')?.closest('.giver-message');
+              if (successMessage) {
+                const updatedHTML = TEMPLATES.chat.successProvideTime(schedules);
+                successMessage.outerHTML = updatedHTML;
+              }
+            } else {
+              const tableMessage = chatMessages.querySelector('.schedule-table')?.closest('.giver-message');
+              if (tableMessage) {
+                const updatedHTML = TEMPLATES.chat.scheduleTable(schedules);
+                tableMessage.outerHTML = updatedHTML;
+              }
+            }
+          }
+        }
+      }
+    });
+  },
+  
+  // 處理取消預約按鈕
+  handleCancelReservation(btn, e) {
+    const scheduleId = btn.getAttribute('data-schedule-id');
+    Logger.info('EventManager: 取消預約按鈕被點擊', { scheduleId });
+    
+    UIComponents.confirmDialog({
+      title: '取消預約',
+      message: '確定要取消此預約嗎？',
+      confirmText: '取消預約',
+      cancelText: '保留',
+      onConfirm: () => {
+        // 從狀態管理中移除預約
+        const bookedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES) || [];
+        const updatedSchedules = bookedSchedules.filter(schedule => schedule.id !== scheduleId);
+        ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES, updatedSchedules);
+        
+        // 更新顯示
+        DOM.chat.updateBookedSchedulesDisplay(updatedSchedules);
+        
+        Logger.info('EventManager: 預約已取消', { scheduleId, remainingCount: updatedSchedules.length });
+      }
+    });
+  },
+  
+  // 處理取消表單按鈕
+  handleCancelScheduleForm(btn, e) {
+    Logger.info('EventManager: 取消表單按鈕被點擊');
+    
+    // 隱藏表單
+    const scheduleForm = document.getElementById('schedule-form');
+    if (scheduleForm) {
+      scheduleForm.classList.remove('schedule-form-visible');
+      scheduleForm.classList.add('schedule-form-hidden');
+    }
+    
+    // 清空表單
+    const dateInput = document.getElementById('schedule-date');
+    const startTimeInput = document.getElementById('schedule-start-time');
+    const endTimeInput = document.getElementById('schedule-end-time');
+    const notesInput = document.getElementById('schedule-notes');
+    
+    if (dateInput) dateInput.value = '';
+    if (startTimeInput) startTimeInput.value = '20:00';
+    if (endTimeInput) endTimeInput.value = '22:00';
+    if (notesInput) notesInput.value = '';
+    
+    // 重置選中的日期
+    DOM.chat.setSelectedDate(null);
+    
+    // 顯示取消訊息
+    DOM.chat.addGiverResponse('已取消新增時段。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
+  },
+  
+  // 處理表單提交
+  handleScheduleFormSubmit(form, e) {
+    console.log('EventManager: 表單提交事件觸發');
+    
+    const dateInput = document.getElementById('schedule-date');
+    const startTimeInput = document.getElementById('schedule-start-time');
+    const endTimeInput = document.getElementById('schedule-end-time');
+    const notesInput = document.getElementById('schedule-notes');
+    
+    const formData = {
+      date: dateInput?.value || '',
+      startTime: startTimeInput?.value || '',
+      endTime: endTimeInput?.value || '',
+      notes: notesInput?.value || ''
+    };
+    
+    console.log('EventManager: 表單資料', formData);
+    
+    // 驗證表單
+    const validationResult = FormValidator.validateScheduleForm(formData);
+    if (!validationResult.isValid) {
+      console.warn('EventManager: 表單驗證失敗', validationResult);
+      FormValidator.showValidationError(validationResult.message, form);
+      return;
+    }
+    
+    // 檢查重複時段
+    const existingSchedules = ChatStateManager.getProvidedSchedules();
+    const editIndex = form.getAttribute('data-edit-index');
+    const isEditMode = editIndex !== null && editIndex !== undefined && editIndex !== 'null' && editIndex !== '';
+
+    const isDuplicate = existingSchedules.some((schedule, index) => {
+      if (editIndex !== null && index === parseInt(editIndex)) {
+        return false;
+      }
+      
+      const isExactDuplicate = schedule.date === formData.date && 
+        schedule.startTime === formData.startTime && 
+        schedule.endTime === formData.endTime;
+      
+      if (isExactDuplicate) {
+        return true;
+      }
+      
+      if (schedule.date === formData.date) {
+        const existingStart = schedule.startTime;
+        const existingEnd = schedule.endTime;
+        const newStart = formData.startTime;
+        const newEnd = formData.endTime;
+        
+        const isOverlapping = newStart < existingEnd && newEnd > existingStart;
+        return isOverlapping;
+      }
+      
+      return false;
+    });
+    
+    // 檢測重複或重疊時段
+    if (isDuplicate) {
+      console.warn('EventManager: 檢測到重複或重疊時段', formData);
+      const duplicateMessage = FormValidator.generateDuplicateScheduleMessage(formData, existingSchedules);
+      FormValidator.showValidationError(duplicateMessage);
+      return;
+    }
+    
+    // 處理編輯模式
+    if (isEditMode) {
+      console.log('EventManager: 編輯模式，覆蓋原本的時段', isEditMode);
+      const schedules = ChatStateManager.getProvidedSchedules();
+      schedules[editIndex] = { ...schedules[editIndex], ...formData };
+      ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, schedules);
+      
+      // 隱藏表單
+      const scheduleForm = document.getElementById('schedule-form');
+      if (scheduleForm) {
+        scheduleForm.classList.remove('schedule-form-visible');
+        scheduleForm.classList.add('schedule-form-hidden');
+      }
+      
+      // 更新顯示
+      this.updateScheduleDisplay(schedules);
+      return;
+    }
+    
+    // 新增模式
+    const formattedSchedule = `${formData.date} ${formData.startTime}~${formData.endTime}`;
+    ChatStateManager.addSchedule({
+      date: formData.date,
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      notes: formData.notes.trim(),
+      formattedSchedule: formattedSchedule
+    });
+    
+    // 隱藏表單並清空
+    const scheduleForm = document.getElementById('schedule-form');
+    if (scheduleForm) {
+      scheduleForm.classList.remove('schedule-form-visible');
+      scheduleForm.classList.add('schedule-form-hidden');
+    }
+    
+    if (dateInput) dateInput.value = '';
+    if (startTimeInput) startTimeInput.value = '20:00';
+    if (endTimeInput) endTimeInput.value = '22:00';
+    if (notesInput) notesInput.value = '';
+    
+    // 重置選中的日期
+    DOM.chat.setSelectedDate(null);
+    
+    // 模擬 Giver 回覆
+    setTimeout(() => {
+      const responseHTML = TEMPLATES.chat.afterScheduleOptions(formattedSchedule, formData.notes);
+      const chatMessages = document.getElementById('chat-messages');
+      if (chatMessages) {
+        chatMessages.insertAdjacentHTML('beforeend', responseHTML);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+    }, 500);
+  },
+  
+  // 處理日曆日期點擊
+  handleCalendarDayClick(dayElement, e) {
+    const date = dayElement.getAttribute('data-date');
+    Logger.info('EventManager: 日曆日期被點擊', { date });
+    DOM.chat.setSelectedDate(date);
+  },
+  
+  // 處理日期輸入框點擊
+  handleDateInputClick(input, e) {
+    Logger.info('EventManager: 日期輸入框被點擊');
+    DOM.chat.showDatePicker();
+  },
+  
+  // 處理表單輸入變更
+  handleScheduleInputChange(input, e) {
+    const field = input.id;
+    const value = input.value;
+    Logger.debug('EventManager: 表單輸入變更', { field, value });
+    
+    // 可以在這裡添加即時驗證邏輯
+  },
+  
+  // 更新時段顯示
+  updateScheduleDisplay(schedules) {
+    const chatMessages = document.getElementById('chat-messages');
+    if (!chatMessages) return;
+    
+    // 更新成功提供時間表格
+    const successMessage = chatMessages.querySelector('.success-provide-table')?.closest('.giver-message');
+    if (successMessage) {
+      const updatedHTML = TEMPLATES.chat.successProvideTime(schedules);
+      successMessage.outerHTML = updatedHTML;
+    }
+    
+    // 更新查看所有時段表格
+    const tableMessage = chatMessages.querySelector('.schedule-table')?.closest('.giver-message');
+    if (tableMessage) {
+      const updatedHTML = TEMPLATES.chat.scheduleTable(schedules);
+      tableMessage.outerHTML = updatedHTML;
+    }
+    
+    // 滾動到底部
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+};
 
 // =================================================================
 //   應用程式狀態管理 (Application State Management)
@@ -1280,10 +1664,10 @@ const TEMPLATES = {
             </div>
             <p class="mt-2">請選擇接下來的動作：</p>
             <div class="chat-options-buttons mt-2" id="after-view-all-options">
-              <button class="btn btn-outline btn-option" data-option="single-time" onclick="console.log('按鈕被點擊: single-time'); DOM.chat.addUserMessage('繼續提供單筆方便時段'); DOM.chat.handleSingleTime();">繼續提供單筆方便時段</button>
-              <button class="btn btn-outline btn-option" data-option="multiple-times" onclick="console.log('按鈕被點擊: multiple-times'); DOM.chat.addUserMessage('繼續提供多筆方便時段'); DOM.chat.handleMultipleTimes();">繼續提供多筆方便時段</button>
-              <button class="btn btn-orange btn-option" data-option="finish" onclick="console.log('按鈕被點擊: finish'); DOM.chat.addUserMessage('已新增完成所有時段，請協助送出給 Giver'); setTimeout(() => { DOM.chat.handleSuccessProvideTime(); }, 1000);">已新增完成所有時段，請協助送出給 Giver</button>
-              <button class="btn btn-outline-secondary btn-option" data-option="cancel" onclick="console.log('按鈕被點擊: cancel'); DOM.chat.addUserMessage('取消本次預約 Giver 時間'); DOM.chat.handleCancelSchedule();">取消本次預約 Giver 時間</button>
+              <button class="btn btn-outline btn-option" data-option="single-time">繼續提供單筆方便時段</button>
+              <button class="btn btn-outline btn-option" data-option="multiple-times">繼續提供多筆方便時段</button>
+              <button class="btn btn-orange btn-option" data-option="finish">已新增完成所有時段，請協助送出給 Giver</button>
+              <button class="btn btn-outline-secondary btn-option" data-option="cancel">取消本次預約 Giver 時間</button>
             </div>
           </div>
         </div>
@@ -3216,279 +3600,14 @@ const DOM = {
     
     // 設定表單事件
     setupScheduleForm: (editIndex = null) => {
-      console.log('DOM.chat.setupScheduleForm called: 設定表單事件');
+      Logger.info('DOM.chat.setupScheduleForm called: 設定表單事件');
       const form = document.getElementById('time-schedule-form');
       if (form) {
-        // 綁定取消按鈕事件（使用事件委派避免重複綁定）
-        const cancelBtn = document.getElementById('cancel-schedule-form');
-        if (cancelBtn) {
-          // 先移除舊的事件監聽器（如果存在）
-          cancelBtn.removeEventListener('click', DOM.chat.handleCancelScheduleForm);
-          
-          // 添加新的事件監聽器
-          cancelBtn.addEventListener('click', DOM.chat.handleCancelScheduleForm);
-        }
-        form.onsubmit = (e) => {
-          console.log('DOM.chat.setupScheduleForm: 表單提交事件觸發');
-          e.preventDefault();
-          const dateInput = document.getElementById('schedule-date');
-          const startTimeInput = document.getElementById('schedule-start-time');
-          const endTimeInput = document.getElementById('schedule-end-time');
-          const notesInput = document.getElementById('schedule-notes');
-          const formData = {
-            date: dateInput?.value || '',
-            startTime: startTimeInput?.value || '',
-            endTime: endTimeInput?.value || '',
-            notes: notesInput?.value || ''
-          };
-          console.log('DOM.chat.setupScheduleForm: 表單資料', formData);
-          const validationResult = FormValidator.validateScheduleForm(formData);
-          if (!validationResult.isValid) {
-            console.warn('DOM.chat.setupScheduleForm: 表單驗證失敗', validationResult);
-            FormValidator.showValidationError(validationResult.message, form);
-            return;
-          }
-          // 檢查重複時段
-          const existingSchedules = ChatStateManager.getProvidedSchedules();
-          const isDuplicate = existingSchedules.some((schedule, index) => {
-            // 編輯模式時排除當前正在編輯的時段
-            if (editIndex !== null && index === editIndex) {
-              return false;
-            }
-            
-            // 檢查是否為完全相同的時段
-            const isExactDuplicate = schedule.date === formData.date && 
-              schedule.startTime === formData.startTime && 
-              schedule.endTime === formData.endTime;
-            
-            if (isExactDuplicate) {
-              return true;
-            }
-            
-            // 檢查是否為重疊時段（相同日期且時間有重疊）
-            if (schedule.date === formData.date) {
-              const existingStart = schedule.startTime;
-              const existingEnd = schedule.endTime;
-              const newStart = formData.startTime;
-              const newEnd = formData.endTime;
-              
-              // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
-              const isOverlapping = newStart < existingEnd && newEnd > existingStart;
-              
-              return isOverlapping;
-            }
-            
-            return false;
-          });
-          
-          if (isDuplicate) {
-            console.warn('DOM.chat.setupScheduleForm: 檢測到重複或重疊時段', formData);
-            const duplicateMessage = FormValidator.generateDuplicateScheduleMessage(formData, existingSchedules);
-            FormValidator.showValidationError(duplicateMessage);
-            return;
-          }
-          // 編輯模式：覆蓋原本那一筆
-          if (editIndex !== null && editIndex !== undefined) {
-            console.log('DOM.chat.setupScheduleForm: 編輯模式，覆蓋原本的時段');
-            const schedules = ChatStateManager.getProvidedSchedules();
-            schedules[editIndex] = { ...schedules[editIndex], ...formData };
-            ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, schedules);
-            // 移除表單
-            const scheduleForm = document.getElementById('schedule-form');
-            if (scheduleForm) {
-              scheduleForm.classList.remove('schedule-form-visible');
-              scheduleForm.classList.add('schedule-form-hidden');
-            }
-            
-            // 直接更新原本的成功提供時間泡泡，而不是創建新的泡泡
-            const chatMessages = document.getElementById('chat-messages');
-            if (chatMessages) {
-              // 找到原本的成功提供時間泡泡（如果存在）
-              const successMessage = chatMessages.querySelector('.success-provide-table')?.closest('.giver-message');
-              if (successMessage) {
-                const updatedHTML = TEMPLATES.chat.successProvideTime(schedules);
-                successMessage.outerHTML = updatedHTML;
-                // 重新綁定修改和刪除按鈕事件
-                const newEditButtons = chatMessages.querySelectorAll('.success-provide-table .edit-provide-btn');
-                newEditButtons.forEach(btn => {
-                  btn.addEventListener('click', function() {
-                    const tr = btn.closest('tr');
-                    const idx = parseInt(tr.getAttribute('data-index'));
-                    const schedule = schedules[idx];
-                    DOM.chat.handleSingleTime(idx, schedule);
-                  });
-                });
-                const newDeleteButtons = chatMessages.querySelectorAll('.success-provide-table .delete-provide-btn');
-                newDeleteButtons.forEach(btn => {
-                  btn.addEventListener('click', function() {
-                    const tr = btn.closest('tr');
-                    const idx = parseInt(tr.getAttribute('data-index'));
-                    UIComponents.confirmDialog({
-                      title: '取消提供時間',
-                      message: '確定要取消提供此時間嗎？',
-                      confirmText: '取消提供',
-                      cancelText: '保留',
-                      onConfirm: () => {
-                        let newSchedules = ChatStateManager.getProvidedSchedules();
-                        newSchedules.splice(idx, 1);
-                        ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, newSchedules);
-                        if (newSchedules.length === 0) {
-                          DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
-                        } else {
-                          const newUpdatedHTML = TEMPLATES.chat.successProvideTime(newSchedules);
-                          const newCurrentMessage = chatMessages.querySelector('.success-provide-table')?.closest('.giver-message');
-                          if (newCurrentMessage) {
-                            newCurrentMessage.outerHTML = newUpdatedHTML;
-                          }
-                        }
-                      }
-                    });
-                  });
-                });
-              }
-              
-              // 同步更新「查看所有我已提供的時段」泡泡（如果存在）
-              const scheduleTableMessage = chatMessages.querySelector('.schedule-table')?.closest('.giver-message');
-              console.log('DOM.chat.setupScheduleForm: 尋找 schedule-table 泡泡', { scheduleTableMessage });
-              if (scheduleTableMessage) {
-                console.log('DOM.chat.setupScheduleForm: 找到 schedule-table 泡泡，準備更新');
-                const updatedTableHTML = TEMPLATES.chat.scheduleTable(schedules);
-                scheduleTableMessage.outerHTML = updatedTableHTML;
-                console.log('DOM.chat.setupScheduleForm: schedule-table 泡泡已更新');
-                // 重新綁定表格內按鈕事件
-                const table = chatMessages.querySelector('.schedule-table');
-                if (table) {
-                  console.log('DOM.chat.setupScheduleForm: 找到更新後的表格，重新綁定事件');
-                  table.querySelectorAll('.schedule-edit-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                      const tr = btn.closest('tr');
-                      const idx = parseInt(tr.getAttribute('data-index'));
-                      const schedule = schedules[idx];
-                      DOM.chat.handleSingleTime(idx, schedule);
-                    });
-                  });
-                  table.querySelectorAll('.schedule-delete-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                      const tr = btn.closest('tr');
-                      const idx = parseInt(tr.getAttribute('data-index'));
-                      UIComponents.confirmDialog({
-                        title: '刪除時段',
-                        message: '確定要刪除此時段嗎？',
-                        confirmText: '刪除',
-                        cancelText: '取消',
-                        onConfirm: () => {
-                          let newSchedules = ChatStateManager.getProvidedSchedules();
-                          newSchedules.splice(idx, 1);
-                          ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, newSchedules);
-                          if (newSchedules.length === 0) {
-                            DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
-                          } else {
-                            const newUpdatedHTML = TEMPLATES.chat.scheduleTable(newSchedules);
-                            const newCurrentMessage = chatMessages.querySelector('.schedule-table')?.closest('.giver-message');
-                            if (newCurrentMessage) {
-                              newCurrentMessage.outerHTML = newUpdatedHTML;
-                            }
-                          }
-                        }
-                      });
-                    });
-                  });
-                }
-                // 綁定下方動作按鈕
-                const afterBtns = chatMessages.querySelectorAll('#after-view-all-options .btn-option');
-                afterBtns.forEach(btn => {
-                  btn.addEventListener('click', (e) => {
-                    const option = btn.getAttribute('data-option');
-                    if (option === 'single-time') {
-                      DOM.chat.handleSingleTime();
-                    } else if (option === 'multiple-times') {
-                      DOM.chat.handleMultipleTimes();
-                    } else if (option === 'finish') {
-                      DOM.chat.addUserMessage('已新增完成所有時段，請協助送出給 Giver');
-                      setTimeout(() => {
-                        DOM.chat.handleSuccessProvideTime();
-                      }, 1000);
-                    } else if (option === 'cancel') {
-                      DOM.chat.handleCancelSchedule();
-                    }
-                    const optionsContainer = btn.closest('.chat-options-buttons');
-                    if (optionsContainer) {
-                      optionsContainer.classList.remove('container-visible');
-                      optionsContainer.classList.add('chat-options-hidden');
-                    }
-                  });
-                });
-              } else {
-                console.log('DOM.chat.setupScheduleForm: 未找到 schedule-table 泡泡');
-              }
-              
-              // 滾動到底部
-              chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
-            return;
-          }
-          // 新增模式
-          const formattedSchedule = `${formData.date} ${formData.startTime}~${formData.endTime}`;
-          ChatStateManager.addSchedule({
-            date: formData.date,
-            startTime: formData.startTime,
-            endTime: formData.endTime,
-            notes: formData.notes.trim(),
-            formattedSchedule: formattedSchedule
-          });
-          // 隱藏表單
-          const scheduleForm = document.getElementById('schedule-form');
-          if (scheduleForm) {
-            scheduleForm.classList.remove('schedule-form-visible');
-            scheduleForm.classList.add('schedule-form-hidden');
-          }
-          // 清空表單
-          if (dateInput) dateInput.value = '';
-          if (startTimeInput) startTimeInput.value = '20:00';
-          if (endTimeInput) endTimeInput.value = '22:00';
-          if (notesInput) notesInput.value = '';
-          // 重置選中的日期
-          DOM.chat.setSelectedDate(null);
-          // 模擬 Giver 回覆
-          setTimeout(() => {
-            const responseHTML = TEMPLATES.chat.afterScheduleOptions(formData.date + ' ' + formData.startTime + '~' + formData.endTime, formData.notes);
-            const chatMessages = document.getElementById('chat-messages');
-            if (chatMessages) {
-              chatMessages.insertAdjacentHTML('beforeend', responseHTML);
-              // 綁定按鈕事件
-              const afterBtns = chatMessages.querySelectorAll('#after-schedule-options .btn-option');
-              afterBtns.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                  const option = btn.getAttribute('data-option');
-                  const optionText = btn.textContent.trim();
-                  console.log('after-schedule-options 按鈕被點擊:', { option, optionText });
-                  // 處理不同選項
-                  if (option === 'single-time') {
-                    DOM.chat.handleSingleTime();
-                  } else if (option === 'multiple-times') {
-                    DOM.chat.handleMultipleTimes();
-                  } else if (option === 'view-all') {
-                    DOM.chat.handleViewAllSchedules();
-                  } else if (option === 'finish') {
-                    DOM.chat.addUserMessage('已新增完成所有時段，請協助送出給 Giver');
-                    setTimeout(() => {
-                      DOM.chat.handleSuccessProvideTime();
-                    }, 1000);
-                  } else if (option === 'cancel') {
-                    DOM.chat.handleCancelSchedule();
-                  }
-                  // 點擊後隱藏按鈕區塊
-                  const optionsContainer = btn.closest('.chat-options-buttons');
-                  if (optionsContainer) {
-                    optionsContainer.classList.remove('container-visible');
-                    optionsContainer.classList.add('chat-options-hidden');
-                  }
-                });
-              });
-              chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
-          }, 500);
-        };
+        // 設定編輯索引（用於事件委派處理）
+        form.setAttribute('data-edit-index', editIndex);
+        
+        // 表單提交事件由 EventManager 統一處理
+        // 取消按鈕事件也由 EventManager 統一處理
       }
     },
     
@@ -4015,150 +4134,8 @@ const DOM = {
           console.warn('mountTable() error: 找不到新插入的表格');
           return;
         }
-        console.log('mountTable() 綁定編輯按鈕事件');
-        // 編輯按鈕
-        table.querySelectorAll('.schedule-edit-btn').forEach(btn => {
-          btn.addEventListener('click', function() {
-            const tr = btn.closest('tr');
-            const idx = parseInt(tr.getAttribute('data-index'));
-            const schedules = ChatStateManager.getProvidedSchedules();
-            const schedule = schedules[idx];
-            console.log('mountTable() 編輯按鈕被點擊:', { idx, schedule });
-            // 直接呼叫 handleSingleTime 進入編輯模式
-            DOM.chat.handleSingleTime(idx, schedule);
-          });
-        });
-        console.log('mountTable() 綁定刪除按鈕事件');
-        // 刪除按鈕
-        table.querySelectorAll('.schedule-delete-btn').forEach(btn => {
-          btn.addEventListener('click', function() {
-            const tr = btn.closest('tr');
-            const idx = parseInt(tr.getAttribute('data-index'));
-            console.log('mountTable() 刪除按鈕被點擊:', { idx });
-            // 彈出確認
-            UIComponents.confirmDialog({
-              title: '刪除時段',
-              message: '確定要刪除此時段嗎？',
-              confirmText: '刪除',
-              cancelText: '取消',
-              onConfirm: () => {
-                console.log('mountTable() 確認刪除時段:', { idx });
-                // 刪除狀態
-                let schedules = ChatStateManager.getProvidedSchedules();
-                schedules.splice(idx, 1);
-                ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, schedules);
-                mountTable();
-              }
-            });
-          });
-        });
-        console.log('mountTable() 綁定下方動作按鈕事件');
-        // 綁定下方動作按鈕
-        const afterBtns = chatMessages.querySelectorAll('#after-view-all-options .btn-option');
-        console.log('mountTable() 找到按鈕數量:', afterBtns.length);
-        console.log('mountTable() 按鈕元素:', afterBtns);
-        
-        // 使用事件委派的方式綁定事件
-        const optionsContainer = chatMessages.querySelector('#after-view-all-options');
-        if (optionsContainer) {
-          console.log('mountTable() 找到按鈕容器:', optionsContainer);
-          
-          // 移除舊的事件監聽器
-          optionsContainer.removeEventListener('click', optionsContainer._delegatedHandler);
-          
-          // 創建新的事件委派處理函數
-          optionsContainer._delegatedHandler = (e) => {
-            console.log('mountTable() 事件委派處理函數被觸發:', e.target);
-            
-            // 檢查是否點擊的是按鈕
-            if (e.target.classList.contains('btn-option')) {
-              console.log('mountTable() 按鈕被點擊:', e.target);
-              e.preventDefault();
-              e.stopPropagation();
-              
-              const option = e.target.getAttribute('data-option');
-              const optionText = e.target.textContent.trim();
-              console.log('mountTable() after-view-all-options 按鈕被點擊:', { option, optionText });
-              
-              // 添加使用者訊息
-              DOM.chat.addUserMessage(optionText);
-              
-              if (option === 'single-time') {
-                console.log('mountTable() 呼叫 handleSingleTime');
-                DOM.chat.handleSingleTime();
-              } else if (option === 'multiple-times') {
-                console.log('mountTable() 呼叫 handleMultipleTimes');
-                DOM.chat.handleMultipleTimes();
-              } else if (option === 'finish') {
-                console.log('mountTable() 呼叫 handleSuccessProvideTime');
-                setTimeout(() => {
-                  DOM.chat.handleSuccessProvideTime();
-                }, 1000);
-              } else if (option === 'cancel') {
-                console.log('mountTable() 呼叫 handleCancelSchedule');
-                DOM.chat.handleCancelSchedule();
-              }
-              
-              // 點擊後隱藏按鈕區塊
-              optionsContainer.style.display = 'none';
-            }
-          };
-          
-          // 添加事件委派監聽器
-          optionsContainer.addEventListener('click', optionsContainer._delegatedHandler);
-          console.log('mountTable() 事件委派監聽器已添加');
-        } else {
-          console.log('mountTable() 找不到按鈕容器');
-        }
-        
-        // 同時也保留直接綁定的方式作為備用
-        afterBtns.forEach((btn, index) => {
-          console.log(`mountTable() 綁定按鈕 ${index}:`, btn.textContent.trim());
-          console.log(`mountTable() 按鈕 ${index} 元素:`, btn);
-          console.log(`mountTable() 按鈕 ${index} data-option:`, btn.getAttribute('data-option'));
-          
-          // 先移除可能存在的舊事件監聽器
-          btn.removeEventListener('click', btn._clickHandler);
-          
-          // 創建新的事件處理函數
-          btn._clickHandler = (e) => {
-            console.log(`mountTable() 按鈕 ${index} 點擊事件觸發`);
-            e.preventDefault();
-            e.stopPropagation();
-            const option = btn.getAttribute('data-option');
-            const optionText = btn.textContent.trim();
-            console.log('mountTable() after-view-all-options 按鈕被點擊:', { option, optionText });
-            
-            // 添加使用者訊息
-            DOM.chat.addUserMessage(optionText);
-            
-            if (option === 'single-time') {
-              console.log('mountTable() 呼叫 handleSingleTime');
-              DOM.chat.handleSingleTime();
-            } else if (option === 'multiple-times') {
-              console.log('mountTable() 呼叫 handleMultipleTimes');
-              DOM.chat.handleMultipleTimes();
-            } else if (option === 'finish') {
-              console.log('mountTable() 呼叫 handleSuccessProvideTime');
-              setTimeout(() => {
-                DOM.chat.handleSuccessProvideTime();
-              }, 1000);
-            } else if (option === 'cancel') {
-              console.log('mountTable() 呼叫 handleCancelSchedule');
-              DOM.chat.handleCancelSchedule();
-            }
-            
-            // 點擊後隱藏按鈕區塊
-            const optionsContainer = btn.closest('.chat-options-buttons');
-            if (optionsContainer) {
-              optionsContainer.style.display = 'none';
-            }
-          };
-          
-          // 添加事件監聽器
-          btn.addEventListener('click', btn._clickHandler);
-          console.log(`mountTable() 按鈕 ${index} 事件監聽器已添加`);
-        });
+        Logger.info('mountTable() 按鈕事件由 EventManager 統一處理');
+        Logger.info('mountTable() 按鈕事件由 EventManager 統一處理');
         console.log('mountTable() 滾動到底部');
         // 滾動到底部
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -4203,89 +4180,7 @@ const DOM = {
         if (chatMessages) {
           chatMessages.insertAdjacentHTML('beforeend', responseHTML);
           
-          // 綁定修改和刪除按鈕事件
-          const editButtons = chatMessages.querySelectorAll('.success-provide-table .edit-provide-btn');
-          editButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-              const tr = btn.closest('tr');
-              const idx = parseInt(tr.getAttribute('data-index'));
-              const schedule = providedSchedules[idx];
-              // 直接呼叫 handleSingleTime 進入編輯模式
-              DOM.chat.handleSingleTime(idx, schedule);
-            });
-          });
-          
-          const deleteButtons = chatMessages.querySelectorAll('.success-provide-table .delete-provide-btn');
-          deleteButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-              const tr = btn.closest('tr');
-              const idx = parseInt(tr.getAttribute('data-index'));
-              // 彈出確認對話框
-              UIComponents.confirmDialog({
-                title: '取消提供時間',
-                message: '確定要取消提供此時間嗎？',
-                confirmText: '取消提供',
-                cancelText: '保留',
-                onConfirm: () => {
-                  // 從狀態中移除該時段
-                  let schedules = ChatStateManager.getProvidedSchedules();
-                  schedules.splice(idx, 1);
-                  ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, schedules);
-                  
-                  // 重新渲染表格
-                  if (schedules.length === 0) {
-                    // 如果沒有時段了，顯示取消訊息
-                    DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
-                  } else {
-                    // 重新渲染表格
-                    const updatedHTML = TEMPLATES.chat.successProvideTime(schedules);
-                    const currentMessage = chatMessages.querySelector('.success-provide-table').closest('.giver-message');
-                    if (currentMessage) {
-                      currentMessage.outerHTML = updatedHTML;
-                      // 重新綁定事件
-                      const newEditButtons = chatMessages.querySelectorAll('.success-provide-table .edit-provide-btn');
-                      newEditButtons.forEach(newBtn => {
-                        newBtn.addEventListener('click', function() {
-                          const newTr = newBtn.closest('tr');
-                          const newIdx = parseInt(newTr.getAttribute('data-index'));
-                          const newSchedule = schedules[newIdx];
-                          DOM.chat.handleSingleTime(newIdx, newSchedule);
-                        });
-                      });
-                      
-                      const newDeleteButtons = chatMessages.querySelectorAll('.success-provide-table .delete-provide-btn');
-                      newDeleteButtons.forEach(newBtn => {
-                        newBtn.addEventListener('click', function() {
-                          const newTr = newBtn.closest('tr');
-                          const newIdx = parseInt(newTr.getAttribute('data-index'));
-                          UIComponents.confirmDialog({
-                            title: '取消提供時間',
-                            message: '確定要取消提供此時間嗎？',
-                            confirmText: '取消提供',
-                            cancelText: '保留',
-                            onConfirm: () => {
-                              let newSchedules = ChatStateManager.getProvidedSchedules();
-                              newSchedules.splice(newIdx, 1);
-                              ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, newSchedules);
-                              if (newSchedules.length === 0) {
-                                DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
-                              } else {
-                                const newUpdatedHTML = TEMPLATES.chat.successProvideTime(newSchedules);
-                                const newCurrentMessage = chatMessages.querySelector('.success-provide-table').closest('.giver-message');
-                                if (newCurrentMessage) {
-                                  newCurrentMessage.outerHTML = newUpdatedHTML;
-                                }
-                              }
-                            }
-                          });
-                        });
-                      });
-                    }
-                  }
-                }
-              });
-            });
-          });
+          console.log('按鈕事件由 EventManager 統一處理');
           
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
@@ -6482,7 +6377,11 @@ const Initializer = {
 
 // 頁面載入時設定全域事件監聽器
 DOM.events.add(document, 'DOMContentLoaded', function() {
-  console.log('DOM.events.add called：頁面載入時設定全域事件監聽器');
+  Logger.info('DOM.events.add called：頁面載入時設定全域事件監聽器');
+  
+  // 初始化事件委派管理器
+  EventManager.init();
+  
   // 使用初始化模組進行完整初始化
   Initializer.init();
 
