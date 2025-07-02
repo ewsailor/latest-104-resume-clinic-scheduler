@@ -1279,10 +1279,10 @@ const TEMPLATES = {
             </div>
             <p class="mt-2">請選擇接下來的動作：</p>
             <div class="chat-options-buttons mt-2" id="after-view-all-options">
-              <button class="btn btn-outline btn-option" data-option="single-time">繼續提供單筆方便時段</button>
-              <button class="btn btn-outline btn-option" data-option="multiple-times">繼續提供多筆方便時段</button>
-              <button class="btn btn-orange btn-option" data-option="finish">已新增完成所有時段，請協助送出給 Giver</button>
-              <button class="btn btn-outline-secondary btn-option" data-option="cancel">取消本次預約 Giver 時間</button>
+              <button class="btn btn-outline btn-option" data-option="single-time" onclick="console.log('按鈕被點擊: single-time'); DOM.chat.addUserMessage('繼續提供單筆方便時段'); DOM.chat.handleSingleTime();">繼續提供單筆方便時段</button>
+              <button class="btn btn-outline btn-option" data-option="multiple-times" onclick="console.log('按鈕被點擊: multiple-times'); DOM.chat.addUserMessage('繼續提供多筆方便時段'); DOM.chat.handleMultipleTimes();">繼續提供多筆方便時段</button>
+              <button class="btn btn-orange btn-option" data-option="finish" onclick="console.log('按鈕被點擊: finish'); DOM.chat.addUserMessage('已新增完成所有時段，請協助送出給 Giver'); setTimeout(() => { DOM.chat.handleSuccessProvideTime(); }, 1000);">已新增完成所有時段，請協助送出給 Giver</button>
+              <button class="btn btn-outline-secondary btn-option" data-option="cancel" onclick="console.log('按鈕被點擊: cancel'); DOM.chat.addUserMessage('取消本次預約 Giver 時間'); DOM.chat.handleCancelSchedule();">取消本次預約 Giver 時間</button>
             </div>
           </div>
         </div>
@@ -2986,50 +2986,68 @@ const DOM = {
     handleSingleTime: (editIndex = null, editData = null) => {
       console.log('DOM.chat.handleSingleTime called：處理單筆時段選項', { editIndex, editData });
       setTimeout(() => {
+        console.log('DOM.chat.handleSingleTime: setTimeout 開始執行');
         // 顯示表單
         let scheduleForm = document.getElementById('schedule-form');
+        console.log('DOM.chat.handleSingleTime: 檢查現有表單', { scheduleForm });
         if (!scheduleForm) {
+          console.log('DOM.chat.handleSingleTime: 沒有現有表單，準備動態創建');
           // 動態創建
           const chatMessages = document.getElementById('chat-messages');
           if (chatMessages) {
+            console.log('DOM.chat.handleSingleTime: 找到 chat-messages，插入表單');
             const formHTML = TEMPLATES.chat.scheduleForm();
             chatMessages.insertAdjacentHTML('beforeend', formHTML);
             scheduleForm = document.getElementById('schedule-form');
+            console.log('DOM.chat.handleSingleTime: 表單已創建', { scheduleForm });
           }
         }
         if (scheduleForm) {
+          console.log('DOM.chat.handleSingleTime: 表單存在，開始設定');
           // 將表單移動到聊天記錄的最下方
           const chatMessages = document.getElementById('chat-messages');
           if (chatMessages) {
             chatMessages.appendChild(scheduleForm);
+            console.log('DOM.chat.handleSingleTime: 表單已移動到底部');
           }
           // 初始化表單欄位事件（日期欄位可點擊彈出日曆 modal）
           const formElement = document.getElementById('time-schedule-form');
           if (formElement) {
+            console.log('DOM.chat.handleSingleTime: 初始化表單欄位');
             initScheduleFormInputs(formElement);
           }
           scheduleForm.classList.remove('schedule-form-hidden');
           scheduleForm.classList.add('schedule-form-visible');
+          console.log('DOM.chat.handleSingleTime: 表單樣式已設定');
           // 帶入編輯資料
           const startTimeInput = document.getElementById('schedule-start-time');
           const endTimeInput = document.getElementById('schedule-end-time');
           const dateInput = document.getElementById('schedule-date');
           const notesInput = document.getElementById('schedule-notes');
           if (editData) {
+            console.log('DOM.chat.handleSingleTime: 編輯模式，設定編輯資料');
             if (dateInput) dateInput.value = editData.date;
             if (startTimeInput) startTimeInput.value = editData.startTime;
             if (endTimeInput) endTimeInput.value = editData.endTime;
             if (notesInput) notesInput.value = editData.notes || '';
           } else {
+            console.log('DOM.chat.handleSingleTime: 新增模式，設定預設值');
             if (startTimeInput) startTimeInput.value = '20:00';
             if (endTimeInput) endTimeInput.value = '22:00';
             if (dateInput) dateInput.value = DateUtils.formatDate(DateUtils.getToday());
             if (notesInput) notesInput.value = '';
           }
           // 設定表單事件
+          console.log('DOM.chat.handleSingleTime: 設定表單事件');
           DOM.chat.setupScheduleForm(editIndex);
           // 滾動到底部
-          if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+          if (chatMessages) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            console.log('DOM.chat.handleSingleTime: 已滾動到底部');
+          }
+          console.log('DOM.chat.handleSingleTime: 處理完成');
+        } else {
+          console.error('DOM.chat.handleSingleTime: 無法找到或創建表單');
         }
       }, 100);
     },
@@ -3866,30 +3884,109 @@ const DOM = {
         console.log('mountTable() 綁定下方動作按鈕事件');
         // 綁定下方動作按鈕
         const afterBtns = chatMessages.querySelectorAll('#after-view-all-options .btn-option');
-        afterBtns.forEach(btn => {
-          btn.addEventListener('click', (e) => {
+        console.log('mountTable() 找到按鈕數量:', afterBtns.length);
+        console.log('mountTable() 按鈕元素:', afterBtns);
+        
+        // 使用事件委派的方式綁定事件
+        const optionsContainer = chatMessages.querySelector('#after-view-all-options');
+        if (optionsContainer) {
+          console.log('mountTable() 找到按鈕容器:', optionsContainer);
+          
+          // 移除舊的事件監聽器
+          optionsContainer.removeEventListener('click', optionsContainer._delegatedHandler);
+          
+          // 創建新的事件委派處理函數
+          optionsContainer._delegatedHandler = (e) => {
+            console.log('mountTable() 事件委派處理函數被觸發:', e.target);
+            
+            // 檢查是否點擊的是按鈕
+            if (e.target.classList.contains('btn-option')) {
+              console.log('mountTable() 按鈕被點擊:', e.target);
+              e.preventDefault();
+              e.stopPropagation();
+              
+              const option = e.target.getAttribute('data-option');
+              const optionText = e.target.textContent.trim();
+              console.log('mountTable() after-view-all-options 按鈕被點擊:', { option, optionText });
+              
+              // 添加使用者訊息
+              DOM.chat.addUserMessage(optionText);
+              
+              if (option === 'single-time') {
+                console.log('mountTable() 呼叫 handleSingleTime');
+                DOM.chat.handleSingleTime();
+              } else if (option === 'multiple-times') {
+                console.log('mountTable() 呼叫 handleMultipleTimes');
+                DOM.chat.handleMultipleTimes();
+              } else if (option === 'finish') {
+                console.log('mountTable() 呼叫 handleSuccessProvideTime');
+                setTimeout(() => {
+                  DOM.chat.handleSuccessProvideTime();
+                }, 1000);
+              } else if (option === 'cancel') {
+                console.log('mountTable() 呼叫 handleCancelSchedule');
+                DOM.chat.handleCancelSchedule();
+              }
+              
+              // 點擊後隱藏按鈕區塊
+              optionsContainer.style.display = 'none';
+            }
+          };
+          
+          // 添加事件委派監聽器
+          optionsContainer.addEventListener('click', optionsContainer._delegatedHandler);
+          console.log('mountTable() 事件委派監聽器已添加');
+        } else {
+          console.log('mountTable() 找不到按鈕容器');
+        }
+        
+        // 同時也保留直接綁定的方式作為備用
+        afterBtns.forEach((btn, index) => {
+          console.log(`mountTable() 綁定按鈕 ${index}:`, btn.textContent.trim());
+          console.log(`mountTable() 按鈕 ${index} 元素:`, btn);
+          console.log(`mountTable() 按鈕 ${index} data-option:`, btn.getAttribute('data-option'));
+          
+          // 先移除可能存在的舊事件監聽器
+          btn.removeEventListener('click', btn._clickHandler);
+          
+          // 創建新的事件處理函數
+          btn._clickHandler = (e) => {
+            console.log(`mountTable() 按鈕 ${index} 點擊事件觸發`);
+            e.preventDefault();
+            e.stopPropagation();
             const option = btn.getAttribute('data-option');
             const optionText = btn.textContent.trim();
             console.log('mountTable() after-view-all-options 按鈕被點擊:', { option, optionText });
+            
+            // 添加使用者訊息
+            DOM.chat.addUserMessage(optionText);
+            
             if (option === 'single-time') {
+              console.log('mountTable() 呼叫 handleSingleTime');
               DOM.chat.handleSingleTime();
             } else if (option === 'multiple-times') {
+              console.log('mountTable() 呼叫 handleMultipleTimes');
               DOM.chat.handleMultipleTimes();
             } else if (option === 'finish') {
-              DOM.chat.addUserMessage('已新增完成所有時段，請協助送出給 Giver');
+              console.log('mountTable() 呼叫 handleSuccessProvideTime');
               setTimeout(() => {
                 DOM.chat.handleSuccessProvideTime();
               }, 1000);
             } else if (option === 'cancel') {
+              console.log('mountTable() 呼叫 handleCancelSchedule');
               DOM.chat.handleCancelSchedule();
             }
+            
             // 點擊後隱藏按鈕區塊
             const optionsContainer = btn.closest('.chat-options-buttons');
             if (optionsContainer) {
-              optionsContainer.classList.remove('container-visible');
-              optionsContainer.classList.add('chat-options-hidden');
+              optionsContainer.style.display = 'none';
             }
-          });
+          };
+          
+          // 添加事件監聽器
+          btn.addEventListener('click', btn._clickHandler);
+          console.log(`mountTable() 按鈕 ${index} 事件監聽器已添加`);
         });
         console.log('mountTable() 滾動到底部');
         // 滾動到底部
