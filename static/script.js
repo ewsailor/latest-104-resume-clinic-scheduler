@@ -262,7 +262,9 @@ const DateUtils = {
       return 0;
     }
     
+    // 將時間字串轉換為分鐘數（內部工具函式）
     const parseTime = (timeStr) => {
+      console.log('DateUtils.compareTimes.parseTime called', { timeStr });
       const [hours, minutes] = timeStr.split(':').map(Number);
       return hours * 60 + minutes;
     };
@@ -876,7 +878,7 @@ const UIInteraction = {
     if (confirmBtn) DOM.utils.setTextContent(confirmBtn, confirmText);
     if (cancelBtn) DOM.utils.setTextContent(cancelBtn, cancelText);
     
-    // 確認按鈕事件監聽器：當使用者點擊確認按鈕時，會執行 onConfirm 函式，這通常是實際要執行的業務邏輯（如刪除資料、取消預約等）
+    // 確認按鈕事件監聽器（內部函式）：當使用者點擊確認按鈕時，會執行 onConfirm 函式，這通常是實際要執行的業務邏輯（如刪除資料、取消預約等）
     const confirmHandler = () => {
       console.log('confirmHandler called');
       onConfirm(); // 執行傳入的 onConfirm 函式，這通常是實際要執行的業務邏輯（如刪除資料、取消預約等）
@@ -897,7 +899,7 @@ const UIInteraction = {
       }
     };
     
-    // 取消按鈕事件監聽器：當使用者點擊取消按鈕時，會執行 onCancel 函式，這通常是實際要執行的業務邏輯（如取消預約等）
+    // 取消按鈕事件監聽器（內部函式）：當使用者點擊取消按鈕時，會執行 onCancel 函式，這通常是實際要執行的業務邏輯（如取消預約等）
     const cancelHandler = () => {
       console.log('cancelHandler called');
       onCancel(); // 執行傳入的 onCancel 函式，這通常是實際要執行的業務邏輯（如取消預約等）
@@ -2182,6 +2184,7 @@ const DOM = {
     // 事件委派工具
     delegate: (parentElement, selector, event, handler, options = {}) => {
       console.log('DOM.events.delegate called', { parentElement, selector, event, handler, options });
+      // 委派事件處理器（內部函式）
       const delegatedHandler = (e) => {
         const target = e.target.closest(selector);
         if (target && parentElement.contains(target)) {
@@ -2195,6 +2198,7 @@ const DOM = {
     // 一次性事件監聽器
     once: (element, event, handler, options = {}) => {
       console.log('DOM.events.once called', { element, event, handler, options });
+      // 一次性事件處理器（內部函式）
       const onceHandler = (e) => {
         handler(e);
         DOM.events.removeByElement(element);
@@ -2208,6 +2212,7 @@ const DOM = {
       console.log('DOM.events.debounce called', { element, event, handler, delay, options });
       let timeoutId;
       
+      // 防抖事件處理器（內部函式）
       const debouncedHandler = (e) => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => handler(e), delay);
@@ -2221,6 +2226,7 @@ const DOM = {
       console.log('DOM.events.throttle called', { element, event, handler, limit, options });
       let inThrottle;
       
+      // 節流事件處理器（內部函式）
       const throttledHandler = (e) => {
         if (!inThrottle) {
           handler(e);
@@ -3365,7 +3371,7 @@ const DOM = {
       let currentMonth = currentDate.getMonth();
       let currentYear = currentDate.getFullYear();
       
-      // 更新月份年份顯示
+      // 更新日期選擇器的月份年份顯示（內部函式）
       const updateMonthYear = () => {
         console.log('DOM.chat.initDatePicker: 更新月份年份顯示');
         const monthYearElement = document.getElementById('current-month-year');
@@ -3376,7 +3382,7 @@ const DOM = {
         }
       };
       
-      // 生成日曆
+      // 生成日期選擇器的日曆內容（內部函式）
       const generateCalendar = () => {
         console.log('DOM.chat.initDatePicker: 生成日曆');
         const calendarElement = document.getElementById('date-picker-calendar');
@@ -3803,7 +3809,7 @@ const DOM = {
       const providedSchedules = ChatStateManager.getProvidedSchedules();
       console.log('DOM.chat.handleViewAllSchedules: 已提供的時段資料', providedSchedules);
       
-      // 內部重繪表格的函式
+      // 重繪表格（內部函式）：生成時段表格的 HTML 內容
       function renderTable() {
         console.log('renderTable() called: 重繪時段表格');
         const schedules = ChatStateManager.getProvidedSchedules();
@@ -3813,7 +3819,7 @@ const DOM = {
         return result;
       }
       
-      // 真正渲染與事件綁定
+      // 真正渲染與事件綁定（內部函式）：渲染表格並綁定相關事件
       function mountTable() {
         console.log('mountTable() called: 渲染與事件綁定表格');
         const chatMessages = document.getElementById('chat-messages');
@@ -4057,7 +4063,7 @@ const DOM = {
       
       console.log('DOM.chat.setupInputControls: 設定聊天輸入控制項:', { chatInput, sendBtn });
       
-      // 發送訊息函數
+      // 發送訊息函數（內部函式）：處理聊天訊息的發送邏輯
       const sendMessage = () => {
         const message = chatInput.value.trim();
         
@@ -4851,6 +4857,7 @@ const DOM = {
       console.log('DOM.dataLoader.cacheData: 資料已快取:', key);
     },
     
+    // 從快取中獲取資料，如果資料存在且未過期則返回資料，否則返回 null
     getCached: (key) => {
       const cacheItem = DOM.dataLoader.state.cache.get(key);
       if (cacheItem && Date.now() < cacheItem.expiry) {
@@ -4862,10 +4869,12 @@ const DOM = {
       return null;
     },
     
+    // 檢查指定鍵值的資料是否存在於快取中且未過期
     isCached: (key) => {
       return DOM.dataLoader.getCached(key) !== null;
     },
     
+    // 清除指定鍵值的資料或清除所有快取
     clearCache: (key = null) => {
       if (key) {
         DOM.dataLoader.state.cache.delete(key);
@@ -4891,6 +4900,7 @@ const DOM = {
       DOM.dataLoader.state.loadingElement = loadingIndicator;
     },
     
+    // 隱藏載入指示器
     hideLoading: () => {
       console.log('DOM.dataLoader.hideLoading called：隱藏載入指示器');
       if (DOM.dataLoader.state.loadingElement) {
@@ -4899,6 +4909,7 @@ const DOM = {
       }
     },
     
+    // 顯示錯誤訊息
     showError: (message) => {
       console.log('DOM.dataLoader.showError called：顯示錯誤訊息', { message });
       // 創建錯誤訊息
@@ -6259,6 +6270,7 @@ DOM.events.add(document, 'DOMContentLoaded', function() {
 });
 
 // === 新增：表單欄位初始化 function ===
+// 初始化時段表單的輸入欄位，設定預設值和事件監聽器
 function initScheduleFormInputs(formElement) {
   console.log('initScheduleFormInputs() called: 初始化表單欄位');
   console.log('initScheduleFormInputs() formElement:', formElement);
@@ -6660,21 +6672,25 @@ const ChatStateManager = {
   
   // 檢查聊天是否活躍
   isActive: () => {
+    console.log('ChatStateManager.isActive called');
     return ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.IS_ACTIVE);
   },
   
   // 獲取當前 Giver
   getCurrentGiver: () => {
+    console.log('ChatStateManager.getCurrentGiver called');
     return ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER);
   },
   
   // 檢查是否為多筆時段模式
   isMultipleTimesMode: () => {
+    console.log('ChatStateManager.isMultipleTimesMode called');
     return ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE);
   },
   
   // 獲取選中的日期
   getSelectedDate: () => {
+    console.log('ChatStateManager.getSelectedDate called');
     return ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.SELECTED_DATE);
   },
   
