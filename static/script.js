@@ -129,6 +129,18 @@ const POSTER_URL = CONFIG.API.POSTER_URL;
 const GIVERS_PER_PAGE = CONFIG.PAGINATION.GIVERS_PER_PAGE;
 
 // =================================================================
+//   工具函數 (Utility Functions)
+// =================================================================
+
+// Promise 版本的延遲函數，替代 setTimeout
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// 非阻塞延遲函數，用於不需要等待的延遲操作
+const nonBlockingDelay = (ms, callback) => {
+  setTimeout(callback, ms);
+};
+
+// =================================================================
 //   統一事件委派管理器 (Event Delegation Manager)
 // =================================================================
 
@@ -212,9 +224,9 @@ const EventManager = {
         break;
       case 'finish':
         DOM.chat.addUserMessage('已新增完成所有時段，請協助送出給 Giver');
-        setTimeout(() => {
+        nonBlockingDelay(1000, () => {
           DOM.chat.handleSuccessProvideTime();
-        }, 1000);
+        });
         break;
       case 'cancel':
         DOM.chat.addUserMessage('取消本次預約 Giver 時間');
@@ -457,14 +469,14 @@ const EventManager = {
     DOM.chat.setSelectedDate(null);
     
     // 模擬 Giver 回覆
-    setTimeout(() => {
+    nonBlockingDelay(500, () => {
       const responseHTML = TEMPLATES.chat.afterScheduleOptions(formattedSchedule, formData.notes);
       const chatMessages = document.getElementById('chat-messages');
       if (chatMessages) {
         chatMessages.insertAdjacentHTML('beforeend', responseHTML);
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }
-    }, 500);
+    });
   },
   
   // 處理日曆日期點擊
@@ -1271,14 +1283,14 @@ const UIInteraction = {
         modal.hide(); // 隱藏對話框
         // 只有在需要清理 backdrop 時才清理
         if (cleanupBackdrop) {
-          setTimeout(() => {
+          nonBlockingDelay(150, () => {
             const backdrop = document.querySelector('.modal-backdrop');
             if (backdrop) backdrop.remove();
             document.body.classList.remove('modal-open');
             document.body.style.paddingRight = ''; // paddingRight 樣式是 Bootstrap 為防止頁面跳動而添加的樣式
             // 強制處理焦點問題
             document.body.focus();
-          }, 150);
+          });
         }
       }
     };
@@ -1291,14 +1303,14 @@ const UIInteraction = {
       if (modal) {
         modal.hide();
         // 確保 backdrop 被清理
-        setTimeout(() => {
+        nonBlockingDelay(150, () => {
           const backdrop = document.querySelector('.modal-backdrop');
           if (backdrop) backdrop.remove();
           document.body.classList.remove('modal-open');
           document.body.style.paddingRight = '';
           // 強制處理焦點問題
           document.body.focus();
-        }, 150);
+        });
       }
     };
     
@@ -2889,9 +2901,9 @@ const DOM = {
     handleScheduleOption: () => {
       console.log('DOM.chat.handleScheduleOption called');
       // 顯示 Giver 已提供的時間選項
-      setTimeout(() => {
+      nonBlockingDelay(500, () => {
         DOM.chat.showGiverAvailableTimes();
-      }, 500);
+      });
     },
     
     // 處理暫不預約選項
@@ -2899,10 +2911,10 @@ const DOM = {
       console.log('DOM.chat.handleSkipOption called：處理暫不預約選項');
       
       // 模擬 Giver 回覆
-      setTimeout(() => {
+      nonBlockingDelay(1000, () => {
         const response = '好的，您選擇暫不預約 Giver 時間。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？';
         DOM.chat.addGiverResponse(response);
-      }, 1000);
+      });
     },
     
     // 顯示預約選項按鈕
@@ -3252,10 +3264,10 @@ const DOM = {
       
       DOM.chat.addUserMessage('確認完畢，請協助送出給 Giver');
       
-      setTimeout(() => {
+      nonBlockingDelay(1000, () => {
         const response = '✅ 預約已送出！<br><br>Giver 已收到您對上述時段的預約通知，請耐心等待對方確認回覆。<br><br>⚠️ 貼心提醒：<br><br>Giver 可能因臨時狀況無法如期面談，請以對方回覆確認為準，謝謝您的體諒！<br><br>以下是您的預約時段：';
         DOM.chat.addGiverResponse(response);
-      }, 1000);
+      });
     },
 
     // 處理取消全部預約
@@ -3287,9 +3299,9 @@ const DOM = {
       DOM.chat.addUserMessage('取消提供時段');
       
       // 顯示取消訊息
-      setTimeout(() => {
+      nonBlockingDelay(1000, () => {
         DOM.chat.addGiverResponse('已取消提供時段。<br><br>如果仍想預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。');
-      }, 1000);
+      });
     },
 
     // 更新預約表格
@@ -3418,19 +3430,19 @@ const DOM = {
     // 處理 Demo 時間選擇
     handleDemoTimeSelection: (timeSlot) => {
       console.log('DOM.chat.handleDemoTimeSelection called：處理 Demo 時間選擇', timeSlot);
-      setTimeout(() => {
+      nonBlockingDelay(1000, () => {
         const response = `您已成功預約 ${timeSlot}。<br><br>Giver 將在 24 小時內確認您的預約，請留意通知。<br><br>有其他問題需要協助嗎？`;
         DOM.chat.addGiverResponse(response);
-      }, 1000);
+      });
     },
 
     // 處理提供我的時間選項
     handleProvideMyTime: () => {
       console.log('DOM.chat.handleProvideMyTime called：處理提供我的時間選項');
-      setTimeout(() => {
+      nonBlockingDelay(1000, () => {
         // 顯示提供我的時間選項（3個按鈕）
         DOM.chat.showProvideMyTimeOptions();
-      }, 1000);
+      });
     },
     
     // 處理多個 Demo 時間選項
@@ -3467,7 +3479,7 @@ const DOM = {
       // 儲存預約資料
       ChatStateManager.addBookedSchedules(bookedSchedules);
       
-      setTimeout(() => {
+      nonBlockingDelay(1000, () => {
         // 顯示預約成功訊息和表格
         const reservationSuccessHTML = TEMPLATES.chat.reservationSuccessMessageAndTable(demoTimeOptions, provideMyTimeOption);
         const chatMessages = document.getElementById('chat-messages');
@@ -3478,7 +3490,7 @@ const DOM = {
           // 滾動到底部
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
-      }, 1000);
+      });
     },
     
     // 處理查看時間選項
@@ -3531,7 +3543,7 @@ const DOM = {
     // 處理單筆時段選項
     handleSingleTime: (editIndex = null, editData = null) => {
       console.log('DOM.chat.handleSingleTime called：處理單筆時段選項', { editIndex, editData });
-      setTimeout(() => {
+      nonBlockingDelay(100, () => {
         console.log('DOM.chat.handleSingleTime: setTimeout 開始執行');
         // 顯示表單
         let scheduleForm = document.getElementById('schedule-form');
