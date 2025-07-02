@@ -141,6 +141,180 @@ const nonBlockingDelay = (ms, callback) => {
 };
 
 // =================================================================
+//   DOM 快取物件 (DOM Cache)
+// =================================================================
+const DOM_CACHE = {
+  // 私有快取屬性
+  _chatMessages: null,
+  _scheduleForm: null,
+  _dateInput: null,
+  _startTimeInput: null,
+  _endTimeInput: null,
+  _notesInput: null,
+  _timeScheduleForm: null,
+  _datePickerModal: null,
+  _currentMonthYear: null,
+  _datePickerCalendar: null,
+  _prevMonthBtn: null,
+  _nextMonthBtn: null,
+  _confirmDateBtn: null,
+  _confirmSelectionBtn: null,
+  _chatInputMessage: null,
+  _chatSendBtn: null,
+  _giverModal: null,
+  _confirmModal: null,
+  _chatModalLabel: null,
+  _continueBtn: null,
+  _leaveBtn: null,
+  
+  // Getter 方法 - 懶載入
+  get chatMessages() {
+    return this._chatMessages || (this._chatMessages = document.getElementById('chat-messages'));
+  },
+  get scheduleForm() {
+    return this._scheduleForm || (this._scheduleForm = document.getElementById('schedule-form'));
+  },
+  get dateInput() {
+    return this._dateInput || (this._dateInput = document.getElementById('schedule-date'));
+  },
+  get startTimeInput() {
+    return this._startTimeInput || (this._startTimeInput = document.getElementById('schedule-start-time'));
+  },
+  get endTimeInput() {
+    return this._endTimeInput || (this._endTimeInput = document.getElementById('schedule-end-time'));
+  },
+  get notesInput() {
+    return this._notesInput || (this._notesInput = document.getElementById('schedule-notes'));
+  },
+  get timeScheduleForm() {
+    return this._timeScheduleForm || (this._timeScheduleForm = document.getElementById('time-schedule-form'));
+  },
+  get datePickerModal() {
+    return this._datePickerModal || (this._datePickerModal = document.getElementById('date-picker-modal'));
+  },
+  get currentMonthYear() {
+    return this._currentMonthYear || (this._currentMonthYear = document.getElementById('current-month-year'));
+  },
+  get datePickerCalendar() {
+    return this._datePickerCalendar || (this._datePickerCalendar = document.getElementById('date-picker-calendar'));
+  },
+  get prevMonthBtn() {
+    return this._prevMonthBtn || (this._prevMonthBtn = document.getElementById('prev-month'));
+  },
+  get nextMonthBtn() {
+    return this._nextMonthBtn || (this._nextMonthBtn = document.getElementById('next-month'));
+  },
+  get confirmDateBtn() {
+    return this._confirmDateBtn || (this._confirmDateBtn = document.getElementById('confirm-date'));
+  },
+  get confirmSelectionBtn() {
+    return this._confirmSelectionBtn || (this._confirmSelectionBtn = document.getElementById('confirm-selection-btn'));
+  },
+  get chatInputMessage() {
+    return this._chatInputMessage || (this._chatInputMessage = document.getElementById('chat-input-message'));
+  },
+  get chatSendBtn() {
+    return this._chatSendBtn || (this._chatSendBtn = document.getElementById('chat-send-btn'));
+  },
+  get giverModal() {
+    return this._giverModal || (this._giverModal = document.getElementById('giver-modal'));
+  },
+  get confirmModal() {
+    return this._confirmModal || (this._confirmModal = document.getElementById('confirm-modal'));
+  },
+  get chatModalLabel() {
+    return this._chatModalLabel || (this._chatModalLabel = document.getElementById('chatModalLabel'));
+  },
+  get continueBtn() {
+    return this._continueBtn || (this._continueBtn = document.getElementById('continue-btn'));
+  },
+  get leaveBtn() {
+    return this._leaveBtn || (this._leaveBtn = document.getElementById('leave-btn'));
+  },
+  
+  // 重設快取方法
+  resetChatMessages() {
+    this._chatMessages = null;
+  },
+  resetScheduleForm() {
+    this._scheduleForm = null;
+  },
+  resetFormInputs() {
+    this._dateInput = null;
+    this._startTimeInput = null;
+    this._endTimeInput = null;
+    this._notesInput = null;
+    this._timeScheduleForm = null;
+  },
+
+  // 清空表單輸入欄位值
+  clearFormInputs() {
+    const inputs = this.getFormInputs();
+    if (inputs.dateInput) inputs.dateInput.value = '';
+    if (inputs.startTimeInput) inputs.startTimeInput.value = '20:00';
+    if (inputs.endTimeInput) inputs.endTimeInput.value = '22:00';
+    if (inputs.notesInput) inputs.notesInput.value = '';
+  },
+  
+  // 一次性取得所有表單輸入欄位
+  getFormInputs() {
+    return {
+      dateInput: this.dateInput,
+      startTimeInput: this.startTimeInput,
+      endTimeInput: this.endTimeInput,
+      notesInput: this.notesInput,
+      timeScheduleForm: this.timeScheduleForm
+    };
+  },
+  
+  // 取得表單資料
+  getFormData() {
+    const inputs = this.getFormInputs();
+    return {
+      date: inputs.dateInput?.value || '',
+      startTime: inputs.startTimeInput?.value || '',
+      endTime: inputs.endTimeInput?.value || '',
+      notes: inputs.notesInput?.value || ''
+    };
+  },
+  
+  // 重置日期選擇器快取
+  resetDatePicker() {
+    this._datePickerModal = null;
+    this._currentMonthYear = null;
+    this._datePickerCalendar = null;
+    this._prevMonthBtn = null;
+    this._nextMonthBtn = null;
+    this._confirmDateBtn = null;
+  },
+
+  // 重置所有快取
+  resetAll() {
+    this._chatMessages = null;
+    this._scheduleForm = null;
+    this._dateInput = null;
+    this._startTimeInput = null;
+    this._endTimeInput = null;
+    this._notesInput = null;
+    this._timeScheduleForm = null;
+    this._datePickerModal = null;
+    this._currentMonthYear = null;
+    this._datePickerCalendar = null;
+    this._prevMonthBtn = null;
+    this._nextMonthBtn = null;
+    this._confirmDateBtn = null;
+    this._confirmSelectionBtn = null;
+    this._chatInputMessage = null;
+    this._chatSendBtn = null;
+    this._giverModal = null;
+    this._confirmModal = null;
+    this._chatModalLabel = null;
+    this._continueBtn = null;
+    this._leaveBtn = null;
+  }
+};
+
+// =================================================================
 //   統一事件委派管理器 (Event Delegation Manager)
 // =================================================================
 
@@ -177,7 +351,7 @@ const EventManager = {
       this.handleDeleteButton(target, e);
     } else if (target.matches('.cancel-reservation-btn')) {
       this.handleCancelReservation(target, e);
-    } else if (target.matches('.cancel-schedule-form')) {
+    } else if (target.matches('#cancel-schedule-form')) {
       this.handleCancelScheduleForm(target, e);
     } else if (target.matches('.calendar-day')) {
       this.handleCalendarDayClick(target, e);
@@ -285,7 +459,7 @@ const EventManager = {
           DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
         } else {
           // 更新對應的表格
-          const chatMessages = document.getElementById('chat-messages');
+          const chatMessages = DOM_CACHE.chatMessages;
           if (chatMessages) {
             if (isProvideTable) {
               const successMessage = chatMessages.querySelector('.success-provide-table')?.closest('.giver-message');
@@ -335,22 +509,14 @@ const EventManager = {
     Logger.info('EventManager: 取消表單按鈕被點擊');
     
     // 隱藏表單
-    const scheduleForm = document.getElementById('schedule-form');
+    const scheduleForm = DOM_CACHE.scheduleForm;
     if (scheduleForm) {
       scheduleForm.classList.remove('schedule-form-visible');
       scheduleForm.classList.add('schedule-form-hidden');
     }
     
     // 清空表單
-    const dateInput = document.getElementById('schedule-date');
-    const startTimeInput = document.getElementById('schedule-start-time');
-    const endTimeInput = document.getElementById('schedule-end-time');
-    const notesInput = document.getElementById('schedule-notes');
-    
-    if (dateInput) dateInput.value = '';
-    if (startTimeInput) startTimeInput.value = '20:00';
-    if (endTimeInput) endTimeInput.value = '22:00';
-    if (notesInput) notesInput.value = '';
+    DOM_CACHE.clearFormInputs();
     
     // 重置選中的日期
     DOM.chat.setSelectedDate(null);
@@ -363,17 +529,7 @@ const EventManager = {
   handleScheduleFormSubmit(form, e) {
     console.log('EventManager: 表單提交事件觸發');
     
-    const dateInput = document.getElementById('schedule-date');
-    const startTimeInput = document.getElementById('schedule-start-time');
-    const endTimeInput = document.getElementById('schedule-end-time');
-    const notesInput = document.getElementById('schedule-notes');
-    
-    const formData = {
-      date: dateInput?.value || '',
-      startTime: startTimeInput?.value || '',
-      endTime: endTimeInput?.value || '',
-      notes: notesInput?.value || ''
-    };
+    const formData = DOM_CACHE.getFormData();
     
     console.log('EventManager: 表單資料', formData);
     
@@ -454,16 +610,13 @@ const EventManager = {
     });
     
     // 隱藏表單並清空
-    const scheduleForm = document.getElementById('schedule-form');
+    const scheduleForm = DOM_CACHE.scheduleForm;
     if (scheduleForm) {
       scheduleForm.classList.remove('schedule-form-visible');
       scheduleForm.classList.add('schedule-form-hidden');
     }
     
-    if (dateInput) dateInput.value = '';
-    if (startTimeInput) startTimeInput.value = '20:00';
-    if (endTimeInput) endTimeInput.value = '22:00';
-    if (notesInput) notesInput.value = '';
+    DOM_CACHE.clearFormInputs();
     
     // 重置選中的日期
     DOM.chat.setSelectedDate(null);
@@ -471,7 +624,7 @@ const EventManager = {
     // 模擬 Giver 回覆
     nonBlockingDelay(500, () => {
       const responseHTML = TEMPLATES.chat.afterScheduleOptions(formattedSchedule, formData.notes);
-      const chatMessages = document.getElementById('chat-messages');
+      const chatMessages = DOM_CACHE.chatMessages;
       if (chatMessages) {
         chatMessages.insertAdjacentHTML('beforeend', responseHTML);
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -503,7 +656,7 @@ const EventManager = {
   
   // 更新時段顯示
   updateScheduleDisplay(schedules) {
-    const chatMessages = document.getElementById('chat-messages');
+    const chatMessages = DOM_CACHE.chatMessages;
     if (!chatMessages) return;
     
     // 更新成功提供時間表格
@@ -2925,7 +3078,7 @@ const DOM = {
       const scheduleOptionsHTML = TEMPLATES.chat.scheduleOptions();
       
       // 插入到聊天區域
-      const chatMessages = document.getElementById('chat-messages');
+      const chatMessages = DOM_CACHE.chatMessages;
       if (chatMessages) {
         chatMessages.insertAdjacentHTML('beforeend', scheduleOptionsHTML);
         // 綁定事件
@@ -2943,7 +3096,7 @@ const DOM = {
       const giverAvailableTimesHTML = TEMPLATES.chat.giverAvailableTimesWithCheckboxes();
       
       // 插入到聊天區域
-      const chatMessages = document.getElementById('chat-messages');
+      const chatMessages = DOM_CACHE.chatMessages;
       if (chatMessages) {
         chatMessages.insertAdjacentHTML('beforeend', giverAvailableTimesHTML);
         // 綁定複選選項事件
@@ -2961,7 +3114,7 @@ const DOM = {
       const provideMyTimeOptionsHTML = TEMPLATES.chat.provideMyTimeOptions();
       
       // 插入到聊天區域
-      const chatMessages = document.getElementById('chat-messages');
+      const chatMessages = DOM_CACHE.chatMessages;
       if (chatMessages) {
         chatMessages.insertAdjacentHTML('beforeend', provideMyTimeOptionsHTML);
         // 綁定事件
@@ -3074,7 +3227,7 @@ const DOM = {
       console.log('DOM.chat.setupCheckboxOptions called：設定複選選項');
       
       const checkboxes = document.querySelectorAll('.chat-checkbox-options input[type="checkbox"]');
-      const confirmBtn = document.getElementById('confirm-selection-btn');
+      const confirmBtn = DOM_CACHE.confirmSelectionBtn;
       
       // 為每個複選框添加事件監聽器
       checkboxes.forEach(checkbox => {
@@ -3246,11 +3399,10 @@ const DOM = {
       
       // 生成取消成功訊息泡泡 HTML
       const cancelSuccessHTML = TEMPLATES.chat.cancelSuccessMessageAndTable(remainingOptions);
-      
-      // 在聊天對話框最下方插入新的訊息泡泡
-      const chatMessages = document.getElementById('chat-messages');
-      if (chatMessages) {
-        chatMessages.insertAdjacentHTML('beforeend', cancelSuccessHTML);
+        // 在聊天對話框最下方插入新的訊息泡泡
+        const chatMessages = DOM_CACHE.chatMessages;
+        if (chatMessages) {
+          chatMessages.insertAdjacentHTML('beforeend', cancelSuccessHTML);
         // 綁定新的表格按鈕事件
         DOM.chat.setupReservationTableButtons();
         // 滾動到底部
@@ -3354,7 +3506,7 @@ const DOM = {
     // 更新確認按鈕狀態
     updateConfirmButtonState: () => {
       const checkboxes = document.querySelectorAll('.chat-checkbox-options input[type="checkbox"]:not(:disabled)');
-      const confirmBtn = document.getElementById('confirm-selection-btn');
+      const confirmBtn = DOM_CACHE.confirmSelectionBtn;
       
       if (confirmBtn) {
         const hasSelection = Array.from(checkboxes).some(checkbox => checkbox.checked);
@@ -3482,7 +3634,7 @@ const DOM = {
       nonBlockingDelay(1000, () => {
         // 顯示預約成功訊息和表格
         const reservationSuccessHTML = TEMPLATES.chat.reservationSuccessMessageAndTable(demoTimeOptions, provideMyTimeOption);
-        const chatMessages = document.getElementById('chat-messages');
+        const chatMessages = DOM_CACHE.chatMessages;
         if (chatMessages) {
           chatMessages.insertAdjacentHTML('beforeend', reservationSuccessHTML);
           // 綁定表格按鈕事件
@@ -3499,7 +3651,7 @@ const DOM = {
       setTimeout(() => {
         // 使用新的模板顯示「Giver 尚末提供提供方便的時間」訊息和按鈕
         const noGiverTimesHTML = TEMPLATES.chat.noGiverTimesWithButtons();
-        const chatMessages = document.getElementById('chat-messages');
+        const chatMessages = DOM_CACHE.chatMessages;
         if (chatMessages) {
           chatMessages.insertAdjacentHTML('beforeend', noGiverTimesHTML);
           // 綁定按鈕事件
@@ -3519,7 +3671,7 @@ const DOM = {
       console.log('DOM.chat.handleViewMyBookedTimes: 已預約的時段', bookedSchedules);
       
       setTimeout(() => {
-        const chatMessages = document.getElementById('chat-messages');
+        const chatMessages = DOM_CACHE.chatMessages;
         if (chatMessages) {
           if (bookedSchedules.length > 0) {
             // 有預約時段，顯示預約成功訊息和表格
@@ -3546,30 +3698,31 @@ const DOM = {
       nonBlockingDelay(100, () => {
         console.log('DOM.chat.handleSingleTime: setTimeout 開始執行');
         // 顯示表單
-        let scheduleForm = document.getElementById('schedule-form');
+        let scheduleForm = DOM_CACHE.scheduleForm;
         console.log('DOM.chat.handleSingleTime: 檢查現有表單', { scheduleForm });
         if (!scheduleForm) {
           console.log('DOM.chat.handleSingleTime: 沒有現有表單，準備動態創建');
           // 動態創建
-          const chatMessages = document.getElementById('chat-messages');
+          const chatMessages = DOM_CACHE.chatMessages;
           if (chatMessages) {
             console.log('DOM.chat.handleSingleTime: 找到 chat-messages，插入表單');
             const formHTML = TEMPLATES.chat.scheduleForm();
             chatMessages.insertAdjacentHTML('beforeend', formHTML);
-            scheduleForm = document.getElementById('schedule-form');
+            DOM_CACHE.resetScheduleForm(); // 重設快取
+            scheduleForm = DOM_CACHE.scheduleForm;
             console.log('DOM.chat.handleSingleTime: 表單已創建', { scheduleForm });
           }
         }
         if (scheduleForm) {
           console.log('DOM.chat.handleSingleTime: 表單存在，開始設定');
           // 將表單移動到聊天記錄的最下方
-          const chatMessages = document.getElementById('chat-messages');
+          const chatMessages = DOM_CACHE.chatMessages;
           if (chatMessages) {
             chatMessages.appendChild(scheduleForm);
             console.log('DOM.chat.handleSingleTime: 表單已移動到底部');
           }
           // 初始化表單欄位事件（日期欄位可點擊彈出日曆 modal）
-          const formElement = document.getElementById('time-schedule-form');
+          const formElement = DOM_CACHE.timeScheduleForm;
           if (formElement) {
             console.log('DOM.chat.handleSingleTime: 初始化表單欄位');
             initScheduleFormInputs(formElement);
@@ -3578,22 +3731,19 @@ const DOM = {
           scheduleForm.classList.add('schedule-form-visible');
           console.log('DOM.chat.handleSingleTime: 表單樣式已設定');
           // 帶入編輯資料
-          const startTimeInput = document.getElementById('schedule-start-time');
-          const endTimeInput = document.getElementById('schedule-end-time');
-          const dateInput = document.getElementById('schedule-date');
-          const notesInput = document.getElementById('schedule-notes');
+          const inputs = DOM_CACHE.getFormInputs();
           if (editData) {
             console.log('DOM.chat.handleSingleTime: 編輯模式，設定編輯資料');
-            if (dateInput) dateInput.value = editData.date;
-            if (startTimeInput) startTimeInput.value = editData.startTime;
-            if (endTimeInput) endTimeInput.value = editData.endTime;
-            if (notesInput) notesInput.value = editData.notes || '';
+            if (inputs.dateInput) inputs.dateInput.value = editData.date;
+            if (inputs.startTimeInput) inputs.startTimeInput.value = editData.startTime;
+            if (inputs.endTimeInput) inputs.endTimeInput.value = editData.endTime;
+            if (inputs.notesInput) inputs.notesInput.value = editData.notes || '';
           } else {
             console.log('DOM.chat.handleSingleTime: 新增模式，設定預設值');
-            if (startTimeInput) startTimeInput.value = '20:00';
-            if (endTimeInput) endTimeInput.value = '22:00';
-            if (dateInput) dateInput.value = DateUtils.formatDate(DateUtils.getToday());
-            if (notesInput) notesInput.value = '';
+            if (inputs.startTimeInput) inputs.startTimeInput.value = '20:00';
+            if (inputs.endTimeInput) inputs.endTimeInput.value = '22:00';
+            if (inputs.dateInput) inputs.dateInput.value = DateUtils.formatDate(DateUtils.getToday());
+            if (inputs.notesInput) inputs.notesInput.value = '';
           }
           // 設定表單事件
           console.log('DOM.chat.handleSingleTime: 設定表單事件');
@@ -3613,7 +3763,7 @@ const DOM = {
     // 設定表單事件
     setupScheduleForm: (editIndex = null) => {
       Logger.info('DOM.chat.setupScheduleForm called: 設定表單事件');
-      const form = document.getElementById('time-schedule-form');
+      const form = DOM_CACHE.timeScheduleForm;
       if (form) {
         // 設定編輯索引（用於事件委派處理）
         form.setAttribute('data-edit-index', editIndex);
@@ -3631,7 +3781,7 @@ const DOM = {
       DOM.chat.initDatePicker();
       
       // 查找 Modal 元素
-      const datePickerModalElement = document.getElementById('date-picker-modal');
+      const datePickerModalElement = DOM_CACHE.datePickerModal;
       console.log('DOM.chat.showDatePicker: 查找日期選擇器 Modal', { datePickerModalElement });
       
       if (datePickerModalElement) {
@@ -3678,7 +3828,7 @@ const DOM = {
       // 更新日期選擇器的月份年份顯示（內部函式）
       const updateMonthYear = () => {
         console.log('DOM.chat.initDatePicker: 更新月份年份顯示');
-        const monthYearElement = document.getElementById('current-month-year');
+        const monthYearElement = DOM_CACHE.currentMonthYear;
         if (monthYearElement) {
           const monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', 
                              '七月', '八月', '九月', '十月', '十一月', '十二月'];
@@ -3689,7 +3839,7 @@ const DOM = {
       // 生成日期選擇器的日曆內容（內部函式）
       const generateCalendar = () => {
         console.log('DOM.chat.initDatePicker: 生成日曆');
-        const calendarElement = document.getElementById('date-picker-calendar');
+        const calendarElement = DOM_CACHE.datePickerCalendar;
         if (!calendarElement) return;
         
         calendarElement.innerHTML = '';
@@ -3774,7 +3924,7 @@ const DOM = {
       };
       
       // 上個月按鈕
-      const prevMonthBtn = document.getElementById('prev-month');
+      const prevMonthBtn = DOM_CACHE.prevMonthBtn;
       if (prevMonthBtn) {
         // 移除舊的事件監聽器
         const newPrevMonthBtn = prevMonthBtn.cloneNode(true);
@@ -3793,7 +3943,7 @@ const DOM = {
       }
       
       // 下個月按鈕
-      const nextMonthBtn = document.getElementById('next-month');
+      const nextMonthBtn = DOM_CACHE.nextMonthBtn;
       if (nextMonthBtn) {
         // 移除舊的事件監聽器
         const newNextMonthBtn = nextMonthBtn.cloneNode(true);
@@ -3812,7 +3962,7 @@ const DOM = {
       }
       
       // 確定按鈕
-      const confirmBtn = document.getElementById('confirm-date');
+      const confirmBtn = DOM_CACHE.confirmDateBtn;
       if (confirmBtn) {
         // 移除舊的事件監聽器
         const newConfirmBtn = confirmBtn.cloneNode(true);
@@ -3822,12 +3972,12 @@ const DOM = {
           console.log('DOM.chat.initDatePicker: 確定按鈕被點擊');
           const selectedDate = DOM.chat.getSelectedDate();
           if (selectedDate) {
-            const dateInput = document.getElementById('schedule-date');
-            if (dateInput) {
-              const formattedDate = DateUtils.formatDate(selectedDate);
-              dateInput.value = formattedDate;
-              console.log('DOM.chat.initDatePicker: 日期已設定', formattedDate);
-            }
+            const dateInput = DOM_CACHE.dateInput;
+          if (dateInput) {
+            const formattedDate = DateUtils.formatDate(selectedDate);
+            dateInput.value = formattedDate;
+            console.log('DOM.chat.initDatePicker: 日期已設定', formattedDate);
+          }
           }
           
           // 關閉 Modal
@@ -3928,18 +4078,7 @@ const DOM = {
     submitScheduleForm: () => {
       console.log('DOM.chat.submitScheduleForm called：提交表單');
       
-      const dateInput = document.getElementById('schedule-date');
-      const startTimeInput = document.getElementById('schedule-start-time');
-      const endTimeInput = document.getElementById('schedule-end-time');
-      const notesInput = document.getElementById('schedule-notes');
-      
-      // 收集表單資料
-      const formData = {
-        date: dateInput?.value || '',
-        startTime: startTimeInput?.value || '',
-        endTime: endTimeInput?.value || '',
-        notes: notesInput?.value || ''
-      };
+      const formData = DOM_CACHE.getFormData();
       
       console.log('DOM.chat.submitScheduleForm: 表單資料', formData);
       
@@ -4011,16 +4150,13 @@ const DOM = {
       DOM.chat.addUserMessage(userMessage);
       
       // 隱藏表單
-      const scheduleForm = document.getElementById('schedule-form');
+      const scheduleForm = DOM_CACHE.scheduleForm;
       if (scheduleForm) {
         scheduleForm.style.display = 'none';
       }
       
       // 清空表單
-      if (dateInput) dateInput.value = '';
-      if (startTimeInput) startTimeInput.value = '20:00';
-      if (endTimeInput) endTimeInput.value = '22:00';
-      if (notesInput) notesInput.value = '';
+      DOM_CACHE.clearFormInputs();
       
       // 重置選中的日期
       DOM.chat.setSelectedDate(null);
