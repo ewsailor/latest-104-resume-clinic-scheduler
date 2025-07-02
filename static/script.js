@@ -2717,29 +2717,28 @@ const DOM = {
           // 添加使用者訊息
           DOM.chat.addUserMessage(`我要取消：${timeSlot}`);
                     
-          // 從 DOM 移除該行
-          const tableRow = button.closest('tr');
+          // 從 DOM 移除該行：只移除被取消的那一列，不會影響到其他列
+          const tableRow = button.closest('tr'); // 獲取該按鈕所在的行：從當前元素（在這裡是 button 元素）開始，向上遍歷它的父元素，直到找到第一個 class 為 'tr' 的元素
           if (tableRow) {
             tableRow.remove();
           }
 
-          // 檢查是否還有其他預約
-          setTimeout(() => {
-            // 直接獲取現存的所有預約行（因為已取消的行已被移除）
-            const allRows = document.querySelectorAll('.reservation-success-table tbody tr, .reservation-table tbody tr');
-            
-            console.log('檢查剩餘預約時段:', {
-              totalRows: allRows.length
-            });
+          // 取得最新的所有預約行（這時候畫面上只剩下還沒被取消的）
+          const allRows = document.querySelectorAll('.reservation-success-table tbody tr, .reservation-table tbody tr');
+          console.log('移除 tr 後，allRows:', allRows, allRows.length);
 
-            if (allRows.length === 0) {
-              // 如果沒有其他預約，顯示取消訊息
-              DOM.chat.addGiverResponse('您已取消所有預約時段。<br><br>如果仍想預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。');
-            } else {
-              // 如果還有其他預約，直接使用現存的行
-              DOM.chat.addCancelSuccessMessage(allRows);
-            }
-          }, 500);          
+          // 先移除所有舊的表格訊息泡泡（.table-responsive.mt-2 外層的父元素：整個訊息泡泡）
+          document.querySelectorAll('.table-responsive.mt-2').forEach(tableDiv => {
+            if (tableDiv.parentElement) tableDiv.parentElement.remove(); 
+          });
+
+          if (allRows.length === 0) {
+            // 如果沒有其他預約，顯示取消訊息
+            DOM.chat.addGiverResponse('您已取消所有預約時段。<br><br>如果仍想預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。');
+          } else {
+            // 如果還有其他預約，直接使用現存的行（allRows），顯示取消成功訊息泡泡
+            DOM.chat.addCancelSuccessMessage(allRows);
+          }
         },
         onCancel: () => {
           // 使用者選擇保留，不做任何動作
@@ -2750,7 +2749,7 @@ const DOM = {
 
     // 在聊天對話框最下方新增一個新的訊息泡泡，顯示取消成功和剩餘的預約時段
     addCancelSuccessMessage: (visibleRows) => {
-      console.log('DOM.chat.addCancelSuccessMessage called：新增取消成功訊息泡泡');
+      console.log('DOM.chat.addCancelSuccessMessage called：新增取消成功訊息泡泡', { visibleRowsCount: visibleRows.length });
       
       // 分析剩餘的預約選項（直接使用現存的行，因為已取消的行已被移除）
       const remainingOptions = [];
@@ -2760,37 +2759,22 @@ const DOM = {
           const option = cancelBtn.getAttribute('data-option');
           // 從正確的欄位獲取時段資訊
           const timeSlotCell = row.querySelector('td:nth-child(3)'); // 時段欄位
-          const timeSlot = timeSlotCell ? timeSlotCell.textContent.trim() : '';
+          const timeSlot = timeSlotCell ? timeSlotCell.textContent.trim() : ''; // 如果找到該 <td> 元素，則獲取其文本內容並去除首尾空白
           
-          if (option && timeSlot) {
+          if (option && timeSlot) { // 如果成功獲取到選項和時段，則將其添加到 remainingOptions 陣列中
             remainingOptions.push({ option, label: timeSlot });
           }
         }
       });
       
-      // 分類剩餘選項
-      const demoTimeOptions = remainingOptions.filter(option => 
-        option.option === 'demo-time-1' || option.option === 'demo-time-2'
-      );
-      console.log('demoTimeOptions:', demoTimeOptions);
-      const provideMyTimeOption = remainingOptions.find(option => 
-        option.option === 'provide-my-time'
-      );
-      console.log('provideMyTimeOption:', provideMyTimeOption);
-      console.log('remainingOptions:', remainingOptions);
-      // 檢查是否還有剩餘時段
-      const totalCount = demoTimeOptions.length + (provideMyTimeOption ? 1 : 0);
-      console.log('totalCount:', totalCount);
-
-      if (totalCount === 0) {
+      if (visibleRows.length === 0) {
         // 如果沒有剩餘時段，不生成任何訊息泡泡
-        console.log('沒有剩餘時段，顯示取消所有預約時段訊息');
         DOM.chat.addGiverResponse('您已取消所有預約時段。<br><br>如果仍想預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。');
         return;
       }
       
       // 生成取消成功訊息泡泡 HTML
-      const cancelSuccessHTML = TEMPLATES.chat.cancelSuccessMessageAndTable(demoTimeOptions, provideMyTimeOption);
+      const cancelSuccessHTML = TEMPLATES.chat.cancelSuccessMessageAndTable(remainingOptions);
       
       // 在聊天對話框最下方插入新的訊息泡泡
       const chatMessages = document.getElementById('chat-messages');
