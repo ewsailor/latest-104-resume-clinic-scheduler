@@ -190,7 +190,8 @@ const DOM_CACHE = {
     return this._timeScheduleForm || (this._timeScheduleForm = document.getElementById('time-schedule-form'));
   },
   get datePickerModal() {
-    return this._datePickerModal || (this._datePickerModal = document.getElementById('date-picker-modal'));
+    // 每次都重新抓 DOM，避免快取導致狀態異常
+    return document.getElementById('date-picker-modal');
   },
   get currentMonthYear() {
     return this._currentMonthYear || (this._currentMonthYear = document.getElementById('current-month-year'));
@@ -3331,7 +3332,7 @@ const DOM = {
       // 跳出確認 modal：使用 UIComponents.confirmDialog 函式，顯示一個確認對話框，讓使用者可以確認是否取消預約。
       UIComponents.confirmDialog({
         title: '確認取消預約',
-        message: `確定取消預約此時段嗎？${timeSlot}`,
+        message: `確定取消預約以下時段嗎？${timeSlot}`,
         confirmText: '取消預約',
         cancelText: '保留',
         onConfirm: () => {
@@ -3542,7 +3543,7 @@ const DOM = {
       
       // 添加使用者選擇的訊息
       const selectedText = selectedOptions.map(option => option.label).join('、');
-      DOM.chat.addUserMessage(`選擇時段：${selectedText}`);
+      DOM.chat.addUserMessage(`您選擇：${selectedText}`);
       
       // 分類選中的選項
       const demoTimeOptions = selectedOptions.filter(option => 
@@ -3776,7 +3777,11 @@ const DOM = {
     // 顯示日期選擇器
     showDatePicker: () => {
       console.log('DOM.chat.showDatePicker called：顯示日期選擇器');
-      
+      // 強制清理殘留的 backdrop 和 body 狀態
+      document.querySelectorAll('.modal-backdrop').forEach(bd => bd.remove());
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
       // 初始化日期選擇器
       DOM.chat.initDatePicker();
       
@@ -3928,8 +3933,9 @@ const DOM = {
       if (prevMonthBtn) {
         // 移除舊的事件監聽器
         const newPrevMonthBtn = prevMonthBtn.cloneNode(true);
-        prevMonthBtn.parentNode.replaceChild(newPrevMonthBtn, prevMonthBtn);
-        
+        if (prevMonthBtn.parentNode) {
+          prevMonthBtn.parentNode.replaceChild(newPrevMonthBtn, prevMonthBtn);
+        }
         DOM.events.add(newPrevMonthBtn, 'click', () => {
           console.log('DOM.chat.initDatePicker: 上個月按鈕被點擊');
           currentMonth--;
@@ -3947,8 +3953,9 @@ const DOM = {
       if (nextMonthBtn) {
         // 移除舊的事件監聽器
         const newNextMonthBtn = nextMonthBtn.cloneNode(true);
-        nextMonthBtn.parentNode.replaceChild(newNextMonthBtn, nextMonthBtn);
-        
+        if (nextMonthBtn.parentNode) {
+          nextMonthBtn.parentNode.replaceChild(newNextMonthBtn, nextMonthBtn);
+        }
         DOM.events.add(newNextMonthBtn, 'click', () => {
           console.log('DOM.chat.initDatePicker: 下個月按鈕被點擊');
           currentMonth++;
@@ -3966,8 +3973,9 @@ const DOM = {
       if (confirmBtn) {
         // 移除舊的事件監聽器
         const newConfirmBtn = confirmBtn.cloneNode(true);
-        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-        
+        if (confirmBtn.parentNode) {
+          confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        }
         DOM.events.add(newConfirmBtn, 'click', () => {
           console.log('DOM.chat.initDatePicker: 確定按鈕被點擊');
           const selectedDate = DOM.chat.getSelectedDate();
@@ -4360,7 +4368,7 @@ const DOM = {
       
       // 發送訊息函數（內部函式）：處理聊天訊息的發送邏輯
       const sendMessage = () => {
-        const message = chatInput.value.trim();
+    const message = chatInput.value.trim();
         
         // 使用 FormValidator 驗證訊息
         const validationResult = FormValidator.validateChatMessage(message);
@@ -4376,7 +4384,7 @@ const DOM = {
         DOM.chat.addUserMessage(message);
         
         // 清空輸入框
-        chatInput.value = '';
+    chatInput.value = '';
         
         if (ChatStateManager.isMultipleTimesMode()) {
           // 處理多筆時段輸入
@@ -5265,6 +5273,9 @@ const DOM = {
           console.log('DOM.dataLoader.utils.preloadData: 資料預載入完成');
         } catch (error) {
           console.error('DOM.dataLoader.utils.preloadData: 資料預載入失敗:', error);
+          if (typeof UIComponents !== 'undefined' && UIComponents.toast) {
+            UIComponents.toast({ message: '資料預載入失敗，請稍後再試', type: 'error' });
+          }
         }
       },
       
