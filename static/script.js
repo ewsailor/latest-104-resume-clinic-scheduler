@@ -5561,7 +5561,37 @@ const DOM = {
       // 滾動到頂部
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }
+  },
+
+  // 清理全域事件監聽器、定時器與快取
+  cleanup: () => {
+    // 1. 清理全域事件監聽器
+    document.removeEventListener('click', EventManager.handleGlobalClick);
+    document.removeEventListener('submit', EventManager.handleGlobalSubmit);
+    document.removeEventListener('change', EventManager.handleGlobalChange);
+    // 若有其他全域事件監聽器，請一併移除
+
+    // 2. 清理定時器
+    if (window.__DOM_INTERVALS__) {
+      window.__DOM_INTERVALS__.forEach(clearInterval);
+      window.__DOM_INTERVALS__ = [];
+    }
+    if (window.__DOM_TIMEOUTS__) {
+      window.__DOM_TIMEOUTS__.forEach(clearTimeout);
+      window.__DOM_TIMEOUTS__ = [];
+    }
+
+    // 3. 清理快取
+    if (typeof DOM_CACHE === 'object' && typeof DOM_CACHE.resetAll === 'function') {
+      DOM_CACHE.resetAll();
+    }
+    if (typeof ChatStateManager === 'object' && typeof ChatStateManager.reset === 'function') {
+      ChatStateManager.reset();
+    }
+    // 4. 其他自定義清理
+    // ...
+    console.log('DOM.cleanup: 已清理全域事件監聽器、定時器與快取');
+  },
 };
 
 // =================================================================
