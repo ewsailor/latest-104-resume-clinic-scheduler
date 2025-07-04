@@ -691,6 +691,7 @@ const EventManager = {
         DOM.chat.handleMultipleTimes();
         break;
       case 'view-all':
+        DOM.chat.addUserMessage('查看所有我已提供的時段');
         DOM.chat.handleViewAllSchedules();
         break;
       case 'finish':
@@ -4838,20 +4839,7 @@ const DOM = {
             console.log('DOM.chat.handleSuccessProvideTime: 創建新的成功提供表格');
             const responseHTML = TEMPLATES.chat.successProvideTime(providedSchedules);
             chatMessages.insertAdjacentHTML('beforeend', responseHTML);
-          }
-          
-          // 無論是更新還是創建，都顯示成功訊息
-          const successMessageHTML = `
-            <div class="message giver-message">
-              <div class="d-flex align-items-center">
-                <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-              </div>
-              <div class="message-content">
-                <p class="message-title">✅ 成功提供時間！您目前已提供 Giver 以下 ${providedSchedules.length} 個時段，請耐心等待對方確認回覆。</p>
-              </div>
-            </div>
-          `;
-          chatMessages.insertAdjacentHTML('beforeend', successMessageHTML);
+          }        
           
           console.log('按鈕事件由 EventManager 統一處理');
           
