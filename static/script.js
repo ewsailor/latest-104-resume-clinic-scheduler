@@ -1045,10 +1045,77 @@ const EventManager = {
       // 檢查是否為草稿時段的編輯
       const isDraftEdit = form.getAttribute('data-edit-is-draft') === 'true';
       
+      // 獲取所有現有時段（除了正在編輯的時段）
+      const providedSchedules = ChatStateManager.getProvidedSchedules();
+      const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+      
+      // 創建不包含正在編輯時段的列表
+      const otherSchedules = [];
+      
+      if (isDraftEdit) {
+        // 編輯草稿時段：排除正在編輯的草稿時段
+        const actualDraftIndex = parseInt(editIndex) - providedSchedules.length;
+        providedSchedules.forEach((schedule, index) => {
+          otherSchedules.push(schedule);
+        });
+        draftSchedules.forEach((schedule, index) => {
+          if (index !== actualDraftIndex) {
+            otherSchedules.push(schedule);
+          }
+        });
+      } else {
+        // 編輯正式提供時段：排除正在編輯的正式時段
+        providedSchedules.forEach((schedule, index) => {
+          if (index !== parseInt(editIndex)) {
+            otherSchedules.push(schedule);
+          }
+        });
+        draftSchedules.forEach((schedule, index) => {
+          otherSchedules.push(schedule);
+        });
+      }
+      
+      // 檢查修改後的時段是否與其他時段重複或重疊
+      const isDuplicate = otherSchedules.some(schedule => {
+        const isExactDuplicate = schedule.date === formData.date && 
+          schedule.startTime === formData.startTime && 
+          schedule.endTime === formData.endTime;
+        
+        if (isExactDuplicate) {
+          return true;
+        }
+        
+        if (schedule.date === formData.date) {
+          const existingStart = schedule.startTime;
+          const existingEnd = schedule.endTime;
+          const newStart = formData.startTime;
+          const newEnd = formData.endTime;
+          
+          const isOverlapping = newStart < existingEnd && newEnd > existingStart;
+          return isOverlapping;
+        }
+        
+        return false;
+      });
+      
+      // 檢測重複或重疊時段
+      if (isDuplicate) {
+        console.warn('EventManager: 編輯模式檢測到重複或重疊時段', formData);
+        const duplicateMessage = FormValidator.generateDuplicateScheduleMessage(formData, otherSchedules);
+        if (duplicateMessage) {
+          FormValidator.showValidationError(duplicateMessage);
+        } else {
+          // 如果無法生成詳細訊息，使用預設錯誤訊息
+          const errorMessage = '抱歉，您修改的時段與其他時段重複或重疊，請重新輸入。';
+          FormValidator.showValidationError(errorMessage);
+        }
+        return;
+      }
+      
+      // 沒有重複，執行更新
       if (isDraftEdit) {
         // 編輯草稿時段
-        const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-        const actualDraftIndex = parseInt(editIndex) - ChatStateManager.getProvidedSchedules().length;
+        const actualDraftIndex = parseInt(editIndex) - providedSchedules.length;
         
         if (actualDraftIndex >= 0 && actualDraftIndex < draftSchedules.length) {
           draftSchedules[actualDraftIndex] = { 
@@ -1061,14 +1128,13 @@ const EventManager = {
         }
       } else {
         // 編輯正式提供時段
-        const schedules = ChatStateManager.getProvidedSchedules();
-        schedules[editIndex] = { 
-          ...schedules[editIndex], 
+        providedSchedules[editIndex] = { 
+          ...providedSchedules[editIndex], 
           ...formData,
           formattedSchedule: `${formData.date} ${formData.startTime}~${formData.endTime}`
         };
-        ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, schedules);
-        console.log('EventManager: 正式提供時段已更新', { editIndex, updatedSchedule: schedules[editIndex] });
+        ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, providedSchedules);
+        console.log('EventManager: 正式提供時段已更新', { editIndex, updatedSchedule: providedSchedules[editIndex] });
       }
       
       // 隱藏表單
@@ -1095,13 +1161,32 @@ const EventManager = {
       isDraft: true // 標記為草稿
     };
     
-    // 將草稿時段加入草稿列表
-    const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-    draftSchedules.push({
-      ...draftSchedule,
-      timestamp: new Date()
+    // 使用 ChatStateManager.addDraftSchedule 方法添加草稿時段（會進行重疊檢查）
+    const addResult = ChatStateManager.addDraftSchedule({
+      date: formData.date,
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      notes: formData.notes.trim(),
+      formattedSchedule: formattedSchedule
     });
-    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, draftSchedules);
+    
+    if (!addResult) {
+      console.warn('EventManager.handleScheduleFormSubmit: 草稿時段添加失敗，可能是重複或重疊時段');
+      // 生成詳細的重複時段錯誤訊息
+      const existingSchedules = ChatStateManager.getProvidedSchedules();
+      const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+      const allExistingSchedules = [...existingSchedules, ...draftSchedules];
+      
+      const duplicateMessage = FormValidator.generateDuplicateScheduleMessage(formData, allExistingSchedules);
+      if (duplicateMessage) {
+        FormValidator.showValidationError(duplicateMessage);
+      } else {
+        // 如果無法生成詳細訊息，使用預設錯誤訊息
+        const errorMessage = '抱歉，您輸入的時段與已提供的時段重複或重疊，請重新輸入。';
+        FormValidator.showValidationError(errorMessage);
+      }
+      return;
+    }
     
     // 隱藏表單並清空
     const scheduleForm = DOM_CACHE.scheduleForm;
@@ -4678,13 +4763,20 @@ const DOM = {
       });
       
       // 記錄時段資料到聊天狀態
-      ChatStateManager.addSchedule({
+      const addResult = ChatStateManager.addSchedule({
         date: formData.date,
         startTime: formData.startTime,
         endTime: formData.endTime,
         notes: notes,
         formattedSchedule: formattedSchedule
       });
+      
+      if (!addResult) {
+        console.warn('DOM.chat.submitScheduleForm: 時段添加失敗，可能是重複或重疊時段');
+        FormValidator.showValidationError('抱歉，您輸入的時段與已提供的時段重複或重疊，請重新輸入。');
+        return;
+      }
+      
       console.log('DOM.chat.submitScheduleForm: 時段資料已記錄', ChatStateManager.getProvidedSchedules());
       
       // 添加使用者訊息
@@ -5297,13 +5389,18 @@ const DOM = {
         
         const errorMessage = `以下時段與已提供的時段重複或重疊：\n${duplicateMessages.join('\n')}`;
         
-        await delay(DELAY_TIMES.ERROR.VALIDATION_ERROR);
-        DOM.chat.addGiverResponse(errorMessage);
+        FormValidator.showValidationError(errorMessage);
         return;
       }
       
       // 記錄時段資料
-      ChatStateManager.addSchedules(schedules);
+      const addResult = ChatStateManager.addSchedules(schedules);
+      
+      if (!addResult) {
+        console.warn('DOM.chat.handleMultipleTimesSubmission: 時段添加失敗，可能是重複或重疊時段');
+        FormValidator.showValidationError('抱歉，您輸入的時段中有與已提供的時段重複或重疊的部分，請重新輸入。');
+        return;
+      }
       
       // 退出多筆時段輸入模式
       ChatStateManager.setMultipleTimesMode(false);
@@ -7156,6 +7253,41 @@ const ChatStateManager = {
       return false;
     }
     
+    // 檢查重複時段（與已提供時段和草稿時段的重複）
+    const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+    const allExistingSchedules = [...providedSchedules, ...draftSchedules];
+    
+    const isDuplicate = allExistingSchedules.some(existingSchedule => {
+      // 檢查是否為完全相同的時段
+      const isExactDuplicate = existingSchedule.date === schedule.date && 
+        existingSchedule.startTime === schedule.startTime && 
+        existingSchedule.endTime === schedule.endTime;
+      
+      if (isExactDuplicate) {
+        return true;
+      }
+      
+      // 檢查是否為重疊時段（相同日期且時間有重疊）
+      if (existingSchedule.date === schedule.date) {
+        const existingStart = existingSchedule.startTime;
+        const existingEnd = existingSchedule.endTime;
+        const newStart = schedule.startTime;
+        const newEnd = schedule.endTime;
+        
+        // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
+        const isOverlapping = newStart < existingEnd && newEnd > existingStart;
+        
+        return isOverlapping;
+      }
+      
+      return false;
+    });
+    
+    if (isDuplicate) {
+      console.warn('ChatStateManager.addSchedule: 檢測到重複或重疊時段', schedule);
+      return false;
+    }
+    
     // 添加新時段
     providedSchedules.push({
       ...schedule,
@@ -7164,6 +7296,65 @@ const ChatStateManager = {
     
     ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, providedSchedules);
     console.log('ChatStateManager.addSchedule: 時段已添加到列表');
+    return true;
+  },
+  
+  // 添加草稿時段到草稿時段列表
+  addDraftSchedule: (schedule) => {
+    console.log('ChatStateManager.addDraftSchedule called', { schedule });
+    
+    const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES);
+    
+    // 檢查時段列表長度限制
+    if (draftSchedules.length >= ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
+      console.warn('ChatStateManager.addDraftSchedule: 草稿時段列表已達最大長度限制');
+      return false;
+    }
+    
+    // 檢查重複時段（與已提供時段和草稿時段的重複）
+    const providedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES);
+    const allExistingSchedules = [...providedSchedules, ...draftSchedules];
+    
+    const isDuplicate = allExistingSchedules.some(existingSchedule => {
+      // 檢查是否為完全相同的時段
+      const isExactDuplicate = existingSchedule.date === schedule.date && 
+        existingSchedule.startTime === schedule.startTime && 
+        existingSchedule.endTime === schedule.endTime;
+      
+      if (isExactDuplicate) {
+        return true;
+      }
+      
+      // 檢查是否為重疊時段（相同日期且時間有重疊）
+      if (existingSchedule.date === schedule.date) {
+        const existingStart = existingSchedule.startTime;
+        const existingEnd = existingSchedule.endTime;
+        const newStart = schedule.startTime;
+        const newEnd = schedule.endTime;
+        
+        // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
+        const isOverlapping = newStart < existingEnd && newEnd > existingStart;
+        
+        return isOverlapping;
+      }
+      
+      return false;
+    });
+    
+    if (isDuplicate) {
+      console.warn('ChatStateManager.addDraftSchedule: 檢測到重複或重疊時段', schedule);
+      return false;
+    }
+    
+    // 添加新草稿時段
+    draftSchedules.push({
+      ...schedule,
+      timestamp: new Date(),
+      isDraft: true
+    });
+    
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, draftSchedules);
+    console.log('ChatStateManager.addDraftSchedule: 草稿時段已添加到列表');
     return true;
   },
   
@@ -7176,6 +7367,96 @@ const ChatStateManager = {
     // 檢查是否會超過長度限制
     if (providedSchedules.length + schedules.length > ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
       console.warn('ChatStateManager.addSchedules: 批量添加會超過長度限制');
+      return false;
+    }
+    
+    // 檢查重複時段（與已提供時段和草稿時段的重複）
+    const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+    const allExistingSchedules = [...providedSchedules, ...draftSchedules];
+    const duplicateSchedules = [];
+    
+    schedules.forEach(schedule => {
+      const isDuplicate = allExistingSchedules.some(existingSchedule => {
+        // 檢查是否為完全相同的時段
+        const isExactDuplicate = existingSchedule.date === schedule.date && 
+          existingSchedule.startTime === schedule.startTime && 
+          existingSchedule.endTime === schedule.endTime;
+        
+        if (isExactDuplicate) {
+          return true;
+        }
+        
+        // 檢查是否為重疊時段（相同日期且時間有重疊）
+        if (existingSchedule.date === schedule.date) {
+          const existingStart = existingSchedule.startTime;
+          const existingEnd = existingSchedule.endTime;
+          const newStart = schedule.startTime;
+          const newEnd = schedule.endTime;
+          
+          // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
+          const isOverlapping = newStart < existingEnd && newEnd > existingStart;
+          
+          return isOverlapping;
+        }
+        
+        return false;
+      });
+      
+      if (isDuplicate) {
+        duplicateSchedules.push(schedule);
+      }
+    });
+    
+    // 檢查批次內的重複時段
+    const batchDuplicateSchedules = [];
+    
+    for (let i = 0; i < schedules.length; i++) {
+      for (let j = i + 1; j < schedules.length; j++) {
+        const schedule1 = schedules[i];
+        const schedule2 = schedules[j];
+        
+        // 檢查是否為完全相同的時段
+        const isExactDuplicate = schedule1.date === schedule2.date && 
+          schedule1.startTime === schedule2.startTime && 
+          schedule1.endTime === schedule2.endTime;
+        
+        if (isExactDuplicate) {
+          if (!batchDuplicateSchedules.includes(schedule1)) {
+            batchDuplicateSchedules.push(schedule1);
+          }
+          if (!batchDuplicateSchedules.includes(schedule2)) {
+            batchDuplicateSchedules.push(schedule2);
+          }
+          continue;
+        }
+        
+        // 檢查是否為重疊時段（相同日期且時間有重疊）
+        if (schedule1.date === schedule2.date) {
+          const start1 = schedule1.startTime;
+          const end1 = schedule1.endTime;
+          const start2 = schedule2.startTime;
+          const end2 = schedule2.endTime;
+          
+          // 檢查時間重疊：時段1的開始時間 < 時段2的結束時間 且 時段1的結束時間 > 時段2的開始時間
+          const isOverlapping = start1 < end2 && end1 > start2;
+          
+          if (isOverlapping) {
+            if (!batchDuplicateSchedules.includes(schedule1)) {
+              batchDuplicateSchedules.push(schedule1);
+            }
+            if (!batchDuplicateSchedules.includes(schedule2)) {
+              batchDuplicateSchedules.push(schedule2);
+            }
+          }
+        }
+      }
+    }
+    
+    // 合併所有重複時段
+    const allDuplicateSchedules = [...duplicateSchedules, ...batchDuplicateSchedules];
+    
+    if (allDuplicateSchedules.length > 0) {
+      console.warn('ChatStateManager.addSchedules: 檢測到重複或重疊時段', allDuplicateSchedules);
       return false;
     }
     
