@@ -1,8 +1,27 @@
 // =================================================================
-//   日誌系統配置 (Logger Configuration)
+//   日誌級別常數 (Logger Level Constants)
 // =================================================================
 
-// 環境檢測函數，用於控制日誌輸出
+const LOGGER_LEVELS = {
+  DEBUG: 0,
+  INFO: 1,
+  WARN: 2,
+  ERROR: 3,
+  FATAL: 4
+};
+
+const LOGGER_LEVEL_NAMES = {
+  0: 'DEBUG',
+  1: 'INFO',
+  2: 'WARN',
+  3: 'ERROR',
+  4: 'FATAL'
+};
+
+// =================================================================
+//   環境檢測函數，用於控制日誌輸出
+// =================================================================
+
 const isDevelopment = () => {
   if (typeof window !== 'undefined' && window.location) {
     return window.location.search.includes('debug=true') || 
@@ -12,7 +31,10 @@ const isDevelopment = () => {
   return false;
 };
 
-// 簡化的日誌介面，使用環境變數控制
+// =================================================================
+//   簡化日誌介面 (Simple Logger Interface)，使用環境變數控制
+// =================================================================
+
 const SimpleLogger = {
   // 環境檢測
   isDevelopment,
@@ -36,8 +58,241 @@ const SimpleLogger = {
   table: (data) => isDevelopment() && console.table(data)
 };
 
+// =================================================================
+//   完整日誌記錄模組 (Complete Logging Module)
+// =================================================================
+
+const Logger = {
+  LEVELS: LOGGER_LEVELS,
+  LEVEL_NAMES: LOGGER_LEVEL_NAMES,
+
+  // 配置
+  config: {
+    level: LOGGER_LEVELS.INFO,
+    enableConsole: true,
+    enableStorage: false,
+    maxLogs: 1000,
+    storageKey: 'app_logs',
+    // 環境檢測：自動檢測開發/生產環境
+    isDebug: isDevelopment(),
+    isProduction: !isDevelopment()
+  },
+
+  // 日誌記錄
+  logs: [],
+
+  // 記錄日誌
+  log: (level, message, data = null, context = {}) => {
+    // 在生產環境中，只記錄錯誤和致命錯誤
+    if (Logger.config.isProduction && level < LOGGER_LEVELS.ERROR) {
+      return null;
+    }
+    
+    // 如果關閉調試模式，跳過調試和資訊日誌
+    if (!Logger.config.isDebug && level < LOGGER_LEVELS.WARN) {
+      return null;
+    }
+    
+    if (level < Logger.config.level) {
+      return null;
+    }
+
+    const logEntry = {
+      level,
+      levelName: Logger.LEVEL_NAMES[level],
+      message,
+      data,
+      context,
+      timestamp: new Date(),
+      timestampISO: new Date().toISOString()
+    };
+
+    // 添加到日誌記錄
+    Logger.logs.push(logEntry);
+
+    // 限制日誌數量
+    if (Logger.logs.length > Logger.config.maxLogs) {
+      Logger.logs = Logger.logs.slice(-Logger.config.maxLogs / 2);
+    }
+
+    // 控制台輸出
+    if (Logger.config.enableConsole) {
+      const consoleMethod = Logger.getConsoleMethod(level);
+      const prefix = `[${logEntry.levelName}] ${DateUtils.formatToLocalTime ? DateUtils.formatToLocalTime(logEntry.timestamp) : logEntry.timestamp.toLocaleString()}`;
+      
+      if (data) {
+        console[consoleMethod](prefix, message, data);
+      } else {
+        console[consoleMethod](prefix, message);
+      }
+    }
+
+    // 儲存到本地儲存
+    if (Logger.config.enableStorage) {
+      Logger.saveToStorage(logEntry);
+    }
+
+    return logEntry;
+  },
+
+  // 獲取控制台方法
+  getConsoleMethod: (level) => {
+    switch (level) {
+      case LOGGER_LEVELS.DEBUG:
+        return 'debug';
+      case LOGGER_LEVELS.INFO:
+        return 'info';
+      case LOGGER_LEVELS.WARN:
+        return 'warn';
+      case LOGGER_LEVELS.ERROR:
+      case LOGGER_LEVELS.FATAL:
+        return 'error';
+      default:
+        return 'log';
+    }
+  },
+
+  // 儲存到本地儲存
+  saveToStorage: (logEntry) => {
+    try {
+      const existingLogs = JSON.parse(localStorage.getItem(Logger.config.storageKey) || '[]');
+      existingLogs.push(logEntry);
+      
+      // 限制儲存的日誌數量
+      if (existingLogs.length > Logger.config.maxLogs) {
+        existingLogs.splice(0, existingLogs.length - Logger.config.maxLogs);
+      }
+      
+      localStorage.setItem(Logger.config.storageKey, JSON.stringify(existingLogs));
+    } catch (error) {
+      console.error('DOM.Logger.saveToStorage: 儲存日誌失敗:', error);
+    }
+  },
+
+  // 便捷方法
+  debug: (message, data = null, context = {}) => {
+    return Logger.log(LOGGER_LEVELS.DEBUG, message, data, context);
+  },
+
+  info: (message, data = null, context = {}) => {
+    return Logger.log(LOGGER_LEVELS.INFO, message, data, context);
+  },
+
+  warn: (message, data = null, context = {}) => {
+    return Logger.log(LOGGER_LEVELS.WARN, message, data, context);
+  },
+
+  error: (message, data = null, context = {}) => {
+    return Logger.log(LOGGER_LEVELS.ERROR, message, data, context);
+  },
+
+  fatal: (message, data = null, context = {}) => {
+    return Logger.log(LOGGER_LEVELS.FATAL, message, data, context);
+  },
+
+  // 工具方法
+  utils: {
+    // 獲取日誌統計
+    getStats: () => {
+      const stats = {
+        total: Logger.logs.length,
+        byLevel: {},
+        byTime: {
+          lastHour: 0,
+          lastDay: 0,
+          lastWeek: 0
+        }
+      };
+
+      const now = new Date();
+      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+      Logger.logs.forEach(log => {
+        // 按級別統計
+        stats.byLevel[log.levelName] = (stats.byLevel[log.levelName] || 0) + 1;
+
+        // 按時間統計
+        if (log.timestamp > oneHourAgo) {
+          stats.byTime.lastHour++;
+        }
+        if (log.timestamp > oneDayAgo) {
+          stats.byTime.lastDay++;
+        }
+        if (log.timestamp > oneWeekAgo) {
+          stats.byTime.lastWeek++;
+        }
+      });
+
+      return stats;
+    },
+
+    // 清理日誌
+    clear: () => {
+      Logger.logs = [];
+    },
+
+    // 獲取最近的日誌
+    getRecent: (count = 50, level = null) => {
+      let filteredLogs = Logger.logs;
+      
+      if (level !== null) {
+        filteredLogs = Logger.logs.filter(log => log.level >= level);
+      }
+      
+      return filteredLogs.slice(-count);
+    },
+
+    // 搜尋日誌
+    search: (query, options = {}) => {
+      const {
+        level = null,
+        startTime = null,
+        endTime = null,
+        caseSensitive = false
+      } = options;
+
+      return Logger.logs.filter(log => {
+        // 級別過濾
+        if (level !== null && log.level !== level) {
+          return false;
+        }
+
+        // 時間過濾
+        if (startTime && log.timestamp < startTime) {
+          return false;
+        }
+        if (endTime && log.timestamp > endTime) {
+          return false;
+        }
+
+        // 文字搜尋
+        const searchText = caseSensitive ? query : query.toLowerCase();
+        const logText = caseSensitive ? log.message : log.message.toLowerCase();
+        
+        return logText.includes(searchText);
+      });
+    },
+
+    // 匯出日誌
+    export: () => {
+      return {
+        timestamp: new Date().toISOString(),
+        logs: Logger.logs,
+        config: Logger.config,
+        stats: Logger.utils.getStats()
+      };
+    }
+  }
+};
+
 // 全域日誌實例
-const LoggerInstance = SimpleLogger;
+const LoggerInstance = Logger;  
+
+// =================================================================
+//   全域常數設定 (Global Constants) - 為了向後相容，保留舊的常數引用
+// =================================================================
 
 const CONFIG = {
   // 全域實例
@@ -6136,303 +6391,6 @@ const ErrorHandler = {
       console.log('DOM.errorHandler.utils.debug: 錯誤歷史:', ErrorHandler.errorHistory);
       console.log('DOM.errorHandler.utils.debug: 錯誤統計:', ErrorHandler.utils.getStats());
       console.log('DOM.errorHandler.utils.debug: 最近的錯誤:', ErrorHandler.utils.getRecentErrors());
-      console.groupEnd();
-    }
-  }
-};
-
-// =================================================================
-//   日誌級別常數 (Logger Level Constants)
-// =================================================================
-
-const LOGGER_LEVELS = {
-  DEBUG: 0,
-  INFO: 1,
-  WARN: 2,
-  ERROR: 3,
-  FATAL: 4
-};
-const LOGGER_LEVEL_NAMES = {
-  0: 'DEBUG',
-  1: 'INFO',
-  2: 'WARN',
-  3: 'ERROR',
-  4: 'FATAL'
-};
-
-// =================================================================
-//   日誌記錄模組 (Logging Module)
-// =================================================================
-
-const Logger = {
-  LEVELS: LOGGER_LEVELS,
-  LEVEL_NAMES: LOGGER_LEVEL_NAMES,
-
-  // 配置
-  config: {
-    level: LOGGER_LEVELS.INFO,
-    enableConsole: true,
-    enableStorage: false,
-    maxLogs: 1000,
-    storageKey: 'app_logs',
-    // 環境檢測：自動檢測開發/生產環境
-    isDebug: isDevelopment(),
-    isProduction: !isDevelopment()
-  },
-
-  // 日誌記錄
-  logs: [],
-
-  // 記錄日誌
-  log: (level, message, data = null, context = {}) => {
-    // 在生產環境中，只記錄錯誤和致命錯誤
-    if (Logger.config.isProduction && level < LOGGER_LEVELS.ERROR) {
-      return null;
-    }
-    
-    // 如果關閉調試模式，跳過調試和資訊日誌
-    if (!Logger.config.isDebug && level < LOGGER_LEVELS.WARN) {
-      return null;
-    }
-    
-    if (level < Logger.config.level) {
-      return null;
-    }
-
-    const logEntry = {
-      level,
-      levelName: Logger.LEVEL_NAMES[level],
-      message,
-      data,
-      context,
-      timestamp: new Date(),
-      timestampISO: new Date().toISOString()
-    };
-
-    // 添加到日誌記錄
-    Logger.logs.push(logEntry);
-
-    // 限制日誌數量
-    if (Logger.logs.length > Logger.config.maxLogs) {
-      Logger.logs = Logger.logs.slice(-Logger.config.maxLogs / 2);
-    }
-
-    // 控制台輸出
-    if (Logger.config.enableConsole) {
-      const consoleMethod = Logger.getConsoleMethod(level);
-      const prefix = `[${logEntry.levelName}] ${DateUtils.formatToLocalTime(logEntry.timestamp)}`;
-      
-      if (data) {
-        console[consoleMethod](prefix, message, data);
-      } else {
-        console[consoleMethod](prefix, message);
-      }
-    }
-
-    // 儲存到本地儲存
-    if (Logger.config.enableStorage) {
-      Logger.saveToStorage(logEntry);
-    }
-
-    return logEntry;
-  },
-
-  // 獲取控制台方法
-  getConsoleMethod: (level) => {
-    switch (level) {
-      case LOGGER_LEVELS.DEBUG:
-        return 'debug';
-      case LOGGER_LEVELS.INFO:
-        return 'info';
-      case LOGGER_LEVELS.WARN:
-        return 'warn';
-      case LOGGER_LEVELS.ERROR:
-      case LOGGER_LEVELS.FATAL:
-        return 'error';
-      default:
-        return 'log';
-    }
-  },
-
-  // 儲存到本地儲存
-  saveToStorage: (logEntry) => {
-    try {
-      const existingLogs = JSON.parse(localStorage.getItem(Logger.config.storageKey) || '[]');
-      existingLogs.push(logEntry);
-      
-      // 限制儲存的日誌數量
-      if (existingLogs.length > Logger.config.maxLogs) {
-        existingLogs.splice(0, existingLogs.length - Logger.config.maxLogs);
-      }
-      
-      localStorage.setItem(Logger.config.storageKey, JSON.stringify(existingLogs));
-    } catch (error) {
-      console.error('DOM.Logger.saveToStorage: 儲存日誌失敗:', error);
-    }
-  },
-
-  // 便捷方法
-  debug: (message, data = null, context = {}) => {
-    return Logger.log(LOGGER_LEVELS.DEBUG, message, data, context);
-  },
-
-  info: (message, data = null, context = {}) => {
-    return Logger.log(LOGGER_LEVELS.INFO, message, data, context);
-  },
-
-  warn: (message, data = null, context = {}) => {
-    return Logger.log(LOGGER_LEVELS.WARN, message, data, context);
-  },
-
-  error: (message, data = null, context = {}) => {
-    return Logger.log(LOGGER_LEVELS.ERROR, message, data, context);
-  },
-
-  fatal: (message, data = null, context = {}) => {
-    return Logger.log(LOGGER_LEVELS.FATAL, message, data, context);
-  },
-
-  // 工具方法
-  utils: {
-    // 獲取日誌統計
-    getStats: () => {
-      const stats = {
-        total: Logger.logs.length,
-        byLevel: {},
-        byTime: {
-          lastHour: 0,
-          lastDay: 0,
-          lastWeek: 0
-        }
-      };
-
-      const now = new Date();
-      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-      Logger.logs.forEach(log => {
-        // 按級別統計
-        stats.byLevel[log.levelName] = (stats.byLevel[log.levelName] || 0) + 1;
-
-        // 按時間統計
-        if (log.timestamp > oneHourAgo) {
-          stats.byTime.lastHour++;
-        }
-        if (log.timestamp > oneDayAgo) {
-          stats.byTime.lastDay++;
-        }
-        if (log.timestamp > oneWeekAgo) {
-          stats.byTime.lastWeek++;
-        }
-      });
-
-      return stats;
-    },
-
-    // 清理日誌
-    clear: () => {
-      console.log('DOM.Logger.utils.clear called：清空日誌');
-      Logger.logs = [];
-    },
-
-    // 獲取最近的日誌
-    getRecent: (count = 50, level = null) => {
-      console.log('DOM.Logger.utils.getRecent called：獲取最近的日誌', { count, level });
-      let filteredLogs = Logger.logs;
-      
-      if (level !== null) {
-        filteredLogs = Logger.logs.filter(log => log.level >= level);
-      }
-      
-      return filteredLogs.slice(-count);
-    },
-
-    // 搜尋日誌
-    search: (query, options = {}) => {
-      console.log('DOM.Logger.utils.search called：搜尋日誌', { query, options });
-      const {
-        level = null,
-        startTime = null,
-        endTime = null,
-        caseSensitive = false
-      } = options;
-
-      let filteredLogs = Logger.logs;
-
-      // 按級別過濾
-      if (level !== null) {
-        filteredLogs = filteredLogs.filter(log => log.level >= level);
-      }
-
-      // 按時間過濾
-      if (startTime) {
-        filteredLogs = filteredLogs.filter(log => log.timestamp >= startTime);
-      }
-      if (endTime) {
-        filteredLogs = filteredLogs.filter(log => log.timestamp <= endTime);
-      }
-
-      // 按查詢字串過濾
-      if (query) {
-        const searchQuery = caseSensitive ? query : query.toLowerCase();
-        filteredLogs = filteredLogs.filter(log => {
-          const message = caseSensitive ? log.message : log.message.toLowerCase();
-          return message.includes(searchQuery);
-        });
-      }
-
-      return filteredLogs;
-    },
-
-    // 匯出日誌
-    export: (format = 'json') => {
-      console.log('DOM.Logger.utils.export called：匯出日誌', { format });
-      switch (format.toLowerCase()) {
-        case 'json':
-          return JSON.stringify(Logger.logs, null, 2);
-        case 'csv':
-          const csvHeader = 'Level,Message,Timestamp,Data\n';
-          const csvRows = Logger.logs.map(log => 
-            `"${log.levelName}","${log.message.replace(/"/g, '""')}","${log.timestampISO}","${JSON.stringify(log.data).replace(/"/g, '""')}"`
-          ).join('\n');
-          return csvHeader + csvRows;
-        default:
-          throw new Error(`不支援的匯出格式: ${format}`);
-      }
-    },
-
-    // 設定日誌級別
-    setLevel: (level) => {
-      console.log('DOM.Logger.setLevel called：設定日誌級別', { level });
-      if (Object.values(LOGGER_LEVELS).includes(level)) {
-        Logger.config.level = level;
-        Logger.info(`日誌級別已設定為: ${LOGGER_LEVEL_NAMES[level]}`);
-      } else {
-        Logger.warn(`無效的日誌級別: ${level}`);
-      }
-    },
-
-    // 啟用/停用控制台輸出
-    setConsoleOutput: (enabled) => {
-      console.log('DOM.Logger.setConsoleOutput called：設定控制台輸出', { enabled });
-      Logger.config.enableConsole = enabled;
-      Logger.info(`控制台輸出已${enabled ? '啟用' : '停用'}`);
-    },
-
-    // 啟用/停用本地儲存
-    setStorage: (enabled) => {
-      console.log('DOM.Logger.setStorage called：設定本地儲存', { enabled });
-      Logger.config.enableStorage = enabled;
-      Logger.info(`本地儲存已${enabled ? '啟用' : '停用'}`);
-    },
-
-    // 調試日誌系統
-    debug: () => {
-      console.group('DOM.Logger.utils.debug called：日誌系統調試資訊');
-      console.log('DOM.Logger.utils.debug: 配置:', Logger.config);
-      console.log('DOM.Logger.utils.debug: 統計:', Logger.utils.getStats());
-      console.log('DOM.Logger.utils.debug: 最近的日誌:', Logger.utils.getRecent(10));
       console.groupEnd();
     }
   }
