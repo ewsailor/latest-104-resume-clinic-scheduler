@@ -428,12 +428,60 @@ const GIVERS_PER_PAGE = CONFIG.PAGINATION.GIVERS_PER_PAGE;
 //   工具函數 (Utility Functions)
 // =================================================================
 
+// 延遲時間常數管理 
+const DELAY_TIMES = {
+  // 聊天相關延遲
+  CHAT: {
+    RESPONSE: 1000,         // Giver 回覆延遲
+    FORM_SUBMIT: 1000,      // 表單提交後延遲
+    OPTION_SELECT: 1000,    // 選項選擇後延遲
+    SUCCESS_MESSAGE: 1000,  // 成功訊息延遲
+    CANCEL_MESSAGE: 1000,   // 取消訊息延遲
+    VIEW_TIMES: 1000,       // 查看時間延遲
+    SINGLE_TIME: 100,       // 單筆時段處理延遲
+    MULTIPLE_TIMES: 1000,   // 多筆時段處理延遲
+    SUBMISSION_RESULT: 1000 // 提交結果延遲
+  },
+  
+  // UI 相關延遲
+  UI: {
+    MODAL_CLEANUP: 150,    // Modal 清理延遲
+    FOCUS_TRANSFER: 0,     // 焦點轉移延遲
+    FOCUS_RETRY: 50,       // 焦點重試延遲
+    BACKDROP_CLEANUP: 0,   // Backdrop 清理延遲
+    CLOSE_CONFIRMATION: 150 // 關閉確認延遲
+  },
+  
+  // 錯誤處理延遲
+  ERROR: {
+    AUTO_REMOVE: 5000,     // 錯誤訊息自動移除
+    TOAST_DURATION: 3000,  // Toast 顯示時間
+    SUCCESS_DURATION: 3000, // 成功訊息顯示時間
+    INFO_DURATION: 3000,    // 資訊訊息顯示時間
+    VALIDATION_ERROR: 1000  // 驗證錯誤延遲
+  },
+  
+  // 動畫和過渡延遲
+  ANIMATION: {
+    TOPIC_OVERFLOW: 1000,  // 主題溢出檢查延遲
+    DOM_UPDATE: 0,         // DOM 更新延遲
+    RESIZE_DEBOUNCE: 300   // 視窗大小調整防抖延遲
+  },
+  
+  // 資料載入延遲
+  DATA: {
+    RETRY_DELAY: 1000,     // 重試延遲
+    LOADING_TIMEOUT: 30000 // 載入超時
+  }
+};
+
 // Promise 版本的延遲函數，替代 setTimeout
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // 非阻塞延遲函數，用於不需要等待的延遲操作
-const nonBlockingDelay = (ms, callback) => {
-  setTimeout(callback, ms);
+const nonBlockingDelay = async (ms, callback) => {
+  await delay(ms);
+  callback();
 };
 
 // =================================================================
@@ -675,7 +723,7 @@ const EventManager = {
   },
   
   // 處理選項按鈕
-  handleOptionButton(btn, e) {
+  async handleOptionButton(btn, e) {
     const option = btn.getAttribute('data-option');
     const optionText = btn.textContent.trim();
     Logger.info('EventManager: 選項按鈕被點擊', { option, optionText });
@@ -722,7 +770,7 @@ const EventManager = {
         // 先更新現有表格，確保編輯功能正常
         EventManager.updateScheduleDisplay();
         
-        nonBlockingDelay(1000, () => {
+        await nonBlockingDelay(DELAY_TIMES.CHAT.SUCCESS_MESSAGE, () => {
           DOM.chat.handleSuccessProvideTime();
         });
         break;
@@ -936,7 +984,7 @@ const EventManager = {
   },
   
   // 處理表單提交
-  handleScheduleFormSubmit(form, e) {
+  async handleScheduleFormSubmit(form, e) {
     console.log('EventManager: 表單提交事件觸發');
     
     const formData = DOM_CACHE.getFormData();
@@ -1068,7 +1116,7 @@ const EventManager = {
     DOM.chat.setSelectedDate(null);
     
     // 模擬 Giver 回覆
-    nonBlockingDelay(500, () => {
+    await nonBlockingDelay(DELAY_TIMES.CHAT.FORM_SUBMIT, () => {
       const responseHTML = TEMPLATES.chat.afterScheduleOptions(formattedSchedule, formData.notes);
       const chatMessages = DOM_CACHE.chatMessages;
       if (chatMessages) {
@@ -1892,7 +1940,7 @@ const UIInteraction = {
     if (cancelBtn) DOM.utils.setTextContent(cancelBtn, cancelText);
     
     // 確認按鈕事件監聽器（內部函式）：當使用者點擊確認按鈕時，會執行 onConfirm 函式，這通常是實際要執行的業務邏輯（如刪除資料、取消預約等）
-    const confirmHandler = () => {
+    const confirmHandler = async () => {
       console.log('confirmHandler called');
       onConfirm(); // 執行傳入的 onConfirm 函式，這通常是實際要執行的業務邏輯（如刪除資料、取消預約等）
       const modal = bootstrap.Modal.getInstance(DOM.confirm.modal());
@@ -1900,7 +1948,7 @@ const UIInteraction = {
         modal.hide(); // 隱藏對話框
         // 只有在需要清理 backdrop 時才清理
         if (cleanupBackdrop) {
-          nonBlockingDelay(150, () => {
+          await nonBlockingDelay(DELAY_TIMES.UI.MODAL_CLEANUP, () => {
             const backdrop = document.querySelector('.modal-backdrop');
             if (backdrop) backdrop.remove();
             document.body.classList.remove('modal-open');
@@ -1913,14 +1961,14 @@ const UIInteraction = {
     };
     
     // 取消按鈕事件監聽器（內部函式）：當使用者點擊取消按鈕時，會執行 onCancel 函式，這通常是實際要執行的業務邏輯（如取消預約等）
-    const cancelHandler = () => {
+    const cancelHandler = async () => {
       console.log('cancelHandler called');
       onCancel(); // 執行傳入的 onCancel 函式，這通常是實際要執行的業務邏輯（如取消預約等）
       const modal = bootstrap.Modal.getInstance(DOM.confirm.modal());
       if (modal) {
         modal.hide();
         // 確保 backdrop 被清理
-        nonBlockingDelay(150, () => {
+        await nonBlockingDelay(DELAY_TIMES.UI.MODAL_CLEANUP, () => {
           const backdrop = document.querySelector('.modal-backdrop');
           if (backdrop) backdrop.remove();
           document.body.classList.remove('modal-open');
@@ -3521,20 +3569,20 @@ const DOM = {
     },
     
     // 處理預約時間選項
-    handleScheduleOption: () => {
+    handleScheduleOption: async () => {
       console.log('DOM.chat.handleScheduleOption called');
       // 顯示 Giver 已提供的時間選項
-      nonBlockingDelay(500, () => {
+      await nonBlockingDelay(DELAY_TIMES.CHAT.OPTION_SELECT, () => {
         DOM.chat.showGiverAvailableTimes();
       });
     },
     
     // 處理暫不預約選項
-    handleSkipOption: () => {
+    handleSkipOption: async () => {
       console.log('DOM.chat.handleSkipOption called：處理暫不預約選項');
       
       // 模擬 Giver 回覆
-      nonBlockingDelay(1000, () => {
+      await nonBlockingDelay(DELAY_TIMES.CHAT.RESPONSE, () => {
         const response = '好的，您選擇暫不預約 Giver 時間。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？';
         DOM.chat.addGiverResponse(response);
       });
@@ -3881,12 +3929,12 @@ const DOM = {
     },
 
     // 處理確認完畢所有預約
-    handleConfirmAllReservations: () => {
+    handleConfirmAllReservations: async () => {
       console.log('DOM.chat.handleConfirmAllReservations called：處理確認完畢所有預約');
       
       DOM.chat.addUserMessage('確認完畢，請協助送出給 Giver');
       
-      nonBlockingDelay(1000, () => {
+      await nonBlockingDelay(DELAY_TIMES.CHAT.RESPONSE, () => {
         const response = '✅ 預約已送出！<br><br>Giver 已收到您對上述時段的預約通知，請耐心等待對方確認回覆。<br><br>⚠️ 貼心提醒：<br><br>Giver 可能因臨時狀況無法如期面談，請以對方回覆確認為準，謝謝您的體諒！<br><br>以下是您的預約時段：';
         DOM.chat.addGiverResponse(response);
       });
@@ -3904,7 +3952,7 @@ const DOM = {
     },
 
     // 處理取消表單
-    handleCancelScheduleForm: (e) => {
+    handleCancelScheduleForm: async (e) => {
       e.preventDefault();
       e.stopPropagation();
       
@@ -3921,7 +3969,7 @@ const DOM = {
       DOM.chat.addUserMessage('取消提供時段');
       
       // 顯示取消訊息
-      nonBlockingDelay(1000, () => {
+      await nonBlockingDelay(DELAY_TIMES.CHAT.RESPONSE, () => {
         DOM.chat.addGiverResponse('已取消提供時段。<br><br>如果仍想預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。');
       });
     },
@@ -4050,25 +4098,25 @@ const DOM = {
     },
 
     // 處理 Demo 時間選擇
-    handleDemoTimeSelection: (timeSlot) => {
+    handleDemoTimeSelection: async (timeSlot) => {
       console.log('DOM.chat.handleDemoTimeSelection called：處理 Demo 時間選擇', timeSlot);
-      nonBlockingDelay(1000, () => {
+      await nonBlockingDelay(DELAY_TIMES.CHAT.RESPONSE, () => {  
         const response = `您已成功預約 ${timeSlot}。<br><br>Giver 將在 24 小時內確認您的預約，請留意通知。<br><br>有其他問題需要協助嗎？`;
         DOM.chat.addGiverResponse(response);
       });
     },
 
     // 處理提供我的時間選項
-    handleProvideMyTime: () => {
+    handleProvideMyTime: async () => {
       console.log('DOM.chat.handleProvideMyTime called：處理提供我的時間選項');
-      nonBlockingDelay(1000, () => {
+      await nonBlockingDelay(DELAY_TIMES.CHAT.RESPONSE, () => {
         // 顯示提供我的時間選項（3個按鈕）
         DOM.chat.showProvideMyTimeOptions();
       });
     },
     
     // 處理多個 Demo 時間選項
-    handleMultipleDemoTimeSelection: (demoTimeOptions, provideMyTimeOption) => {
+    handleMultipleDemoTimeSelection: async (demoTimeOptions, provideMyTimeOption) => {
       console.log('DOM.chat.handleMultipleDemoTimeSelection called：處理多個 Demo 時間選項', { demoTimeOptions, provideMyTimeOption });
       
       // 將預約資料儲存到 ChatStateManager
@@ -4101,7 +4149,7 @@ const DOM = {
       // 儲存預約資料
       ChatStateManager.addBookedSchedules(bookedSchedules);
       
-      nonBlockingDelay(1000, () => {
+      await nonBlockingDelay(DELAY_TIMES.CHAT.RESPONSE, () => {
         // 顯示預約成功訊息和表格
         const reservationSuccessHTML = TEMPLATES.chat.reservationSuccessMessageAndTable(demoTimeOptions, provideMyTimeOption);
         const chatMessages = DOM_CACHE.chatMessages;
@@ -4116,54 +4164,52 @@ const DOM = {
     },
     
     // 處理查看時間選項
-    handleViewTimes: () => {
+    handleViewTimes: async () => {
       console.log('DOM.chat.handleViewTimes called：處理查看時間選項');
-      setTimeout(() => {
-        // 使用新的模板顯示「Giver 尚末提供提供方便的時間」訊息和按鈕
-        const noGiverTimesHTML = TEMPLATES.chat.noGiverTimesWithButtons();
-        const chatMessages = DOM_CACHE.chatMessages;
-        if (chatMessages) {
-          chatMessages.insertAdjacentHTML('beforeend', noGiverTimesHTML);
-          // 綁定按鈕事件
-          DOM.chat.setupScheduleOptionButtons();
-          // 滾動到底部
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-      }, 1000);
+      await delay(DELAY_TIMES.CHAT.RESPONSE);
+      // 使用新的模板顯示「Giver 尚末提供提供方便的時間」訊息和按鈕
+      const noGiverTimesHTML = TEMPLATES.chat.noGiverTimesWithButtons();
+      const chatMessages = DOM_CACHE.chatMessages;
+      if (chatMessages) {
+        chatMessages.insertAdjacentHTML('beforeend', noGiverTimesHTML);
+        // 綁定按鈕事件
+        DOM.chat.setupScheduleOptionButtons();
+        // 滾動到底部
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
     },
     
     // 處理查看我已預約的時間選項
-    handleViewMyBookedTimes: () => {
+    handleViewMyBookedTimes: async () => {
       console.log('DOM.chat.handleViewMyBookedTimes called：處理查看我已預約的時間選項');
       
       // 檢查是否有已預約的時間
       const bookedSchedules = ChatStateManager.getBookedSchedules();
       console.log('DOM.chat.handleViewMyBookedTimes: 已預約的時段', bookedSchedules);
       
-      setTimeout(() => {
-        const chatMessages = DOM_CACHE.chatMessages;
-        if (chatMessages) {
-          if (bookedSchedules.length > 0) {
-            // 有預約時段，顯示預約成功訊息和表格
-            const bookedTimesHTML = TEMPLATES.chat.bookedTimesMessageAndTable(bookedSchedules);
-            chatMessages.insertAdjacentHTML('beforeend', bookedTimesHTML);
-            // 綁定表格按鈕事件
-            DOM.chat.setupReservationTableButtons();
-          } else {
-            // 沒有預約時段，顯示「您目前還沒有預約任何 Giver 時間」訊息和按鈕
-            const noBookedTimesHTML = TEMPLATES.chat.noBookedTimesWithButtons();
-            chatMessages.insertAdjacentHTML('beforeend', noBookedTimesHTML);
-            // 綁定按鈕事件
-            DOM.chat.setupScheduleOptionButtons();
-          }
-          // 滾動到底部
-          chatMessages.scrollTop = chatMessages.scrollHeight;
+      await delay(DELAY_TIMES.CHAT.RESPONSE);
+      const chatMessages = DOM_CACHE.chatMessages;
+      if (chatMessages) {
+        if (bookedSchedules.length > 0) {
+          // 有預約時段，顯示預約成功訊息和表格
+          const bookedTimesHTML = TEMPLATES.chat.bookedTimesMessageAndTable(bookedSchedules);
+          chatMessages.insertAdjacentHTML('beforeend', bookedTimesHTML);
+          // 綁定表格按鈕事件
+          DOM.chat.setupReservationTableButtons();
+        } else {
+          // 沒有預約時段，顯示「您目前還沒有預約任何 Giver 時間」訊息和按鈕
+          const noBookedTimesHTML = TEMPLATES.chat.noBookedTimesWithButtons();
+          chatMessages.insertAdjacentHTML('beforeend', noBookedTimesHTML);
+          // 綁定按鈕事件
+          DOM.chat.setupScheduleOptionButtons();
         }
-      }, 1000);
+        // 滾動到底部
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
     },
     
     // 處理單筆時段選項
-    handleSingleTime: (editIndex = null, editData = null) => {
+    handleSingleTime: async (editIndex = null, editData = null) => {
       console.log('DOM.chat.handleSingleTime called：處理單筆時段選項', { editIndex, editData });
       
       // 處理參數格式：如果 editIndex 是數字，editData 是物件，則調整參數順序
@@ -4175,7 +4221,7 @@ const DOM = {
         editData = actualEditData;
         console.log('DOM.chat.handleSingleTime: 調整參數格式', { editIndex, editData });
       }
-      nonBlockingDelay(100, () => {
+      await nonBlockingDelay(100, () => {
         console.log('DOM.chat.handleSingleTime: setTimeout 開始執行');
         // 顯示表單
         let scheduleForm = DOM_CACHE.scheduleForm;
@@ -4571,7 +4617,7 @@ const DOM = {
     },
     
     // 提交表單
-    submitScheduleForm: () => {
+    submitScheduleForm: async () => {
       console.log('DOM.chat.submitScheduleForm called：提交表單');
       
       const formData = DOM_CACHE.getFormData();
@@ -4658,7 +4704,7 @@ const DOM = {
       DOM.chat.setSelectedDate(null);
       
       // 模擬 Giver 回覆
-      setTimeout(() => {
+      await delay(DELAY_TIMES.CHAT.RESPONSE);  
         // 將訊息與按鈕組合在同一個訊息框
         const responseHTML = TEMPLATES.chat.afterScheduleOptions(formattedSchedule, notes);
         const chatMessages = document.getElementById('chat-messages');
@@ -4667,7 +4713,7 @@ const DOM = {
           // 綁定事件
           const afterBtns = chatMessages.querySelectorAll('#after-schedule-options .btn-option');
           afterBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('click', async (e) => {
               const option = btn.getAttribute('data-option');
               const optionText = btn.textContent.trim();
               console.log('after-schedule-options 按鈕被點擊:', { option, optionText });
@@ -4680,9 +4726,8 @@ const DOM = {
                 DOM.chat.handleViewAllSchedules();
               } else if (option === 'finish') {
                 DOM.chat.addUserMessage('已新增完成所有時段，請協助送出給 Giver');
-                setTimeout(() => {
-                  DOM.chat.handleSuccessProvideTime();
-                }, 1000);
+                await delay(DELAY_TIMES.CHAT.RESPONSE);
+                DOM.chat.handleSuccessProvideTime();
               } else if (option === 'cancel') {
                 DOM.chat.handleCancelSchedule();
               }
@@ -4697,13 +4742,12 @@ const DOM = {
           // 滾動到底部
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
-      }, 1000);
     },
     
     // 處理多筆時段選項
-    handleMultipleTimes: () => {
+    handleMultipleTimes: async () => {
       console.log('DOM.chat.handleMultipleTimes called：處理多筆時段選項');
-      setTimeout(() => {
+      await delay(DELAY_TIMES.MULTIPLE_TIMES);
         // 使用新的模板顯示訊息和按鈕
         const responseHTML = TEMPLATES.chat.multipleTimesUnderConstruction();
         const chatMessages = document.getElementById('chat-messages');
@@ -4735,11 +4779,10 @@ const DOM = {
         // 設定多筆時段輸入模式
         ChatStateManager.setMultipleTimesMode(true);
         console.log('DOM.chat.handleMultipleTimes: 已設定多筆時段輸入模式');
-      }, 1000);
     },
     
     // 處理查看所有已提供時段選項
-    handleViewAllSchedules: () => {
+    handleViewAllSchedules: async () => {
       console.log('DOM.chat.handleViewAllSchedules called：處理查看所有已提供時段選項');
       
       const providedSchedules = ChatStateManager.getProvidedSchedules();
@@ -4792,7 +4835,7 @@ const DOM = {
         console.log('mountTable() completed: 表格渲染與事件綁定完成');
       };
       
-      setTimeout(() => {
+      await delay(DELAY_TIMES.VIEW_ALL_SCHEDULES);
         if (providedSchedules.length === 0 && draftSchedules.length === 0) {
           const html = TEMPLATES.chat.noSchedulesWithButtons();
           const chatMessages = document.getElementById('chat-messages');
@@ -4804,26 +4847,24 @@ const DOM = {
         } else {
           mountTable();
         }
-      }, 1000);
     },
     
     // 處理取消預約選項
-    handleCancelSchedule: () => {
+    handleCancelSchedule: async () => {
       console.log('DOM.chat.handleCancelSchedule called：處理取消預約選項');
-      setTimeout(() => {
-        const response = '好的，已取消預約。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？';
-        DOM.chat.addGiverResponse(response);
-      }, 1000);
+      await delay(DELAY_TIMES.CANCEL_MESSAGE);
+      const response = '好的，已取消預約。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？';
+      DOM.chat.addGiverResponse(response);
     },
 
     // 新增：處理成功提供時間選項
-    handleSuccessProvideTime: () => {
+    handleSuccessProvideTime: async () => {
       console.log('DOM.chat.handleSuccessProvideTime called：處理成功提供時間選項');
       
       const providedSchedules = ChatStateManager.getProvidedSchedules();
       console.log('DOM.chat.handleSuccessProvideTime: 已提供的時段資料', providedSchedules);
       
-      setTimeout(() => {
+      await delay(DELAY_TIMES.SUCCESS_MESSAGE);
         const chatMessages = document.getElementById('chat-messages');
         if (chatMessages) {
           // 先移除舊的成功提供表格（如果存在）
@@ -4842,7 +4883,6 @@ const DOM = {
           
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
-      }, 1000);
     },
     
     // 獲取選中的日期
@@ -4869,7 +4909,7 @@ const DOM = {
       console.log('DOM.chat.setupInputControls: 設定聊天輸入控制項:', { chatInput, sendBtn });
       
       // 發送訊息函數（內部函式）：處理聊天訊息的發送邏輯
-      const sendMessage = () => {
+      const sendMessage = async () => {
     const message = chatInput.value.trim();
         
         // 使用 FormValidator 驗證訊息
@@ -4894,9 +4934,8 @@ const DOM = {
           DOM.chat.handleMultipleTimesSubmission(message);
         } else {
           // 模擬 Giver 回覆
-          setTimeout(() => {
-            DOM.chat.addGiverResponse(message);
-          }, 1000);
+          await delay(DELAY_TIMES.CHAT.RESPONSE);
+          DOM.chat.addGiverResponse(message);
         }
       };
       
@@ -5014,7 +5053,7 @@ const DOM = {
             
             // 強制處理焦點問題：當使用者關閉對話框時，強制將焦點移到 body，避免使用者無法操作其他元素。
             DOM.chat.forceFocusToBody(); 
-          }, 150);
+          }, DELAY_TIMES.UI.MODAL_CLEANUP);
         }
       });
     },
@@ -5187,7 +5226,7 @@ const DOM = {
     },
     
     // 處理多筆時段提交
-    handleMultipleTimesSubmission: (message) => {
+    handleMultipleTimesSubmission: async (message) => {
       console.log('DOM.chat.handleMultipleTimesSubmission called：處理多筆時段提交', { message });
       
       // 使用 FormValidator 驗證多筆時段
@@ -5195,9 +5234,8 @@ const DOM = {
       
       if (!validationResult.isValid) {
         console.warn('DOM.chat.handleMultipleTimesSubmission: 多筆時段驗證失敗', validationResult);
-        setTimeout(() => {
-          DOM.chat.addGiverResponse(validationResult.message);
-        }, 1000);
+        await delay(DELAY_TIMES.ERROR.VALIDATION_ERROR);   
+        DOM.chat.addGiverResponse(validationResult.message);
         return;
       }
       
@@ -5208,9 +5246,8 @@ const DOM = {
       
       if (!isValid) {
         // 沒有解析到有效時段
-        setTimeout(() => {
-          DOM.chat.addGiverResponse('抱歉，我無法解析您提供的時段格式。請使用以下格式：\n日期 時間範圍\n例如：\n2024/01/15 14:00-16:00\n2024/01/17 10:00-12:00');
-        }, 1000);
+        await delay(DELAY_TIMES.ERROR.VALIDATION_ERROR);
+        DOM.chat.addGiverResponse('抱歉，我無法解析您提供的時段格式。請使用以下格式：\n日期 時間範圍\n例如：\n2024/01/15 14:00-16:00\n2024/01/17 10:00-12:00');
         return;
       }
       
@@ -5261,9 +5298,8 @@ const DOM = {
         
         const errorMessage = `以下時段與已提供的時段重複或重疊：\n${duplicateMessages.join('\n')}`;
         
-        setTimeout(() => {
-          DOM.chat.addGiverResponse(errorMessage);
-        }, 1000);
+        await delay(DELAY_TIMES.ERROR.VALIDATION_ERROR);
+        DOM.chat.addGiverResponse(errorMessage);
         return;
       }
       
@@ -5274,7 +5310,7 @@ const DOM = {
       ChatStateManager.setMultipleTimesMode(false);
       
       // 顯示提交結果
-      setTimeout(() => {
+      await delay(DELAY_TIMES.SUCCESS_MESSAGE);
         let scheduleList = '';
         schedules.forEach((schedule, index) => {
           const scheduleNumber = index + 1;
@@ -5290,8 +5326,8 @@ const DOM = {
           chatMessages.insertAdjacentHTML('beforeend', responseHTML);
           // 綁定事件
           const afterBtns = chatMessages.querySelectorAll('#after-multiple-schedule-options .btn-option');
-          afterBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
+          afterBtns.forEach(async btn => {
+            btn.addEventListener('click', async (e) => {
               const option = btn.getAttribute('data-option');
               const optionText = btn.textContent.trim();
               console.log('after-multiple-schedule-options 按鈕被點擊:', { option, optionText });
@@ -5304,9 +5340,8 @@ const DOM = {
                 DOM.chat.handleViewAllSchedules();
               } else if (option === 'finish') {
                 DOM.chat.addUserMessage('已新增完成所有時段，請協助送出給 Giver');
-                setTimeout(() => {
-                  DOM.chat.handleSuccessProvideTime();
-                }, 1000);
+                await delay(DELAY_TIMES.SUCCESS_MESSAGE);
+                DOM.chat.handleSuccessProvideTime();
               } else if (option === 'cancel') {
                 DOM.chat.handleCancelSchedule();
               }
@@ -5317,7 +5352,6 @@ const DOM = {
           // 滾動到底部
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
-      }, 1000);
     },
 
     // 新增 showScheduleOptionsWithViewAll
@@ -5715,7 +5749,7 @@ const DOM = {
     },
     
     // 顯示錯誤訊息
-    showError: (message) => {
+    showError: async (message) => {
       console.log('DOM.dataLoader.showError called：顯示錯誤訊息', { message });
       // 創建錯誤訊息
       const errorElement = DOM.createElement('div', 'error-message', `
@@ -5729,11 +5763,10 @@ const DOM = {
       document.body.appendChild(errorElement);
       
       // 自動移除錯誤訊息
-      setTimeout(() => {
+      await delay(5000);
         if (errorElement.parentNode) {
           errorElement.remove();
         }
-      }, 5000);
     },
     
     // 資料載入工具
@@ -5873,17 +5906,17 @@ const DOM = {
     },
 
     // 檢查所有卡片的服務項目是否超出容器，並處理溢出
-    checkAllTopicsOverflow: () => {
+    checkAllTopicsOverflow: async () => {
       const topicContainers = DOM.getElements(`.${CONFIG.CLASSES.GIVER_CARD_TOPIC}`);
       
-      topicContainers.forEach(container => {
+      topicContainers.forEach(async container => {
         const buttons = Array.from(container.querySelectorAll(`.${CONFIG.CLASSES.GIVER_CARD_TOPIC_BUTTON}`));
         const chevron = container.querySelector('.fa-chevron-right');
 
         if (!chevron || buttons.length === 0) return;
 
         // 1. 重設狀態，以便正確測量
-        buttons.forEach(btn => {
+        buttons.forEach(async btn => {
           btn.classList.remove('btn-hidden');
           btn.classList.add('btn-visible');
         });
@@ -5893,7 +5926,7 @@ const DOM = {
         container.classList.add('flex-nowrap');
 
         // 2. 延遲執行以等待 DOM 更新
-        setTimeout(() => {
+        await delay(1000);  
           const containerWidth = container.clientWidth;
 
           // 如果沒有溢出，則恢復並跳出
@@ -5928,7 +5961,6 @@ const DOM = {
           // 3. 恢復容器的換行屬性
           container.classList.remove('flex-nowrap');
           container.classList.add('flex-wrap');
-        }, 0);
       });
     }
   },
@@ -6225,7 +6257,7 @@ const ErrorHandler = {
   },
 
   // 顯示錯誤訊息
-  showError: (error, options = {}) => {
+  showError: async (error, options = {}) => {
     console.log('ErrorHandler.showError called: 顯示錯誤訊息', { error, options });
     const {
       duration = CONFIG.UI.ERROR_DISPLAY_TIME,
@@ -6251,16 +6283,15 @@ const ErrorHandler = {
       document.body.appendChild(errorElement);
 
       // 自動移除
-      setTimeout(() => {
+      await delay(duration);
         if (errorElement.parentNode) {
           errorElement.remove();
         }
-      }, duration);
     }
   },
 
   // 顯示成功訊息
-  showSuccess: (message, options = {}) => {
+  showSuccess: async (message, options = {}) => {
     console.log('ErrorHandler.showSuccess called: 顯示成功訊息', { message, options });
     const {
       duration = CONFIG.UI.ERROR_DISPLAY_TIME,
@@ -6278,16 +6309,15 @@ const ErrorHandler = {
 
       document.body.appendChild(successElement);
 
-      setTimeout(() => {
+      await delay(duration);
         if (successElement.parentNode) {
           successElement.remove();
         }
-      }, duration);
     }
   },
 
   // 顯示資訊訊息
-  showInfo: (message, options = {}) => {
+  showInfo: async (message, options = {}) => {
     console.log('ErrorHandler.showInfo called: 顯示資訊訊息', { message, options });
     const {
       duration = CONFIG.UI.ERROR_DISPLAY_TIME,
@@ -6305,11 +6335,10 @@ const ErrorHandler = {
 
       document.body.appendChild(infoElement);
 
-      setTimeout(() => {
+      await delay(duration);
         if (infoElement.parentNode) {
           infoElement.remove();
         }
-      }, duration);
     }
   },
 
@@ -6779,7 +6808,7 @@ DOM.events.add(document, 'DOMContentLoaded', function() {
       if (DOM.giver && typeof DOM.giver.checkAllTopicsOverflow === 'function') {
         DOM.giver.checkAllTopicsOverflow();
       }
-    }, 150);
+    }, DELAY_TIMES.UI.MODAL_CLEANUP);  
   });
 
   // --- 手動初始化聊天對話框，並將實例存到全域變數中 ---
