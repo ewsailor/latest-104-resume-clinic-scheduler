@@ -4747,7 +4747,7 @@ const DOM = {
     // 處理多筆時段選項
     handleMultipleTimes: async () => {
       console.log('DOM.chat.handleMultipleTimes called：處理多筆時段選項');
-      await delay(DELAY_TIMES.MULTIPLE_TIMES);
+      await delay(DELAY_TIMES.CHAT.MULTIPLE_TIMES);
         // 使用新的模板顯示訊息和按鈕
         const responseHTML = TEMPLATES.chat.multipleTimesUnderConstruction();
         const chatMessages = document.getElementById('chat-messages');
@@ -4828,14 +4828,13 @@ const DOM = {
           return;
         }
         Logger.info('mountTable() 按鈕事件由 EventManager 統一處理');
-        Logger.info('mountTable() 按鈕事件由 EventManager 統一處理');
         console.log('mountTable() 滾動到底部');
         // 滾動到底部
         chatMessages.scrollTop = chatMessages.scrollHeight;
         console.log('mountTable() completed: 表格渲染與事件綁定完成');
       };
       
-      await delay(DELAY_TIMES.VIEW_ALL_SCHEDULES);
+      await delay(DELAY_TIMES.CHAT.VIEW_TIMES);
         if (providedSchedules.length === 0 && draftSchedules.length === 0) {
           const html = TEMPLATES.chat.noSchedulesWithButtons();
           const chatMessages = document.getElementById('chat-messages');
@@ -4852,7 +4851,7 @@ const DOM = {
     // 處理取消預約選項
     handleCancelSchedule: async () => {
       console.log('DOM.chat.handleCancelSchedule called：處理取消預約選項');
-      await delay(DELAY_TIMES.CANCEL_MESSAGE);
+      await delay(DELAY_TIMES.CHAT.CANCEL_MESSAGE);
       const response = '好的，已取消預約。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？';
       DOM.chat.addGiverResponse(response);
     },
@@ -4864,7 +4863,7 @@ const DOM = {
       const providedSchedules = ChatStateManager.getProvidedSchedules();
       console.log('DOM.chat.handleSuccessProvideTime: 已提供的時段資料', providedSchedules);
       
-      await delay(DELAY_TIMES.SUCCESS_MESSAGE);
+      await delay(DELAY_TIMES.CHAT.SUCCESS_MESSAGE);
         const chatMessages = document.getElementById('chat-messages');
         if (chatMessages) {
           // 先移除舊的成功提供表格（如果存在）
@@ -5310,7 +5309,7 @@ const DOM = {
       ChatStateManager.setMultipleTimesMode(false);
       
       // 顯示提交結果
-      await delay(DELAY_TIMES.SUCCESS_MESSAGE);
+      await delay(DELAY_TIMES.CHAT.SUCCESS_MESSAGE);
         let scheduleList = '';
         schedules.forEach((schedule, index) => {
           const scheduleNumber = index + 1;
@@ -5340,7 +5339,7 @@ const DOM = {
                 DOM.chat.handleViewAllSchedules();
               } else if (option === 'finish') {
                 DOM.chat.addUserMessage('已新增完成所有時段，請協助送出給 Giver');
-                await delay(DELAY_TIMES.SUCCESS_MESSAGE);
+                await delay(DELAY_TIMES.CHAT.SUCCESS_MESSAGE);
                 DOM.chat.handleSuccessProvideTime();
               } else if (option === 'cancel') {
                 DOM.chat.handleCancelSchedule();
@@ -6759,8 +6758,8 @@ const PerformanceMonitor = {
 //   初始化模組 (Initialization Module)
 // =================================================================
 
-const Initializer = {
-  // 初始化應用程式
+// 初始化應用程式
+const Initializer = {  
   init: () => {
     console.log('DOM.Initializer.init called：開始初始化應用程式');
     
@@ -6784,10 +6783,6 @@ const Initializer = {
     }
   }
 };
-
-// =================================================================
-//   初始化 (Initialization Functions)
-// =================================================================
 
 // 頁面載入時設定全域事件監聽器
 DOM.events.add(document, 'DOMContentLoaded', function() {
