@@ -4826,20 +4826,17 @@ const DOM = {
       setTimeout(() => {
         const chatMessages = document.getElementById('chat-messages');
         if (chatMessages) {
-          // 檢查是否已經有成功提供表格
+          // 先移除舊的成功提供表格（如果存在）
           const existingSuccessMessage = chatMessages.querySelector('.success-provide-table')?.closest('.giver-message');
-          
           if (existingSuccessMessage) {
-            // 如果已經有成功提供表格，就更新它
-            console.log('DOM.chat.handleSuccessProvideTime: 更新現有的成功提供表格');
-            const updatedHTML = TEMPLATES.chat.successProvideTime(providedSchedules);
-            existingSuccessMessage.outerHTML = updatedHTML;
-          } else {
-            // 如果沒有成功提供表格，就創建新的
-            console.log('DOM.chat.handleSuccessProvideTime: 創建新的成功提供表格');
-            const responseHTML = TEMPLATES.chat.successProvideTime(providedSchedules);
-            chatMessages.insertAdjacentHTML('beforeend', responseHTML);
-          }        
+            console.log('DOM.chat.handleSuccessProvideTime: 移除舊的成功提供表格');
+            existingSuccessMessage.remove();
+          }
+          
+          // 每次都創建新的成功提供表格
+          console.log('DOM.chat.handleSuccessProvideTime: 創建新的成功提供表格');
+          const responseHTML = TEMPLATES.chat.successProvideTime(providedSchedules);
+          chatMessages.insertAdjacentHTML('beforeend', responseHTML);
           
           console.log('按鈕事件由 EventManager 統一處理');
           
