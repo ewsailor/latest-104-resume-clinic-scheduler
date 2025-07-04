@@ -691,7 +691,7 @@ const EventManager = {
         DOM.chat.handleMultipleTimes();
         break;
       case 'view-all':
-        DOM.chat.addUserMessage('查看所有我已提供的時段');
+        DOM.chat.addUserMessage('查看我已提供給 Giver 的時段');
         DOM.chat.handleViewAllSchedules();
         break;
       case 'finish':
@@ -931,8 +931,8 @@ const EventManager = {
     // 重置選中的日期
     DOM.chat.setSelectedDate(null);
     
-    // 顯示取消訊息
-    DOM.chat.addGiverResponse('已取消新增時段。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
+    // 不顯示任何訊息，直接回到原本的頁面
+    // DOM.chat.addGiverResponse('已取消新增時段。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
   },
   
   // 處理表單提交
@@ -2195,7 +2195,7 @@ const TEMPLATES = {
           <div class="chat-options-buttons mt-2" id="after-schedule-options">
             <button class="btn btn-outline btn-option" data-option="single-time">繼續提供單筆方便時段</button>
             <button class="btn btn-outline btn-option" data-option="multiple-times">繼續提供多筆方便時段</button>
-            <button class="btn btn-outline btn-option" data-option="view-all">查看所有我已提供的時段</button>
+            <button class="btn btn-outline btn-option" data-option="view-all">查看我已提供給 Giver 的時段</button>
             <button class="btn btn-orange btn-option" data-option="finish">已新增完成所有時段，請協助送出給 Giver</button>
             <button class="btn btn-outline-secondary btn-option" data-option="cancel">取消本次預約 Giver 時間</button>
           </div>
@@ -2214,7 +2214,7 @@ const TEMPLATES = {
           <div class="chat-options-buttons mt-2" id="after-multiple-schedule-options">
             <button class="btn btn-outline btn-option" data-option="single-time">繼續提供單筆方便時段</button>
             <button class="btn btn-outline btn-option" data-option="multiple-times">繼續提供多筆方便時段</button>
-            <button class="btn btn-outline btn-option" data-option="view-all">查看所有我已提供的時段</button>
+            <button class="btn btn-outline btn-option" data-option="view-all">查看我已提供給 Giver 的時段</button>
             <button class="btn btn-orange btn-option" data-option="finish">已新增完成所有時段，請協助送出給 Giver</button>
             <button class="btn btn-outline-secondary btn-option" data-option="cancel">取消本次預約 Giver 時間</button>
           </div>
@@ -2319,7 +2319,7 @@ const TEMPLATES = {
             <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">查看 Giver 方便的時間</button>
             <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">提供單筆方便時段</button>
             <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">提供多筆方便時段</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-all">查看所有我已提供的時段</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-all">查看我已提供給 Giver 的時段</button>
             <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">取消本次預約 Giver 時間</button>
           </div>
         </div>
