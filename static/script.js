@@ -1,3 +1,44 @@
+// =================================================================
+//   日誌系統配置 (Logger Configuration)
+// =================================================================
+
+// 環境檢測函數，用於控制日誌輸出
+const isDevelopment = () => {
+  if (typeof window !== 'undefined' && window.location) {
+    return window.location.search.includes('debug=true') || 
+           window.location.hostname === 'localhost' ||
+           window.location.hostname === '127.0.0.1';
+  }
+  return false;
+};
+
+// 簡化的日誌介面，使用環境變數控制
+const SimpleLogger = {
+  // 環境檢測
+  isDevelopment,
+  
+  // 日誌方法
+  log: (...args) => isDevelopment() && console.log(...args),
+  warn: (...args) => isDevelopment() && console.warn(...args),
+  error: (...args) => console.error(...args), // 錯誤總是記錄
+  debug: (...args) => isDevelopment() && console.debug(...args),
+  info: (...args) => isDevelopment() && console.info(...args),
+  
+  // 效能監控
+  time: (label) => isDevelopment() && console.time(label),
+  timeEnd: (label) => isDevelopment() && console.timeEnd(label),
+  
+  // 群組日誌
+  group: (label) => isDevelopment() && console.group(label),
+  groupEnd: () => isDevelopment() && console.groupEnd(),
+  
+  // 表格日誌
+  table: (data) => isDevelopment() && console.table(data)
+};
+
+// 全域日誌實例
+const LoggerInstance = SimpleLogger;
+
 const CONFIG = {
   // 全域實例
   INSTANCES: {
@@ -6134,10 +6175,9 @@ const Logger = {
     enableStorage: false,
     maxLogs: 1000,
     storageKey: 'app_logs',
-    // 新增：開發環境控制
-    isDebug: true, // 設為 false 可關閉所有日誌輸出
-    // 新增：環境檢測
-    isProduction: false // 設為 true 時會關閉大部分日誌
+    // 環境檢測：自動檢測開發/生產環境
+    isDebug: isDevelopment(),
+    isProduction: !isDevelopment()
   },
 
   // 日誌記錄
@@ -6199,7 +6239,6 @@ const Logger = {
 
   // 獲取控制台方法
   getConsoleMethod: (level) => {
-    console.log('DOM.Logger.getConsoleMethod called：獲取控制台方法', { level });
     switch (level) {
       case LOGGER_LEVELS.DEBUG:
         return 'debug';
@@ -6217,7 +6256,6 @@ const Logger = {
 
   // 儲存到本地儲存
   saveToStorage: (logEntry) => {
-    console.log('DOM.Logger.saveToStorage called：儲存到本地儲存', { logEntry });
     try {
       const existingLogs = JSON.parse(localStorage.getItem(Logger.config.storageKey) || '[]');
       existingLogs.push(logEntry);
@@ -6235,27 +6273,22 @@ const Logger = {
 
   // 便捷方法
   debug: (message, data = null, context = {}) => {
-    console.log('Logger.debug called: 記錄 DEBUG 日誌', { message, data, context });
     return Logger.log(LOGGER_LEVELS.DEBUG, message, data, context);
   },
 
   info: (message, data = null, context = {}) => {
-    console.log('Logger.info called: 記錄 INFO 日誌', { message, data, context });
     return Logger.log(LOGGER_LEVELS.INFO, message, data, context);
   },
 
   warn: (message, data = null, context = {}) => {
-    console.log('Logger.warn called: 記錄 WARN 日誌', { message, data, context });
     return Logger.log(LOGGER_LEVELS.WARN, message, data, context);
   },
 
   error: (message, data = null, context = {}) => {
-    console.log('Logger.error called: 記錄 ERROR 日誌', { message, data, context });
     return Logger.log(LOGGER_LEVELS.ERROR, message, data, context);
   },
 
   fatal: (message, data = null, context = {}) => {
-    console.log('Logger.fatal called: 記錄 FATAL 日誌', { message, data, context });
     return Logger.log(LOGGER_LEVELS.FATAL, message, data, context);
   },
 
@@ -6263,7 +6296,6 @@ const Logger = {
   utils: {
     // 獲取日誌統計
     getStats: () => {
-      console.log('DOM.Logger.utils.getStats called：獲取日誌統計');
       const stats = {
         total: Logger.logs.length,
         byLevel: {},
