@@ -995,7 +995,12 @@ const EventManager = {
     const validationResult = FormValidator.validateScheduleForm(formData);
     if (!validationResult.isValid) {
       console.warn('EventManager: 表單驗證失敗', validationResult);
-      FormValidator.showValidationError(validationResult.message, form);
+      // 時間邏輯錯誤使用彈出顯示，其他錯誤使用表單內顯示
+      if (validationResult.message && validationResult.message.includes('結束時間') && validationResult.message.includes('必須晚於開始時間')) {
+        FormValidator.showValidationError(validationResult.message);
+      } else {
+        FormValidator.showValidationError(validationResult.message, form);
+      }
       return;
     }
     
@@ -1755,7 +1760,9 @@ const FormValidator = {
         DateUtils.isValidTimeFormat(formData.endTime)) {
       
       if (DateUtils.compareTimes(formData.startTime, formData.endTime) >= 0) {
-        errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.TIME_LOGIC);
+        // 生成包含具體時間值的錯誤訊息
+        const timeLogicError = `結束時間「${formData.endTime}」，必須晚於開始時間「${formData.startTime}」`;
+        errors.push(timeLogicError);
       }
       
       // 檢查營業時間
