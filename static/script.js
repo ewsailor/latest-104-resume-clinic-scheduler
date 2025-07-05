@@ -596,8 +596,8 @@ const DOM_CACHE = {
   clearFormInputs() {
     const inputs = this.getFormInputs();
     if (inputs.dateInput) inputs.dateInput.value = '';
-    if (inputs.startTimeInput) inputs.startTimeInput.value = '20:00';
-    if (inputs.endTimeInput) inputs.endTimeInput.value = '22:00';
+    if (inputs.startTimeInput) inputs.startTimeInput.value = '';
+    if (inputs.endTimeInput) inputs.endTimeInput.value = '';
     if (inputs.notesInput) inputs.notesInput.value = '';
   },
   
@@ -4358,8 +4358,8 @@ const DOM = {
             if (inputs.notesInput) inputs.notesInput.value = editData.notes || '';
           } else {
             console.log('DOM.chat.handleSingleTime: 新增模式，設定預設值');
-            if (inputs.startTimeInput) inputs.startTimeInput.value = '20:00';
-            if (inputs.endTimeInput) inputs.endTimeInput.value = '22:00';
+            if (inputs.startTimeInput) inputs.startTimeInput.value = '';
+            if (inputs.endTimeInput) inputs.endTimeInput.value = '';
             if (inputs.dateInput) inputs.dateInput.value = DateUtils.formatDate(DateUtils.getToday());
             if (inputs.notesInput) inputs.notesInput.value = '';
           }
@@ -4635,27 +4635,43 @@ const DOM = {
     },
     
     // 格式化時間輸入
-    formatTimeInput: (input) => {
-      console.log('DOM.chat.formatTimeInput called：格式化時間輸入', { value: input.value });
-      let value = input.value.replace(/[^0-9]/g, '');
-      
-      if (value.length >= 4) {
-        value = value.substring(0, 4);
+    formatTimeInput: (input, forceFormat = false) => {
+      // input 事件時只允許數字，不自動補冒號
+      let value = input.value.replace(/[^0-9]/g, ''); // 移除所有非數字字符
+      if (!forceFormat) {
+        input.value = value;
+        return;
+      }
+      // blur 事件時才自動格式化
+      if (value.length === 4) {
         const hours = parseInt(value.substring(0, 2));
         const minutes = parseInt(value.substring(2, 4));
+        if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+          input.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+        } else {
+          input.value = '';
+        }
+      } else if (value.length === 3) {
+        const hours = parseInt(value.substring(0, 2));
+        const minutes = parseInt(value.substring(2, 3)) * 10; // 補 0
         
         if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
           input.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
         } else {
-          input.value = value.substring(0, 2) + ':' + value.substring(2, 4);
+          input.value = '';
         }
-      } else if (value.length >= 2) {
-        input.value = value.substring(0, 2) + ':' + value.substring(2);
+      } else if (value.length === 2) {
+        const hours = parseInt(value);
+        if (hours >= 0 && hours <= 23) {
+          input.value = `${String(hours).padStart(2, '0')}:00`;
+        } else {
+          input.value = '';
+        }
+      } else if (value.length === 1) {
+        input.value = `${value}:00`;
       } else {
-        input.value = value;
+        input.value = '';
       }
-      
-      console.log('DOM.chat.formatTimeInput: 格式化後的值', input.value);
     },
     
     // 驗證並格式化時間
@@ -4663,9 +4679,9 @@ const DOM = {
       console.log('DOM.chat.validateAndFormatTime called：驗證並格式化時間', { value: input.value });
       let value = input.value.trim();
       
-      // 如果為空，設定預設值
+      // 如果為空，保持空值
       if (!value) {
-        input.value = '20:00';
+        input.value = '';
         return;
       }
       
@@ -4673,12 +4689,12 @@ const DOM = {
       const numbers = value.replace(/[^0-9]/g, '');
       
       if (numbers.length === 0) {
-        input.value = '20:00';
+        input.value = '';
         return;
       }
       
       if (numbers.length === 1) {
-        input.value = `0${numbers}:00`;
+        input.value = `${numbers}:00`;
         return;
       }
       
@@ -4687,25 +4703,37 @@ const DOM = {
         if (hours >= 0 && hours <= 23) {
           input.value = `${String(hours).padStart(2, '0')}:00`;
         } else {
-          input.value = '20:00';
+          input.value = '';
         }
         return;
       }
       
-      if (numbers.length >= 3) {
+      if (numbers.length === 3) {
+        const hours = parseInt(numbers.substring(0, 2));
+        const minutes = parseInt(numbers.substring(2, 3)) * 10; // 補 0
+        
+        if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+          input.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+        } else {
+          input.value = '';
+        }
+        return;
+      }
+      
+      if (numbers.length >= 4) {
         const hours = parseInt(numbers.substring(0, 2));
         const minutes = parseInt(numbers.substring(2, 4));
         
         if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
           input.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
         } else {
-          input.value = '20:00';
+          input.value = '';
         }
         return;
       }
       
       // 預設值
-      input.value = '20:00';
+      input.value = '';
     },
     
     // 提交表單
@@ -4919,7 +4947,7 @@ const DOM = {
         });
         console.log('mountTable() 插入新的表格訊息');
         // 插入新的表格訊息
-        chatMessages.insertAdjacentHTML('beforeend', renderTable());          
+        chatMessages.insertAdjacentHTML('beforeend', renderTable());
         // 綁定表格內按鈕事件
         const table = chatMessages.querySelector('.giver-message:last-child table');
         if (!table) {
@@ -6971,7 +6999,7 @@ const initScheduleFormInputs = (formElement) => {
   // 開始時間 input
   const startTimeInput = formElement.querySelector('#schedule-start-time');
   if (startTimeInput) {
-    startTimeInput.value = '20:00';
+    startTimeInput.value = '';
     startTimeInput.addEventListener('input', (e) => {
       DOM.chat.formatTimeInput(e.target);
       const validationResult = FormValidator.validateField('startTime', e.target.value, 'schedule');
@@ -6982,6 +7010,7 @@ const initScheduleFormInputs = (formElement) => {
       }
     });
     startTimeInput.addEventListener('blur', (e) => {
+      DOM.chat.formatTimeInput(e.target, true); // blur 時自動格式化
       DOM.chat.validateAndFormatTime(e.target);
       const validationResult = FormValidator.validateField('startTime', e.target.value, 'schedule');
       if (!validationResult.isValid) {
@@ -6994,9 +7023,9 @@ const initScheduleFormInputs = (formElement) => {
   // 結束時間 input
   const endTimeInput = formElement.querySelector('#schedule-end-time');
   if (endTimeInput) {
-    endTimeInput.value = '22:00';
+    endTimeInput.value = '';
     endTimeInput.addEventListener('input', (e) => {
-      DOM.chat.formatTimeInput(e.target);
+      DOM.chat.formatTimeInput(e.target, false); // 只做數字過濾
       const validationResult = FormValidator.validateField('endTime', e.target.value, 'schedule');
       if (!validationResult.isValid) {
         FormValidator.showValidationError(validationResult.errorMessage, e.target);
@@ -7005,6 +7034,7 @@ const initScheduleFormInputs = (formElement) => {
       }
     });
     endTimeInput.addEventListener('blur', (e) => {
+      DOM.chat.formatTimeInput(e.target, true); // blur 時自動格式化
       DOM.chat.validateAndFormatTime(e.target);
       const validationResult = FormValidator.validateField('endTime', e.target.value, 'schedule');
       if (!validationResult.isValid) {
