@@ -485,13 +485,13 @@ const DELAY_TIMES = {
 
 // Promise 版本的延遲函數，替代 setTimeout
 const delay = (ms) => {
-  console.log('delay called: 延遲執行', { ms });
+  Logger.debug('delay called: 延遲執行', { ms });
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
 // 非阻塞延遲函數，用於不需要等待的延遲操作
 const nonBlockingDelay = async (ms, callback) => {
-  console.log('nonBlockingDelay called: 非阻塞延遲', { ms });
+  Logger.debug('nonBlockingDelay called: 非阻塞延遲', { ms });
   await delay(ms);
   callback();
 };
@@ -591,15 +591,15 @@ const DOM_CACHE = {
   
   // 重設快取方法
   resetChatMessages() {
-    console.log('DOM_CACHE.resetChatMessages called: 重設聊天訊息快取');
+    Logger.debug('DOM_CACHE.resetChatMessages called: 重設聊天訊息快取');
     this._chatMessages = null;
   },
   resetScheduleForm() {
-    console.log('DOM_CACHE.resetScheduleForm called: 重設表單快取');
+    Logger.debug('DOM_CACHE.resetScheduleForm called: 重設表單快取');
     this._scheduleForm = null;
   },
   resetFormInputs() {
-    console.log('DOM_CACHE.resetFormInputs called: 重設表單輸入欄位快取');
+    Logger.debug('DOM_CACHE.resetFormInputs called: 重設表單輸入欄位快取');
     this._dateInput = null;
     this._startTimeInput = null;
     this._endTimeInput = null;
@@ -609,7 +609,7 @@ const DOM_CACHE = {
 
   // 清空表單輸入欄位值
   clearFormInputs() {
-    console.log('DOM_CACHE.clearFormInputs called: 清空表單輸入欄位值');
+    Logger.debug('DOM_CACHE.clearFormInputs called: 清空表單輸入欄位值');
     const inputs = this.getFormInputs();
     if (inputs.dateInput) inputs.dateInput.value = '';
     if (inputs.startTimeInput) inputs.startTimeInput.value = '';
@@ -619,7 +619,7 @@ const DOM_CACHE = {
   
   // 一次性取得所有表單輸入欄位
   getFormInputs() {
-    console.log('DOM_CACHE.getFormInputs called: 取得所有表單輸入欄位');
+    Logger.debug('DOM_CACHE.getFormInputs called: 取得所有表單輸入欄位');
     return {
       dateInput: this.dateInput,
       startTimeInput: this.startTimeInput,
@@ -631,7 +631,7 @@ const DOM_CACHE = {
   
   // 取得表單資料
   getFormData() {
-    console.log('DOM_CACHE.getFormData called: 取得表單資料');
+    Logger.debug('DOM_CACHE.getFormData called: 取得表單資料');
     const inputs = this.getFormInputs();
     return {
       date: inputs.dateInput?.value || '',
@@ -643,7 +643,7 @@ const DOM_CACHE = {
   
   // 重置日期選擇器快取
   resetDatePicker() {
-    console.log('DOM_CACHE.resetDatePicker called: 重置日期選擇器快取');
+    Logger.debug('DOM_CACHE.resetDatePicker called: 重置日期選擇器快取');
     this._datePickerModal = null;
     this._currentMonthYear = null;
     this._datePickerCalendar = null;
@@ -654,7 +654,7 @@ const DOM_CACHE = {
 
   // 重置所有快取
   resetAll() {
-    console.log('DOM_CACHE.resetAll called: 重置所有快取');
+    Logger.debug('DOM_CACHE.resetAll called: 重置所有快取');
     this._chatMessages = null;
     this._scheduleForm = null;
     this._dateInput = null;
@@ -689,7 +689,7 @@ const EventManager = {
   
   // 初始化事件委派
   init() {
-    console.log('EventManager: 初始化事件委派系統');
+    Logger.info('EventManager: 初始化事件委派系統');
     
     // 綁定全域點擊事件委派
     document.addEventListener('click', this.handleGlobalClick.bind(this));
@@ -700,7 +700,7 @@ const EventManager = {
     // 綁定全域變更事件委派
     document.addEventListener('change', this.handleGlobalChange.bind(this));
     
-    console.log('EventManager: 事件委派系統初始化完成');
+    Logger.info('EventManager: 事件委派系統初始化完成');
   },
   
   // 全域點擊事件委派處理
@@ -727,10 +727,10 @@ const EventManager = {
   
   // 全域提交事件委派處理
   handleGlobalSubmit(e) {
-    console.log('EventManager: 全域提交事件觸發', { target: e.target.id });
+    Logger.debug('EventManager: 全域提交事件觸發', { target: e.target.id });
     if (e.target.matches('#time-schedule-form')) {
       e.preventDefault();
-      console.log('EventManager: 處理時間表單提交');
+      Logger.info('EventManager: 處理時間表單提交');
       this.handleScheduleFormSubmit(e.target, e);
     }
   },
@@ -787,7 +787,7 @@ const EventManager = {
           // 清空草稿列表
           ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, []);
           
-          console.log('EventManager: 草稿時段已轉為正式提供時段', { 
+          Logger.info('EventManager: 草稿時段已轉為正式提供時段', { 
             draftCount: draftSchedules.length, 
             totalFormalCount: allSchedules.length 
           });
@@ -919,12 +919,12 @@ const EventManager = {
               return draftIndex !== idx;
             });
             ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, updatedDraftSchedules);
-            console.log('EventManager: 草稿時段已刪除', { deletedSchedule: scheduleToDelete, remainingDrafts: updatedDraftSchedules.length });
+            Logger.info('EventManager: 草稿時段已刪除', { deletedSchedule: scheduleToDelete, remainingDrafts: updatedDraftSchedules.length });
           } else {
             // 刪除正式提供時段
             const updatedProvidedSchedules = providedSchedules.filter((_, index) => index !== idx);
             ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, updatedProvidedSchedules);
-            console.log('EventManager: 正式提供時段已刪除', { deletedSchedule: scheduleToDelete, remainingProvided: updatedProvidedSchedules.length });
+            Logger.info('EventManager: 正式提供時段已刪除', { deletedSchedule: scheduleToDelete, remainingProvided: updatedProvidedSchedules.length });
           }
         }
         
@@ -943,7 +943,7 @@ const EventManager = {
             if (successMessage) {
               const updatedHTML = TEMPLATES.chat.successProvideTime(remainingProvided);
               successMessage.outerHTML = updatedHTML;
-              console.log('EventManager: 成功提供表格已更新');
+              Logger.info('EventManager: 成功提供表格已更新');
             }
           } else if (isScheduleTable) {
             const tableMessage = chatMessages.querySelector('.schedule-table')?.closest('.giver-message');
@@ -955,7 +955,7 @@ const EventManager = {
               ];
               const updatedHTML = TEMPLATES.chat.scheduleTable(allSchedules);
               tableMessage.outerHTML = updatedHTML;
-              console.log('EventManager: 查看所有時段表格已更新');
+              Logger.info('EventManager: 查看所有時段表格已更新');
             }
           }
         }
@@ -1011,11 +1011,11 @@ const EventManager = {
   
   // 處理表單提交
   async handleScheduleFormSubmit(form, e) {
-    console.log('EventManager: 表單提交事件觸發');
+    Logger.info('EventManager: 表單提交事件觸發');
     
     const formData = DOM_CACHE.getFormData();
     
-    console.log('EventManager: 表單資料', formData);
+    Logger.debug('EventManager: 表單資料', formData);
     
     // 驗證表單
     const validationResult = FormValidator.validateScheduleForm(formData);
