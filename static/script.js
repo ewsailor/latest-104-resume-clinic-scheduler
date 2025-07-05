@@ -3837,7 +3837,7 @@ const DOM = {
       console.log('DOM.chat.setupCheckboxOptions called：設定複選選項');
       
       const checkboxes = document.querySelectorAll('.chat-checkbox-options input[type="checkbox"]');
-      const confirmBtn = DOM_CACHE.confirmSelectionBtn;
+      const confirmBtn = document.getElementById('confirm-selection-btn');
       
       // 為每個複選框添加事件監聽器
       checkboxes.forEach(checkbox => {
@@ -4116,8 +4116,8 @@ const DOM = {
     // 更新確認按鈕狀態
     updateConfirmButtonState: () => {
       const checkboxes = document.querySelectorAll('.chat-checkbox-options input[type="checkbox"]:not(:disabled)');
-      const confirmBtn = DOM_CACHE.confirmSelectionBtn;
-      
+      const confirmBtn = document.getElementById('confirm-selection-btn');
+
       if (confirmBtn) {
         const hasSelection = Array.from(checkboxes).some(checkbox => checkbox.checked);
         confirmBtn.disabled = !hasSelection;
