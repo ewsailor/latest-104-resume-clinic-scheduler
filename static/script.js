@@ -23,11 +23,19 @@ const LOGGER_LEVEL_NAMES = {
 // =================================================================
 
 const isDevelopment = () => {
+  console.log('isDevelopment called: 檢查是否為開發環境');
   if (typeof window !== 'undefined' && window.location) {
-    return window.location.search.includes('debug=true') || 
+    const isDev = window.location.search.includes('debug=true') || 
            window.location.hostname === 'localhost' ||
            window.location.hostname === '127.0.0.1';
+    console.log('isDevelopment: 環境檢測結果', { 
+      isDev, 
+      hostname: window.location.hostname, 
+      search: window.location.search 
+    });
+    return isDev;
   }
+  console.log('isDevelopment: 無法檢測環境，返回 false');
   return false;
 };
 
@@ -476,10 +484,14 @@ const DELAY_TIMES = {
 };
 
 // Promise 版本的延遲函數，替代 setTimeout
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms) => {
+  console.log('delay called: 延遲執行', { ms });
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
 
 // 非阻塞延遲函數，用於不需要等待的延遲操作
 const nonBlockingDelay = async (ms, callback) => {
+  console.log('nonBlockingDelay called: 非阻塞延遲', { ms });
   await delay(ms);
   callback();
 };
@@ -579,12 +591,15 @@ const DOM_CACHE = {
   
   // 重設快取方法
   resetChatMessages() {
+    console.log('DOM_CACHE.resetChatMessages called: 重設聊天訊息快取');
     this._chatMessages = null;
   },
   resetScheduleForm() {
+    console.log('DOM_CACHE.resetScheduleForm called: 重設表單快取');
     this._scheduleForm = null;
   },
   resetFormInputs() {
+    console.log('DOM_CACHE.resetFormInputs called: 重設表單輸入欄位快取');
     this._dateInput = null;
     this._startTimeInput = null;
     this._endTimeInput = null;
@@ -594,6 +609,7 @@ const DOM_CACHE = {
 
   // 清空表單輸入欄位值
   clearFormInputs() {
+    console.log('DOM_CACHE.clearFormInputs called: 清空表單輸入欄位值');
     const inputs = this.getFormInputs();
     if (inputs.dateInput) inputs.dateInput.value = '';
     if (inputs.startTimeInput) inputs.startTimeInput.value = '';
@@ -603,6 +619,7 @@ const DOM_CACHE = {
   
   // 一次性取得所有表單輸入欄位
   getFormInputs() {
+    console.log('DOM_CACHE.getFormInputs called: 取得所有表單輸入欄位');
     return {
       dateInput: this.dateInput,
       startTimeInput: this.startTimeInput,
@@ -614,6 +631,7 @@ const DOM_CACHE = {
   
   // 取得表單資料
   getFormData() {
+    console.log('DOM_CACHE.getFormData called: 取得表單資料');
     const inputs = this.getFormInputs();
     return {
       date: inputs.dateInput?.value || '',
@@ -625,6 +643,7 @@ const DOM_CACHE = {
   
   // 重置日期選擇器快取
   resetDatePicker() {
+    console.log('DOM_CACHE.resetDatePicker called: 重置日期選擇器快取');
     this._datePickerModal = null;
     this._currentMonthYear = null;
     this._datePickerCalendar = null;
@@ -635,6 +654,7 @@ const DOM_CACHE = {
 
   // 重置所有快取
   resetAll() {
+    console.log('DOM_CACHE.resetAll called: 重置所有快取');
     this._chatMessages = null;
     this._scheduleForm = null;
     this._dateInput = null;
@@ -5088,7 +5108,14 @@ const DOM = {
       
       // 發送訊息函數（內部函式）：處理聊天訊息的發送邏輯
       const sendMessage = async () => {
-    chatInput.value = '';
+        console.log('DOM.chat.setupInputControls.sendMessage called: 處理聊天訊息發送');
+        const message = chatInput.value.trim();
+        chatInput.value = '';
+        
+        if (!message) {
+          console.log('DOM.chat.setupInputControls.sendMessage: 訊息為空，跳過發送');
+          return;
+        }
         
         if (ChatStateManager.isMultipleTimesMode()) {
           // 處理多筆時段輸入
@@ -7011,13 +7038,11 @@ DOM.events.add(document, 'DOMContentLoaded', function() {
 });
 
 // === 新增：表單欄位初始化 function ===
-// 初始化時段表單的輸入欄位，設定預設值和事件監聽器
+// 初始化時段表單的輸入欄位：設定預設值、事件監聽器、日期、開始時間、結束時間的輸入事件和驗證
 const initScheduleFormInputs = (formElement) => {
   console.log('initScheduleFormInputs() called: 初始化表單欄位');
   console.log('initScheduleFormInputs() formElement:', formElement);
   
-  // 日期 input
-  console.log('initScheduleFormInputs called: 初始化表單欄位');
   // 日期 input
   const dateInput = formElement.querySelector('#schedule-date');
   if (dateInput) {
@@ -7830,6 +7855,7 @@ const ChatStateManager = {
 const UIComponents = {
   // 產生按鈕
   button: ({ text = '', className = '', icon = '', attrs = {} } = {}) => {
+    console.log('UIComponents.button called: 產生按鈕', { text, className, icon, attrs });
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = className;
@@ -7846,12 +7872,14 @@ const UIComponents = {
 
   // 產生確認對話框
   confirmDialog: ({ title = '', message = '', confirmText = '確定', cancelText = '取消', onConfirm, onCancel }) => {
+    console.log('UIComponents.confirmDialog called: 產生確認對話框', { title, message, confirmText, cancelText });
     // 可根據現有 showConfirmDialog 實作
     return showConfirmDialog({ title, message, confirmText, cancelText, onConfirm, onCancel });
   },
 
   // 產生 Toast 訊息
   toast: ({ message = '', type = 'info', duration = 2000 }) => {
+    console.log('UIComponents.toast called: 產生 Toast 訊息', { message, type, duration });
     const toast = document.createElement('div');
     toast.className = `ui-toast ui-toast-${type}`;
     toast.textContent = message;
@@ -7862,6 +7890,7 @@ const UIComponents = {
 
   // 產生載入動畫
   spinner: ({ size = 'md', className = '' } = {}) => {
+    console.log('UIComponents.spinner called: 產生載入動畫', { size, className });
     const spinner = document.createElement('div');
     spinner.className = `ui-spinner spinner-border spinner-border-${size} ${className}`;
     spinner.setAttribute('role', 'status');
@@ -7871,6 +7900,7 @@ const UIComponents = {
 
   // 產生 icon
   icon: (iconClass = '', extraClass = '') => {
+    console.log('UIComponents.icon called: 產生 icon', { iconClass, extraClass });
     const icon = document.createElement('i');
     icon.className = `${iconClass} ${extraClass}`.trim();
     return icon;
@@ -7884,6 +7914,7 @@ const UIComponents = {
 const APIClient = {
   // GET 請求
   get: async (url, options = {}) => {
+    console.log('APIClient.get called: GET 請求', { url, options });
     try {
       const res = await fetch(url, { ...options, method: 'GET' });
       return await APIClient._handleResponse(res);
@@ -7895,6 +7926,7 @@ const APIClient = {
 
   // POST 請求
   post: async (url, data = {}, options = {}) => {
+    console.log('APIClient.post called: POST 請求', { url, data, options });
     try {
       const res = await fetch(url, {
         ...options,
@@ -7911,6 +7943,7 @@ const APIClient = {
 
   // PUT 請求
   put: async (url, data = {}, options = {}) => {
+    console.log('APIClient.put called: PUT 請求', { url, data, options });
     try {
       const res = await fetch(url, {
         ...options,
@@ -7927,6 +7960,7 @@ const APIClient = {
 
   // DELETE 請求
   delete: async (url, options = {}) => {
+    console.log('APIClient.delete called: DELETE 請求', { url, options });
     try {
       const res = await fetch(url, { ...options, method: 'DELETE' });
       return await APIClient._handleResponse(res);
@@ -7938,6 +7972,7 @@ const APIClient = {
 
   // 統一處理回應
   _handleResponse: async (res) => {
+    console.log('APIClient._handleResponse called: 處理 API 回應', { status: res.status, statusText: res.statusText });
     if (!res.ok) {
       const errorText = await res.text();
       throw new Error(`API 錯誤: ${res.status} ${res.statusText} - ${errorText}`);
@@ -7952,6 +7987,7 @@ const APIClient = {
 
   // 統一錯誤處理
   _handleError: (err) => {
+    console.log('APIClient._handleError called: 處理 API 錯誤', { error: err.message });
     console.error('APIClient 請求錯誤:', err);
     // 可在這裡加上全域錯誤提示、上報等
     UIComponents.toast({ message: '伺服器連線失敗，請稍後再試', type: 'error' });
