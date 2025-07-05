@@ -728,6 +728,12 @@ const EventManager = {
     const optionText = btn.textContent.trim();
     Logger.info('EventManager: 選項按鈕被點擊', { option, optionText });
     
+    // 跳過聊天選項按鈕的處理，讓聊天模組專門處理
+    if (btn.closest('.chat-options-buttons')) {
+      Logger.info('EventManager: 跳過聊天選項按鈕處理');
+      return;
+    }
+    
     // 處理不同選項
     switch (option) {
       case 'single-time':
@@ -2751,7 +2757,7 @@ const TEMPLATES = {
         tableRows += `
           <tr>
             <td class="text-center">${rowIndex}</td>
-            <td class="text-center text-warning">${schedule.status}</td>
+            <td class="text-center text-success">${schedule.status}</td>
             <td class="text-center">${schedule.timeSlot}</td>
             <td class="text-center">-</td>
             <td class="text-center">
