@@ -728,9 +728,9 @@ const EventManager = {
     const optionText = btn.textContent.trim();
     Logger.info('EventManager: 選項按鈕被點擊', { option, optionText });
     
-    // 跳過聊天選項按鈕的處理，讓聊天模組專門處理
-    if (btn.closest('.chat-options-buttons')) {
-      Logger.info('EventManager: 跳過聊天選項按鈕處理');
+    // 跳過聊天模組專門處理的選項按鈕
+    if (btn.closest('.chat-options-buttons') && option === 'cancel') {
+      Logger.info('EventManager: 跳過聊天模組專門處理的選項按鈕');
       return;
     }
     
