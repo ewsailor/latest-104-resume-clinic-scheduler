@@ -1001,8 +1001,11 @@ const EventManager = {
     const validationResult = FormValidator.validateScheduleForm(formData);
     if (!validationResult.isValid) {
       console.warn('EventManager: 表單驗證失敗', validationResult);
-      // 時間邏輯錯誤使用彈出顯示，其他錯誤使用表單內顯示
-      if (validationResult.message && validationResult.message.includes('結束時間') && validationResult.message.includes('必須晚於開始時間')) {
+      // 時間相關錯誤使用彈出顯示
+      if (validationResult.message && (
+        (validationResult.message.includes('結束時間') && validationResult.message.includes('必須晚於開始時間')) ||
+        validationResult.message.includes('時間必須在營業時間內')
+      )) {
         FormValidator.showValidationError(validationResult.message);
       } else {
         FormValidator.showValidationError(validationResult.message, form);
@@ -1992,7 +1995,15 @@ const FormValidator = {
     // 顯示錯誤
     if (!validationResult.isValid) {
       validationResult.errors.forEach(error => {
-        FormValidator.showValidationError(error);
+        // 時間相關錯誤使用彈出顯示
+        if (error && (
+          (error.includes('結束時間') && error.includes('必須晚於開始時間')) ||
+          error.includes('時間必須在營業時間內')
+        )) {
+          FormValidator.showValidationError(error);
+        } else {
+          FormValidator.showValidationError(error, formElement);
+        }
       });
     }
     
@@ -2297,7 +2308,7 @@ const TEMPLATES = {
     scheduleForm: () => `
       <div id="schedule-form" class="message user-message schedule-form-visible">
         <div class="message-content-giver">
-          <p class="message-title">請提供您的方便時段：</p>
+          <p class="message-title">請提供您方便的時段：</p>
           <form id="time-schedule-form" class="schedule-form">
             <div class="form-group mb-3">
               <label for="schedule-date" class="form-label">日期 <span class="text-danger">*</span></label>
