@@ -739,7 +739,7 @@ const EventManager = {
         DOM.chat.handleMultipleTimes();
         break;
       case 'view-all':
-        DOM.chat.addUserMessage('查看我已提供給 Giver 的時段');
+        DOM.chat.addUserMessage('查看我已提供時段的狀態');
         DOM.chat.handleViewAllSchedules();
         break;
       case 'finish':
@@ -1126,7 +1126,7 @@ const EventManager = {
           draftSchedules[actualDraftIndex] = { 
             ...draftSchedules[actualDraftIndex], 
             ...formData,
-            formattedSchedule: `${formData.date} ${formData.startTime}~${formData.endTime}`
+            formattedSchedule: DOM.chat.formatScheduleWithWeekday(formData.date, formData.startTime, formData.endTime)
           };
           ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, draftSchedules);
           console.log('EventManager: 草稿時段已更新', { actualDraftIndex, updatedSchedule: draftSchedules[actualDraftIndex] });
@@ -1136,7 +1136,7 @@ const EventManager = {
         providedSchedules[editIndex] = { 
           ...providedSchedules[editIndex], 
           ...formData,
-          formattedSchedule: `${formData.date} ${formData.startTime}~${formData.endTime}`
+          formattedSchedule: DOM.chat.formatScheduleWithWeekday(formData.date, formData.startTime, formData.endTime)
         };
         ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, providedSchedules);
         console.log('EventManager: 正式提供時段已更新', { editIndex, updatedSchedule: providedSchedules[editIndex] });
@@ -1155,7 +1155,7 @@ const EventManager = {
     }
     
     // 新增模式
-    const formattedSchedule = `${formData.date} ${formData.startTime}~${formData.endTime}`;
+    const formattedSchedule = DOM.chat.formatScheduleWithWeekday(formData.date, formData.startTime, formData.endTime);
     // 改為加入草稿狀態，而不是直接加入已提供時段列表
     const draftSchedule = {
       date: formData.date,
@@ -1501,7 +1501,7 @@ const DateUtils = {
           
           // 驗證時間邏輯
           if (DateUtils.compareTimes(startTime, endTime) < 0) {
-            const formattedSchedule = `${date} ${startTime}~${endTime}`;
+            const formattedSchedule = DOM.chat.formatScheduleWithWeekday(date, startTime, endTime);
             schedules.push({
               date,
               startTime,
@@ -1594,9 +1594,9 @@ const FormValidator = {
       DATE_INVALID: '日期格式不正確，請使用 YYYY/MM/DD 格式',
       DATE_PAST: '不能選擇過去的日期',
       DATE_TOO_FAR: '不能預約超過一年後的日期',
-      START_TIME_REQUIRED: '請選擇開始時間',
-      END_TIME_REQUIRED: '請選擇結束時間',
-      TIME_INVALID: '時間格式不正確，請使用 HH:MM 格式',
+      START_TIME_REQUIRED: '請輸入開始時間',
+      END_TIME_REQUIRED: '請輸入結束時間',
+      TIME_INVALID: '非 4 位數字，系統將自動設定為 4 位數字',
       TIME_LOGIC: '結束時間必須晚於開始時間',
       TIME_BUSINESS_HOURS: '時間必須在營業時間內（09:00-22:00）',
       NOTES_TOO_LONG: '備註不能超過 500 個字符',
@@ -1660,7 +1660,7 @@ const FormValidator = {
     // 生成詳細錯誤訊息
     const conflictingList = conflictingSchedules.map(conflict => {
       const schedule = conflict.schedule;
-      const formattedSchedule = `${schedule.date} ${schedule.startTime}~${schedule.endTime}`;
+      const formattedSchedule = DOM.chat.formatScheduleWithWeekday(schedule.date, schedule.startTime, schedule.endTime);
       return formattedSchedule;
     });
     
@@ -2301,13 +2301,13 @@ const TEMPLATES = {
               <div class="col-md-6">
                 <div class="form-group mb-3">
                   <label for="schedule-start-time" class="form-label">起（幾時幾分）<span class="text-danger">*</span></label>
-                  <input type="text" id="schedule-start-time" class="form-control" placeholder="例：14:30" required>
+                  <input type="text" id="schedule-start-time" class="form-control" placeholder="請輸入 4 位數字，例：2000" required>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="form-group mb-3">
                   <label for="schedule-end-time" class="form-label">迄（幾時幾分）<span class="text-danger">*</span></label>
-                  <input type="text" id="schedule-end-time" class="form-control" placeholder="例：15:30" required>
+                  <input type="text" id="schedule-end-time" class="form-control" placeholder="請輸入 4 位數字，例：2200" required>
                 </div>
               </div>
             </div>
@@ -2335,7 +2335,7 @@ const TEMPLATES = {
           <div class="chat-options-buttons mt-2" id="after-schedule-options">
             <button class="btn btn-outline btn-option" data-option="single-time">繼續提供單筆方便時段</button>
             <button class="btn btn-outline btn-option" data-option="multiple-times">繼續提供多筆方便時段</button>
-            <button class="btn btn-outline btn-option" data-option="view-all">查看我已提供給 Giver 的時段</button>
+            <button class="btn btn-outline btn-option" data-option="view-all">查看我已提供時段的狀態</button>
             <button class="btn btn-orange btn-option" data-option="finish">已新增完成所有時段，請協助送出給 Giver</button>
             <button class="btn btn-outline-secondary btn-option" data-option="cancel">取消本次預約 Giver 時間</button>
           </div>
@@ -2354,7 +2354,7 @@ const TEMPLATES = {
           <div class="chat-options-buttons mt-2" id="after-multiple-schedule-options">
             <button class="btn btn-outline btn-option" data-option="single-time">繼續提供單筆方便時段</button>
             <button class="btn btn-outline btn-option" data-option="multiple-times">繼續提供多筆方便時段</button>
-            <button class="btn btn-outline btn-option" data-option="view-all">查看我已提供給 Giver 的時段</button>
+            <button class="btn btn-outline btn-option" data-option="view-all">查看我已提供時段的狀態</button>
             <button class="btn btn-orange btn-option" data-option="finish">已新增完成所有時段，請協助送出給 Giver</button>
             <button class="btn btn-outline-secondary btn-option" data-option="cancel">取消本次預約 Giver 時間</button>
           </div>
@@ -2459,7 +2459,7 @@ const TEMPLATES = {
             <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">查看 Giver 方便的時間</button>
             <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">提供單筆方便時段</button>
             <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">提供多筆方便時段</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-all">查看我已提供給 Giver 的時段</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-all">查看我已提供時段的狀態</button>
             <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">取消本次預約 Giver 時間</button>
           </div>
         </div>
@@ -4789,7 +4789,7 @@ const DOM = {
       }
       
       // 格式化輸出
-      const formattedSchedule = `${formData.date} ${formData.startTime}~${formData.endTime}`;
+      const formattedSchedule = DOM.chat.formatScheduleWithWeekday(formData.date, formData.startTime, formData.endTime);
       const notes = formData.notes.trim();
       
       console.log('DOM.chat.submitScheduleForm: 格式化後的資料', {
@@ -5023,6 +5023,41 @@ const DOM = {
       ChatStateManager.setSelectedDate(date);
     },
     
+    // 格式化時段字串，包含星期幾
+    formatScheduleWithWeekday: (date, startTime, endTime) => {
+      console.log('DOM.chat.formatScheduleWithWeekday called', { date, startTime, endTime });
+      
+      // 解析日期字串 (YYYY/MM/DD)
+      const dateParts = date.split('/');
+      if (dateParts.length !== 3) {
+        console.warn('DOM.chat.formatScheduleWithWeekday: 日期格式不正確', { date });
+        return `${date} ${startTime}~${endTime}`;
+      }
+      
+      const year = parseInt(dateParts[0]);
+      const month = parseInt(dateParts[1]) - 1; // JavaScript 月份從 0 開始
+      const day = parseInt(dateParts[2]);
+      
+      // 創建 Date 物件
+      const dateObj = new Date(year, month, day);
+      
+      // 檢查日期是否有效
+      if (isNaN(dateObj.getTime())) {
+        console.warn('DOM.chat.formatScheduleWithWeekday: 無效的日期', { date });
+        return `${date} ${startTime}~${endTime}`;
+      }
+      
+      // 星期幾陣列
+      const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+      const weekday = weekdays[dateObj.getDay()];
+      
+      // 格式化輸出
+      const formattedSchedule = `${date}（週${weekday}）${startTime}~${endTime}`;
+      console.log('DOM.chat.formatScheduleWithWeekday: 格式化結果', { formattedSchedule });
+      
+      return formattedSchedule;
+    },
+    
     // 設定輸入控制項
     setupInputControls: (chatInput, sendBtn) => {
       console.log('DOM.chat.setupInputControls called：設定輸入控制項', { chatInput, sendBtn });
@@ -5036,22 +5071,6 @@ const DOM = {
       
       // 發送訊息函數（內部函式）：處理聊天訊息的發送邏輯
       const sendMessage = async () => {
-    const message = chatInput.value.trim();
-        
-        // 使用 FormValidator 驗證訊息
-        const validationResult = FormValidator.validateChatMessage(message);
-        if (!validationResult.isValid) {
-          console.warn('DOM.chat.setupInputControls: 訊息驗證失敗:', validationResult);
-          FormValidator.showValidationError(validationResult.message);
-          return;
-        }
-        
-        console.log('DOM.chat.setupInputControls: 發送訊息:', message);
-        
-        // 添加使用者訊息
-        DOM.chat.addUserMessage(message);
-        
-        // 清空輸入框
     chatInput.value = '';
         
         if (ChatStateManager.isMultipleTimesMode()) {
