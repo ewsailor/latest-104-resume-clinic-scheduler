@@ -671,10 +671,16 @@ const DOM_CACHE = {
   clearFormInputs() {
     Logger.debug('DOM_CACHE.clearFormInputs called: 清空表單輸入欄位值');
     const inputs = this.getFormInputs();
-    if (inputs.dateInput) inputs.dateInput.value = '';
-    if (inputs.startTimeInput) inputs.startTimeInput.value = '';
-    if (inputs.endTimeInput) inputs.endTimeInput.value = '';
-    if (inputs.notesInput) inputs.notesInput.value = '';
+    
+    // 使用通用設定器清空所有輸入欄位
+    const clearConfig = {
+      defaultValue: ''
+    };
+    
+    if (inputs.dateInput) setupInputField(inputs.dateInput, clearConfig);
+    if (inputs.startTimeInput) setupInputField(inputs.startTimeInput, clearConfig);
+    if (inputs.endTimeInput) setupInputField(inputs.endTimeInput, clearConfig);
+    if (inputs.notesInput) setupInputField(inputs.notesInput, clearConfig);
   },
   
   // 一次性取得所有表單輸入欄位
@@ -4742,16 +4748,36 @@ const DOM = {
           const inputs = DOM_CACHE.getFormInputs();
           if (editData) {
             console.log('DOM.chat.handleSingleTime: 編輯模式，設定編輯資料', editData);
-            if (inputs.dateInput) inputs.dateInput.value = editData.date;
-            if (inputs.startTimeInput) inputs.startTimeInput.value = editData.startTime;
-            if (inputs.endTimeInput) inputs.endTimeInput.value = editData.endTime;
-            if (inputs.notesInput) inputs.notesInput.value = editData.notes || '';
+            
+            // 使用通用設定器設定編輯資料
+            const editConfigs = {
+              dateInput: { defaultValue: editData.date },
+              startTimeInput: { defaultValue: editData.startTime },
+              endTimeInput: { defaultValue: editData.endTime },
+              notesInput: { defaultValue: editData.notes || '' }
+            };
+            
+            Object.entries(editConfigs).forEach(([key, config]) => {
+              if (inputs[key]) {
+                setupInputField(inputs[key], config);
+              }
+            });
           } else {
             console.log('DOM.chat.handleSingleTime: 新增模式，設定預設值');
-            if (inputs.startTimeInput) inputs.startTimeInput.value = '';
-            if (inputs.endTimeInput) inputs.endTimeInput.value = '';
-            if (inputs.dateInput) inputs.dateInput.value = DateUtils.formatDate(DateUtils.getToday());
-            if (inputs.notesInput) inputs.notesInput.value = '';
+            
+            // 使用通用設定器設定預設值
+            const defaultConfigs = {
+              startTimeInput: { defaultValue: '' },
+              endTimeInput: { defaultValue: '' },
+              dateInput: { defaultValue: DateUtils.formatDate(DateUtils.getToday()) },
+              notesInput: { defaultValue: '' }
+            };
+            
+            Object.entries(defaultConfigs).forEach(([key, config]) => {
+              if (inputs[key]) {
+                setupInputField(inputs[key], config);
+              }
+            });
           }
           // 設定表單事件
           console.log('DOM.chat.handleSingleTime: 設定表單事件');
@@ -5752,15 +5778,20 @@ const DOM = {
         scheduleForm.style.display = 'none';
         
         // 清空表單欄位
-        const dateInput = document.getElementById('schedule-date');
-        const startTimeInput = document.getElementById('schedule-start-time');
-        const endTimeInput = document.getElementById('schedule-end-time');
-        const notesInput = document.getElementById('schedule-notes');
+        const clearConfig = { defaultValue: '' };
         
-        if (dateInput) dateInput.value = '';
-        if (startTimeInput) startTimeInput.value = '';
-        if (endTimeInput) endTimeInput.value = '';
-        if (notesInput) notesInput.value = '';
+        const formFields = [
+          { id: 'schedule-date', element: document.getElementById('schedule-date') },
+          { id: 'schedule-start-time', element: document.getElementById('schedule-start-time') },
+          { id: 'schedule-end-time', element: document.getElementById('schedule-end-time') },
+          { id: 'schedule-notes', element: document.getElementById('schedule-notes') }
+        ];
+        
+        formFields.forEach(field => {
+          if (field.element) {
+            setupInputField(field.element, clearConfig);
+          }
+        });
       }
       
       // 清理日期選擇器狀態
@@ -7489,71 +7520,180 @@ DOM.events.add(document, 'DOMContentLoaded', function() {
 
 // === 新增：表單欄位初始化 function ===
 // 初始化時段表單的輸入欄位：設定預設值、事件監聽器、日期、開始時間、結束時間的輸入事件和驗證
-const initScheduleFormInputs = (formElement) => {
-  console.log('initScheduleFormInputs() called: 初始化表單欄位');
-  console.log('initScheduleFormInputs() formElement:', formElement);
-  
+// =================================================================
+//   通用輸入欄位設定器 (Universal Input Field Setup)
+// =================================================================
+
+// 通用輸入欄位設定器
+const setupInputField = (inputElement, config) => {
+  if (!inputElement) {
+    Logger.warn('setupInputField: 輸入元素不存在', { config });
+    return false;
+  }
+
+  Logger.debug('setupInputField: 設定輸入欄位', { 
+    elementId: inputElement.id, 
+    elementType: inputElement.type,
+    config 
+  });
+
+  // 設定預設值
+  inputElement.value = config.defaultValue || '';
+
+  // 綁定 input 事件
+  if (config.onInput) {
+    inputElement.addEventListener('input', (e) => {
+      try {
+        config.onInput(e.target);
+      } catch (error) {
+        Logger.error('setupInputField: input 事件處理失敗', error);
+      }
+    });
+  }
+
+  // 綁定 blur 事件
+  if (config.onBlur) {
+    inputElement.addEventListener('blur', (e) => {
+      try {
+        config.onBlur(e.target);
+      } catch (error) {
+        Logger.error('setupInputField: blur 事件處理失敗', error);
+      }
+    });
+  }
+
+  // 綁定 click 事件
+  if (config.onClick) {
+    inputElement.addEventListener('click', (e) => {
+      try {
+        e.preventDefault();
+        e.stopPropagation();
+        config.onClick(e.target);
+      } catch (error) {
+        Logger.error('setupInputField: click 事件處理失敗', error);
+      }
+    });
+  }
+
+  // 綁定 focus 事件
+  if (config.onFocus) {
+    inputElement.addEventListener('focus', (e) => {
+      try {
+        e.preventDefault();
+        config.onFocus(e.target);
+      } catch (error) {
+        Logger.error('setupInputField: focus 事件處理失敗', error);
+      }
+    });
+  }
+
+  // 綁定 change 事件
+  if (config.onChange) {
+    inputElement.addEventListener('change', (e) => {
+      try {
+        config.onChange(e.target);
+      } catch (error) {
+        Logger.error('setupInputField: change 事件處理失敗', error);
+      }
+    });
+  }
+
+  Logger.debug('setupInputField: 輸入欄位設定完成', { elementId: inputElement.id });
+  return true;
+};
+
+// 批量設定輸入欄位
+const setupMultipleInputFields = (formElement, fieldConfigs) => {
+  if (!formElement) {
+    Logger.warn('setupMultipleInputFields: 表單元素不存在');
+    return false;
+  }
+
+  Logger.debug('setupMultipleInputFields: 開始批量設定輸入欄位', { 
+    formId: formElement.id,
+    fieldCount: Object.keys(fieldConfigs).length 
+  });
+
   // 清除所有錯誤訊息
   const inputs = formElement.querySelectorAll('input, textarea');
   inputs.forEach(input => {
     FormValidator.clearValidationError(input);
   });
+
+  // 設定每個欄位
+  const results = {};
+  for (const [selector, config] of Object.entries(fieldConfigs)) {
+    const element = formElement.querySelector(selector);
+    results[selector] = setupInputField(element, config);
+  }
+
+  Logger.debug('setupMultipleInputFields: 批量設定完成', { results });
+  return results;
+};
+
+const initScheduleFormInputs = (formElement) => {
+  Logger.debug('initScheduleFormInputs called: 初始化表單欄位', { formElement });
   
-  // 日期 input
-  const dateInput = formElement.querySelector('#schedule-date');
-  if (dateInput) {
-    dateInput.value = DateUtils.getTodayFormatted();
-    dateInput.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      DOM.chat.showDatePicker();
-    });
-    dateInput.addEventListener('focus', (e) => {
-      e.preventDefault();
-      DOM.chat.showDatePicker();
-    });
-    dateInput.addEventListener('change', (e) => {
-      DOM.chat.validateDateInput(e.target);
-    });
-    dateInput.addEventListener('blur', (e) => {
-      DOM.chat.validateDateInput(e.target);
-    });
-  }
-  // 開始時間 input
-  const startTimeInput = formElement.querySelector('#schedule-start-time');
-  if (startTimeInput) {
-    startTimeInput.value = '';
-    startTimeInput.addEventListener('input', (e) => {
-      DOM.chat.formatTimeInput(e.target);
-    });
-    startTimeInput.addEventListener('blur', (e) => {
-      DOM.chat.formatTimeInput(e.target, true); // blur 時自動格式化
-      DOM.chat.validateAndFormatTime(e.target);
-    });
-  }
-  // 結束時間 input
-  const endTimeInput = formElement.querySelector('#schedule-end-time');
-  if (endTimeInput) {
-    endTimeInput.value = '';
-    endTimeInput.addEventListener('input', (e) => {
-      DOM.chat.formatTimeInput(e.target, false); // 只做數字過濾
-    });
-    endTimeInput.addEventListener('blur', (e) => {
-      DOM.chat.formatTimeInput(e.target, true); // blur 時自動格式化
-      DOM.chat.validateAndFormatTime(e.target);
-    });
-  }
-  // 備註 input
-  const notesInput = formElement.querySelector('#schedule-notes');
-  if (notesInput) {
-    notesInput.value = '';
-    notesInput.addEventListener('input', (e) => {
-      DOM.chat.validateNotesInput(e.target);
-    });
-    notesInput.addEventListener('blur', (e) => {
-      DOM.chat.validateNotesInput(e.target);
-    });
-  }
+  // 定義所有輸入欄位的配置
+  const fieldConfigs = {
+    // 日期輸入欄位
+    '#schedule-date': {
+      defaultValue: DateUtils.getTodayFormatted(),
+      onClick: (target) => {
+        DOM.chat.showDatePicker();
+      },
+      onFocus: (target) => {
+        DOM.chat.showDatePicker();
+      },
+      onChange: (target) => {
+        DOM.chat.validateDateInput(target);
+      },
+      onBlur: (target) => {
+        DOM.chat.validateDateInput(target);
+      }
+    },
+    
+    // 開始時間輸入欄位
+    '#schedule-start-time': {
+      defaultValue: '',
+      onInput: (target) => {
+        DOM.chat.formatTimeInput(target);
+      },
+      onBlur: (target) => {
+        DOM.chat.formatTimeInput(target, true); // blur 時自動格式化
+        DOM.chat.validateAndFormatTime(target);
+      }
+    },
+    
+    // 結束時間輸入欄位
+    '#schedule-end-time': {
+      defaultValue: '',
+      onInput: (target) => {
+        DOM.chat.formatTimeInput(target, false); // 只做數字過濾
+      },
+      onBlur: (target) => {
+        DOM.chat.formatTimeInput(target, true); // blur 時自動格式化
+        DOM.chat.validateAndFormatTime(target);
+      }
+    },
+    
+    // 備註輸入欄位
+    '#schedule-notes': {
+      defaultValue: '',
+      onInput: (target) => {
+        DOM.chat.validateNotesInput(target);
+      },
+      onBlur: (target) => {
+        DOM.chat.validateNotesInput(target);
+      }
+    }
+  };
+
+  // 使用通用設定器批量設定所有欄位
+  const results = setupMultipleInputFields(formElement, fieldConfigs);
+  
+  Logger.debug('initScheduleFormInputs: 表單欄位初始化完成', { results });
+  return results;
 }
 
 // ...
