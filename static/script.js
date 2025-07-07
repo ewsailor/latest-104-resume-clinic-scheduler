@@ -4711,16 +4711,23 @@ const DOM = {
       }
       
       // blur 事件時才自動格式化
+      DOM.chat.processTimeInput(input, value);
+    },
+    
+    // 處理時間輸入的共用邏輯：格式化4位數字為 HH:MM 格式，驗證時間有效性，顯示相應錯誤訊息
+    processTimeInput: (input, value) => {
+      console.log('DOM.chat.processTimeInput called：處理時間輸入', { value });
+      
       if (value.length === 4) {
         const hours = parseInt(value.substring(0, 2));
         const minutes = parseInt(value.substring(2, 4));
+        // 先格式化為 HH:MM 格式
+        const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+        input.value = formattedTime;
+        
         if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-          const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-          input.value = formattedTime;
           DOM.chat.checkBusinessHours(input, formattedTime);
         } else {
-          // 保留原始數字，不自動清空
-          input.value = value;
           // 顯示錯誤訊息
           const errorMessage = hours > 23 ? 
             `時數「${hours}」超過 23，請輸入 00-23 之間的數字` :
@@ -4753,33 +4760,7 @@ const DOM = {
         return;
       }
       
-      if (numbers.length === 4) {
-        const hours = parseInt(numbers.substring(0, 2));
-        const minutes = parseInt(numbers.substring(2, 4));
-        
-        if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-          const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-          input.value = formattedTime;
-          DOM.chat.checkBusinessHours(input, formattedTime);
-        } else {
-          // 保留原始數字，不自動清空
-          input.value = numbers;
-          // 顯示錯誤訊息
-          const errorMessage = hours > 23 ? 
-            `時數「${hours}」超過 23，請輸入 00-23 之間的數字` :
-            `分鐘「${minutes}」超過 59，請輸入 00-59 之間的數字`;
-          FormValidator.showValidationError(errorMessage, input);
-        }
-        return;
-      } else {
-        // 非4位數字，保留原始輸入並顯示錯誤訊息
-        input.value = numbers;
-        FormValidator.showValidationError('目前輸入內容非 4 位數字，請輸入 4 位數字', input);
-        return;
-      }
-      
-      // 預設值
-      input.value = '';
+      DOM.chat.processTimeInput(input, numbers);
     },
     
     // 提交表單
