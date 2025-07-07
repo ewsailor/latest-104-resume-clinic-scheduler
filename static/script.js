@@ -1831,7 +1831,22 @@ const FormValidator = {
       
       if (DateUtils.compareTimes(formData.startTime, businessStart) < 0 ||
           DateUtils.compareTimes(formData.endTime, businessEnd) > 0) {
-        errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.TIME_BUSINESS_HOURS);
+        // 檢查是否已經有營業時間相關的錯誤訊息
+        const startTimeInput = document.getElementById('schedule-start-time');
+        const endTimeInput = document.getElementById('schedule-end-time');
+        const hasExistingBusinessHoursError = (
+          (startTimeInput && startTimeInput.parentNode.querySelector('.validation-error.error-visible') && 
+           startTimeInput.parentNode.querySelector('.validation-error.error-visible').textContent.includes('營業時間')) ||
+          (endTimeInput && endTimeInput.parentNode.querySelector('.validation-error.error-visible') && 
+           endTimeInput.parentNode.querySelector('.validation-error.error-visible').textContent.includes('營業時間'))
+        );
+        
+        if (!hasExistingBusinessHoursError) {
+          errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.TIME_BUSINESS_HOURS);
+        } else {
+          // 如果有現有錯誤訊息，添加一個隱藏的錯誤來阻止表單提交，但不顯示新訊息
+          errors.push('__HIDDEN_ERROR__');
+        }
       }
     }
     
