@@ -1627,7 +1627,7 @@ const FormValidator = {
       END_TIME_REQUIRED: '請輸入結束時間',
       TIME_INVALID: '非 4 位數字，系統將自動設定為 4 位數字',
       TIME_LOGIC: '結束時間必須晚於開始時間',
-      TIME_BUSINESS_HOURS: '時間必須在營業時間內（09:00-22:00）',
+      TIME_BUSINESS_HOURS: '輸入時間必須在營業時間內（09:00-22:00）',
       NOTES_TOO_LONG: '備註不能超過 500 個字符',
       NOTES_INVALID: '備註包含無效字符',
       DUPLICATE_SCHEDULE: '您正輸入的時段，和您之前曾輸入的{{EXISTING_SCHEDULE}}時段重複或重疊，請重新輸入'
@@ -4671,6 +4671,24 @@ const DOM = {
       generateCalendar();
     },
     
+    // 檢查營業時間並顯示錯誤訊息
+    checkBusinessHours: (input, formattedTime) => {
+      console.log('DOM.chat.checkBusinessHours called：檢查營業時間', { formattedTime });
+      
+      const businessStart = '09:00';
+      const businessEnd = '22:00';
+      
+      if (DateUtils.compareTimes(formattedTime, businessStart) < 0 || 
+          DateUtils.compareTimes(formattedTime, businessEnd) > 0) {
+        FormValidator.showValidationError(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.TIME_BUSINESS_HOURS, input);
+        return false;
+      } else {
+        // 清除錯誤訊息
+        FormValidator.clearValidationError(input);
+        return true;
+      }
+    },
+
     // 格式化時間輸入
     formatTimeInput: (input, forceFormat = false) => {
       console.log('DOM.chat.formatTimeInput called：格式化時間輸入', { 
@@ -4690,9 +4708,9 @@ const DOM = {
         const hours = parseInt(value.substring(0, 2));
         const minutes = parseInt(value.substring(2, 4));
         if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-          input.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-          // 清除錯誤訊息
-          FormValidator.clearValidationError(input);
+          const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+          input.value = formattedTime;
+          DOM.chat.checkBusinessHours(input, formattedTime);
         } else {
           // 保留原始數字，不自動清空
           input.value = value;
@@ -4707,9 +4725,9 @@ const DOM = {
         const minutes = parseInt(value.substring(2, 3)) * 10; // 補 0
         
         if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-          input.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-          // 清除錯誤訊息
-          FormValidator.clearValidationError(input);
+          const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+          input.value = formattedTime;
+          DOM.chat.checkBusinessHours(input, formattedTime);
         } else {
           // 保留原始數字，不自動清空
           input.value = value;
@@ -4722,9 +4740,9 @@ const DOM = {
       } else if (value.length === 2) {
         const hours = parseInt(value);
         if (hours >= 0 && hours <= 23) {
-          input.value = `${String(hours).padStart(2, '0')}:00`;
-          // 清除錯誤訊息
-          FormValidator.clearValidationError(input);
+          const formattedTime = `${String(hours).padStart(2, '0')}:00`;
+          input.value = formattedTime;
+          DOM.chat.checkBusinessHours(input, formattedTime);
         } else {
           // 保留原始數字，不自動清空
           input.value = value;
@@ -4732,9 +4750,9 @@ const DOM = {
           FormValidator.showValidationError(`時數「${hours}」超過 23，請輸入 00-23 之間的數字`, input);
         }
       } else if (value.length === 1) {
-        input.value = `${value}:00`;
-        // 清除錯誤訊息
-        FormValidator.clearValidationError(input);
+        const formattedTime = `${value}:00`;
+        input.value = formattedTime;
+        DOM.chat.checkBusinessHours(input, formattedTime);
       } else {
         input.value = '';
       }
@@ -4760,18 +4778,18 @@ const DOM = {
       }
       
       if (numbers.length === 1) {
-        input.value = `${numbers}:00`;
-        // 清除錯誤訊息
-        FormValidator.clearValidationError(input);
+        const formattedTime = `${numbers}:00`;
+        input.value = formattedTime;
+        DOM.chat.checkBusinessHours(input, formattedTime);
         return;
       }
       
       if (numbers.length === 2) {
         const hours = parseInt(numbers);
         if (hours >= 0 && hours <= 23) {
-          input.value = `${String(hours).padStart(2, '0')}:00`;
-          // 清除錯誤訊息
-          FormValidator.clearValidationError(input);
+          const formattedTime = `${String(hours).padStart(2, '0')}:00`;
+          input.value = formattedTime;
+          DOM.chat.checkBusinessHours(input, formattedTime);
         } else {
           // 保留原始數字，不自動清空
           input.value = numbers;
@@ -4786,9 +4804,9 @@ const DOM = {
         const minutes = parseInt(numbers.substring(2, 3)) * 10; // 補 0
         
         if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-          input.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-          // 清除錯誤訊息
-          FormValidator.clearValidationError(input);
+          const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+          input.value = formattedTime;
+          DOM.chat.checkBusinessHours(input, formattedTime);
         } else {
           // 保留原始數字，不自動清空
           input.value = numbers;
@@ -4806,9 +4824,9 @@ const DOM = {
         const minutes = parseInt(numbers.substring(2, 4));
         
         if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-          input.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-          // 清除錯誤訊息
-          FormValidator.clearValidationError(input);
+          const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+          input.value = formattedTime;
+          DOM.chat.checkBusinessHours(input, formattedTime);
         } else {
           // 保留原始數字，不自動清空
           input.value = numbers;
