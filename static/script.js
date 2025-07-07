@@ -4673,20 +4673,34 @@ const DOM = {
     
     // 格式化時間輸入
     formatTimeInput: (input, forceFormat = false) => {
+      console.log('DOM.chat.formatTimeInput called：格式化時間輸入', { 
+        value: input.value, 
+        forceFormat 
+      });
+      
       // input 事件時只允許數字，不自動補冒號
       let value = input.value.replace(/[^0-9]/g, ''); // 移除所有非數字字符
       if (!forceFormat) {
         input.value = value;
         return;
       }
+      
       // blur 事件時才自動格式化
       if (value.length === 4) {
         const hours = parseInt(value.substring(0, 2));
         const minutes = parseInt(value.substring(2, 4));
         if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
           input.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+          // 清除錯誤訊息
+          FormValidator.clearValidationError(input);
         } else {
-          input.value = '';
+          // 保留原始數字，不自動清空
+          input.value = value;
+          // 顯示錯誤訊息
+          const errorMessage = hours > 23 ? 
+            `時數「${hours}」超過 23，請輸入 00-23 之間的數字` :
+            `分鐘「${minutes}」超過 59，請輸入 00-59 之間的數字`;
+          FormValidator.showValidationError(errorMessage, input);
         }
       } else if (value.length === 3) {
         const hours = parseInt(value.substring(0, 2));
@@ -4694,18 +4708,33 @@ const DOM = {
         
         if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
           input.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+          // 清除錯誤訊息
+          FormValidator.clearValidationError(input);
         } else {
-          input.value = '';
+          // 保留原始數字，不自動清空
+          input.value = value;
+          // 顯示錯誤訊息
+          const errorMessage = hours > 23 ? 
+            `時數「${hours}」超過 23，請輸入 00-23 之間的數字` :
+            `分鐘「${minutes}」超過 59，請輸入 00-59 之間的數字`;
+          FormValidator.showValidationError(errorMessage, input);
         }
       } else if (value.length === 2) {
         const hours = parseInt(value);
         if (hours >= 0 && hours <= 23) {
           input.value = `${String(hours).padStart(2, '0')}:00`;
+          // 清除錯誤訊息
+          FormValidator.clearValidationError(input);
         } else {
-          input.value = '';
+          // 保留原始數字，不自動清空
+          input.value = value;
+          // 顯示錯誤訊息
+          FormValidator.showValidationError(`時數「${hours}」超過 23，請輸入 00-23 之間的數字`, input);
         }
       } else if (value.length === 1) {
         input.value = `${value}:00`;
+        // 清除錯誤訊息
+        FormValidator.clearValidationError(input);
       } else {
         input.value = '';
       }
@@ -4732,6 +4761,8 @@ const DOM = {
       
       if (numbers.length === 1) {
         input.value = `${numbers}:00`;
+        // 清除錯誤訊息
+        FormValidator.clearValidationError(input);
         return;
       }
       
@@ -4739,8 +4770,13 @@ const DOM = {
         const hours = parseInt(numbers);
         if (hours >= 0 && hours <= 23) {
           input.value = `${String(hours).padStart(2, '0')}:00`;
+          // 清除錯誤訊息
+          FormValidator.clearValidationError(input);
         } else {
-          input.value = '';
+          // 保留原始數字，不自動清空
+          input.value = numbers;
+          // 顯示錯誤訊息
+          FormValidator.showValidationError(`時數「${hours}」超過 23，請輸入 00-23 之間的數字`, input);
         }
         return;
       }
@@ -4751,8 +4787,16 @@ const DOM = {
         
         if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
           input.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+          // 清除錯誤訊息
+          FormValidator.clearValidationError(input);
         } else {
-          input.value = '';
+          // 保留原始數字，不自動清空
+          input.value = numbers;
+          // 顯示錯誤訊息
+          const errorMessage = hours > 23 ? 
+            `時數「${hours}」超過 23，請輸入 00-23 之間的數字` :
+            `分鐘「${minutes}」超過 59，請輸入 00-59 之間的數字`;
+          FormValidator.showValidationError(errorMessage, input);
         }
         return;
       }
@@ -4763,8 +4807,16 @@ const DOM = {
         
         if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
           input.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+          // 清除錯誤訊息
+          FormValidator.clearValidationError(input);
         } else {
-          input.value = '';
+          // 保留原始數字，不自動清空
+          input.value = numbers;
+          // 顯示錯誤訊息
+          const errorMessage = hours > 23 ? 
+            `時數「${hours}」超過 23，請輸入 00-23 之間的數字` :
+            `分鐘「${minutes}」超過 59，請輸入 00-59 之間的數字`;
+          FormValidator.showValidationError(errorMessage, input);
         }
         return;
       }
@@ -7063,22 +7115,10 @@ const initScheduleFormInputs = (formElement) => {
     startTimeInput.value = '';
     startTimeInput.addEventListener('input', (e) => {
       DOM.chat.formatTimeInput(e.target);
-      const validationResult = FormValidator.validateField('startTime', e.target.value, 'schedule');
-      if (!validationResult.isValid) {
-        FormValidator.showValidationError(validationResult.errorMessage, e.target);
-      } else {
-        FormValidator.clearValidationError(e.target);
-      }
     });
     startTimeInput.addEventListener('blur', (e) => {
       DOM.chat.formatTimeInput(e.target, true); // blur 時自動格式化
       DOM.chat.validateAndFormatTime(e.target);
-      const validationResult = FormValidator.validateField('startTime', e.target.value, 'schedule');
-      if (!validationResult.isValid) {
-        FormValidator.showValidationError(validationResult.errorMessage, e.target);
-      } else {
-        FormValidator.clearValidationError(e.target);
-      }
     });
   }
   // 結束時間 input
@@ -7087,22 +7127,10 @@ const initScheduleFormInputs = (formElement) => {
     endTimeInput.value = '';
     endTimeInput.addEventListener('input', (e) => {
       DOM.chat.formatTimeInput(e.target, false); // 只做數字過濾
-      const validationResult = FormValidator.validateField('endTime', e.target.value, 'schedule');
-      if (!validationResult.isValid) {
-        FormValidator.showValidationError(validationResult.errorMessage, e.target);
-      } else {
-        FormValidator.clearValidationError(e.target);
-      }
     });
     endTimeInput.addEventListener('blur', (e) => {
       DOM.chat.formatTimeInput(e.target, true); // blur 時自動格式化
       DOM.chat.validateAndFormatTime(e.target);
-      const validationResult = FormValidator.validateField('endTime', e.target.value, 'schedule');
-      if (!validationResult.isValid) {
-        FormValidator.showValidationError(validationResult.errorMessage, e.target);
-      } else {
-        FormValidator.clearValidationError(e.target);
-      }
     });
   }
   // 備註 input（如需即時驗證可加上）
