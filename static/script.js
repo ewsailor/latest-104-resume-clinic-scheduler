@@ -1001,14 +1001,10 @@ const EventManager = {
     
     // 清空表單
     DOM_CACHE.clearFormInputs();
-    
-    // 清除所有錯誤訊息
-    const inputs = DOM_CACHE.getFormInputs();
-    if (inputs.dateInput) FormValidator.clearValidationError(inputs.dateInput);
-    if (inputs.startTimeInput) FormValidator.clearValidationError(inputs.startTimeInput);
-    if (inputs.endTimeInput) FormValidator.clearValidationError(inputs.endTimeInput);
-    if (inputs.notesInput) FormValidator.clearValidationError(inputs.notesInput);
-    
+
+    // 清空表單所有錯誤訊息
+    FormValidator.clearAllValidationErrors(DOM_CACHE.scheduleForm);
+        
     // 重置選中的日期
     DOM.chat.setSelectedDate(null);
     
@@ -1643,7 +1639,7 @@ const FormValidator = {
       TIME_BUSINESS_HOURS: '輸入時間必須在營業時間內（09:00-22:00）',
       NOTES_TOO_LONG: '備註不能超過 500 個字符',
       NOTES_INVALID: '備註包含無效字符',
-      DUPLICATE_SCHEDULE: '您正輸入的時段，和您之前曾輸入的{{EXISTING_SCHEDULE}}時段重複或重疊，請重新輸入'
+      DUPLICATE_SCHEDULE: '您正輸入的時段，和您之前曾輸入的「{{EXISTING_SCHEDULE}}」時段重複或重疊，請重新輸入'
     },
     
     // 多筆時段錯誤
@@ -1710,7 +1706,7 @@ const FormValidator = {
       return FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DUPLICATE_SCHEDULE.replace('{{EXISTING_SCHEDULE}}', conflictingList[0]);
     } else {
       const scheduleList = conflictingList.join('、');
-      return `您正輸入的時段，和您之前曾輸入的以下時段重複或重疊，請重新輸入：\n${scheduleList}`;
+      return `您正輸入的時段，和您之前曾輸入的「${scheduleList}」時段重複或重疊，請重新輸入`;
     }
   },
 
@@ -1855,7 +1851,17 @@ const FormValidator = {
       const notes = formData.notes.trim();
       
       if (notes.length > rules.NOTES.MAX_LENGTH) {
-        errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.NOTES_TOO_LONG);
+        // 檢查是否已經有備註相關的錯誤訊息
+        const notesInput = document.getElementById('schedule-notes');
+        const hasExistingNotesError = notesInput && notesInput.parentNode.querySelector('.validation-error.error-visible') && 
+                                     notesInput.parentNode.querySelector('.validation-error.error-visible').textContent.includes('備註不能超過');
+        
+        if (!hasExistingNotesError) {
+          errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.NOTES_TOO_LONG);
+        } else {
+          // 如果有現有錯誤訊息，添加一個隱藏的錯誤來阻止表單提交，但不顯示新訊息
+          errors.push('__HIDDEN_ERROR__');
+        }
       }
       
       if (!rules.NOTES.ALLOWED_CHARS.test(notes)) {
@@ -2016,6 +2022,38 @@ const FormValidator = {
         errorElement.classList.add('error-hidden');
         errorElement.textContent = '';
       }
+    }
+  },
+  
+  // 清空表單所有錯誤訊息
+  clearAllValidationErrors: (formElement) => {
+    console.log('FormValidator.clearAllValidationErrors called', { formElement });
+    
+    if (formElement) {
+      // 清空表單內所有錯誤訊息
+      const errorElements = formElement.querySelectorAll('.validation-error');
+      errorElements.forEach(errorElement => {
+        errorElement.classList.remove('error-visible');
+        errorElement.classList.add('error-hidden');
+        errorElement.textContent = '';
+      });
+      
+      // 也清空表單外但相關的錯誤訊息（如時間輸入欄位的錯誤）
+      const startTimeInput = document.getElementById('schedule-start-time');
+      const endTimeInput = document.getElementById('schedule-end-time');
+      const dateInput = document.getElementById('schedule-date');
+      const notesInput = document.getElementById('schedule-notes');
+      
+      [startTimeInput, endTimeInput, dateInput, notesInput].forEach(input => {
+        if (input) {
+          const errorElement = input.parentNode.querySelector('.validation-error');
+          if (errorElement) {
+            errorElement.classList.remove('error-visible');
+            errorElement.classList.add('error-hidden');
+            errorElement.textContent = '';
+          }
+        }
+      });
     }
   },
   
@@ -4427,6 +4465,8 @@ const DOM = {
           if (formElement) {
             console.log('DOM.chat.handleSingleTime: 初始化表單欄位');
             initScheduleFormInputs(formElement);
+            // 清空所有錯誤訊息
+            FormValidator.clearAllValidationErrors(formElement);
           }
           scheduleForm.classList.remove('schedule-form-hidden');
           scheduleForm.classList.add('schedule-form-visible');
@@ -4805,6 +4845,26 @@ const DOM = {
       }
       
       DOM.chat.processTimeInput(input, numbers);
+    },
+    
+    // 驗證備註輸入
+    validateNotesInput: (input) => {
+      console.log('DOM.chat.validateNotesInput called：驗證備註輸入', { value: input.value });
+      const value = input.value.trim();
+      
+      // 如果為空，清除錯誤訊息
+      if (!value) {
+        FormValidator.clearValidationError(input);
+        return;
+      }
+      
+      // 檢查長度限制
+      if (value.length > FormValidator.RULES.SCHEDULE_FORM.NOTES.MAX_LENGTH) {
+        FormValidator.showValidationError(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.NOTES_TOO_LONG, input);
+      } else {
+        // 清除錯誤訊息
+        FormValidator.clearValidationError(input);
+      }
     },
     
     // 提交表單
@@ -7121,7 +7181,17 @@ const initScheduleFormInputs = (formElement) => {
       DOM.chat.validateAndFormatTime(e.target);
     });
   }
-  // 備註 input（如需即時驗證可加上）
+  // 備註 input
+  const notesInput = formElement.querySelector('#schedule-notes');
+  if (notesInput) {
+    notesInput.value = '';
+    notesInput.addEventListener('input', (e) => {
+      DOM.chat.validateNotesInput(e.target);
+    });
+    notesInput.addEventListener('blur', (e) => {
+      DOM.chat.validateNotesInput(e.target);
+    });
+  }
 }
 
 // ...
