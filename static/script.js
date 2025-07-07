@@ -340,6 +340,15 @@ const CONFIG = {
     AUTO_SCROLL_DELAY: 100
   },
   
+  // 日期選擇器配置
+  DATE_PICKER: {
+    MAX_MONTHS_AHEAD: 3,  // 最多可選擇幾個月後的日期
+    BUSINESS_HOURS: {
+      START: '09:00', // 營業時間開始時間
+      END: '22:00' // 營業時間結束時間
+    }
+  },
+  
   // 快取配置
   CACHE: {
     EXPIRY_TIME: 5 * 60 * 1000, // 5分鐘
@@ -1036,7 +1045,25 @@ const EventManager = {
         )) {
           FormValidator.showValidationError(validationResult.message);
         } else if (visibleErrors.length > 0) {
-          FormValidator.showValidationError(visibleErrors[0], form);
+          // 根據錯誤訊息類型，顯示在對應的欄位下方
+          const errorMessage = visibleErrors[0];
+          let targetElement = form; // 預設顯示在表單上
+          
+          // 檢查錯誤訊息類型，決定顯示位置
+          if (errorMessage.includes('日期格式不正確') || 
+              errorMessage.includes('不能選擇過去的日期') || 
+              errorMessage.includes('不能預約 3 個月後的日期')) {
+            targetElement = document.getElementById('schedule-date');
+          } else if (errorMessage.includes('請輸入開始時間') || 
+                     errorMessage.includes('目前輸入內容非 4 位數字')) {
+            targetElement = document.getElementById('schedule-start-time');
+          } else if (errorMessage.includes('請輸入結束時間')) {
+            targetElement = document.getElementById('schedule-end-time');
+          } else if (errorMessage.includes('備註不能超過')) {
+            targetElement = document.getElementById('schedule-notes');
+          }
+          
+          FormValidator.showValidationError(errorMessage, targetElement);
         }
       }
       return;
@@ -1258,6 +1285,12 @@ const EventManager = {
   handleCalendarDayClick(dayElement, e) {
     const date = dayElement.getAttribute('data-date');
     Logger.info('EventManager: 日曆日期被點擊', { date });
+    
+    // 立即驗證選擇的日期
+    if (date && !DateUtils.validateDateWithinThreeMonths(date)) {
+      return; // 不設定選中的日期，讓使用者重新選擇
+    }
+    
     DOM.chat.setSelectedDate(date);
   },
   
@@ -1560,6 +1593,59 @@ const DateUtils = {
   // 新增：取得今天日期的格式化字串
   getTodayFormatted: () => {
     return DateUtils.formatDate(DateUtils.getToday());
+  },
+  
+  // 新增：驗證日期是否在允許的月份範圍內
+  isDateWithinAllowedMonths: (date) => {
+    console.log('DateUtils.isDateWithinAllowedMonths called', { date });
+    
+    if (!date) {
+      console.log('DateUtils.isDateWithinAllowedMonths: 驗證結果', { isValid: false, reason: '日期為空' });
+      return false;
+    }
+    
+    const today = DateUtils.getToday();
+    const selectedDateObj = new Date(date);
+    const maxMonthsAhead = CONFIG.DATE_PICKER.MAX_MONTHS_AHEAD;
+    const maxAllowedDate = new Date(today.getFullYear(), today.getMonth() + maxMonthsAhead, today.getDate());
+    
+    const isValid = selectedDateObj <= maxAllowedDate;
+    console.log('DateUtils.isDateWithinAllowedMonths: 驗證結果', { 
+      date, 
+      today: DateUtils.formatDate(today), 
+      maxMonthsAhead,
+      maxAllowedDate: DateUtils.formatDate(maxAllowedDate), 
+      isValid 
+    });
+    
+    return isValid;
+  },
+  
+  // 向後相容：保留舊的函數名稱
+  isDateWithinThreeMonths: (date) => {
+    console.log('DateUtils.isDateWithinThreeMonths called (已棄用，請使用 isDateWithinAllowedMonths)', { date });
+    return DateUtils.isDateWithinAllowedMonths(date);
+  },
+  
+  // 新增：驗證日期並顯示錯誤訊息（如果超過允許的月份範圍）
+  validateDateWithinAllowedMonths: (date) => {
+    console.log('DateUtils.validateDateWithinAllowedMonths called', { date });
+    
+    if (!DateUtils.isDateWithinAllowedMonths(date)) {
+      const maxMonthsAhead = CONFIG.DATE_PICKER.MAX_MONTHS_AHEAD;
+      console.log(`DateUtils.validateDateWithinAllowedMonths: 日期超過${maxMonthsAhead}個月，顯示錯誤訊息`);
+      FormValidator.showValidationError(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_TOO_FAR);
+      return false; // 驗證失敗
+    }
+    
+    console.log('DateUtils.validateDateWithinAllowedMonths: 日期驗證通過');
+    return true; // 驗證成功
+  },
+  
+  // 向後相容：保留舊的函數名稱
+  validateDateWithinThreeMonths: (date) => {
+    console.log('DateUtils.validateDateWithinThreeMonths called (已棄用，請使用 validateDateWithinAllowedMonths)', { date });
+    return DateUtils.validateDateWithinAllowedMonths(date);
   }
 };
 
@@ -1596,8 +1682,8 @@ const FormValidator = {
         MIN_TIME: '00:00',
         MAX_TIME: '23:59',
         BUSINESS_HOURS: {
-          START: '09:00',
-          END: '22:00'
+          START: CONFIG.DATE_PICKER.BUSINESS_HOURS.START,
+          END: CONFIG.DATE_PICKER.BUSINESS_HOURS.END
         }
       },
       NOTES: {
@@ -1631,12 +1717,12 @@ const FormValidator = {
       DATE_REQUIRED: '請選擇日期',
       DATE_INVALID: '日期格式不正確，請使用 YYYY/MM/DD 格式',
       DATE_PAST: '不能選擇過去的日期',
-      DATE_TOO_FAR: '不能預約超過一年後的日期',
+      DATE_TOO_FAR: `不能預約 ${CONFIG.DATE_PICKER.MAX_MONTHS_AHEAD} 個月後的日期`,
       START_TIME_REQUIRED: '請輸入開始時間',
       END_TIME_REQUIRED: '請輸入結束時間',
       TIME_INVALID: '目前輸入內容非 4 位數字，請輸入 4 位數字',
       TIME_LOGIC: '結束時間必須晚於開始時間',
-      TIME_BUSINESS_HOURS: '輸入時間必須在營業時間內（09:00-22:00）',
+      TIME_BUSINESS_HOURS: `輸入時間必須在營業時間內（${CONFIG.DATE_PICKER.BUSINESS_HOURS.START}-${CONFIG.DATE_PICKER.BUSINESS_HOURS.END}）`,
       NOTES_TOO_LONG: '備註不能超過 500 個字符',
       NOTES_INVALID: '備註包含無效字符',
       DUPLICATE_SCHEDULE: '您正輸入的時段，和您之前曾輸入的「{{EXISTING_SCHEDULE}}」時段重複或重疊，請重新輸入'
@@ -1761,19 +1847,45 @@ const FormValidator = {
       errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_REQUIRED);
     } else if (formData.date) {
       if (!DateUtils.isValidDateFormat(formData.date)) {
-        errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_INVALID);
+        // 檢查是否已經有日期格式錯誤訊息
+        const dateInput = document.getElementById('schedule-date');
+        const hasExistingDateFormatError = dateInput && dateInput.parentNode.querySelector('.validation-error.error-visible') && 
+                                          dateInput.parentNode.querySelector('.validation-error.error-visible').textContent.includes('日期格式不正確');
+        
+        if (!hasExistingDateFormatError) {
+          errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_INVALID);
+        } else {
+          errors.push('__HIDDEN_ERROR__');
+        }
       } else {
         // 檢查是否為過去日期
         const today = DateUtils.getToday();
         const selectedDate = new Date(formData.date.replace(/\//g, '-'));
         if (selectedDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
-          errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_PAST);
+          // 檢查是否已經有過去日期錯誤訊息
+          const dateInput = document.getElementById('schedule-date');
+          const hasExistingPastDateError = dateInput && dateInput.parentNode.querySelector('.validation-error.error-visible') && 
+                                          dateInput.parentNode.querySelector('.validation-error.error-visible').textContent.includes('不能選擇過去的日期');
+          
+          if (!hasExistingPastDateError) {
+            errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_PAST);
+          } else {
+            errors.push('__HIDDEN_ERROR__');
+          }
         }
         
-        // 檢查是否超過一年
-        const oneYearLater = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
-        if (selectedDate > oneYearLater) {
-          errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_TOO_FAR);
+        // 檢查是否超過 3 個月
+        if (!DateUtils.isDateWithinThreeMonths(selectedDate)) {
+          // 檢查是否已經有超過3個月錯誤訊息
+          const dateInput = document.getElementById('schedule-date');
+          const hasExistingTooFarError = dateInput && dateInput.parentNode.querySelector('.validation-error.error-visible') && 
+                                        dateInput.parentNode.querySelector('.validation-error.error-visible').textContent.includes('不能預約 3 個月後的日期');
+          
+          if (!hasExistingTooFarError) {
+            errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_TOO_FAR);
+          } else {
+            errors.push('__HIDDEN_ERROR__');
+          }
         }
       }
     }
@@ -1976,11 +2088,19 @@ const FormValidator = {
     console.log('FormValidator.showValidationError called', { message, element });
     
     if (element) {
+      // 先清除該元素的所有現有錯誤訊息
+      FormValidator.clearValidationError(element);
+      
       // 在特定元素上顯示錯誤
-      const errorElement = element.querySelector('.validation-error') || 
-                          element.parentNode.querySelector('.validation-error');
+      let errorElement = element.querySelector('.validation-error');
+      
+      if (!errorElement) {
+        // 如果元素內部沒有錯誤元素，檢查父元素中是否有
+        errorElement = element.parentNode.querySelector('.validation-error');
+      }
       
       if (errorElement) {
+        // 使用現有的錯誤元素
         errorElement.textContent = message;
         if (message) {
           errorElement.classList.remove('error-hidden');
@@ -1990,7 +2110,7 @@ const FormValidator = {
           errorElement.classList.add('error-hidden');
         }
       } else {
-        // 創建錯誤元素
+        // 創建新的錯誤元素
         const errorDiv = document.createElement('div');
         errorDiv.className = 'validation-error text-danger small mt-1';
         errorDiv.textContent = message;
@@ -4636,6 +4756,12 @@ const DOM = {
             // 添加點擊事件
             DOM.events.add(dateCell, 'click', () => {
               console.log('DOM.chat.initDatePicker: 日期被點擊', date);
+              
+              // 立即驗證選擇的日期
+              if (!DateUtils.validateDateWithinThreeMonths(date)) {
+                return; // 不設定日期，不關閉 modal，讓使用者重新選擇
+              }
+              
               // 移除其他選中的日期
               document.querySelectorAll('.date-cell.selected').forEach(cell => {
                 cell.classList.remove('selected');
@@ -4730,11 +4856,16 @@ const DOM = {
           const selectedDate = DOM.chat.getSelectedDate();
           if (selectedDate) {
             const dateInput = DOM_CACHE.dateInput;
-          if (dateInput) {
-            const formattedDate = DateUtils.formatDate(selectedDate);
-            dateInput.value = formattedDate;
-            console.log('DOM.chat.initDatePicker: 日期已設定', formattedDate);
-          }
+            if (dateInput) {
+              const formattedDate = DateUtils.formatDate(selectedDate);
+              dateInput.value = formattedDate;
+              console.log('DOM.chat.initDatePicker: 日期已設定', formattedDate);
+              
+              // 立即驗證選擇的日期
+              if (!DateUtils.validateDateWithinThreeMonths(selectedDate)) {
+                return; // 不關閉 modal，讓使用者重新選擇
+              }
+            }
           }
           
           // 關閉 Modal
@@ -4761,8 +4892,8 @@ const DOM = {
     checkBusinessHours: (input, formattedTime) => {
       console.log('DOM.chat.checkBusinessHours called：檢查營業時間', { formattedTime });
       
-      const businessStart = '09:00';
-      const businessEnd = '22:00';
+      const businessStart = CONFIG.DATE_PICKER.BUSINESS_HOURS.START;
+      const businessEnd = CONFIG.DATE_PICKER.BUSINESS_HOURS.END;
       
       if (DateUtils.compareTimes(formattedTime, businessStart) < 0 || 
           DateUtils.compareTimes(formattedTime, businessEnd) > 0) {
@@ -4865,6 +4996,41 @@ const DOM = {
         // 清除錯誤訊息
         FormValidator.clearValidationError(input);
       }
+    },
+    
+    // 驗證日期輸入
+    validateDateInput: (input) => {
+      console.log('DOM.chat.validateDateInput called：驗證日期輸入', { value: input.value });
+      const value = input.value.trim();
+      
+      // 如果為空，清除錯誤訊息
+      if (!value) {
+        FormValidator.clearValidationError(input);
+        return;
+      }
+      
+      // 檢查日期格式
+      if (!DateUtils.isValidDateFormat(value)) {
+        FormValidator.showValidationError(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_INVALID, input);
+        return;
+      }
+      
+      // 檢查是否為過去日期
+      const today = DateUtils.getToday();
+      const selectedDate = new Date(value.replace(/\//g, '-'));
+      if (selectedDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
+        FormValidator.showValidationError(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_PAST, input);
+        return;
+      }
+      
+      // 檢查是否超過 3 個月
+      if (!DateUtils.isDateWithinThreeMonths(selectedDate)) {
+        FormValidator.showValidationError(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_TOO_FAR, input);
+        return;
+      }
+      
+      // 清除錯誤訊息
+      FormValidator.clearValidationError(input);
     },
     
     // 提交表單
@@ -7155,6 +7321,12 @@ const initScheduleFormInputs = (formElement) => {
     dateInput.addEventListener('focus', (e) => {
       e.preventDefault();
       DOM.chat.showDatePicker();
+    });
+    dateInput.addEventListener('change', (e) => {
+      DOM.chat.validateDateInput(e.target);
+    });
+    dateInput.addEventListener('blur', (e) => {
+      DOM.chat.validateDateInput(e.target);
     });
   }
   // 開始時間 input
