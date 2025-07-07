@@ -4729,9 +4729,13 @@ const DOM = {
           DOM.chat.checkBusinessHours(input, formattedTime);
         } else {
           // 顯示錯誤訊息
-          const errorMessage = hours > 23 ? 
-            `時數「${hours}」超過 23，請輸入 00-23 之間的數字` :
-            `分鐘「${minutes}」超過 59，請輸入 00-59 之間的數字`;
+          let errorMessage = '';
+          if (hours > 23) {
+            errorMessage += `"時"數「${hours}」超過 23，請輸入 00-23 之間的數字\n`;
+          }
+          if (minutes > 59) {
+            errorMessage += `"分"數「${minutes}」超過 59，請輸入 00-59 之間的數字\n`;
+          }
           FormValidator.showValidationError(errorMessage, input);
         }
       } else {
