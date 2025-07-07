@@ -1002,6 +1002,13 @@ const EventManager = {
     // 清空表單
     DOM_CACHE.clearFormInputs();
     
+    // 清除所有錯誤訊息
+    const inputs = DOM_CACHE.getFormInputs();
+    if (inputs.dateInput) FormValidator.clearValidationError(inputs.dateInput);
+    if (inputs.startTimeInput) FormValidator.clearValidationError(inputs.startTimeInput);
+    if (inputs.endTimeInput) FormValidator.clearValidationError(inputs.endTimeInput);
+    if (inputs.notesInput) FormValidator.clearValidationError(inputs.notesInput);
+    
     // 重置選中的日期
     DOM.chat.setSelectedDate(null);
     
@@ -7112,6 +7119,12 @@ DOM.events.add(document, 'DOMContentLoaded', function() {
 const initScheduleFormInputs = (formElement) => {
   console.log('initScheduleFormInputs() called: 初始化表單欄位');
   console.log('initScheduleFormInputs() formElement:', formElement);
+  
+  // 清除所有錯誤訊息
+  const inputs = formElement.querySelectorAll('input, textarea');
+  inputs.forEach(input => {
+    FormValidator.clearValidationError(input);
+  });
   
   // 日期 input
   const dateInput = formElement.querySelector('#schedule-date');
