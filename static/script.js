@@ -341,13 +341,64 @@ const CONFIG = {
   },
   
   // 日期選擇器配置
-  DATE_PICKER: {
-    MAX_MONTHS_AHEAD: 3,  // 最多可選擇幾個月後的日期
-    BUSINESS_HOURS: {
-      START: '09:00', // 營業時間開始時間
-      END: '22:00' // 營業時間結束時間
-    }
-  },
+    DATE_PICKER: {
+      MAX_MONTHS_AHEAD: 3,  // 最多可選擇幾個月後的日期
+      BUSINESS_HOURS: {
+        START: '09:00', // 營業時間開始時間
+        END: '22:00' // 營業時間結束時間
+      },
+      CALENDAR: {
+        WEEKS_TO_DISPLAY: 6,     // 顯示的週數
+        DAYS_PER_WEEK: 7,        // 每週天數
+        TOTAL_CELLS: 42,         // 總格子數 (6週 × 7天)
+        MONTHS_IN_YEAR: 12,      // 一年中的月份數
+        FIRST_MONTH_INDEX: 0,    // 第一個月份的索引
+        LAST_MONTH_INDEX: 11     // 最後一個月份的索引
+      },
+      TIME: {
+        MIN_HOURS: 0,            // 最小小時數
+        MAX_HOURS: 23,           // 最大小時數
+        MIN_MINUTES: 0,          // 最小分鐘數
+        MAX_MINUTES: 59,         // 最大分鐘數
+        TIME_INPUT_LENGTH: 4,    // 時間輸入長度
+        HOURS_START: 0,          // 小時開始位置
+        HOURS_END: 2,            // 小時結束位置
+        MINUTES_START: 2,        // 分鐘開始位置
+        MINUTES_END: 4,          // 分鐘結束位置
+        REGEX: {
+          HOURS_PATTERN: '([01]?[0-9]|2[0-3])',  // 小時正則表達式
+          MINUTES_PATTERN: '[0-5][0-9]'           // 分鐘正則表達式
+        }
+      },
+      FORMAT: {
+        PADDING_LENGTH: 2,       // 補零長度
+        PADDING_CHAR: '0'        // 補零字符
+      },
+      REGEX: {
+        DATE_PATTERN: '\\d{4}\\/\\d{2}\\/\\d{2}',  // 日期正則表達式
+        SCHEDULE_PATTERN: '(\\d{4}\\/\\d{2}\\/\\d{2})\\s+(\\d{2}:\\d{2})-(\\d{2}:\\d{2})'  // 時段正則表達式
+      },
+      LOCALE_OPTIONS: {
+        HOUR: '2-digit',
+        MINUTE: '2-digit',
+        HOUR12: false
+      },
+      SEPARATORS: {
+        TIME: ':',                // 時間分隔符
+        DATE: '/',                // 日期分隔符
+        SCHEDULE: '-',            // 時段分隔符
+        PERIOD: '~'               // 時段範圍分隔符
+      },
+      CALCULATION: {
+        MINUTES_PER_HOUR: 60,    // 每小時分鐘數
+        MONTH_OFFSET: 1          // 月份偏移量（JavaScript 月份從 0 開始）
+      },
+      MONTH_NAMES: [
+        '一月', '二月', '三月', '四月', '五月', '六月',
+        '七月', '八月', '九月', '十月', '十一月', '十二月'
+      ],
+      WEEKDAYS: ['日', '一', '二', '三', '四', '五', '六']
+    },
   
   // 快取配置
   CACHE: {
@@ -1425,10 +1476,10 @@ const DateUtils = {
     if (isNaN(d.getTime())) return '';
     
     const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + CONFIG.DATE_PICKER.CALCULATION.MONTH_OFFSET).padStart(CONFIG.DATE_PICKER.FORMAT.PADDING_LENGTH, CONFIG.DATE_PICKER.FORMAT.PADDING_CHAR);
+    const day = String(d.getDate()).padStart(CONFIG.DATE_PICKER.FORMAT.PADDING_LENGTH, CONFIG.DATE_PICKER.FORMAT.PADDING_CHAR);
     
-    const formatted = `${year}/${month}/${day}`;
+    const formatted = `${year}${CONFIG.DATE_PICKER.SEPARATORS.DATE}${month}${CONFIG.DATE_PICKER.SEPARATORS.DATE}${day}`;
     Logger.debug('DateUtils.formatDate: 格式化結果', { original: date, formatted });
     return formatted;
   },
@@ -1441,10 +1492,10 @@ const DateUtils = {
     const d = new Date(date);
     if (isNaN(d.getTime())) return '';
     
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(CONFIG.DATE_PICKER.FORMAT.PADDING_LENGTH, CONFIG.DATE_PICKER.FORMAT.PADDING_CHAR);
+    const minutes = String(d.getMinutes()).padStart(CONFIG.DATE_PICKER.FORMAT.PADDING_LENGTH, CONFIG.DATE_PICKER.FORMAT.PADDING_CHAR);
     
-    const formatted = `${hours}:${minutes}`;
+    const formatted = `${hours}${CONFIG.DATE_PICKER.SEPARATORS.TIME}${minutes}`;
     Logger.debug('DateUtils.formatTime: 格式化結果', { original: date, formatted });
     return formatted;
   },
@@ -1458,9 +1509,9 @@ const DateUtils = {
     if (isNaN(d.getTime())) return '';
     
     const formatted = d.toLocaleTimeString('zh-TW', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
+      hour: CONFIG.DATE_PICKER.LOCALE_OPTIONS.HOUR,
+      minute: CONFIG.DATE_PICKER.LOCALE_OPTIONS.MINUTE,
+      hour12: CONFIG.DATE_PICKER.LOCALE_OPTIONS.HOUR12
     });
     
     Logger.debug('DateUtils.formatToLocalTime: 格式化結果', { original: date, formatted });
@@ -1487,8 +1538,8 @@ const DateUtils = {
     // 將時間字串轉換為分鐘數（內部工具函式）
     const parseTime = (timeStr) => {
       Logger.debug('DateUtils.compareTimes.parseTime called', { timeStr });
-      const [hours, minutes] = timeStr.split(':').map(Number);
-      return hours * 60 + minutes;
+      const [hours, minutes] = timeStr.split(CONFIG.DATE_PICKER.SEPARATORS.TIME).map(Number);
+      return hours * CONFIG.DATE_PICKER.CALCULATION.MINUTES_PER_HOUR + minutes;
     };
     
     const minutes1 = parseTime(time1);
@@ -1508,7 +1559,7 @@ const DateUtils = {
       return false;
     }
     
-    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    const timeRegex = new RegExp(`^(${CONFIG.DATE_PICKER.TIME.REGEX.HOURS_PATTERN}):${CONFIG.DATE_PICKER.TIME.REGEX.MINUTES_PATTERN}$`);
     const isValid = timeRegex.test(timeStr);
     
     console.log('DateUtils.isValidTimeFormat: 驗證結果', { isValid });
@@ -1524,17 +1575,17 @@ const DateUtils = {
       return false;
     }
     
-    const dateRegex = /^\d{4}\/\d{2}\/\d{2}$/;
+    const dateRegex = new RegExp(`^${CONFIG.DATE_PICKER.REGEX.DATE_PATTERN}$`);
     if (!dateRegex.test(dateStr)) {
       console.log('DateUtils.isValidDateFormat: 驗證結果', { isValid: false, reason: '格式不符' });
       return false;
     }
     
-    const [year, month, day] = dateStr.split('/').map(Number);
-    const date = new Date(year, month - 1, day);
+    const [year, month, day] = dateStr.split(CONFIG.DATE_PICKER.SEPARATORS.DATE).map(Number);
+    const date = new Date(year, month - CONFIG.DATE_PICKER.CALCULATION.MONTH_OFFSET, day);
     
     const isValid = date.getFullYear() === year &&
-                   date.getMonth() === month - 1 &&
+                   date.getMonth() === month - CONFIG.DATE_PICKER.CALCULATION.MONTH_OFFSET &&
                    date.getDate() === day;
     
     console.log('DateUtils.isValidDateFormat: 驗證結果', { isValid });
@@ -1559,7 +1610,7 @@ const DateUtils = {
       
       // 匹配格式：日期 時間範圍
       // 例如：2024/01/15 14:00-16:00
-      const scheduleRegex = /(\d{4}\/\d{2}\/\d{2})\s+(\d{2}:\d{2})-(\d{2}:\d{2})/;
+      const scheduleRegex = new RegExp(CONFIG.DATE_PICKER.REGEX.SCHEDULE_PATTERN);
       const match = trimmedLine.match(scheduleRegex);
       
       if (match) {
@@ -4742,9 +4793,7 @@ const DOM = {
         console.log('DOM.chat.initDatePicker: 更新月份年份顯示');
         const monthYearElement = DOM_CACHE.currentMonthYear;
         if (monthYearElement) {
-          const monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', 
-                             '七月', '八月', '九月', '十月', '十一月', '十二月'];
-          monthYearElement.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+                  monthYearElement.textContent = `${CONFIG.DATE_PICKER.MONTH_NAMES[currentMonth]} ${currentYear}`;
         }
       };
       
@@ -4764,7 +4813,7 @@ const DOM = {
         const today = new Date();
         const selectedDate = DOM.chat.getSelectedDate();
         
-        for (let i = 0; i < 42; i++) {
+        for (let i = 0; i < CONFIG.DATE_PICKER.CALENDAR.TOTAL_CELLS; i++) {
           const date = new Date(startDate);
           date.setDate(startDate.getDate() + i);
           
@@ -4854,8 +4903,8 @@ const DOM = {
         DOM.events.add(newPrevMonthBtn, 'click', () => {
           console.log('DOM.chat.initDatePicker: 上個月按鈕被點擊');
           currentMonth--;
-          if (currentMonth < 0) {
-            currentMonth = 11;
+          if (currentMonth < CONFIG.DATE_PICKER.CALENDAR.FIRST_MONTH_INDEX) {
+            currentMonth = CONFIG.DATE_PICKER.CALENDAR.LAST_MONTH_INDEX;
             currentYear--;
           }
           updateMonthYear();
@@ -4874,8 +4923,8 @@ const DOM = {
         DOM.events.add(newNextMonthBtn, 'click', () => {
           console.log('DOM.chat.initDatePicker: 下個月按鈕被點擊');
           currentMonth++;
-          if (currentMonth > 11) {
-            currentMonth = 0;
+          if (currentMonth > CONFIG.DATE_PICKER.CALENDAR.LAST_MONTH_INDEX) {
+            currentMonth = CONFIG.DATE_PICKER.CALENDAR.FIRST_MONTH_INDEX;
             currentYear++;
           }
           updateMonthYear();
@@ -4970,23 +5019,24 @@ const DOM = {
     processTimeInput: (input, value) => {
       console.log('DOM.chat.processTimeInput called：處理時間輸入', { value });
       
-      if (value.length === 4) {
-        const hours = parseInt(value.substring(0, 2));
-        const minutes = parseInt(value.substring(2, 4));
+      if (value.length === CONFIG.DATE_PICKER.TIME.TIME_INPUT_LENGTH) {
+        const hours = parseInt(value.substring(CONFIG.DATE_PICKER.TIME.HOURS_START, CONFIG.DATE_PICKER.TIME.HOURS_END));
+        const minutes = parseInt(value.substring(CONFIG.DATE_PICKER.TIME.MINUTES_START, CONFIG.DATE_PICKER.TIME.MINUTES_END));
         // 先格式化為 HH:MM 格式
-        const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+        const formattedTime = `${String(hours).padStart(CONFIG.DATE_PICKER.FORMAT.PADDING_LENGTH, CONFIG.DATE_PICKER.FORMAT.PADDING_CHAR)}${CONFIG.DATE_PICKER.SEPARATORS.TIME}${String(minutes).padStart(CONFIG.DATE_PICKER.FORMAT.PADDING_LENGTH, CONFIG.DATE_PICKER.FORMAT.PADDING_CHAR)}`;
         input.value = formattedTime;
         
-        if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+        if (hours >= CONFIG.DATE_PICKER.TIME.MIN_HOURS && hours <= CONFIG.DATE_PICKER.TIME.MAX_HOURS && 
+            minutes >= CONFIG.DATE_PICKER.TIME.MIN_MINUTES && minutes <= CONFIG.DATE_PICKER.TIME.MAX_MINUTES) {
           DOM.chat.checkBusinessHours(input, formattedTime);
         } else {
           // 顯示錯誤訊息
           let errorMessage = '';
-          if (hours > 23) {
-            errorMessage += `"時"數「${hours}」超過 23，請輸入 00-23 之間的數字\n`;
+          if (hours > CONFIG.DATE_PICKER.TIME.MAX_HOURS) {
+            errorMessage += `"時"數「${hours}」超過 ${CONFIG.DATE_PICKER.TIME.MAX_HOURS}，請輸入 00-${CONFIG.DATE_PICKER.TIME.MAX_HOURS} 之間的數字\n`;
           }
-          if (minutes > 59) {
-            errorMessage += `"分"數「${minutes}」超過 59，請輸入 00-59 之間的數字\n`;
+          if (minutes > CONFIG.DATE_PICKER.TIME.MAX_MINUTES) {
+            errorMessage += `"分"數「${minutes}」超過 ${CONFIG.DATE_PICKER.TIME.MAX_MINUTES}，請輸入 00-${CONFIG.DATE_PICKER.TIME.MAX_MINUTES} 之間的數字\n`;
           }
           FormValidator.showValidationError(errorMessage, input);
           return; // 時間無效時直接返回，不進行後續處理
@@ -4994,7 +5044,7 @@ const DOM = {
       } else {
         // 非4位數字，保留原始輸入並顯示錯誤訊息
         input.value = value;
-        FormValidator.showValidationError('目前輸入內容非 4 位數字，請輸入 4 位數字', input);
+        FormValidator.showValidationError(`目前輸入內容非 ${CONFIG.DATE_PICKER.TIME.TIME_INPUT_LENGTH} 位數字，請輸入 ${CONFIG.DATE_PICKER.TIME.TIME_INPUT_LENGTH} 位數字`, input);
       }
     },
     
@@ -5367,14 +5417,14 @@ const DOM = {
       console.log('DOM.chat.formatScheduleWithWeekday called', { date, startTime, endTime });
       
       // 解析日期字串 (YYYY/MM/DD)
-      const dateParts = date.split('/');
+      const dateParts = date.split(CONFIG.DATE_PICKER.SEPARATORS.DATE);
       if (dateParts.length !== 3) {
         console.warn('DOM.chat.formatScheduleWithWeekday: 日期格式不正確', { date });
-        return `${date} ${startTime}~${endTime}`;
+        return `${date} ${startTime}${CONFIG.DATE_PICKER.SEPARATORS.PERIOD}${endTime}`;
       }
       
       const year = parseInt(dateParts[0]);
-      const month = parseInt(dateParts[1]) - 1; // JavaScript 月份從 0 開始
+      const month = parseInt(dateParts[1]) - CONFIG.DATE_PICKER.CALCULATION.MONTH_OFFSET; // JavaScript 月份從 0 開始
       const day = parseInt(dateParts[2]);
       
       // 創建 Date 物件
@@ -5383,15 +5433,15 @@ const DOM = {
       // 檢查日期是否有效
       if (isNaN(dateObj.getTime())) {
         console.warn('DOM.chat.formatScheduleWithWeekday: 無效的日期', { date });
-        return `${date} ${startTime}~${endTime}`;
+        return `${date} ${startTime}${CONFIG.DATE_PICKER.SEPARATORS.PERIOD}${endTime}`;
       }
       
       // 星期幾陣列
-      const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+      const weekdays = CONFIG.DATE_PICKER.WEEKDAYS;
       const weekday = weekdays[dateObj.getDay()];
       
       // 格式化輸出
-      const formattedSchedule = `${date}（週${weekday}）${startTime}~${endTime}`;
+      const formattedSchedule = `${date}（週${weekday}）${startTime}${CONFIG.DATE_PICKER.SEPARATORS.PERIOD}${endTime}`;
       console.log('DOM.chat.formatScheduleWithWeekday: 格式化結果', { formattedSchedule });
       
       return formattedSchedule;
