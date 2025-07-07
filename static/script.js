@@ -1632,7 +1632,7 @@ const FormValidator = {
       DATE_TOO_FAR: '不能預約超過一年後的日期',
       START_TIME_REQUIRED: '請輸入開始時間',
       END_TIME_REQUIRED: '請輸入結束時間',
-      TIME_INVALID: '非 4 位數字，系統將自動設定為 4 位數字',
+      TIME_INVALID: '目前輸入內容非 4 位數字，請輸入 4 位數字',
       TIME_LOGIC: '結束時間必須晚於開始時間',
       TIME_BUSINESS_HOURS: '輸入時間必須在營業時間內（09:00-22:00）',
       NOTES_TOO_LONG: '備註不能超過 500 個字符',
@@ -4727,41 +4727,10 @@ const DOM = {
             `分鐘「${minutes}」超過 59，請輸入 00-59 之間的數字`;
           FormValidator.showValidationError(errorMessage, input);
         }
-      } else if (value.length === 3) {
-        const hours = parseInt(value.substring(0, 2));
-        const minutes = parseInt(value.substring(2, 3)) * 10; // 補 0
-        
-        if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-          const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-          input.value = formattedTime;
-          DOM.chat.checkBusinessHours(input, formattedTime);
-        } else {
-          // 保留原始數字，不自動清空
-          input.value = value;
-          // 顯示錯誤訊息
-          const errorMessage = hours > 23 ? 
-            `時數「${hours}」超過 23，請輸入 00-23 之間的數字` :
-            `分鐘「${minutes}」超過 59，請輸入 00-59 之間的數字`;
-          FormValidator.showValidationError(errorMessage, input);
-        }
-      } else if (value.length === 2) {
-        const hours = parseInt(value);
-        if (hours >= 0 && hours <= 23) {
-          const formattedTime = `${String(hours).padStart(2, '0')}:00`;
-          input.value = formattedTime;
-          DOM.chat.checkBusinessHours(input, formattedTime);
-        } else {
-          // 保留原始數字，不自動清空
-          input.value = value;
-          // 顯示錯誤訊息
-          FormValidator.showValidationError(`時數「${hours}」超過 23，請輸入 00-23 之間的數字`, input);
-        }
-      } else if (value.length === 1) {
-        const formattedTime = `${value}:00`;
-        input.value = formattedTime;
-        DOM.chat.checkBusinessHours(input, formattedTime);
       } else {
-        input.value = '';
+        // 非4位數字，保留原始輸入並顯示錯誤訊息
+        input.value = value;
+        FormValidator.showValidationError('目前輸入內容非 4 位數字，請輸入 4 位數字', input);
       }
     },
     
@@ -4784,49 +4753,7 @@ const DOM = {
         return;
       }
       
-      if (numbers.length === 1) {
-        const formattedTime = `${numbers}:00`;
-        input.value = formattedTime;
-        DOM.chat.checkBusinessHours(input, formattedTime);
-        return;
-      }
-      
-      if (numbers.length === 2) {
-        const hours = parseInt(numbers);
-        if (hours >= 0 && hours <= 23) {
-          const formattedTime = `${String(hours).padStart(2, '0')}:00`;
-          input.value = formattedTime;
-          DOM.chat.checkBusinessHours(input, formattedTime);
-        } else {
-          // 保留原始數字，不自動清空
-          input.value = numbers;
-          // 顯示錯誤訊息
-          FormValidator.showValidationError(`時數「${hours}」超過 23，請輸入 00-23 之間的數字`, input);
-        }
-        return;
-      }
-      
-      if (numbers.length === 3) {
-        const hours = parseInt(numbers.substring(0, 2));
-        const minutes = parseInt(numbers.substring(2, 3)) * 10; // 補 0
-        
-        if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-          const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-          input.value = formattedTime;
-          DOM.chat.checkBusinessHours(input, formattedTime);
-        } else {
-          // 保留原始數字，不自動清空
-          input.value = numbers;
-          // 顯示錯誤訊息
-          const errorMessage = hours > 23 ? 
-            `時數「${hours}」超過 23，請輸入 00-23 之間的數字` :
-            `分鐘「${minutes}」超過 59，請輸入 00-59 之間的數字`;
-          FormValidator.showValidationError(errorMessage, input);
-        }
-        return;
-      }
-      
-      if (numbers.length >= 4) {
+      if (numbers.length === 4) {
         const hours = parseInt(numbers.substring(0, 2));
         const minutes = parseInt(numbers.substring(2, 4));
         
@@ -4843,6 +4770,11 @@ const DOM = {
             `分鐘「${minutes}」超過 59，請輸入 00-59 之間的數字`;
           FormValidator.showValidationError(errorMessage, input);
         }
+        return;
+      } else {
+        // 非4位數字，保留原始輸入並顯示錯誤訊息
+        input.value = numbers;
+        FormValidator.showValidationError('目前輸入內容非 4 位數字，請輸入 4 位數字', input);
         return;
       }
       
