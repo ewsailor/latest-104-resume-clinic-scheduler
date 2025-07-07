@@ -1440,7 +1440,7 @@ const EventManager = {
     Logger.info('EventManager: 日曆日期被點擊', { date });
     
     // 立即驗證選擇的日期
-    if (date && !DateUtils.validateDateWithinThreeMonths(date)) {
+    if (date && !DateUtils.validateDateWithinAllowedMonths(date, true)) {
       return; // 不設定選中的日期，讓使用者重新選擇
     }
     
@@ -1748,58 +1748,49 @@ const DateUtils = {
     return DateUtils.formatDate(DateUtils.getToday());
   },
   
-  // 新增：驗證日期是否在允許的月份範圍內
-  isDateWithinAllowedMonths: (date) => {
-    console.log('DateUtils.isDateWithinAllowedMonths called', { date });
+  // 驗證日期是否在允許的月份範圍內
+  validateDateWithinAllowedMonths: (date, showError = false) => {
+    console.log('DateUtils.validateDateWithinAllowedMonths called', { date, showError });
     
     if (!date) {
-      console.log('DateUtils.isDateWithinAllowedMonths: 驗證結果', { isValid: false, reason: '日期為空' });
+      console.log('DateUtils.validateDateWithinAllowedMonths: 驗證結果', { isValid: false, reason: '日期為空' });
+      if (showError) {
+        FormValidator.showValidationError(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_REQUIRED);
+      }
       return false;
     }
     
     const today = DateUtils.getToday();
     const selectedDateObj = new Date(date);
     const maxMonthsAhead = CONFIG.DATE_PICKER.MAX_MONTHS_AHEAD;
-    const maxAllowedDate = new Date(today.getFullYear(), today.getMonth() + maxMonthsAhead, today.getDate());
     
-    const isValid = selectedDateObj <= maxAllowedDate;
-    console.log('DateUtils.isDateWithinAllowedMonths: 驗證結果', { 
+    // 修正：使用相同的時區進行比較，避免時區轉換問題
+    // 將日期轉換為 YYYY/MM/DD 格式進行比較，避免時區影響
+    const todayStr = DateUtils.formatDate(today);
+    const selectedDateStr = DateUtils.formatDate(selectedDateObj);
+    const maxAllowedDate = new Date(today.getFullYear(), today.getMonth() + maxMonthsAhead, today.getDate());
+    const maxAllowedDateStr = DateUtils.formatDate(maxAllowedDate);
+    
+    // 使用字串比較，避免時區問題
+    const isValid = selectedDateStr <= maxAllowedDateStr;
+    
+    console.log('DateUtils.validateDateWithinAllowedMonths: 驗證結果', { 
       date, 
-      today: DateUtils.formatDate(today), 
+      today: todayStr, 
+      selectedDate: selectedDateStr,
       maxMonthsAhead,
-      maxAllowedDate: DateUtils.formatDate(maxAllowedDate), 
+      maxAllowedDate: maxAllowedDateStr, 
       isValid 
     });
     
-    return isValid;
-  },
-  
-  // 向後相容：保留舊的函數名稱
-  isDateWithinThreeMonths: (date) => {
-    console.log('DateUtils.isDateWithinThreeMonths called (已棄用，請使用 isDateWithinAllowedMonths)', { date });
-    return DateUtils.isDateWithinAllowedMonths(date);
-  },
-  
-  // 新增：驗證日期並顯示錯誤訊息（如果超過允許的月份範圍）
-  validateDateWithinAllowedMonths: (date) => {
-    console.log('DateUtils.validateDateWithinAllowedMonths called', { date });
-    
-    if (!DateUtils.isDateWithinAllowedMonths(date)) {
-      const maxMonthsAhead = CONFIG.DATE_PICKER.MAX_MONTHS_AHEAD;
+    // 如果需要顯示錯誤訊息且驗證失敗
+    if (!isValid && showError) {
       console.log(`DateUtils.validateDateWithinAllowedMonths: 日期超過${maxMonthsAhead}個月，顯示錯誤訊息`);
       FormValidator.showValidationError(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_TOO_FAR);
-      return false; // 驗證失敗
     }
     
-    console.log('DateUtils.validateDateWithinAllowedMonths: 日期驗證通過');
-    return true; // 驗證成功
-  },
-  
-  // 向後相容：保留舊的函數名稱
-  validateDateWithinThreeMonths: (date) => {
-    console.log('DateUtils.validateDateWithinThreeMonths called (已棄用，請使用 validateDateWithinAllowedMonths)', { date });
-    return DateUtils.validateDateWithinAllowedMonths(date);
-  }
+    return isValid;
+  },  
 };
 
 // =================================================================
@@ -2028,7 +2019,7 @@ const FormValidator = {
         }
         
         // 檢查是否超過 3 個月
-        if (!DateUtils.isDateWithinThreeMonths(selectedDate)) {
+        if (!DateUtils.validateDateWithinAllowedMonths(selectedDate)) {
           // 檢查是否已經有超過3個月錯誤訊息
           const dateInput = document.getElementById('schedule-date');
           const hasExistingTooFarError = dateInput && dateInput.parentNode.querySelector('.validation-error.error-visible') && 
@@ -4962,12 +4953,12 @@ const DOM = {
           if (date < today && date.toDateString() !== today.toDateString()) {
             dateCell.classList.add('disabled');
           } else {
-            // 添加點擊事件
+            // 為所有非過去的日期添加點擊事件（包括超過3個月的日期）
             DOM.events.add(dateCell, 'click', () => {
               console.log('DOM.chat.initDatePicker: 日期被點擊', date);
               
               // 立即驗證選擇的日期
-              if (!DateUtils.validateDateWithinThreeMonths(date)) {
+              if (!DateUtils.validateDateWithinAllowedMonths(date, true)) {
                 return; // 不設定日期，不關閉 modal，讓使用者重新選擇
               }
               
@@ -4985,13 +4976,8 @@ const DOM = {
                 dateInput.value = formattedDate;
                 console.log('DOM.chat.initDatePicker: 日期已設定', formattedDate);
                 
-                // 驗證設定的日期
-                const validationResult = FormValidator.validateField('date', formattedDate, 'schedule');
-                if (!validationResult.isValid) {
-                  FormValidator.showValidationError(validationResult.errorMessage, dateInput);
-                } else {
-                  FormValidator.clearValidationError(dateInput);
-                }
+                // 清除任何現有的錯誤訊息
+                FormValidator.clearValidationError(dateInput);
               }
               // 關閉 Modal
               const datePickerModal = bootstrap.Modal.getInstance(document.getElementById('date-picker-modal'));
@@ -5008,6 +4994,11 @@ const DOM = {
                 DOM_CACHE.resetDatePicker();
               }, 200);
             });
+          }
+          
+          // 檢查是否超過允許的月份範圍（視覺上變灰，但仍可點擊）
+          if (!DateUtils.validateDateWithinAllowedMonths(date)) {
+            dateCell.classList.add('disabled', 'too-far');
           }
           
           calendarElement.appendChild(dateCell);
@@ -5066,16 +5057,17 @@ const DOM = {
           console.log('DOM.chat.initDatePicker: 確定按鈕被點擊');
           const selectedDate = DOM.chat.getSelectedDate();
           if (selectedDate) {
+            // 立即驗證選擇的日期
+            if (!DateUtils.validateDateWithinAllowedMonths(selectedDate, true)) {
+              return; // 不關閉 modal，讓使用者重新選擇
+            }
+            
+            // 驗證通過後才設定日期
             const dateInput = DOM_CACHE.dateInput;
             if (dateInput) {
               const formattedDate = DateUtils.formatDate(selectedDate);
               dateInput.value = formattedDate;
               console.log('DOM.chat.initDatePicker: 日期已設定', formattedDate);
-              
-              // 立即驗證選擇的日期
-              if (!DateUtils.validateDateWithinThreeMonths(selectedDate)) {
-                return; // 不關閉 modal，讓使用者重新選擇
-              }
             }
           }
           
@@ -5238,7 +5230,7 @@ const DOM = {
       }
       
       // 檢查是否超過 3 個月
-      if (!DateUtils.isDateWithinThreeMonths(selectedDate)) {
+      if (!DateUtils.validateDateWithinAllowedMonths(selectedDate)) {
         FormValidator.showValidationError(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_TOO_FAR, input);
         return;
       }

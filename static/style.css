@@ -1197,6 +1197,12 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
     border-color: var(--border-color-light);
 }
 
+/* 超過3個月的日期：變灰但可點擊 */
+.date-cell.disabled.too-far {
+    cursor: var(--cursor-pointer);
+    opacity: 0.6;
+}
+
 .date-cell.today {
     border-color: var(--primary-orange);
     font-weight: var(--font-weight-semibold);
