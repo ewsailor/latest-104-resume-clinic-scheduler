@@ -1028,14 +1028,20 @@ const EventManager = {
     const validationResult = FormValidator.validateScheduleForm(formData);
     if (!validationResult.isValid) {
       console.warn('EventManager: 表單驗證失敗', validationResult);
-      // 時間相關錯誤使用彈出顯示
-      if (validationResult.message && (
-        (validationResult.message.includes('結束時間') && validationResult.message.includes('必須晚於開始時間')) ||
-        validationResult.message.includes('時間必須在營業時間內')
-      )) {
-        FormValidator.showValidationError(validationResult.message);
-      } else {
-        FormValidator.showValidationError(validationResult.message, form);
+      
+      // 過濾掉隱藏的錯誤訊息
+      const visibleErrors = validationResult.errors.filter(error => error !== '__HIDDEN_ERROR__');
+      
+      if (visibleErrors.length > 0) {
+        // 時間相關錯誤使用彈出顯示
+        if (validationResult.message && validationResult.message !== '__HIDDEN_ERROR__' && (
+          (validationResult.message.includes('結束時間') && validationResult.message.includes('必須晚於開始時間')) ||
+          validationResult.message.includes('時間必須在營業時間內')
+        )) {
+          FormValidator.showValidationError(validationResult.message);
+        } else if (visibleErrors.length > 0) {
+          FormValidator.showValidationError(visibleErrors[0], form);
+        }
       }
       return;
     }
@@ -1780,14 +1786,32 @@ const FormValidator = {
     if (rules.TIME.REQUIRED && (!formData.startTime || !formData.startTime.trim())) {
       errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.START_TIME_REQUIRED);
     } else if (formData.startTime && !DateUtils.isValidTimeFormat(formData.startTime)) {
-      errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.TIME_INVALID);
+      // 檢查是否已經有錯誤訊息
+      const startTimeInput = document.getElementById('schedule-start-time');
+      const hasExistingError = startTimeInput && startTimeInput.parentNode.querySelector('.validation-error.error-visible');
+      if (!hasExistingError) {
+        // 如果沒有現有錯誤訊息，添加預設錯誤訊息
+        errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.TIME_INVALID);
+      } else {
+        // 如果有現有錯誤訊息，添加一個隱藏的錯誤來阻止表單提交，但不顯示新訊息
+        errors.push('__HIDDEN_ERROR__');
+      }
     }
     
     // 驗證結束時間
     if (rules.TIME.REQUIRED && (!formData.endTime || !formData.endTime.trim())) {
       errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.END_TIME_REQUIRED);
     } else if (formData.endTime && !DateUtils.isValidTimeFormat(formData.endTime)) {
-      errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.TIME_INVALID);
+      // 檢查是否已經有錯誤訊息
+      const endTimeInput = document.getElementById('schedule-end-time');
+      const hasExistingError = endTimeInput && endTimeInput.parentNode.querySelector('.validation-error.error-visible');
+      if (!hasExistingError) {
+        // 如果沒有現有錯誤訊息，添加預設錯誤訊息
+        errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.TIME_INVALID);
+      } else {
+        // 如果有現有錯誤訊息，添加一個隱藏的錯誤來阻止表單提交，但不顯示新訊息
+        errors.push('__HIDDEN_ERROR__');
+      }
     }
     
     // 驗證時間邏輯
@@ -4737,6 +4761,7 @@ const DOM = {
             errorMessage += `"分"數「${minutes}」超過 59，請輸入 00-59 之間的數字\n`;
           }
           FormValidator.showValidationError(errorMessage, input);
+          return; // 時間無效時直接返回，不進行後續處理
         }
       } else {
         // 非4位數字，保留原始輸入並顯示錯誤訊息
