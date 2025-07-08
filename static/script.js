@@ -498,6 +498,31 @@ const CONFIG = {
       weekday: "週二",
       time: "20:00~22:00"
     }
+  },
+  
+  // UI 文字配置
+  UI_TEXT: {
+    BUTTONS: {
+      CANCEL_RESERVATION: '取消預約',
+      CANCEL_OPTION: '取消此選項',
+      CANCEL_SCHEDULE: '取消本次預約 Giver 時間',
+      VIEW_GIVER_TIME: '查看 Giver 方便的時間',
+      VIEW_MY_SCHEDULES_RESERVATION: '查看我已預約 Giver 的時間',
+      VIEW_MY_SCHEDULES_PROVIDE: '查看我已提供時段的狀態',
+      PROVIDE_SINGLE_TIME: '提供單筆方便時段',
+      PROVIDE_MULTIPLE_TIMES: '提供多筆方便時段',
+      PROVIDE_MY_TIME: '提供我方便的時間給 Giver',
+      PROVIDE_MY_TIME_NOT_AVAILABLE: '可惜 Giver 提供的時間目前我都不方便，讓我提供我方便的時間給 Giver',
+      CONTINUE_PROVIDE_SINGLE_TIME: '繼續提供單筆方便時段',
+      CONTINUE_PROVIDE_MULTIPLE_TIMES: '繼續提供多筆方便時段',
+      SUBMIT_SCHEDULES: '已新增完成所有時段，請協助送出給 Giver',
+    },
+    STATUS: {
+      DRAFT: '草稿：尚未送出給 Giver',         
+      PENDING: '成功提供時間，待 Giver 回覆',  
+      COMPLETED: 'Giver 已接受預約',          
+      REJECTED: 'Giver 已拒絕預約',           
+    }
   }
 };
 
@@ -928,19 +953,19 @@ const EventManager = {
       // 處理不同選項
       switch (option) {
         case 'single-time':
-          DOM.chat.addUserMessage('繼續提供單筆方便時段');
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_SINGLE_TIME}`);
           DOM.chat.handleSingleTime();
           break;
         case 'multiple-times':
-          DOM.chat.addUserMessage('繼續提供多筆方便時段');
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_MULTIPLE_TIMES}`);
           DOM.chat.handleMultipleTimes();
           break;
         case 'view-all':
-          DOM.chat.addUserMessage('查看我已提供時段的狀態');
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.VIEW_MY_SCHEDULES_PROVIDE}`);
           DOM.chat.handleViewAllSchedules();
           break;
         case 'finish':
-          DOM.chat.addUserMessage('已新增完成所有時段，請協助送出給 Giver');
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}`);
           // 將草稿時段轉為正式提供時段
           const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
           if (draftSchedules.length > 0) {
@@ -972,7 +997,7 @@ const EventManager = {
           });
           break;
         case 'cancel':
-          DOM.chat.addUserMessage('取消本次預約 Giver 時間');
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}`);
           DOM.chat.handleCancelSchedule();
           break;
         default:
@@ -2702,9 +2727,9 @@ const TEMPLATES = {
         <div class="message-content">
           <p class="message-title">好的！我來幫您安排預約時間。請選擇以下選項：</p>
           <div class="chat-options-buttons mt-2">
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">查看 Giver 方便的時間</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">提供單筆方便時段</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">提供多筆方便時段</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">${CONFIG.UI_TEXT.BUTTONS.VIEW_GIVER_TIME}</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}</button>
             <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">取消本次預約 Giver 時間</button>
           </div>
         </div>
@@ -2757,11 +2782,11 @@ const TEMPLATES = {
         <div class="message-content">
           <p class="message-title">您已成功提供方便時段：${formattedSchedule}${notes ? `<br>備註：${notes}` : ''}<br><br>請選擇接下來的動作：</p>
           <div class="chat-options-buttons mt-2" id="after-schedule-options">
-            <button class="btn btn-outline btn-option" data-option="single-time">繼續提供單筆方便時段</button>
-            <button class="btn btn-outline btn-option" data-option="multiple-times">繼續提供多筆方便時段</button>
-            <button class="btn btn-outline btn-option" data-option="view-all">查看我已提供時段的狀態</button>
-            <button class="btn btn-orange btn-option" data-option="finish">已新增完成所有時段，請協助送出給 Giver</button>
-            <button class="btn btn-outline-secondary btn-option" data-option="cancel">取消本次預約 Giver 時間</button>
+            <button class="btn btn-outline btn-option" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_SINGLE_TIME}</button>
+            <button class="btn btn-outline btn-option" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_MULTIPLE_TIMES}</button>
+            <button class="btn btn-outline btn-option" data-option="view-all">${CONFIG.UI_TEXT.BUTTONS.VIEW_MY_SCHEDULES_PROVIDE}</button>
+            <button class="btn btn-orange btn-option" data-option="finish">${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}</button>
+            <button class="btn btn-outline-secondary btn-option" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
           </div>
         </div>
       </div>
@@ -2776,11 +2801,11 @@ const TEMPLATES = {
         <div class="message-content">
           <p class="message-title">已成功記錄以下時段：<br>{{SCHEDULE_LIST}}<br>共 {{SCHEDULE_COUNT}} 個時段已記錄。<br><br>請選擇接下來的動作：</p>
           <div class="chat-options-buttons mt-2" id="after-multiple-schedule-options">
-            <button class="btn btn-outline btn-option" data-option="single-time">繼續提供單筆方便時段</button>
-            <button class="btn btn-outline btn-option" data-option="multiple-times">繼續提供多筆方便時段</button>
-            <button class="btn btn-outline btn-option" data-option="view-all">查看我已提供時段的狀態</button>
-            <button class="btn btn-orange btn-option" data-option="finish">已新增完成所有時段，請協助送出給 Giver</button>
-            <button class="btn btn-outline-secondary btn-option" data-option="cancel">取消本次預約 Giver 時間</button>
+            <button class="btn btn-outline btn-option" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_SINGLE_TIME}</button>
+            <button class="btn btn-outline btn-option" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_MULTIPLE_TIMES}</button>
+            <button class="btn btn-outline btn-option" data-option="view-all">${CONFIG.UI_TEXT.BUTTONS.VIEW_MY_SCHEDULES_PROVIDE}</button>
+            <button class="btn btn-orange btn-option" data-option="finish">${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}</button>
+            <button class="btn btn-outline-secondary btn-option" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
           </div>
         </div>
       </div>
@@ -2795,10 +2820,10 @@ const TEMPLATES = {
         <div class="message-content">
           <p class="message-title">您目前已提供 ${scheduleCount} 個時段，進度如下：<br>${scheduleList}<br>請選擇接下來的動作：</p>
           <div class="chat-options-buttons mt-2" id="after-view-all-options">
-            <button class="btn btn-outline btn-option" data-option="single-time">繼續提供單筆方便時段</button>
-            <button class="btn btn-outline btn-option" data-option="multiple-times">繼續提供多筆方便時段</button>
-            <button class="btn btn-orange btn-option" data-option="finish">已新增完成所有時段，請協助送出給 Giver</button>
-            <button class="btn btn-outline-secondary btn-option" data-option="cancel">取消本次預約 Giver 時間</button>
+            <button class="btn btn-outline btn-option" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_SINGLE_TIME}</button>
+            <button class="btn btn-outline btn-option" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_MULTIPLE_TIMES}</button>
+            <button class="btn btn-orange btn-option" data-option="finish">${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}</button>
+            <button class="btn btn-outline-secondary btn-option" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
           </div>
         </div>
       </div>
@@ -2819,7 +2844,7 @@ const TEMPLATES = {
         const notes = schedule.notes || '';
         const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
         const statusClass = schedule.isDraft ? 'text-warning' : 'text-success';
-        const statusText = schedule.isDraft ? '草稿：尚未送出給 Giver' : '成功提供時間，待 Giver 回覆';
+        const statusText = schedule.isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING;
         tableRows += `
           <tr data-index="${index}">
             <td class="text-center">${scheduleNumber}</td>
@@ -2861,10 +2886,10 @@ const TEMPLATES = {
             </div>
             <p class="mt-2">請選擇接下來的動作：</p>
             <div class="chat-options-buttons mt-2" id="after-view-all-options">
-              <button class="btn btn-outline btn-option" data-option="single-time">繼續提供單筆方便時段</button>
-              <button class="btn btn-outline btn-option" data-option="multiple-times">繼續提供多筆方便時段</button>
-              <button class="btn btn-orange btn-option" data-option="finish">已新增完成所有時段，請協助送出給 Giver</button>
-              <button class="btn btn-outline-secondary btn-option" data-option="cancel">取消本次預約 Giver 時間</button>
+              <button class="btn btn-outline btn-option" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_SINGLE_TIME}</button>
+              <button class="btn btn-outline btn-option" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_MULTIPLE_TIMES}</button>
+              <button class="btn btn-orange btn-option" data-option="finish">${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}</button>
+              <button class="btn btn-outline-secondary btn-option" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
             </div>
           </div>
         </div>
@@ -2880,11 +2905,11 @@ const TEMPLATES = {
         <div class="message-content">
           <p class="message-title">好的！我來幫您安排預約時間。請選擇以下選項：</p>
           <div class="chat-options-buttons mt-2">
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">查看 Giver 方便的時間</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">提供單筆方便時段</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">提供多筆方便時段</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-all">查看我已提供時段的狀態</button>
-            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">取消本次預約 Giver 時間</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">${CONFIG.UI_TEXT.BUTTONS.VIEW_GIVER_TIME}</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-all">${CONFIG.UI_TEXT.BUTTONS.VIEW_MY_SCHEDULES_PROVIDE}</button>
+            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
           </div>
         </div>
       </div>
@@ -2893,10 +2918,10 @@ const TEMPLATES = {
     // 新增：只有提供時段按鈕的模板
     onlyScheduleButtons: () => `
       <div class="chat-options-buttons mt-2">
-        <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">查看 Giver 方便的時間</button>
-        <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">提供單筆方便時段</button>
-        <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">提供多筆方便時段</button>
-        <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">取消本次預約 Giver 時間</button>
+        <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">${CONFIG.UI_TEXT.BUTTONS.VIEW_GIVER_TIME}</button>
+        <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}</button>
+        <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}</button>
+        <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
       </div>
     `,
 
@@ -2909,10 +2934,10 @@ const TEMPLATES = {
         <div class="message-content">
           <p class="message-title">您目前還沒有提供任何時段，請先提供方便時段，然後再查看。</p>
           <div class="chat-options-buttons mt-2">
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">查看 Giver 方便的時間</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">提供單筆方便時段</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">提供多筆方便時段</button>
-            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">取消本次預約 Giver 時間</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">${CONFIG.UI_TEXT.BUTTONS.VIEW_GIVER_TIME}</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}</button>
+            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
           </div>
         </div>
       </div>
@@ -2927,9 +2952,9 @@ const TEMPLATES = {
         <div class="message-content">
           <p class="message-title">Giver 尚末提供方便的時間。請選擇以下選項：</p>
           <div class="chat-options-buttons mt-2">
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">提供單筆方便時段</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">提供多筆方便時段</button>
-            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">取消本次預約 Giver 時間</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}</button>
+            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
           </div>
         </div>
       </div>
@@ -2944,10 +2969,10 @@ const TEMPLATES = {
         <div class="message-content">
           <p class="message-title">您目前還沒有預約任何 Giver 時間。請選擇以下選項：</p>
           <div class="chat-options-buttons mt-2">
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">查看 Giver 方便的時間</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">提供單筆方便時段</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">提供多筆方便時段</button>
-            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">取消本次預約 Giver 時間</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">${CONFIG.UI_TEXT.BUTTONS.VIEW_GIVER_TIME}</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}</button>
+            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
           </div>
         </div>
       </div>
@@ -2962,8 +2987,8 @@ const TEMPLATES = {
         <div class="message-content">
           <p class="message-title">此功能仍在建置中，請先使用「提供單筆方便時段」方式新增時間，謝謝。</p>
           <div class="chat-options-buttons mt-2" id="multiple-times-under-construction-options">
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">提供單筆方便時段</button>
-            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">取消本次預約 Giver 時間</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}</button>
+            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
           </div>
         </div>
       </div>
@@ -2986,7 +3011,7 @@ const TEMPLATES = {
         tableRows += `
           <tr data-index="${index}">
             <td class="text-center">${scheduleNumber}</td>
-            <td class="text-center text-success">成功提供時間，待 Giver 回覆</td>
+            <td class="text-center text-success">${CONFIG.UI_TEXT.STATUS.PENDING}</td>
             <td class="text-center">${period}</td>
             <td class="text-center">${notes}</td>
             <td class="text-center">
@@ -3051,13 +3076,13 @@ const TEMPLATES = {
             <div class="form-check mb-2">
               <input class="form-check-input" type="checkbox" id="time-option-3" data-option="provide-my-time">
               <label class="form-check-label" for="time-option-3">
-                可惜 Giver 提供的時間目前我都不方便，讓我提供我方便的時間給 Giver
+                ${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME_NOT_AVAILABLE}
               </label>
             </div>
             <div class="form-check mb-2">
               <input class="form-check-input" type="checkbox" id="time-option-4" data-option="cancel">
               <label class="form-check-label" for="time-option-4">
-                取消本次預約 Giver 時間
+                ${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}
               </label>
             </div>
           </div>
@@ -3079,9 +3104,9 @@ const TEMPLATES = {
         <div class="message-content">
           <p class="message-title">好的！請選擇以下選項，提供您方便的時段：</p>
           <div class="chat-options-buttons mt-2">
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">提供單筆方便時段</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">提供多筆方便時段</button>
-            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">取消本次預約 Giver 時間</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}</button>
+            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}</button>
+            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
           </div>
         </div>
       </div>
@@ -3103,12 +3128,12 @@ const TEMPLATES = {
         tableRows += `
           <tr>
             <td class="text-center">${rowIndex}</td>
-            <td class="text-center text-success">預約 Giver 時間成功，待 Giver 回覆</td>
+            <td class="text-center text-success">${CONFIG.UI_TEXT.STATUS.PENDING}</td>
             <td class="text-center">${timeSlot}</td>
             <td class="text-center">-</td>
             <td class="text-center">
               <button class="btn btn-sm btn-outline-danger cancel-reservation-btn" data-option="${option.option}">
-                取消預約此時段
+                ${CONFIG.UI_TEXT.BUTTONS.CANCEL_RESERVATION}
               </button>
             </td>
           </tr>
@@ -3122,11 +3147,11 @@ const TEMPLATES = {
           <tr>
             <td class="text-center">${rowIndex}</td>
             <td class="text-center text-success">預約 Giver 時間成功，待 Giver 回覆</td>
-            <td class="text-center">提供我方便的時間給 Giver</td>
+            <td class="text-center">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME}</td>
             <td class="text-center">-</td>
             <td class="text-center">
               <button class="btn btn-sm btn-outline-danger cancel-reservation-btn" data-option="provide-my-time">
-                取消此選項
+                ${CONFIG.UI_TEXT.BUTTONS.CANCEL_OPTION}
               </button>
             </td>
           </tr>
@@ -3178,7 +3203,7 @@ const TEMPLATES = {
             <td class="text-center">-</td>
             <td class="text-center">
               <button class="btn btn-sm btn-outline-danger cancel-reservation-btn" data-option="${schedule.option}">
-                取消預約此時段
+                ${CONFIG.UI_TEXT.BUTTONS.CANCEL_RESERVATION}
               </button>
             </td>
           </tr>
@@ -3239,7 +3264,7 @@ const TEMPLATES = {
             <td class="text-center text-success">預約成功</td>
             <td class="text-center">
               <button class="btn btn-sm btn-outline-danger cancel-reservation-btn" data-option="${option.option}">
-                取消預約此時段
+                ${CONFIG.UI_TEXT.BUTTONS.CANCEL_RESERVATION}
               </button>
             </td>
           </tr>
@@ -3252,11 +3277,11 @@ const TEMPLATES = {
         tableRows += `
           <tr>
             <td class="text-center">${rowIndex}</td>
-            <td class="text-center">提供我方便的時間給 Giver</td>
+            <td class="text-center">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME}</td>
             <td class="text-center text-warning">待提供</td>
             <td class="text-center">
               <button class="btn btn-sm btn-outline-danger cancel-reservation-btn" data-option="provide-my-time">
-                取消此選項
+                ${CONFIG.UI_TEXT.BUTTONS.CANCEL_OPTION}
               </button>
             </td>
           </tr>
@@ -3316,7 +3341,7 @@ const TEMPLATES = {
             <td class="text-center">-</td>
             <td class="text-center">
               <button class="btn btn-sm btn-outline-danger cancel-reservation-btn" data-option="${option.option}">
-                取消預約此時段
+                ${CONFIG.UI_TEXT.BUTTONS.CANCEL_RESERVATION}
               </button>
             </td>
           </tr>
@@ -3330,11 +3355,11 @@ const TEMPLATES = {
           <tr>
             <td class="text-center">${rowIndex}</td>
             <td class="text-center text-success">預約 Giver 時間成功，待 Giver 回覆</td>
-            <td class="text-center">提供我方便的時間給 Giver</td>
+            <td class="text-center">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME}</td>
             <td class="text-center">-</td>
             <td class="text-center">
               <button class="btn btn-sm btn-outline-danger cancel-reservation-btn" data-option="provide-my-time">
-                取消此選項
+                ${CONFIG.UI_TEXT.BUTTONS.CANCEL_OPTION}
               </button>
             </td>
           </tr>
@@ -4353,7 +4378,7 @@ const DOM = {
       } else if (option === 'demo-time-2') {
         timeSlot = getDemoTimeLabel('demo-time-2');
       } else if (option === 'provide-my-time') {
-        timeSlot = '提供我方便的時間給 Giver';
+        timeSlot = `${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME}`;
       }
       
       // 跳出確認 modal：使用 UIComponents.confirmDialog 函式，顯示一個確認對話框，讓使用者可以確認是否取消預約。
@@ -4649,7 +4674,7 @@ const DOM = {
         bookedSchedules.push({
           type: 'provide-my-time',
           option: 'provide-my-time',
-          timeSlot: '提供我方便的時間給 Giver',
+          timeSlot: `${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME}`,
           status: '預約 Giver 時間成功，待 Giver 回覆'
         });
       }
@@ -5386,7 +5411,7 @@ const DOM = {
               } else if (option === 'view-all') {
                 DOM.chat.handleViewAllSchedules();
               } else if (option === 'finish') {
-                DOM.chat.addUserMessage('已新增完成所有時段，請協助送出給 Giver');
+                DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}`);
                 await delay(DELAY_TIMES.CHAT.RESPONSE);
                 DOM.chat.handleSuccessProvideTime();
               } else if (option === 'cancel') {
@@ -6037,7 +6062,7 @@ const DOM = {
               } else if (option === 'view-all') {
                 DOM.chat.handleViewAllSchedules();
               } else if (option === 'finish') {
-                DOM.chat.addUserMessage('已新增完成所有時段，請協助送出給 Giver');
+                DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}`);
                 await delay(DELAY_TIMES.CHAT.SUCCESS_MESSAGE);
                 DOM.chat.handleSuccessProvideTime();
               } else if (option === 'cancel') {
