@@ -481,6 +481,22 @@ const CONFIG = {
       NO_DATA: '暫無資料',
       EMPTY_RESULT: '搜尋結果為空'
     }
+  },
+  
+  // Demo 預約時間配置
+  DEMO_TIME_SLOTS: {
+    "demo-time-1": {
+      label: "【Demo】預約 2025/09/01（週一）20:00~22:00",
+      date: "2025/09/01",
+      weekday: "週一",
+      time: "20:00~22:00"
+    },
+    "demo-time-2": {
+      label: "【Demo】預約 2025/09/02（週二）20:00~22:00",
+      date: "2025/09/02",
+      weekday: "週二",
+      time: "20:00~22:00"
+    }
   }
 };
 
@@ -555,6 +571,18 @@ const nonBlockingDelay = async (ms, callback) => {
   await delay(ms);
   callback();
 };
+
+// =================================================================
+//   Demo 預約時間工具函數 (Demo Time Slot Utility Functions)
+// =================================================================
+
+// 根據 option 取得對應的 demo 時間標籤
+function getDemoTimeLabel(option) {
+  Logger.debug('getDemoTimeLabel called', { option });
+  const result = CONFIG.DEMO_TIME_SLOTS[option]?.label || "";
+  Logger.debug('getDemoTimeLabel result', { option, result });
+  return result;
+}
 
 // =================================================================
 //   DOM 快取物件 (DOM Cache)
@@ -3000,13 +3028,13 @@ const TEMPLATES = {
             <div class="form-check mb-2">
               <input class="form-check-input" type="checkbox" id="time-option-1" data-option="demo-time-1">
               <label class="form-check-label" for="time-option-1">
-                【Demo】預約 2025/08/02（週六）20:00~22:00
+                ${getDemoTimeLabel('demo-time-1')}
               </label>
             </div>
             <div class="form-check mb-2">
               <input class="form-check-input" type="checkbox" id="time-option-2" data-option="demo-time-2">
               <label class="form-check-label" for="time-option-2">
-                【Demo】預約 2025/08/03（週日）20:00~22:00
+                ${getDemoTimeLabel('demo-time-2')}
               </label>
             </div>
             <div class="form-check mb-2">
@@ -3059,9 +3087,7 @@ const TEMPLATES = {
       
       // Demo 時間選項
       demoTimeOptions.forEach(option => {
-        const timeSlot = option.option === 'demo-time-1' 
-          ? '【Demo】預約 2025/08/02（週六）20:00~22:00'
-          : '【Demo】預約 2025/08/03（週日）20:00~22:00';
+        const timeSlot = getDemoTimeLabel(option.option);
         
         tableRows += `
           <tr>
@@ -3193,9 +3219,7 @@ const TEMPLATES = {
       
       // Demo 時間選項
       demoTimeOptions.forEach(option => {
-        const timeSlot = option.option === 'demo-time-1' 
-          ? '【Demo】預約 2025/08/02（週六）20:00~22:00'
-          : '【Demo】預約 2025/08/03（週日）20:00~22:00';
+        const timeSlot = getDemoTimeLabel(option.option);
         
         tableRows += `
           <tr>
@@ -3271,9 +3295,7 @@ const TEMPLATES = {
       
       // Demo 時間選項
       demoTimeOptions.forEach(option => {
-        const timeSlot = option.option === 'demo-time-1' 
-          ? '【Demo】預約 2025/08/02（週六）20:00~22:00'
-          : '【Demo】預約 2025/08/03（週日）20:00~22:00';
+        const timeSlot = getDemoTimeLabel(option.option);
         
         tableRows += `
           <tr>
@@ -4316,9 +4338,9 @@ const DOM = {
       // 獲取時段名稱：根據 option 的值，設定 timeSlot 的值
       let timeSlot = '';
       if (option === 'demo-time-1') {
-        timeSlot = '【Demo】預約 2025/08/02（週六）20:00~22:00';
+        timeSlot = getDemoTimeLabel('demo-time-1');
       } else if (option === 'demo-time-2') {
-        timeSlot = '【Demo】預約 2025/08/03（週日）20:00~22:00';
+        timeSlot = getDemoTimeLabel('demo-time-2');
       } else if (option === 'provide-my-time') {
         timeSlot = '提供我方便的時間給 Giver';
       }
@@ -4601,9 +4623,7 @@ const DOM = {
       
       // 處理 Demo 時間選項
       demoTimeOptions.forEach(option => {
-        const timeSlot = option.option === 'demo-time-1' 
-          ? '【Demo】預約 2025/08/02（週六）20:00~22:00'
-          : '【Demo】預約 2025/08/03（週日）20:00~22:00';
+        const timeSlot = getDemoTimeLabel(option.option);
         
         bookedSchedules.push({
           type: 'demo',
