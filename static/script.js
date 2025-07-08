@@ -522,6 +522,15 @@ const CONFIG = {
       PENDING: '成功提供時間，待 Giver 回覆',  
       COMPLETED: 'Giver 已接受預約',          
       REJECTED: 'Giver 已拒絕預約',           
+    },
+    TABLE_HEADERS: {
+      FIVE_COLUMNS: {
+        ORDER: '序',
+        STATUS: '狀態',
+        TIME_SLOT: '時段',
+        NOTES: '備註',
+        ACTIONS: '調整'
+      },
     }
   }
 };
@@ -2697,6 +2706,22 @@ const TEMPLATES = {
 
   // 聊天相關模板
   chat: {
+    // 表格標題模板
+    tableHeaders: {
+      // 5 欄位表格標題（序、狀態、時段、備註、調整）
+      fiveColumns: () => `
+        <thead class="table-light">
+          <tr>
+            <th class="text-center">${CONFIG.UI_TEXT.TABLE_HEADERS.FIVE_COLUMNS.ORDER}</th>
+            <th class="text-center">${CONFIG.UI_TEXT.TABLE_HEADERS.FIVE_COLUMNS.STATUS}</th>
+            <th class="text-center">${CONFIG.UI_TEXT.TABLE_HEADERS.FIVE_COLUMNS.TIME_SLOT}</th>
+            <th class="text-center">${CONFIG.UI_TEXT.TABLE_HEADERS.FIVE_COLUMNS.NOTES}</th>
+            <th class="text-center">${CONFIG.UI_TEXT.TABLE_HEADERS.FIVE_COLUMNS.ACTIONS}</th>
+          </tr>
+        </thead>
+      `,
+    },
+
     // 初始聊天訊息模板
     initialMessage: () => `
       <div class="message giver-message">
@@ -2870,15 +2895,7 @@ const TEMPLATES = {
             <p class="message-title">您目前已提供 ${scheduleCount} 個時段，進度如下：</p>
             <div class="table-responsive mt-2">
               <table class="table table-sm table-bordered table-hover schedule-table">
-                <thead class="table-light">
-                  <tr>
-                    <th class="text-center">序</th>
-                    <th class="text-center">狀態</th>
-                    <th class="text-center">時段</th>
-                    <th class="text-center">備註</th>
-                    <th class="text-center">調整</th>
-                  </tr>
-                </thead>
+                ${TEMPLATES.chat.tableHeaders.fiveColumns()}
                 <tbody>
                   ${tableRows}
                 </tbody>
@@ -3167,15 +3184,7 @@ const TEMPLATES = {
             <p class="message-title">✅ 預約已送出！<br><br>Giver 已收到您對上述時段的預約通知，請耐心等待對方確認回覆。<br><br>⚠️貼心提醒：<br><br>Giver 可能因臨時狀況無法如期面談，請以對方回覆確認為準，謝謝您的體諒！<br><br>以下是您的預約時段：</p>
             <div class="table-responsive mt-2">
               <table class="table table-sm table-bordered table-hover reservation-success-table">
-                <thead class="table-light">
-                  <tr>
-                    <th class="text-center">序</th>
-                    <th class="text-center">狀態</th>
-                    <th class="text-center">時段</th>
-                    <th class="text-center">備註</th>
-                    <th class="text-center">調整</th>
-                  </tr>
-                </thead>
+                ${TEMPLATES.chat.tableHeaders.fiveColumns()}
                 <tbody>
                   ${tableRows}
                 </tbody>
@@ -3220,15 +3229,7 @@ const TEMPLATES = {
             <p class="message-title">✅ 預約已送出！<br><br>Giver 已收到您對上述時段的預約通知，請耐心等待對方確認回覆。<br><br>⚠️貼心提醒：<br><br>Giver 可能因臨時狀況無法如期面談，請以對方回覆確認為準，謝謝您的體諒！<br><br>以下是您的預約時段：</p>
             <div class="table-responsive mt-2">
               <table class="table table-sm table-bordered table-hover reservation-success-table">
-                <thead class="table-light">
-                  <tr>
-                    <th class="text-center">序</th>
-                    <th class="text-center">狀態</th>
-                    <th class="text-center">時段</th>
-                    <th class="text-center">備註</th>
-                    <th class="text-center">調整</th>
-                  </tr>
-                </thead>
+                ${TEMPLATES.chat.tableHeaders.fiveColumns()}
                 <tbody>
                   ${tableRows}
                 </tbody>
@@ -3297,14 +3298,7 @@ const TEMPLATES = {
             <p class="message-title">${messageTitle}</p>
             <div class="table-responsive mt-2">
               <table class="table table-sm table-bordered table-hover reservation-table">
-                <thead class="table-light">
-                  <tr>
-                    <th class="text-center">序</th>
-                    <th class="text-center">時段</th>
-                    <th class="text-center">狀態</th>
-                    <th class="text-center">調整</th>
-                  </tr>
-                </thead>
+                ${TEMPLATES.chat.tableHeaders.fiveColumns()}
                 <tbody>
                   ${tableRows}
                 </tbody>
@@ -3375,15 +3369,7 @@ const TEMPLATES = {
             <p class="message-title">取消預約成功！您目前已預約 Giver 以下 ${totalCount} 個時段：</p>
             <div class="table-responsive mt-2">
               <table class="table table-sm table-bordered table-hover reservation-success-table">
-                <thead class="table-light">
-                  <tr>
-                    <th class="text-center">序</th>
-                    <th class="text-center">狀態</th>
-                    <th class="text-center">時段</th>
-                    <th class="text-center">備註</th>
-                    <th class="text-center">調整</th>
-                  </tr>
-                </thead>
+                ${TEMPLATES.chat.tableHeaders.fiveColumns()}
                 <tbody>
                   ${tableRows}
                 </tbody>
