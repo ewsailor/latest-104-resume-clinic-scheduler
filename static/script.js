@@ -341,64 +341,65 @@ const CONFIG = {
   },
   
   // 日期選擇器配置
-    DATE_PICKER: {
-      MAX_MONTHS_AHEAD: 3,  // 最多可選擇幾個月後的日期
-      BUSINESS_HOURS: {
-        START: '09:00', // 營業時間開始時間
-        END: '22:00' // 營業時間結束時間
-      },
-      CALENDAR: {
-        WEEKS_TO_DISPLAY: 6,     // 顯示的週數
-        DAYS_PER_WEEK: 7,        // 每週天數
-        TOTAL_CELLS: 42,         // 總格子數 (6週 × 7天)
-        MONTHS_IN_YEAR: 12,      // 一年中的月份數
-        FIRST_MONTH_INDEX: 0,    // 第一個月份的索引
-        LAST_MONTH_INDEX: 11     // 最後一個月份的索引
-      },
-      TIME: {
-        MIN_HOURS: 0,            // 最小小時數
-        MAX_HOURS: 23,           // 最大小時數
-        MIN_MINUTES: 0,          // 最小分鐘數
-        MAX_MINUTES: 59,         // 最大分鐘數
-        TIME_INPUT_LENGTH: 4,    // 時間輸入長度
-        HOURS_START: 0,          // 小時開始位置
-        HOURS_END: 2,            // 小時結束位置
-        MINUTES_START: 2,        // 分鐘開始位置
-        MINUTES_END: 4,          // 分鐘結束位置
-        REGEX: {
-          HOURS_PATTERN: '([01]?[0-9]|2[0-3])',  // 小時正則表達式
-          MINUTES_PATTERN: '[0-5][0-9]'           // 分鐘正則表達式
-        }
-      },
-      FORMAT: {
-        PADDING_LENGTH: 2,       // 補零長度
-        PADDING_CHAR: '0'        // 補零字符
-      },
-      REGEX: {
-        DATE_PATTERN: '\\d{4}\\/\\d{2}\\/\\d{2}',  // 日期正則表達式
-        SCHEDULE_PATTERN: '(\\d{4}\\/\\d{2}\\/\\d{2})\\s+(\\d{2}:\\d{2})-(\\d{2}:\\d{2})'  // 時段正則表達式
-      },
-      LOCALE_OPTIONS: {
-        HOUR: '2-digit',
-        MINUTE: '2-digit',
-        HOUR12: false
-      },
-      SEPARATORS: {
-        TIME: ':',                // 時間分隔符
-        DATE: '/',                // 日期分隔符
-        SCHEDULE: '-',            // 時段分隔符
-        PERIOD: '~'               // 時段範圍分隔符
-      },
-      CALCULATION: {
-        MINUTES_PER_HOUR: 60,    // 每小時分鐘數
-        MONTH_OFFSET: 1          // 月份偏移量（JavaScript 月份從 0 開始）
-      },
-      MONTH_NAMES: [
-        '一月', '二月', '三月', '四月', '五月', '六月',
-        '七月', '八月', '九月', '十月', '十一月', '十二月'
-      ],
-      WEEKDAYS: ['日', '一', '二', '三', '四', '五', '六']
+  DATE_PICKER: {
+    DEFAULT_OFFSET_DAYS: 7,  // 預設日期偏移天數（一週後）
+    MAX_MONTHS_AHEAD: 3,  // 最多可選擇幾個月後的日期
+    BUSINESS_HOURS: {
+      START: '09:00', // 營業時間開始時間
+      END: '22:00' // 營業時間結束時間
     },
+    CALENDAR: {
+      WEEKS_TO_DISPLAY: 6,     // 顯示的週數
+      DAYS_PER_WEEK: 7,        // 每週天數
+      TOTAL_CELLS: 42,         // 總格子數 (6週 × 7天)
+      MONTHS_IN_YEAR: 12,      // 一年中的月份數
+      FIRST_MONTH_INDEX: 0,    // 第一個月份的索引
+      LAST_MONTH_INDEX: 11     // 最後一個月份的索引
+    },
+    TIME: {
+      MIN_HOURS: 0,            // 最小小時數
+      MAX_HOURS: 23,           // 最大小時數
+      MIN_MINUTES: 0,          // 最小分鐘數
+      MAX_MINUTES: 59,         // 最大分鐘數
+      TIME_INPUT_LENGTH: 4,    // 時間輸入長度
+      HOURS_START: 0,          // 小時開始位置
+      HOURS_END: 2,            // 小時結束位置
+      MINUTES_START: 2,        // 分鐘開始位置
+      MINUTES_END: 4,          // 分鐘結束位置
+      REGEX: {
+        HOURS_PATTERN: '([01]?[0-9]|2[0-3])',  // 小時正則表達式
+        MINUTES_PATTERN: '[0-5][0-9]'           // 分鐘正則表達式
+      }
+    },
+    FORMAT: {
+      PADDING_LENGTH: 2,       // 補零長度
+      PADDING_CHAR: '0'        // 補零字符
+    },
+    REGEX: {
+      DATE_PATTERN: '\\d{4}\\/\\d{2}\\/\\d{2}',  // 日期正則表達式
+      SCHEDULE_PATTERN: '(\\d{4}\\/\\d{2}\\/\\d{2})\\s+(\\d{2}:\\d{2})-(\\d{2}:\\d{2})'  // 時段正則表達式
+    },
+    LOCALE_OPTIONS: {
+      HOUR: '2-digit',
+      MINUTE: '2-digit',
+      HOUR12: false
+    },
+    SEPARATORS: {
+      TIME: ':',                // 時間分隔符
+      DATE: '/',                // 日期分隔符
+      SCHEDULE: '-',            // 時段分隔符
+      PERIOD: '~'               // 時段範圍分隔符
+    },
+    CALCULATION: {
+      MINUTES_PER_HOUR: 60,    // 每小時分鐘數
+      MONTH_OFFSET: 1          // 月份偏移量（JavaScript 月份從 0 開始）
+    },
+    MONTH_NAMES: [
+      '一月', '二月', '三月', '四月', '五月', '六月',
+      '七月', '八月', '九月', '十月', '十一月', '十二月'
+    ],
+    WEEKDAYS: ['日', '一', '二', '三', '四', '五', '六']
+  },
   
   // 快取配置
   CACHE: {
@@ -1771,9 +1772,19 @@ const DateUtils = {
     return { isValid, schedules };
   },
   
-  // 新增：取得今天日期的格式化字串
+  // 新增：取得一週後日期的格式化字串
   getTodayFormatted: () => {
     return DateUtils.formatDate(DateUtils.getToday());
+  },
+  
+  // 新增：取得一週後日期的格式化字串
+  getNextWeekFormatted: () => {
+    Logger.debug('DateUtils.getNextWeekFormatted called');
+    const today = DateUtils.getToday();
+    const nextWeek = new Date(today.getTime() + CONFIG.DATE_PICKER.DEFAULT_OFFSET_DAYS * 24 * 60 * 60 * 1000);
+    const result = DateUtils.formatDate(nextWeek);
+    Logger.debug('DateUtils.getNextWeekFormatted: 一週後日期', { today, nextWeek, result });
+    return result;
   },
   
   // 驗證日期是否在允許的月份範圍內
@@ -4780,7 +4791,7 @@ const DOM = {
             const defaultConfigs = {
               startTimeInput: { defaultValue: '' },
               endTimeInput: { defaultValue: '' },
-              dateInput: { defaultValue: DateUtils.formatDate(DateUtils.getToday()) },
+              dateInput: { defaultValue: DateUtils.getNextWeekFormatted() },
               notesInput: { defaultValue: '' }
             };
             
