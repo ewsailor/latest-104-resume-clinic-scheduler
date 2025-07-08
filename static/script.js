@@ -332,6 +332,16 @@ const CONFIG = {
     ERROR_DISPLAY_TIME: 5000
   },
   
+  // 顏色配置
+  COLORS: {
+    DISABLED_TEXT: '#6c757d',  // 禁用狀態的文字顏色（灰色）
+    SUCCESS: '#28a745',        // 成功狀態顏色（綠色）
+    WARNING: '#ffc107',        // 警告狀態顏色（黃色）
+    DANGER: '#dc3545',         // 危險狀態顏色（紅色）
+    PRIMARY: '#007bff',        // 主要顏色（藍色）
+    SECONDARY: '#6c757d'       // 次要顏色（灰色）
+  },
+  
   // 聊天配置
   CHAT: {
     MAX_MESSAGE_LENGTH: 2000,
@@ -1059,11 +1069,11 @@ const EventManager = {
     },
     
     // 成功回調：隱藏按鈕區塊
-    onSuccess: (data, btn, e) => {
+    onSuccess: (data, btn, e) => {      
       const optionsContainer = btn.closest('.chat-options-buttons');
       if (optionsContainer) {
         optionsContainer.classList.remove('container-visible');
-        optionsContainer.classList.add('chat-options-hidden');
+        optionsContainer.classList.add('chat-options-hidden'); 
       }
     }
   }),
@@ -3123,18 +3133,11 @@ const TEMPLATES = {
                 ${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME_NOT_AVAILABLE}
               </label>
             </div>
-            <div class="form-check mb-2">
-              <input class="form-check-input" type="checkbox" id="time-option-4" data-option="cancel">
-              <label class="form-check-label" for="time-option-4">
-                ${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}
-              </label>
-            </div>
           </div>
-          <div class="chat-options-buttons mt-3">
-            <button class="btn btn-orange btn-option" id="confirm-selection-btn" disabled>
-              確認
-            </button>
-          </div>
+          <div class="form-check mb-3 d-flex justify-content-end gap-2">
+            <button class="btn btn-outline-secondary btn-option" data-option="cancel">取消</button>
+            <button class="btn btn-orange btn-option" id="confirm-selection-btn" disabled>確認</button>
+          </div> 
         </div>
       </div>
     `,
@@ -6084,6 +6087,13 @@ const DOM = {
       const allCheckboxes = document.querySelectorAll('.chat-checkbox-options input[type="checkbox"]');
       const changedOption = changedCheckbox.getAttribute('data-option');
       
+      // 獲取當前所有選中的選項
+      const selectedOptions = Array.from(allCheckboxes)
+        .filter(checkbox => checkbox.checked)
+        .map(checkbox => checkbox.getAttribute('data-option'));
+      
+      console.log('當前選中的選項:', selectedOptions);
+      
       // 重置所有選項的狀態
       allCheckboxes.forEach(checkbox => {
         const label = checkbox.nextElementSibling;
@@ -6094,59 +6104,44 @@ const DOM = {
         checkbox.disabled = false;
       });
       
-      // 根據選中的選項來禁用不相容的選項
-      if (changedCheckbox.checked) {
-        switch (changedOption) {
-          case 'demo-time-1':
-          case 'demo-time-2':
-            // 如果選擇了 Demo 時間，禁用其他選項
-            allCheckboxes.forEach(checkbox => {
-              const option = checkbox.getAttribute('data-option');
-              if (option !== 'demo-time-1' && option !== 'demo-time-2') {
-                checkbox.disabled = true;
-                checkbox.checked = false;
-                const label = checkbox.nextElementSibling;
-                if (label) {
-                  label.style.textDecoration = 'line-through';
-                  label.style.color = '#6c757d';
-                }
-              }
-            });
-            break;
-            
-          case 'provide-my-time':
-            // 如果選擇了提供我的時間，禁用 Demo 時間和取消選項
-            allCheckboxes.forEach(checkbox => {
-              const option = checkbox.getAttribute('data-option');
-              if (option === 'demo-time-1' || option === 'demo-time-2' || option === 'cancel') {
-                checkbox.disabled = true;
-                checkbox.checked = false;
-                const label = checkbox.nextElementSibling;
-                if (label) {
-                  label.style.textDecoration = 'line-through';
-                  label.style.color = '#6c757d';
-                }
-              }
-            });
-            break;
-            
-          case 'cancel':
-            // 如果選擇了取消，禁用其他所有選項
-            allCheckboxes.forEach(checkbox => {
-              const option = checkbox.getAttribute('data-option');
-              if (option !== 'cancel') {
-                checkbox.disabled = true;
-                checkbox.checked = false;
-                const label = checkbox.nextElementSibling;
-                if (label) {
-                  label.style.textDecoration = 'line-through';
-                  label.style.color = '#6c757d';
-                }
-              }
-            });
-            break;
-        }
-      }
+      // 根據當前所有選中的選項來決定哪些選項應該被禁用
+      const hasDemoTime = selectedOptions.includes('demo-time-1') || selectedOptions.includes('demo-time-2');
+      const hasProvideMyTime = selectedOptions.includes('provide-my-time');
+      const hasCancel = selectedOptions.includes('cancel');
+      
+      // 應用互斥邏輯
+      allCheckboxes.forEach(checkbox => {
+        const option = checkbox.getAttribute('data-option');
+        const label = checkbox.nextElementSibling;
+        
+                 // 如果選中了 Demo 時間，禁用其他所有選項
+         if (hasDemoTime && option !== 'demo-time-1' && option !== 'demo-time-2') {
+           checkbox.disabled = true;
+           checkbox.checked = false;
+           if (label) {
+             label.style.textDecoration = 'line-through';
+             label.style.color = CONFIG.COLORS.DISABLED_TEXT;
+           }
+         }
+                 // 如果選中了提供我的時間，禁用 Demo 時間和取消選項
+         else if (hasProvideMyTime && (option === 'demo-time-1' || option === 'demo-time-2' || option === 'cancel')) {
+           checkbox.disabled = true;
+           checkbox.checked = false;
+           if (label) {
+             label.style.textDecoration = 'line-through';
+             label.style.color = CONFIG.COLORS.DISABLED_TEXT;
+           }
+         }
+                 // 如果選中了取消，禁用其他所有選項
+         else if (hasCancel && option !== 'cancel') {
+           checkbox.disabled = true;
+           checkbox.checked = false;
+           if (label) {
+             label.style.textDecoration = 'line-through';
+             label.style.color = CONFIG.COLORS.DISABLED_TEXT;
+           }
+         }
+      });
     },
   },
   
