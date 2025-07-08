@@ -1001,6 +1001,8 @@ const EventManager = {
         case 'cancel':
           DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}`);
           DOM.chat.handleCancelSchedule();
+          // 禁用整個 Giver 訊息泡泡中的互動元素
+          DOM.chat.disableGiverMessageInteractions(btn);
           break;
         case 'view-times':
           DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.VIEW_GIVER_TIME}`);
@@ -1068,13 +1070,10 @@ const EventManager = {
       }
     },
     
-    // 成功回調：隱藏按鈕區塊
+    // 成功回調：禁用整個 Giver 訊息泡泡中的互動元素
     onSuccess: (data, btn, e) => {      
-      const optionsContainer = btn.closest('.chat-options-buttons');
-      if (optionsContainer) {
-        optionsContainer.classList.remove('container-visible');
-        optionsContainer.classList.add('chat-options-hidden'); 
-      }
+      // 禁用整個 Giver 訊息泡泡中的互動元素
+      DOM.chat.disableGiverMessageInteractions(btn);
     }
   }),
   
@@ -4253,12 +4252,8 @@ const DOM = {
               console.warn('未知的預約選項:', option);
           }
           
-          // 隱藏選項按鈕
-          const optionsContainer = newBtn.closest('.chat-options-buttons');
-          if (optionsContainer) {
-            optionsContainer.classList.remove('container-visible');
-            optionsContainer.classList.add('chat-options-hidden');
-          }
+          // 禁用整個 Giver 訊息泡泡中的互動元素
+          DOM.chat.disableGiverMessageInteractions(newBtn);
         });
       });
     },
@@ -4302,11 +4297,8 @@ const DOM = {
           // 處理選中的選項
           DOM.chat.handleSelectedOptions(selectedOptions);
           
-          // 隱藏選項區域
-          const optionsContainer = confirmBtn.closest('.message');
-          if (optionsContainer) {
-            optionsContainer.style.display = 'none';
-          }
+          // 禁用整個 Giver 訊息泡泡中的互動元素
+          DOM.chat.disableGiverMessageInteractions(confirmBtn);
         });
       }
     },
@@ -4544,6 +4536,43 @@ const DOM = {
       }
     },
 
+    // 禁用整個 Giver 訊息泡泡中的互動元素
+    disableGiverMessageInteractions: (button) => {
+      console.log('DOM.chat.disableGiverMessageInteractions called：禁用 Giver 訊息泡泡中的互動元素');
+      
+      // 找到包含該按鈕的 Giver 訊息泡泡
+      const giverMessage = button.closest('.giver-message');
+      if (!giverMessage) {
+        console.warn('DOM.chat.disableGiverMessageInteractions: 找不到 Giver 訊息泡泡');
+        return;
+      }
+      
+      // 禁用所有 checkbox
+      const checkboxes = giverMessage.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(checkbox => {
+        checkbox.disabled = true;
+        checkbox.style.pointerEvents = 'none';
+        checkbox.style.opacity = '0.6';
+      });
+      
+      // 禁用所有按鈕
+      const buttons = giverMessage.querySelectorAll('button');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.6';
+      });
+      
+      // 禁用所有可點擊的標籤
+      const labels = giverMessage.querySelectorAll('label');
+      labels.forEach(label => {
+        label.style.pointerEvents = 'none';
+        label.style.opacity = '0.6';
+      });
+      
+      console.log('DOM.chat.disableGiverMessageInteractions: 已禁用 Giver 訊息泡泡中的所有互動元素');
+    },
+
     // 更新確認按鈕狀態
     updateConfirmButtonState: () => {
       const checkboxes = document.querySelectorAll('.chat-checkbox-options input[type="checkbox"]:not(:disabled)');
@@ -4553,13 +4582,9 @@ const DOM = {
         const hasSelection = Array.from(checkboxes).some(checkbox => checkbox.checked);
         confirmBtn.disabled = !hasSelection;
         
-        if (hasSelection) {
-          confirmBtn.classList.remove('btn-secondary');
-          confirmBtn.classList.add('btn-orange');
-        } else {
-          confirmBtn.classList.remove('btn-orange');
-          confirmBtn.classList.add('btn-secondary');
-        }
+        // 確認按鈕一直保持橘色背景，只根據是否有選項來啟用/禁用
+        confirmBtn.classList.remove('btn-secondary');
+        confirmBtn.classList.add('btn-orange');
       }
     },
 
