@@ -502,7 +502,10 @@ const CONFIG = {
   
   // UI 文字配置
   UI_TEXT: {
+    // 按鈕文字配置
     BUTTONS: {
+      SCHEDULE: '我想預約 Giver 時間',
+      SKIP: '暫不預約 Giver 時間', 
       CANCEL_RESERVATION: '取消預約',
       CANCEL_OPTION: '取消此選項',
       CANCEL_SCHEDULE: '取消本次預約 Giver 時間',
@@ -517,12 +520,28 @@ const CONFIG = {
       CONTINUE_PROVIDE_MULTIPLE_TIMES: '繼續提供多筆方便時段',
       SUBMIT_SCHEDULES: '已新增完成所有時段，請協助送出給 Giver',
     },
+    // 按鈕組合配置
+    BUTTON_GROUPS: {
+      'schedule': { text: '我想預約 Giver 時間', class: 'btn-outline btn-option' }, 
+      'skip': { text: '暫不預約 Giver 時間', class: 'btn-outline btn-option' },
+      'cancel': { text: '取消本次預約 Giver 時間', class: 'btn-outline' },
+      'view-times': { text: '查看 Giver 方便的時間', class: 'btn-outline' },
+      'view-my-schedules-reservation': { text: '查看我已預約 Giver 的時間', class: 'btn-outline' },
+      'view-all': { text: '查看我已提供時段的狀態', class: 'btn-outline' },
+      'single-time': { text: '提供單筆方便時段', class: 'btn-outline' },
+      'multiple-times': { text: '提供多筆方便時段', class: 'btn-outline' },
+      'continue-single-time': { text: '繼續提供單筆方便時段', class: 'btn-outline' },
+      'continue-multiple-times': { text: '繼續提供多筆方便時段', class: 'btn-outline' },
+      'submit-schedules': { text: '已新增完成所有時段，請協助送出給 Giver', class: 'btn-orange' }
+    },
+    // 狀態文字配置
     STATUS: {
       DRAFT: '草稿：尚未送出給 Giver',         
       PENDING: '成功提供時間，待 Giver 回覆',  
       COMPLETED: 'Giver 已接受預約',          
       REJECTED: 'Giver 已拒絕預約',           
     },
+    // 表格標題配置
     TABLE_HEADERS: {
       FIVE_COLUMNS: {
         ORDER: '序',
@@ -530,8 +549,8 @@ const CONFIG = {
         TIME_SLOT: '時段',
         NOTES: '備註',
         ACTIONS: '調整'
-      },
-    }
+      }
+    },
   }
 };
 
@@ -961,19 +980,47 @@ const EventManager = {
       
       // 處理不同選項
       switch (option) {
-        case 'single-time':
-          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_SINGLE_TIME}`);
-          DOM.chat.handleSingleTime();
+        case 'schedule':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.SCHEDULE}`);
+          DOM.chat.handleSchedule();
           break;
-        case 'multiple-times':
-          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_MULTIPLE_TIMES}`);
-          DOM.chat.handleMultipleTimes();
+        case 'skip':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.SKIP}`);
+          DOM.chat.handleSkip();
+          break;
+        case 'cancel':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}`);
+          DOM.chat.handleCancelSchedule();
+          break;
+        case 'view-times':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.VIEW_GIVER_TIME}`);
+          DOM.chat.handleViewGiverTime();
+          break;  
+        case 'view-my-schedules-reservation':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.VIEW_MY_SCHEDULES_RESERVATION}`);
+          DOM.chat.handleViewMySchedulesReservation();
           break;
         case 'view-all':
           DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.VIEW_MY_SCHEDULES_PROVIDE}`);
           DOM.chat.handleViewAllSchedules();
           break;
-        case 'finish':
+        case 'single-time':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}`);
+          DOM.chat.handleSingleTime();
+          break;
+        case 'continue-single-time':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_SINGLE_TIME}`);
+          DOM.chat.handleSingleTime();
+          break;
+        case 'multiple-times':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}`);
+          DOM.chat.handleMultipleTimes();
+          break;
+        case 'continue-multiple-times':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_MULTIPLE_TIMES}`);
+          DOM.chat.handleMultipleTimes();
+          break;
+        case 'submit-schedules':
           DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}`);
           // 將草稿時段轉為正式提供時段
           const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
@@ -1005,10 +1052,7 @@ const EventManager = {
             DOM.chat.handleSuccessProvideTime();
           });
           break;
-        case 'cancel':
-          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}`);
-          DOM.chat.handleCancelSchedule();
-          break;
+        
         default:
           Logger.warn('EventManager: 未知的選項按鈕', { option });
       }
@@ -2706,6 +2750,14 @@ const TEMPLATES = {
 
   // 聊天相關模板
   chat: {
+    button: (key) => {
+      const config = CONFIG.UI_TEXT.BUTTON_GROUPS[key];
+      if (!config) return '';
+      return `<button class="btn ${config.class} btn-option chat-option-btn" data-option="${key}">${config.text}</button>`;
+    },
+
+    buttonGroup: (keys) => keys.map(TEMPLATES.chat.button).join('\n'),
+    
     // 表格標題模板
     tableHeaders: {
       // 5 欄位表格標題（序、狀態、時段、備註、調整）
@@ -2722,25 +2774,103 @@ const TEMPLATES = {
       `,
     },
 
-    // 初始聊天訊息模板
-    initialMessage: () => `
-      <div class="message giver-message">
-        <div class="d-flex align-items-center">
-          <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="avatar-modal">
-        </div>
-        <div class="message-content">
-          <p class="message-title">如想與 Giver 進行諮詢，例如線上模擬面試、即時文字訊息往返，請點此預約 Giver 時間。</p>
-          <!-- 直接顯示的選項按鈕 -->
-          <div class="chat-options-buttons">
-            <button class="btn btn-outline btn-option" data-option="schedule">
-              我想預約 Giver 時間
-            </button>
-            <button class="btn btn-outline btn-option" data-option="skip">
-              暫不預約 Giver 時間
-            </button>
+    // 訊息容器模板
+    messageContainer: {
+      // 帶頭像的完整訊息容器
+      withAvatar: (title, buttonGroup) => `
+        <div class="message giver-message">
+          <div class="d-flex align-items-center">
+            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+          </div>
+          <div class="message-content">
+            <p class="message-title">${title}</p>
+            <div class="chat-options-buttons mt-2">
+              ${buttonGroup}
+            </div>
           </div>
         </div>
-      </div>
+      `,
+
+      // 只有按鈕的容器
+      buttonsOnly: (buttonGroup) => `
+        <div class="chat-options-buttons mt-2">
+          ${buttonGroup}
+        </div>
+      `,
+
+      // 帶表格的訊息容器
+      withTable: (title, tableContent, tableClass = 'table-hover') => `
+        <div class="message giver-message">
+          <div class="d-flex align-items-center">
+            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+          </div>
+          <div class="message-content">
+            <p class="message-title">${title}</p>
+            <div class="table-responsive mt-2">
+              <table class="table table-sm table-bordered ${tableClass}">
+                ${tableContent}
+              </table>
+            </div>
+          </div>
+        </div>
+      `,
+
+      // 帶內容的訊息容器（可包含任意內容）
+      withContent: (title, content) => `
+        <div class="message giver-message">
+          <div class="d-flex align-items-center">
+            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+          </div>
+          <div class="message-content">
+            <p class="message-title">${title}</p>
+            ${content}
+          </div>
+        </div>
+      `,
+
+      // 帶表格和按鈕的訊息容器
+      withTableAndButtons: (title, tableContent, buttonGroup, tableClass = 'table-hover') => `
+        <div class="message giver-message">
+          <div class="d-flex align-items-center">
+            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+          </div>
+          <div class="message-content">
+            <p class="message-title">${title}</p>
+            <div class="table-responsive mt-2">
+              <table class="table table-sm table-bordered ${tableClass}">
+                ${tableContent}
+              </table>
+            </div>
+            <p class="mt-2">請選擇接下來的動作：</p>
+            <div class="chat-options-buttons mt-2">
+              ${buttonGroup}
+            </div>
+          </div>
+        </div>
+      `
+    },
+
+    // 初始聊天訊息模板
+    initialMessage: () =>`
+      <div class="message giver-message">
+        <div class="d-flex align-items-center mb-2">
+            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver 頭像"
+                class="chat-avatar-modal">
+        </div>
+        <div class="message-content">
+            <p class="message-title">如想與 Giver 進行諮詢，例如線上模擬面試、即時文字訊息往返，請點此預約 Giver 時間。</p>
+            <!-- 直接顯示的選項按鈕 -->
+            <div class="chat-options-buttons" role="group" aria-label="諮詢選項">
+                <button class="btn btn-outline btn-option" data-option="schedule"
+                    aria-label="預約 Giver 時間">
+                    我想預約 Giver 時間
+                </button>
+                <button class="btn btn-outline btn-option" data-option="skip" aria-label="暫不預約">
+                    暫不預約 Giver 時間
+                </button>
+            </div>
+        </div>
+    </div>
     `,
 
     // 預約選項按鈕模板
@@ -2749,13 +2879,11 @@ const TEMPLATES = {
         <div class="d-flex align-items-center">
             <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
         </div>
+        
         <div class="message-content">
           <p class="message-title">好的！我來幫您安排預約時間。請選擇以下選項：</p>
           <div class="chat-options-buttons mt-2">
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">${CONFIG.UI_TEXT.BUTTONS.VIEW_GIVER_TIME}</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}</button>
-            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">取消本次預約 Giver 時間</button>
+            ${TEMPLATES.chat.buttonGroup(['view-times', 'single-time', 'multiple-times', 'cancel'])}
           </div>
         </div>
       </div>
@@ -2799,23 +2927,11 @@ const TEMPLATES = {
     `,
 
     // 表單提交後選項按鈕模板
-    afterScheduleOptions: (formattedSchedule, notes) => `
-      <div class="message giver-message">
-        <div class="d-flex align-items-center">
-          <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-        </div>
-        <div class="message-content">
-          <p class="message-title">您已成功提供方便時段：${formattedSchedule}${notes ? `<br>備註：${notes}` : ''}<br><br>請選擇接下來的動作：</p>
-          <div class="chat-options-buttons mt-2" id="after-schedule-options">
-            <button class="btn btn-outline btn-option" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_SINGLE_TIME}</button>
-            <button class="btn btn-outline btn-option" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_MULTIPLE_TIMES}</button>
-            <button class="btn btn-outline btn-option" data-option="view-all">${CONFIG.UI_TEXT.BUTTONS.VIEW_MY_SCHEDULES_PROVIDE}</button>
-            <button class="btn btn-orange btn-option" data-option="finish">${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}</button>
-            <button class="btn btn-outline-secondary btn-option" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
-          </div>
-        </div>
-      </div>
-    `,
+    afterScheduleOptions: (formattedSchedule, notes) =>
+      TEMPLATES.chat.messageContainer.withAvatar(
+        `您已成功提供方便時段：${formattedSchedule}${notes ? `<br>備註：${notes}` : ''}<br><br>請選擇接下來的動作：`,
+        TEMPLATES.chat.buttonGroup(['continue-single-time', 'continue-multiple-times', 'view-all', 'submit-schedules', 'cancel'])
+      ),
 
     // 多筆時段提交後選項按鈕模板
     afterMultipleScheduleOptions: () => `
@@ -2826,33 +2942,18 @@ const TEMPLATES = {
         <div class="message-content">
           <p class="message-title">已成功記錄以下時段：<br>{{SCHEDULE_LIST}}<br>共 {{SCHEDULE_COUNT}} 個時段已記錄。<br><br>請選擇接下來的動作：</p>
           <div class="chat-options-buttons mt-2" id="after-multiple-schedule-options">
-            <button class="btn btn-outline btn-option" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_SINGLE_TIME}</button>
-            <button class="btn btn-outline btn-option" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_MULTIPLE_TIMES}</button>
-            <button class="btn btn-outline btn-option" data-option="view-all">${CONFIG.UI_TEXT.BUTTONS.VIEW_MY_SCHEDULES_PROVIDE}</button>
-            <button class="btn btn-orange btn-option" data-option="finish">${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}</button>
-            <button class="btn btn-outline-secondary btn-option" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
+            ${TEMPLATES.chat.buttonGroup(['single-time', 'multiple-times', 'view-all', 'submit-schedules', 'cancel'])}
           </div>
         </div>
       </div>
     `,
 
     // 查看所有時段選項按鈕模板
-    viewAllSchedulesOptions: (scheduleList, scheduleCount) => `
-      <div class="message giver-message">
-        <div class="d-flex align-items-center">
-          <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-        </div>
-        <div class="message-content">
-          <p class="message-title">您目前已提供 ${scheduleCount} 個時段，進度如下：<br>${scheduleList}<br>請選擇接下來的動作：</p>
-          <div class="chat-options-buttons mt-2" id="after-view-all-options">
-            <button class="btn btn-outline btn-option" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_SINGLE_TIME}</button>
-            <button class="btn btn-outline btn-option" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_MULTIPLE_TIMES}</button>
-            <button class="btn btn-orange btn-option" data-option="finish">${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}</button>
-            <button class="btn btn-outline-secondary btn-option" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
-          </div>
-        </div>
-      </div>
-    `,
+    viewAllSchedulesOptions: (scheduleList, scheduleCount) =>
+      TEMPLATES.chat.messageContainer.withAvatar(
+        `您目前已提供 ${scheduleCount} 個時段，進度如下：<br>${scheduleList}<br>請選擇接下來的動作：`,
+        TEMPLATES.chat.buttonGroup(['single-time', 'multiple-times', 'submit-schedules', 'cancel'])
+      ),
 
     // 時段表格模板
     scheduleTable: (schedules) => {
@@ -2903,113 +3004,53 @@ const TEMPLATES = {
             </div>
             <p class="mt-2">請選擇接下來的動作：</p>
             <div class="chat-options-buttons mt-2" id="after-view-all-options">
-              <button class="btn btn-outline btn-option" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_SINGLE_TIME}</button>
-              <button class="btn btn-outline btn-option" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_MULTIPLE_TIMES}</button>
-              <button class="btn btn-orange btn-option" data-option="finish">${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}</button>
-              <button class="btn btn-outline-secondary btn-option" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
+              ${TEMPLATES.chat.buttonGroup(['single-time', 'multiple-times', 'submit-schedules', 'cancel'])}
             </div>
           </div>
         </div>
       `;
     },
 
-    // 新增 5 按鈕版本模板
-    scheduleOptionsWithViewAll: () => `
-      <div class="message giver-message">
-        <div class="d-flex align-items-center">
-            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-        </div>
-        <div class="message-content">
-          <p class="message-title">好的！我來幫您安排預約時間。請選擇以下選項：</p>
-          <div class="chat-options-buttons mt-2">
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">${CONFIG.UI_TEXT.BUTTONS.VIEW_GIVER_TIME}</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-all">${CONFIG.UI_TEXT.BUTTONS.VIEW_MY_SCHEDULES_PROVIDE}</button>
-            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
-          </div>
-        </div>
-      </div>
-    `,
+    // 新增 5 按鈕版本模板（使用新的按鈕組合系統）
+    scheduleOptionsWithViewAll: () => 
+      TEMPLATES.chat.messageContainer.withAvatar(
+        '好的！我來幫您安排預約時間。請選擇以下選項：', 
+        TEMPLATES.chat.buttonGroup(['view-times', 'single-time', 'multiple-times', 'view-all', 'cancel'])
+      ),
 
-    // 新增：只有提供時段按鈕的模板
-    onlyScheduleButtons: () => `
-      <div class="chat-options-buttons mt-2">
-        <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">${CONFIG.UI_TEXT.BUTTONS.VIEW_GIVER_TIME}</button>
-        <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}</button>
-        <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}</button>
-        <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
-      </div>
-    `,
+    // 新增：只有提供時段按鈕的模板（使用新的按鈕組合系統）
+    onlyScheduleButtons: () => 
+      TEMPLATES.chat.messageContainer.buttonsOnly( 
+        TEMPLATES.chat.buttonGroup(['view-times', 'single-time', 'multiple-times', 'view-all', 'cancel'])
+      ),
 
-    // 新增：您目前還沒有提供任何時段的模板
-    noSchedulesWithButtons: () => `
-      <div class="message giver-message">
-        <div class="d-flex align-items-center">
-          <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-        </div>
-        <div class="message-content">
-          <p class="message-title">您目前還沒有提供任何時段，請先提供方便時段，然後再查看。</p>
-          <div class="chat-options-buttons mt-2">
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">${CONFIG.UI_TEXT.BUTTONS.VIEW_GIVER_TIME}</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}</button>
-            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
-          </div>
-        </div>
-      </div>
-    `,
+    // 新增：您目前還沒有提供任何時段的模板（使用新的按鈕組合系統）
+    noSchedulesWithButtons: () => 
+      TEMPLATES.chat.messageContainer.withAvatar(
+        '您目前還沒有提供任何時段，請先提供方便時段，然後再查看。', 
+        TEMPLATES.chat.buttonGroup(['view-times', 'single-time', 'multiple-times', 'cancel'])
+      ),
 
     // 新增：Giver 尚末提供方便時間的模板
-    noGiverTimesWithButtons: () => `
-      <div class="message giver-message">
-        <div class="d-flex align-items-center">
-          <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-        </div>
-        <div class="message-content">
-          <p class="message-title">Giver 尚末提供方便的時間。請選擇以下選項：</p>
-          <div class="chat-options-buttons mt-2">
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}</button>
-            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
-          </div>
-        </div>
-      </div>
-    `,
+    noGiverTimesWithButtons: () =>
+      TEMPLATES.chat.messageContainer.withAvatar(
+        `Giver 尚末提供方便的時間。請選擇以下選項：`,
+        TEMPLATES.chat.buttonGroup(['single-time', 'multiple-times', 'cancel'])
+      ),
 
     // 新增：您目前還沒有預約任何 Giver 時間的模板
-    noBookedTimesWithButtons: () => `
-      <div class="message giver-message">
-        <div class="d-flex align-items-center">
-          <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-        </div>
-        <div class="message-content">
-          <p class="message-title">您目前還沒有預約任何 Giver 時間。請選擇以下選項：</p>
-          <div class="chat-options-buttons mt-2">
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="view-times">${CONFIG.UI_TEXT.BUTTONS.VIEW_GIVER_TIME}</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}</button>
-            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
-          </div>
-        </div>
-      </div>
-    `,
+    noBookedTimesWithButtons: () =>
+      TEMPLATES.chat.messageContainer.withAvatar(
+        `您目前還沒有預約任何 Giver 時間。請選擇以下選項：`,
+        TEMPLATES.chat.buttonGroup(['view-times', 'single-time', 'multiple-times', 'cancel'])
+      ), 
 
     // 新增：多筆時段功能在建置中的模板
-    multipleTimesUnderConstruction: () => `
-      <div class="message giver-message">
-        <div class="d-flex align-items-center">
-          <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-        </div>
-        <div class="message-content">
-          <p class="message-title">此功能仍在建置中，請先使用「提供單筆方便時段」方式新增時間，謝謝。</p>
-          <div class="chat-options-buttons mt-2" id="multiple-times-under-construction-options">
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}</button>
-            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
-          </div>
-        </div>
-      </div>
-    `,
+    multipleTimesUnderConstruction: () => 
+      TEMPLATES.chat.messageContainer.withAvatar(
+        `此功能仍在建置中，請先使用「提供單筆方便時段」方式新增時間，謝謝。`,
+        TEMPLATES.chat.buttonGroup(['single-time', 'cancel'])
+      ), 
 
     // 新增：成功提供時間的模板
     successProvideTime: (schedules) => {
@@ -3041,32 +3082,18 @@ const TEMPLATES = {
         `;
       });
       const scheduleCount = schedules.length;
-      return `
-        <div class="message giver-message">
-          <div class="d-flex align-items-center">
-            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-          </div>
-          <div class="message-content">
-            <p class="message-title">✅ 成功提供時間！您目前已提供 Giver 以下 ${scheduleCount} 個時段，請耐心等待對方確認回覆。</p>
-            <div class="table-responsive mt-2">
-              <table class="table table-sm table-bordered table-hover success-provide-table">
-                <thead class="table-light">
-                  <tr>
-                    <th class="text-center">序</th>
-                    <th class="text-center">狀態</th>
-                    <th class="text-center">時段</th>
-                    <th class="text-center">備註</th>
-                    <th class="text-center">調整</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${tableRows}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+      const tableContent = `
+        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
+        <tbody>
+          ${tableRows}
+        </tbody>
       `;
+      
+      return TEMPLATES.chat.messageContainer.withTable(
+        `✅ 成功提供時間！您目前已提供 Giver 以下 ${scheduleCount} 個時段，請耐心等待對方確認回覆。`,
+        tableContent,
+        'success-provide-table table-hover'
+      );
     },
 
     // 新增：Giver 已提供時間的複選模板
@@ -3112,22 +3139,12 @@ const TEMPLATES = {
       </div>
     `,
 
-    // 新增：提供我的時間選項模板（3個按鈕）
-    provideMyTimeOptions: () => `
-      <div class="message giver-message">
-        <div class="d-flex align-items-center">
-          <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-        </div>
-        <div class="message-content">
-          <p class="message-title">好的！請選擇以下選項，提供您方便的時段：</p>
-          <div class="chat-options-buttons mt-2">
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="single-time">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}</button>
-            <button class="btn btn-outline btn-option chat-option-btn" data-option="multiple-times">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}</button>
-            <button class="btn btn-outline-secondary btn-option chat-option-btn" data-option="cancel">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
-          </div>
-        </div>
-      </div>
-    `,
+    // 新增：提供我的時間選項模板
+    provideMyTimeOptions: () => 
+      TEMPLATES.chat.messageContainer.withAvatar(
+        `好的！請選擇以下選項，提供您方便的時段：`,
+        TEMPLATES.chat.buttonGroup(['single-time', 'multiple-times', 'cancel'])
+      ),
     
     // 新增：預約成功訊息和表格模板
     reservationSuccessMessageAndTable: (demoTimeOptions, provideMyTimeOption) => {
@@ -3175,24 +3192,18 @@ const TEMPLATES = {
         `;
       }
       
-      return `
-        <div class="message giver-message">
-          <div class="d-flex align-items-center">
-            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-          </div>
-          <div class="message-content">
-            <p class="message-title">✅ 預約已送出！<br><br>Giver 已收到您對上述時段的預約通知，請耐心等待對方確認回覆。<br><br>⚠️貼心提醒：<br><br>Giver 可能因臨時狀況無法如期面談，請以對方回覆確認為準，謝謝您的體諒！<br><br>以下是您的預約時段：</p>
-            <div class="table-responsive mt-2">
-              <table class="table table-sm table-bordered table-hover reservation-success-table">
-                ${TEMPLATES.chat.tableHeaders.fiveColumns()}
-                <tbody>
-                  ${tableRows}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+      const tableContent = `
+        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
+        <tbody>
+          ${tableRows}
+        </tbody>
       `;
+      
+      return TEMPLATES.chat.messageContainer.withTable(
+        `✅ 預約已送出！<br><br>Giver 已收到您對上述時段的預約通知，請耐心等待對方確認回覆。<br><br>⚠️貼心提醒：<br><br>Giver 可能因臨時狀況無法如期面談，請以對方回覆確認為準，謝謝您的體諒！<br><br>以下是您的預約時段：`,
+        tableContent,
+        'reservation-success-table table-hover'
+      );
     },
 
     // 新增：已預約時間訊息和表格模板
@@ -3220,24 +3231,18 @@ const TEMPLATES = {
         rowIndex++;
       });
       
-      return `
-        <div class="message giver-message">
-          <div class="d-flex align-items-center">
-            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-          </div>
-          <div class="message-content">
-            <p class="message-title">✅ 預約已送出！<br><br>Giver 已收到您對上述時段的預約通知，請耐心等待對方確認回覆。<br><br>⚠️貼心提醒：<br><br>Giver 可能因臨時狀況無法如期面談，請以對方回覆確認為準，謝謝您的體諒！<br><br>以下是您的預約時段：</p>
-            <div class="table-responsive mt-2">
-              <table class="table table-sm table-bordered table-hover reservation-success-table">
-                ${TEMPLATES.chat.tableHeaders.fiveColumns()}
-                <tbody>
-                  ${tableRows}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+      const tableContent = `
+        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
+        <tbody>
+          ${tableRows}
+        </tbody>
       `;
+      
+      return TEMPLATES.chat.messageContainer.withTable(
+        `✅ 預約已送出！<br><br>Giver 已收到您對上述時段的預約通知，請耐心等待對方確認回覆。<br><br>⚠️貼心提醒：<br><br>Giver 可能因臨時狀況無法如期面談，請以對方回覆確認為準，謝謝您的體諒！<br><br>以下是您的預約時段：`,
+        tableContent,
+        'reservation-success-table table-hover'
+      );
     },
 
     // 新增：預約成功表格模板
@@ -3360,24 +3365,18 @@ const TEMPLATES = {
         `;
       }
       
-      return `
-        <div class="message giver-message">
-          <div class="d-flex align-items-center">
-            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-          </div>
-          <div class="message-content">
-            <p class="message-title">取消預約成功！您目前已預約 Giver 以下 ${totalCount} 個時段：</p>
-            <div class="table-responsive mt-2">
-              <table class="table table-sm table-bordered table-hover reservation-success-table">
-                ${TEMPLATES.chat.tableHeaders.fiveColumns()}
-                <tbody>
-                  ${tableRows}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+      const tableContent = `
+        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
+        <tbody>
+          ${tableRows}
+        </tbody>
       `;
+      
+      return TEMPLATES.chat.messageContainer.withTable(
+        `取消預約成功！您目前已預約 Giver 以下 ${totalCount} 個時段：`,
+        tableContent,
+        'reservation-success-table table-hover'
+      );
     },
   },
 };
