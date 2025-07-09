@@ -882,10 +882,10 @@ const createButtonHandler = (handlerType, config) => {
     Logger.info(`EventManager: ${config.logMessage}`, data);
     
     try {
-      // 執行預處理（如果有的話）
-      if (config.preprocess && !config.preprocess(data, btn, e)) {
-        return;
-      }
+      // // 執行預處理（如果有的話）
+      // if (config.preprocess && !config.preprocess(data, btn, e)) {
+      //   return;
+      // }
       
       // 執行主要處理邏輯
       await config.handler(data, btn, e);
@@ -1285,8 +1285,8 @@ const EventManager = {
       // 重置選中的日期
       DOM.chat.setSelectedDate(null);
       
-      // 不顯示任何訊息，直接回到原本的頁面
-      // DOM.chat.addGiverResponse('已取消新增時段。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
+      // 顯示取消訊息
+      DOM.chat.addGiverResponse('您已取消新增時段。<br><br>如果仍想提供方便時段，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
     }
   }),
   
@@ -5026,6 +5026,19 @@ const DOM = {
           // 添加隱藏完成的事件監聽器
           DOM.chat._onModalHidden = () => {
             console.log('DOM.chat.showDatePicker: Modal 已隱藏');
+            
+            // 檢查是否是因為取消而關閉（沒有選擇日期）
+            const dateInput = DOM_CACHE.dateInput;
+            const hasSelectedDate = dateInput && dateInput.value.trim() !== '';
+            
+            if (!hasSelectedDate) {
+              console.log('DOM.chat.showDatePicker: 檢測到取消操作，顯示系統訊息');
+              // 延遲顯示系統訊息，確保 Modal 完全關閉
+              setTimeout(() => {
+                DOM.chat.addGiverResponse('您已取消提供單筆方便時段。<br><br>如果仍想提供方便時段，請使用聊天輸入區域下方的功能按鈕。');
+              }, 300);
+            }
+            
             // 重置標記，允許下次調用
             DOM.chat._isShowingDatePicker = false;
             // 重置日期選擇器快取
