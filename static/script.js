@@ -547,7 +547,7 @@ const CONFIG = {
     // 狀態文字配置
     STATUS: {
       DRAFT: '草稿：尚未送出給 Giver',         
-      PENDING: '成功提供時間，待 Giver 回覆',  
+      PENDING: '預約 Giver 時間成功，待 Giver 回覆',  
       COMPLETED: 'Giver 已接受預約',          
       REJECTED: 'Giver 已拒絕預約',           
     },
@@ -2928,7 +2928,7 @@ const TEMPLATES = {
             </div>
             <div class="d-flex justify-content-end gap-2">
               <button type="button" class="btn btn-outline-secondary" id="cancel-schedule-form">取消</button>
-              <button type="submit" class="btn btn-orange">輸入完成</button>
+              <button type="submit" class="btn btn-orange">確認</button>
             </div>
           </form>
         </div>
@@ -3182,7 +3182,7 @@ const TEMPLATES = {
         tableRows += `
           <tr>
             <td class="text-center">${rowIndex}</td>
-            <td class="text-center text-success">預約 Giver 時間成功，待 Giver 回覆</td>
+            <td class="text-center text-success">${CONFIG.UI_TEXT.STATUS.PENDING}</td>
             <td class="text-center">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME}</td>
             <td class="text-center">-</td>
             <td class="text-center">
@@ -3314,7 +3314,7 @@ const TEMPLATES = {
             <p class="mt-3">請選擇接下來的動作：</p>
             <div class="chat-options-buttons mt-2" id="reservation-success-options">
               <button class="btn btn-orange btn-option" data-option="confirm-all">確認完畢，請協助送出給 Giver</button>
-              <button class="btn btn-outline-secondary btn-option" data-option="cancel-all">取消本次預約 Giver 時間</button>
+              <button class="btn btn-outline-secondary btn-option" data-option="cancel-all">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
             </div>
           </div>
         </div>
@@ -3337,7 +3337,7 @@ const TEMPLATES = {
         tableRows += `
           <tr>
             <td class="text-center">${rowIndex}</td>
-            <td class="text-center text-success">預約 Giver 時間成功，待 Giver 回覆</td>
+            <td class="text-center text-success">${CONFIG.UI_TEXT.STATUS.PENDING}</td>
             <td class="text-center">${timeSlot}</td>
             <td class="text-center">-</td>
             <td class="text-center">
@@ -3355,7 +3355,7 @@ const TEMPLATES = {
         tableRows += `
           <tr>
             <td class="text-center">${rowIndex}</td>
-            <td class="text-center text-success">預約 Giver 時間成功，待 Giver 回覆</td>
+            <td class="text-center text-success">${CONFIG.UI_TEXT.STATUS.PENDING}</td>
             <td class="text-center">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME}</td>
             <td class="text-center">-</td>
             <td class="text-center">
@@ -4678,7 +4678,7 @@ const DOM = {
           type: 'demo',
           option: option.option,
           timeSlot: timeSlot,
-          status: '預約 Giver 時間成功，待 Giver 回覆'
+          status: CONFIG.UI_TEXT.STATUS.PENDING
         });
       });
       
@@ -4688,7 +4688,7 @@ const DOM = {
           type: 'provide-my-time',
           option: 'provide-my-time',
           timeSlot: `${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME}`,
-          status: '預約 Giver 時間成功，待 Giver 回覆'
+          status: CONFIG.UI_TEXT.STATUS.PENDING
         });
       }
       
