@@ -5548,23 +5548,103 @@ const DOM = {
       console.log('DOM.chat.handleViewAllSchedules: 已提供的時段資料', providedSchedules);
       console.log('DOM.chat.handleViewAllSchedules: 草稿時段資料', draftSchedules);
       
+      // 檢查是否有草稿時段
+      const hasDraftSchedules = draftSchedules.length > 0;
+      console.log('DOM.chat.handleViewAllSchedules: 是否有草稿時段', hasDraftSchedules);
+      
+      // 使用 case 語法處理不同的顯示邏輯
+      let displayCase;
+      if (providedSchedules.length === 0 && draftSchedules.length === 0) {
+        displayCase = 'no-schedules';
+      } else if (!hasDraftSchedules) {
+        displayCase = 'no-draft-schedules';
+      } else {
+        displayCase = 'has-draft-schedules';
+      }
+      
+      console.log('DOM.chat.handleViewAllSchedules: 顯示案例', displayCase);
+      
       // 重繪表格（內部函式）：生成時段表格的 HTML 內容
-      const renderTable = () => {
-        console.log('renderTable() called: 重繪時段表格');
+      const renderTable = (includeButtons = false) => {
+        console.log('renderTable() called: 重繪時段表格', { includeButtons });
         // 合併正式提供時段和草稿時段，但標記草稿時段
         const allSchedules = [
           ...providedSchedules.map(schedule => ({ ...schedule, isDraft: false })),
           ...draftSchedules.map(schedule => ({ ...schedule, isDraft: true }))
         ];
         console.log('renderTable() allSchedules:', allSchedules);
-        const result = TEMPLATES.chat.scheduleTable(allSchedules);
+        
+        let tableRows = '';
+        allSchedules.forEach((schedule, index) => {
+          const scheduleNumber = index + 1;
+          const dateObj = new Date(schedule.date);
+          const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+          const weekday = weekdays[dateObj.getDay()];
+          const formattedDate = schedule.date;
+          const startTime = schedule.startTime || '';
+          const endTime = schedule.endTime || '';
+          const notes = schedule.notes || '';
+          const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
+          const statusClass = schedule.isDraft ? 'text-warning' : 'text-success';
+          const statusText = schedule.isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING;
+          tableRows += `
+            <tr data-index="${index}">
+              <td class="text-center">${scheduleNumber}</td>
+              <td class="text-center ${statusClass}">${statusText}</td>
+              <td>${period}</td>
+              <td><span class="schedule-notes-text">${notes}</span></td>
+              <td class="text-center">
+                <div class="d-flex gap-1 justify-content-center">
+                  <button class="btn btn-link btn-sm p-0 schedule-edit-btn">修改</button>
+                  <button class="btn btn-link btn-sm text-danger p-0 schedule-delete-btn">刪除</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        });
+        
+        const scheduleCount = allSchedules.length;
+        const tableContent = `
+          <div class="table-responsive mt-2">
+            <table class="table table-sm table-bordered table-hover schedule-table">
+              ${TEMPLATES.chat.tableHeaders.fiveColumns()}
+              <tbody>
+                ${tableRows}
+              </tbody>
+            </table>
+          </div>
+        `;
+        
+        let buttonsHTML = '';
+        if (includeButtons) {
+          buttonsHTML = `
+            <p class="mt-2">請選擇接下來的動作：</p>
+            <div class="chat-options-buttons mt-2" id="after-view-all-options">
+              ${TEMPLATES.chat.buttonGroup(['single-time', 'multiple-times', 'submit-schedules'])}
+            </div>
+          `;
+        }
+        
+        const result = `
+          <div class="message giver-message">
+            <div class="d-flex align-items-center">
+              <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+            </div>
+            <div class="message-content">
+              <p class="message-title">您目前已提供 ${scheduleCount} 個時段，進度如下：</p>
+              ${tableContent}
+              ${buttonsHTML}
+            </div>
+          </div>
+        `;
+        
         console.log('renderTable() completed: 表格模板已生成');
         return result;
       };
       
       // 真正渲染與事件綁定（內部函式）：渲染表格並綁定相關事件
-      const mountTable = () => {
-        console.log('mountTable() called: 渲染與事件綁定表格');
+      const mountTable = (includeButtons = false) => {
+        console.log('mountTable() called: 渲染與事件綁定表格', { includeButtons });
         const chatMessages = document.getElementById('chat-messages');
         if (!chatMessages) {
           console.warn('mountTable() error: 找不到 chat-messages 元素');
@@ -5578,7 +5658,7 @@ const DOM = {
         });
         console.log('mountTable() 插入新的表格訊息');
         // 插入新的表格訊息
-        chatMessages.insertAdjacentHTML('beforeend', renderTable());
+        chatMessages.insertAdjacentHTML('beforeend', renderTable(includeButtons));
         // 綁定表格內按鈕事件
         const table = chatMessages.querySelector('.giver-message:last-child table');
         if (!table) {
@@ -5593,7 +5673,11 @@ const DOM = {
       };
       
       await delay(DELAY_TIMES.CHAT.VIEW_TIMES);
-        if (providedSchedules.length === 0 && draftSchedules.length === 0) {
+      
+      // 使用 switch case 語法處理不同的顯示邏輯
+      switch (displayCase) {
+        case 'no-schedules':
+          console.log('DOM.chat.handleViewAllSchedules: 案例 - 沒有時段');
           const html = TEMPLATES.chat.noSchedulesWithButtons();
           const chatMessages = document.getElementById('chat-messages');
           if (chatMessages) {
@@ -5601,9 +5685,23 @@ const DOM = {
             DOM.chat.setupScheduleOptionButtons();
             chatMessages.scrollTop = chatMessages.scrollHeight;
           }
-        } else {
-          mountTable();
-        }
+          break;
+          
+        case 'no-draft-schedules':
+          console.log('DOM.chat.handleViewAllSchedules: 案例 - 沒有草稿時段');
+          mountTable(false); // 不包含按鈕
+          break;
+          
+        case 'has-draft-schedules':
+          console.log('DOM.chat.handleViewAllSchedules: 案例 - 有草稿時段');
+          mountTable(true); // 包含按鈕
+          break;
+          
+        default:
+          console.warn('DOM.chat.handleViewAllSchedules: 未知的顯示案例', displayCase);
+          mountTable(false);
+          break;
+      }
     },
     
     // 處理取消預約選項
