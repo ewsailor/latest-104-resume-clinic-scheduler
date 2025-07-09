@@ -1990,7 +1990,7 @@ const FormValidator = {
       DATE_TOO_FAR: `不能預約 ${CONFIG.DATE_PICKER.MAX_MONTHS_AHEAD} 個月後的日期`,
       START_TIME_REQUIRED: '請輸入開始時間',
       END_TIME_REQUIRED: '請輸入結束時間',
-      TIME_INVALID: '目前輸入內容非 4 位數字，請輸入 4 位數字',
+      TIME_INVALID: '目前輸入內容非 4 位數字，請輸入 4 位數字，無需輸入":"',
       TIME_LOGIC: '結束時間必須晚於開始時間',
       TIME_BUSINESS_HOURS: `輸入時間必須在營業時間內（${CONFIG.DATE_PICKER.BUSINESS_HOURS.START}-${CONFIG.DATE_PICKER.BUSINESS_HOURS.END}）`,
       NOTES_TOO_LONG: '備註不能超過 500 個字符',
@@ -2912,13 +2912,13 @@ const TEMPLATES = {
               <div class="col-md-6">
                 <div class="form-group mb-3">
                   <label for="schedule-start-time" class="form-label">起（幾時幾分）<span class="text-danger">*</span></label>
-                  <input type="text" id="schedule-start-time" class="form-control" placeholder="請輸入 4 位數字，例：2000" required>
+                  <input type="text" id="schedule-start-time" class="form-control" placeholder="請輸入 4 位數字如「2000」，無需輸入「:」" required>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="form-group mb-3">
                   <label for="schedule-end-time" class="form-label">迄（幾時幾分）<span class="text-danger">*</span></label>
-                  <input type="text" id="schedule-end-time" class="form-control" placeholder="請輸入 4 位數字，例：2200" required>
+                  <input type="text" id="schedule-end-time" class="form-control" placeholder="請輸入 4 位數字如「2200」，無需輸入「:」" required>
                 </div>
               </div>
             </div>
@@ -2936,26 +2936,128 @@ const TEMPLATES = {
     `,
 
     // 表單提交後選項按鈕模板
-    afterScheduleOptions: (formattedSchedule, notes) =>
-      TEMPLATES.chat.messageContainer.withAvatar(
-        `您已成功提供方便時段：${formattedSchedule}${notes ? `<br>備註：${notes}` : ''}<br><br>請選擇接下來的動作：`,
-        TEMPLATES.chat.buttonGroup(['continue-single-time', 'continue-multiple-times', 'view-all', 'submit-schedules', 'cancel'])
-      ),
-
-    // 多筆時段提交後選項按鈕模板
-    afterMultipleScheduleOptions: () => `
-      <div class="message giver-message">
-        <div class="d-flex align-items-center">
-          <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-        </div>
-        <div class="message-content">
-          <p class="message-title">已成功記錄以下時段：<br>{{SCHEDULE_LIST}}<br>共 {{SCHEDULE_COUNT}} 個時段已記錄。<br><br>請選擇接下來的動作：</p>
-          <div class="chat-options-buttons mt-2" id="after-multiple-schedule-options">
-            ${TEMPLATES.chat.buttonGroup(['single-time', 'multiple-times', 'view-all', 'submit-schedules', 'cancel'])}
+    afterScheduleOptions: (formattedSchedule, notes) => {
+      // 獲取所有草稿時段
+      const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+      const scheduleCount = draftSchedules.length;
+      
+      // 生成表格內容
+      let tableRows = '';
+      draftSchedules.forEach((schedule, index) => {
+        const scheduleNumber = index + 1;
+        const dateObj = new Date(schedule.date);
+        const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+        const weekday = weekdays[dateObj.getDay()];
+        const formattedDate = schedule.date;
+        const startTime = schedule.startTime || '';
+        const endTime = schedule.endTime || '';
+        const notes = schedule.notes || '';
+        const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
+        tableRows += `
+          <tr data-index="${index}">
+            <td class="text-center">${scheduleNumber}</td>
+            <td class="text-center text-warning">${CONFIG.UI_TEXT.STATUS.DRAFT}</td>
+            <td class="text-center">${period}</td>
+            <td class="text-center">${notes}</td>
+            <td class="text-center">
+              <div class="d-flex gap-1 justify-content-center">
+                <button class="btn btn-link btn-sm p-0 schedule-edit-btn">修改</button>
+                <button class="btn btn-link btn-sm text-danger p-0 schedule-delete-btn">刪除</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      
+      const tableContent = `
+        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
+        <tbody>
+          ${tableRows}
+        </tbody>
+      `;
+      
+      return `
+        <div class="message giver-message">
+          <div class="d-flex align-items-center">
+            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+          </div>
+          <div class="message-content">
+            <p class="message-title">您目前已提供 ${scheduleCount} 個時段，進度如下：</p>
+            <div class="table-responsive mt-2">
+              <table class="table table-sm table-bordered table-hover schedule-table">
+                ${tableContent}
+              </table>
+            </div>
+            <p class="mt-2">請選擇接下來的動作：</p>
+            <div class="chat-options-buttons mt-2" id="after-schedule-options">
+              ${TEMPLATES.chat.buttonGroup(['continue-single-time', 'continue-multiple-times', 'submit-schedules'])}
+            </div>
           </div>
         </div>
-      </div>
-    `,
+      `;
+    },
+
+    // 多筆時段提交後選項按鈕模板
+    afterMultipleScheduleOptions: () => {
+      // 獲取所有草稿時段
+      const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+      const scheduleCount = draftSchedules.length;
+      
+      // 生成表格內容
+      let tableRows = '';
+      draftSchedules.forEach((schedule, index) => {
+        const scheduleNumber = index + 1;
+        const dateObj = new Date(schedule.date);
+        const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+        const weekday = weekdays[dateObj.getDay()];
+        const formattedDate = schedule.date;
+        const startTime = schedule.startTime || '';
+        const endTime = schedule.endTime || '';
+        const notes = schedule.notes || '';
+        const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
+        tableRows += `
+          <tr data-index="${index}">
+            <td class="text-center">${scheduleNumber}</td>
+            <td class="text-center text-warning">${CONFIG.UI_TEXT.STATUS.DRAFT}</td>
+            <td class="text-center">${period}</td>
+            <td class="text-center">${notes}</td>
+            <td class="text-center">
+              <div class="d-flex gap-1 justify-content-center">
+                <button class="btn btn-link btn-sm p-0 schedule-edit-btn">修改</button>
+                <button class="btn btn-link btn-sm text-danger p-0 schedule-delete-btn">刪除</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      
+      const tableContent = `
+        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
+        <tbody>
+          ${tableRows}
+        </tbody>
+      `;
+      
+      return `
+        <div class="message giver-message">
+          <div class="d-flex align-items-center">
+            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+          </div>
+          <div class="message-content">
+            <p class="message-title">您目前已提供 ${scheduleCount} 個時段，進度如下：</p>
+            <div class="table-responsive mt-2">
+              <table class="table table-sm table-bordered table-hover schedule-table">
+                ${tableContent}
+              </table>
+            </div>
+            <p class="mt-2">請選擇接下來的動作：</p>
+            <div class="chat-options-buttons mt-2" id="after-multiple-schedule-options">
+              ${TEMPLATES.chat.buttonGroup(['continue-single-time', 'continue-multiple-times', 'submit-schedules'])}
+            </div>
+          </div>
+        </div>
+      `;
+    },
 
     // 查看所有時段選項按鈕模板
     viewAllSchedulesOptions: (scheduleList, scheduleCount) =>
@@ -5327,7 +5429,9 @@ const DOM = {
       
       // 檢查重複時段
       const existingSchedules = ChatStateManager.getProvidedSchedules();
-      const isDuplicate = existingSchedules.some(schedule => {
+      const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+      const allExistingSchedules = [...existingSchedules, ...draftSchedules];
+      const isDuplicate = allExistingSchedules.some(schedule => {
         // 檢查是否為完全相同的時段
         const isExactDuplicate = schedule.date === formData.date && 
           schedule.startTime === formData.startTime && 
@@ -5355,7 +5459,7 @@ const DOM = {
       
       if (isDuplicate) {
         console.warn('DOM.chat.submitScheduleForm: 檢測到重複或重疊時段', formData);
-        const duplicateMessage = FormValidator.generateDuplicateScheduleMessage(formData, existingSchedules);
+        const duplicateMessage = FormValidator.generateDuplicateScheduleMessage(formData, allExistingSchedules);
         FormValidator.showValidationError(duplicateMessage);
         return;
       }
@@ -5369,8 +5473,8 @@ const DOM = {
         notes
       });
       
-      // 記錄時段資料到聊天狀態
-      const addResult = ChatStateManager.addSchedule({
+      // 記錄時段資料到草稿狀態
+      const addResult = ChatStateManager.addDraftSchedule({
         date: formData.date,
         startTime: formData.startTime,
         endTime: formData.endTime,
@@ -5384,7 +5488,7 @@ const DOM = {
         return;
       }
       
-      console.log('DOM.chat.submitScheduleForm: 時段資料已記錄', ChatStateManager.getProvidedSchedules());
+      console.log('DOM.chat.submitScheduleForm: 草稿時段資料已記錄', ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES));
       
       // 添加使用者訊息
       const userMessage = `提供方便時段：${formattedSchedule}${notes ? `\n備註：${notes}` : ''}`;
@@ -5409,35 +5513,8 @@ const DOM = {
         const chatMessages = document.getElementById('chat-messages');
         if (chatMessages) {
           chatMessages.insertAdjacentHTML('beforeend', responseHTML);
-          // 綁定事件
-          const afterBtns = chatMessages.querySelectorAll('#after-schedule-options .btn-option');
-          afterBtns.forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-              const option = btn.getAttribute('data-option');
-              const optionText = btn.textContent.trim();
-              console.log('after-schedule-options 按鈕被點擊:', { option, optionText });
-              // 處理不同選項
-              if (option === 'single-time') {
-                DOM.chat.handleSingleTime();
-              } else if (option === 'multiple-times') {
-                DOM.chat.handleMultipleTimes();
-              } else if (option === 'view-all') {
-                DOM.chat.handleViewAllSchedules();
-              } else if (option === 'finish') {
-                DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}`);
-                await delay(DELAY_TIMES.CHAT.RESPONSE);
-                DOM.chat.handleSuccessProvideTime();
-              } else if (option === 'cancel') {
-                DOM.chat.handleCancelSchedule();
-              }
-              // 點擊後隱藏按鈕區塊
-              const optionsContainer = btn.closest('.chat-options-buttons');
-              if (optionsContainer) {
-                optionsContainer.classList.remove('container-visible');
-                optionsContainer.classList.add('chat-options-hidden');
-              }
-            });
-          });
+          // 按鈕事件由 EventManager 統一處理
+          console.log('submitScheduleForm: 按鈕事件由 EventManager 統一處理');
           // 滾動到底部
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
@@ -5452,26 +5529,8 @@ const DOM = {
         const chatMessages = document.getElementById('chat-messages');
         if (chatMessages) {
           chatMessages.insertAdjacentHTML('beforeend', responseHTML);
-          // 綁定按鈕事件
-          const buttons = chatMessages.querySelectorAll('#multiple-times-under-construction-options .btn-option');
-          buttons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-              const option = btn.getAttribute('data-option');
-              const optionText = btn.textContent.trim();
-              console.log('multiple-times-under-construction-options 按鈕被點擊:', { option, optionText });
-              if (option === 'single-time') {
-                DOM.chat.handleSingleTime();
-              } else if (option === 'cancel') {
-                DOM.chat.handleCancelSchedule();
-              }
-              // 點擊後隱藏按鈕區塊
-              const optionsContainer = btn.closest('.chat-options-buttons');
-              if (optionsContainer) {
-                optionsContainer.classList.remove('container-visible');
-                optionsContainer.classList.add('chat-options-hidden');
-              }
-            });
-          });
+          // 按鈕事件由 EventManager 統一處理
+          console.log('handleMultipleTimes: 按鈕事件由 EventManager 統一處理');
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
         
@@ -5984,10 +6043,12 @@ const DOM = {
       
       // 檢查重複時段
       const existingSchedules = ChatStateManager.getProvidedSchedules();
+      const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+      const allExistingSchedules = [...existingSchedules, ...draftSchedules];
       const duplicateSchedules = [];
       
       schedules.forEach(schedule => {
-        const isDuplicate = existingSchedules.some(existingSchedule => {
+        const isDuplicate = allExistingSchedules.some(existingSchedule => {
           // 檢查是否為完全相同的時段
           const isExactDuplicate = existingSchedule.date === schedule.date && 
             existingSchedule.startTime === schedule.startTime && 
@@ -6023,7 +6084,7 @@ const DOM = {
         
         // 為每個重複的時段生成詳細錯誤訊息
         const duplicateMessages = duplicateSchedules.map(schedule => {
-          const duplicateMessage = FormValidator.generateDuplicateScheduleMessage(schedule, existingSchedules);
+          const duplicateMessage = FormValidator.generateDuplicateScheduleMessage(schedule, allExistingSchedules);
           return `• ${schedule.formattedSchedule}：${duplicateMessage}`;
         });
         
@@ -6033,8 +6094,8 @@ const DOM = {
         return;
       }
       
-      // 記錄時段資料
-      const addResult = ChatStateManager.addSchedules(schedules);
+      // 記錄時段資料到草稿狀態
+      const addResult = ChatStateManager.addDraftSchedules(schedules);
       
       if (!addResult) {
         console.warn('DOM.chat.handleMultipleTimesSubmission: 時段添加失敗，可能是重複或重疊時段');
@@ -6055,36 +6116,13 @@ const DOM = {
         
         const scheduleCount = schedules.length;
         
-        const responseHTML = TEMPLATES.chat.afterMultipleScheduleOptions().replace('{{SCHEDULE_LIST}}', scheduleList).replace('{{SCHEDULE_COUNT}}', scheduleCount);
+        const responseHTML = TEMPLATES.chat.afterMultipleScheduleOptions();
         
         const chatMessages = document.getElementById('chat-messages');
         if (chatMessages) {
           chatMessages.insertAdjacentHTML('beforeend', responseHTML);
-          // 綁定事件
-          const afterBtns = chatMessages.querySelectorAll('#after-multiple-schedule-options .btn-option');
-          afterBtns.forEach(async btn => {
-            btn.addEventListener('click', async (e) => {
-              const option = btn.getAttribute('data-option');
-              const optionText = btn.textContent.trim();
-              console.log('after-multiple-schedule-options 按鈕被點擊:', { option, optionText });
-              // 處理不同選項
-              if (option === 'single-time') {
-                DOM.chat.handleSingleTime();
-              } else if (option === 'multiple-times') {
-                DOM.chat.handleMultipleTimes();
-              } else if (option === 'view-all') {
-                DOM.chat.handleViewAllSchedules();
-              } else if (option === 'finish') {
-                DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}`);
-                await delay(DELAY_TIMES.CHAT.SUCCESS_MESSAGE);
-                DOM.chat.handleSuccessProvideTime();
-              } else if (option === 'cancel') {
-                DOM.chat.handleCancelSchedule();
-              }
-              // 點擊後隱藏按鈕區塊
-              btn.closest('.chat-options-buttons').style.display = 'none';
-            });
-          });
+          // 按鈕事件由 EventManager 統一處理
+          console.log('handleMultipleTimesSubmission: 按鈕事件由 EventManager 統一處理');
           // 滾動到底部
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
@@ -8208,6 +8246,121 @@ const ChatStateManager = {
     providedSchedules.push(...newSchedules);
     ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, providedSchedules);
     console.log('ChatStateManager.addSchedules: 批量時段已添加到列表');
+    return true;
+  },
+  
+  // 批量添加草稿時段
+  addDraftSchedules: (schedules) => {
+    console.log('ChatStateManager.addDraftSchedules called', { schedules });
+    
+    const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES);
+    
+    // 檢查是否會超過長度限制
+    if (draftSchedules.length + schedules.length > ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
+      console.warn('ChatStateManager.addDraftSchedules: 批量添加會超過長度限制');
+      return false;
+    }
+    
+    // 檢查重複時段（與已提供時段和草稿時段的重複）
+    const providedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES);
+    const allExistingSchedules = [...providedSchedules, ...draftSchedules];
+    const duplicateSchedules = [];
+    
+    schedules.forEach(schedule => {
+      const isDuplicate = allExistingSchedules.some(existingSchedule => {
+        // 檢查是否為完全相同的時段
+        const isExactDuplicate = existingSchedule.date === schedule.date && 
+          existingSchedule.startTime === schedule.startTime && 
+          existingSchedule.endTime === schedule.endTime;
+        
+        if (isExactDuplicate) {
+          return true;
+        }
+        
+        // 檢查是否為重疊時段（相同日期且時間有重疊）
+        if (existingSchedule.date === schedule.date) {
+          const existingStart = existingSchedule.startTime;
+          const existingEnd = existingSchedule.endTime;
+          const newStart = schedule.startTime;
+          const newEnd = schedule.endTime;
+          
+          // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
+          const isOverlapping = newStart < existingEnd && newEnd > existingStart;
+          
+          return isOverlapping;
+        }
+        
+        return false;
+      });
+      
+      if (isDuplicate) {
+        duplicateSchedules.push(schedule);
+      }
+    });
+    
+    // 檢查批次內的重複時段
+    const batchDuplicateSchedules = [];
+    
+    for (let i = 0; i < schedules.length; i++) {
+      for (let j = i + 1; j < schedules.length; j++) {
+        const schedule1 = schedules[i];
+        const schedule2 = schedules[j];
+        
+        // 檢查是否為完全相同的時段
+        const isExactDuplicate = schedule1.date === schedule2.date && 
+          schedule1.startTime === schedule2.startTime && 
+          schedule1.endTime === schedule2.endTime;
+        
+        if (isExactDuplicate) {
+          if (!batchDuplicateSchedules.includes(schedule1)) {
+            batchDuplicateSchedules.push(schedule1);
+          }
+          if (!batchDuplicateSchedules.includes(schedule2)) {
+            batchDuplicateSchedules.push(schedule2);
+          }
+          continue;
+        }
+        
+        // 檢查是否為重疊時段（相同日期且時間有重疊）
+        if (schedule1.date === schedule2.date) {
+          const start1 = schedule1.startTime;
+          const end1 = schedule1.endTime;
+          const start2 = schedule2.startTime;
+          const end2 = schedule2.endTime;
+          
+          // 檢查時間重疊：時段1的開始時間 < 時段2的結束時間 且 時段1的結束時間 > 時段2的開始時間
+          const isOverlapping = start1 < end2 && end1 > start2;
+          
+          if (isOverlapping) {
+            if (!batchDuplicateSchedules.includes(schedule1)) {
+              batchDuplicateSchedules.push(schedule1);
+            }
+            if (!batchDuplicateSchedules.includes(schedule2)) {
+              batchDuplicateSchedules.push(schedule2);
+            }
+          }
+        }
+      }
+    }
+    
+    // 合併所有重複時段
+    const allDuplicateSchedules = [...duplicateSchedules, ...batchDuplicateSchedules];
+    
+    if (allDuplicateSchedules.length > 0) {
+      console.warn('ChatStateManager.addDraftSchedules: 檢測到重複或重疊時段', allDuplicateSchedules);
+      return false;
+    }
+    
+    // 批量添加草稿時段
+    const newDraftSchedules = schedules.map(schedule => ({
+      ...schedule,
+      timestamp: new Date(),
+      isDraft: true
+    }));
+    
+    draftSchedules.push(...newDraftSchedules);
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, draftSchedules);
+    console.log('ChatStateManager.addDraftSchedules: 批量草稿時段已添加到列表');
     return true;
   },
   
