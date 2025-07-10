@@ -9,6 +9,7 @@ import time
 import statistics
 from datetime import datetime
 import json
+import sys
 
 class PerformanceTester:
     def __init__(self, base_url="http://localhost:8000"):
@@ -144,15 +145,74 @@ class PerformanceTester:
         
         print()
     
+    def test_concurrent_requests(self, endpoint="/", num_requests=10):
+        """測試並發請求性能"""
+        print(f"測試並發請求性能 ({num_requests} 個請求)...")
+        
+        import threading
+        import queue
+        
+        results_queue = queue.Queue()
+        
+        def make_request():
+            start_time = time.time()
+            try:
+                response = requests.get(f"{self.base_url}{endpoint}")
+                end_time = time.time()
+                response_time = (end_time - start_time) * 1000
+                results_queue.put(response_time)
+            except Exception as e:
+                results_queue.put(None)
+        
+        # 創建並啟動線程
+        threads = []
+        for i in range(num_requests):
+            thread = threading.Thread(target=make_request)
+            threads.append(thread)
+            thread.start()
+        
+        # 等待所有線程完成
+        for thread in threads:
+            thread.join()
+        
+        # 收集結果
+        times = []
+        while not results_queue.empty():
+            result = results_queue.get()
+            if result is not None:
+                times.append(result)
+        
+        if times:
+            avg_time = statistics.mean(times)
+            min_time = min(times)
+            max_time = max(times)
+            
+            result = {
+                "name": f"並發請求 ({num_requests} 個)",
+                "endpoint": endpoint,
+                "average_time": avg_time,
+                "min_time": min_time,
+                "max_time": max_time,
+                "times": times,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            self.results.append(result)
+            
+            print(f"  平均響應時間: {avg_time:.2f}ms")
+            print(f"  最快響應時間: {min_time:.2f}ms")
+            print(f"  最慢響應時間: {max_time:.2f}ms")
+            print()
+    
     def generate_report(self):
         """生成性能測試報告"""
         if not self.results:
             print("沒有測試結果可生成報告")
             return
         
-        print("=" * 50)
+        print("=" * 60)
         print("性能測試報告")
-        print("=" * 50)
+        print("=" * 60)
         print(f"測試時間: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"測試目標: {self.base_url}")
         print()
@@ -161,27 +221,34 @@ class PerformanceTester:
         page_loads = [r for r in self.results if "首頁" in r["name"] or "頁面" in r["name"]]
         api_responses = [r for r in self.results if "API" in r["name"]]
         static_resources = [r for r in self.results if r["name"] in ["CSS 文件", "JavaScript 文件", "Logo 圖片", "聊天頭像"]]
+        concurrent_tests = [r for r in self.results if "並發" in r["name"]]
         
         if page_loads:
-            print("頁面載入性能:")
+            print("📄 頁面載入性能:")
             for result in page_loads:
                 print(f"  {result['name']}: {result['average_time']:.2f}ms")
             print()
         
         if api_responses:
-            print("API 響應性能:")
+            print("🔌 API 響應性能:")
             for result in api_responses:
                 print(f"  {result['name']}: {result['average_time']:.2f}ms")
             print()
         
         if static_resources:
-            print("靜態資源載入性能:")
+            print("📁 靜態資源載入性能:")
             for result in static_resources:
                 print(f"  {result['name']}: {result['average_time']:.2f}ms")
             print()
         
+        if concurrent_tests:
+            print("⚡ 並發請求性能:")
+            for result in concurrent_tests:
+                print(f"  {result['name']}: {result['average_time']:.2f}ms")
+            print()
+        
         # 性能評估
-        print("性能評估:")
+        print("📊 性能評估:")
         if page_loads:
             avg_page_load = statistics.mean([r['average_time'] for r in page_loads])
             if avg_page_load < 500:
@@ -200,8 +267,17 @@ class PerformanceTester:
             else:
                 print("  ❌ API 響應速度: 需要改善 (> 500ms)")
         
+        if concurrent_tests:
+            avg_concurrent = statistics.mean([r['average_time'] for r in concurrent_tests])
+            if avg_concurrent < 1000:
+                print("  ✅ 並發處理能力: 優秀 (< 1000ms)")
+            elif avg_concurrent < 2000:
+                print("  ⚠️  並發處理能力: 良好 (1000-2000ms)")
+            else:
+                print("  ❌ 並發處理能力: 需要改善 (> 2000ms)")
+        
         print()
-        print("=" * 50)
+        print("=" * 60)
     
     def save_results(self, filename="performance_test_results.json"):
         """保存測試結果到文件"""
@@ -211,7 +287,7 @@ class PerformanceTester:
     
     def run_full_test(self):
         """運行完整性能測試"""
-        print("開始性能測試...")
+        print("🚀 開始性能測試...")
         print(f"測試目標: {self.base_url}")
         print()
         
@@ -224,6 +300,9 @@ class PerformanceTester:
         # 測試靜態資源
         self.test_static_resources()
         
+        # 測試並發請求
+        self.test_concurrent_requests("/", 10)
+        
         # 生成報告
         self.generate_report()
         
@@ -232,8 +311,6 @@ class PerformanceTester:
 
 def main():
     """主函數"""
-    import sys
-    
     # 檢查命令行參數
     if len(sys.argv) > 1:
         base_url = sys.argv[1]

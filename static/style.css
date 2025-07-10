@@ -217,7 +217,7 @@
     --transparent: transparent;
     --none: none;
     --white: white;
-
+    
     /* 常用組合值 */
     --padding-zero-sm: var(--spacing-zero) var(--spacing-sm);
     --padding-zero-auto: var(--spacing-zero) var(--auto);
@@ -237,12 +237,6 @@
     --border-medium-avatar: var(--border-width-medium) solid var(--border-color-avatar);
     --border-none: none;
     --border-transparent: transparent;
-    
-    /* 性能優化：GPU 加速 */
-    --transform-gpu: translateZ(0);
-    --will-change-transform: transform;
-    --will-change-opacity: opacity;
-    --will-change-auto: auto;
 
     /* text-decoration 系統 */
     --text-decoration-none: none;
@@ -251,14 +245,14 @@
 /* 性能優化：關鍵渲染路徑樣式 */
 /* 這些樣式會立即載入，確保頁面快速渲染 */
 
-/* 全域重置 - 性能優化版本 */
+/* 全域重置 */
 * {
     box-sizing: var(--box-sizing-border-box);
     margin: 0;
     padding: 0;
 }
 
-/* 性能優化：減少重繪和重排 */
+/* 性能優化：基礎樣式設定 */
 html,
 body {
     height: 100%;
@@ -269,32 +263,23 @@ body {
     line-height: var(--line-height-base);
     color: var(--text-primary);
     background-color: var(--background-page);
-    /* 性能優化：啟用 GPU 加速 */
-    transform: var(--transform-gpu);
-    will-change: var(--will-change-auto);
     overflow-x: var(--overflow-hidden); /* 水平捲軸 */
     overflow-y: var(--overflow-auto); /* 垂直捲軸 */
 }
 
-/* 性能優化：按鈕響應優化 */
+/* 性能優化：按鈕響應優化 - 只對真正需要動畫的元素使用 */
 .btn {
     transition: var(--transition-fast);
-    /* 性能優化：啟用 GPU 加速 */
-    transform: var(--transform-gpu);
-    will-change: var(--will-change-transform);
 }
 
 .btn:active {
-    transform: scale(0.98) translateZ(0);
+    transform: scale(0.98);
 }
 
-/* 性能優化：卡片載入動畫 */
+/* 性能優化：卡片載入動畫 - 只對動畫元素使用 GPU 加速 */
 .giverCard {
     opacity: 0;
     animation: fadeIn 0.3s ease-in forwards;
-    /* 性能優化：啟用 GPU 加速 */
-    transform: var(--transform-gpu);
-    will-change: var(--will-change-opacity);
 }
 
 @keyframes fadeIn {
@@ -303,22 +288,18 @@ body {
     }
 }
 
-/* 性能優化：模態框優化 */
+/* 性能優化：模態框優化 - 只對動畫元素使用 */
 .modal {
-    /* 性能優化：啟用 GPU 加速 */
-    transform: var(--transform-gpu);
-    will-change: var(--will-change-transform);
+    /* 移除不必要的 GPU 加速 */
 }
 
 .modal.show {
     display: block;
 }
 
-/* 性能優化：滾動優化 */
+/* 性能優化：滾動優化 - 只對需要滾動的元素使用 */
 .chat-messages {
-    /* 性能優化：啟用 GPU 加速 */
-    transform: var(--transform-gpu);
-    will-change: var(--will-change-auto);
+    /* 移除不必要的 GPU 加速，讓瀏覽器自然處理 */
 }
 
 /* ================================================================= */
