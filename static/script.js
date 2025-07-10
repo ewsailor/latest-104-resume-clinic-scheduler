@@ -1325,11 +1325,9 @@ const EventManager = {
       const visibleErrors = validationResult.errors.filter(error => error !== '__HIDDEN_ERROR__');
       
       if (visibleErrors.length > 0) {
-        // 時間相關錯誤使用彈出顯示
-        if (validationResult.message && validationResult.message !== '__HIDDEN_ERROR__' && (
-          (validationResult.message.includes('結束時間') && validationResult.message.includes('必須晚於開始時間')) ||
-          validationResult.message.includes('時間必須在營業時間內')
-        )) {
+        // 時間邏輯錯誤顯示在表單下方，營業時間錯誤使用彈出顯示
+        if (validationResult.message && validationResult.message !== '__HIDDEN_ERROR__' && 
+            validationResult.message.includes('時間必須在營業時間內')) {
           FormValidator.showValidationError(validationResult.message);
         } else if (visibleErrors.length > 0) {
           // 根據錯誤訊息類型，顯示在對應的欄位下方
@@ -1552,6 +1550,9 @@ const EventManager = {
       scheduleForm.classList.add('schedule-form-hidden');
     }
     
+    // 清除重複時段錯誤
+    FormValidator.clearDuplicateScheduleError();
+    
     DOM_CACHE.clearFormInputs();
     
     // 重置選中的日期
@@ -1592,6 +1593,9 @@ const EventManager = {
     const field = input.id;
     const value = input.value;
     Logger.debug('EventManager: 表單輸入變更', { field, value });
+    
+    // 當使用者修改任何輸入欄位時，清除重複時段錯誤
+    FormValidator.clearDuplicateScheduleError();
     
     // 可以在這裡添加即時驗證邏輯
   },
@@ -2376,6 +2380,12 @@ const FormValidator = {
     console.log('FormValidator.showValidationError called', { message, element });
     
     if (element) {
+      // 檢查是否為時間邏輯錯誤，如果是則顯示在表單下方
+      if (message && message.includes('結束時間') && message.includes('必須晚於開始時間')) {
+        FormValidator.showDuplicateScheduleError(message);
+        return;
+      }
+      
       // 先清除該元素的所有現有錯誤訊息
       FormValidator.clearValidationError(element);
       
@@ -2410,9 +2420,18 @@ const FormValidator = {
         element.parentNode.appendChild(errorDiv);
       }
     } else {
-      // 使用 alert 顯示錯誤
-      if (message) {
-        alert(message);
+      // 檢查是否為重複時段錯誤或時間邏輯錯誤，如果是則顯示在表單下方
+      if (message && (
+        message.includes('重複或重疊') || 
+        message.includes('DUPLICATE_SCHEDULE') ||
+        (message.includes('結束時間') && message.includes('必須晚於開始時間'))
+      )) {
+        FormValidator.showDuplicateScheduleError(message);
+      } else {
+        // 使用 alert 顯示其他錯誤
+        if (message) {
+          alert(message);
+        }
       }
     }
   },
@@ -2422,13 +2441,65 @@ const FormValidator = {
     console.log('FormValidator.clearValidationError called', { element });
     
     if (element) {
+      // 只清除該元素及其直接父元素的錯誤訊息，不清除表單下方的錯誤訊息
       const errorElement = element.querySelector('.validation-error') || 
                           element.parentNode.querySelector('.validation-error');
       
       if (errorElement) {
-        errorElement.classList.remove('error-visible');
-        errorElement.classList.add('error-hidden');
-        errorElement.textContent = '';
+        // 檢查是否為表單下方的錯誤訊息（duplicate-schedule-error），如果是則不清除
+        if (!errorElement.classList.contains('duplicate-schedule-error')) {
+          errorElement.classList.remove('error-visible');
+          errorElement.classList.add('error-hidden');
+          errorElement.textContent = '';
+        }
+      }
+    }
+  },
+  
+  // 顯示重複時段錯誤在表單下方
+  showDuplicateScheduleError: (message) => {
+    console.log('FormValidator.showDuplicateScheduleError called', { message });
+    
+    // 找到表單元素
+    const formElement = document.getElementById('time-schedule-form');
+    if (!formElement) {
+      console.warn('FormValidator.showDuplicateScheduleError: 找不到表單元素');
+      return;
+    }
+    
+    // 先清除現有的重複時段錯誤
+    FormValidator.clearDuplicateScheduleError();
+    
+    // 創建錯誤訊息元素
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'validation-error text-danger small mt-2 duplicate-schedule-error';
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+    
+    // 將錯誤訊息插入到表單的確認按鈕下方
+    const confirmButton = formElement.querySelector('button[type="submit"]');
+    if (confirmButton) {
+      // 找到確認按鈕的父容器（通常是 d-flex justify-content-end gap-2）
+      const buttonContainer = confirmButton.parentNode;
+      // 直接在按鈕容器後面插入錯誤訊息
+      buttonContainer.parentNode.insertBefore(errorDiv, buttonContainer.nextSibling);
+    } else {
+      // 如果找不到確認按鈕，則插入到表單的最後
+      formElement.appendChild(errorDiv);
+    }
+    
+    console.log('FormValidator.showDuplicateScheduleError: 重複時段錯誤已顯示');
+  },
+  
+  // 清除重複時段錯誤
+  clearDuplicateScheduleError: () => {
+    console.log('FormValidator.clearDuplicateScheduleError called');
+    
+    const formElement = document.getElementById('time-schedule-form');
+    if (formElement) {
+      const existingError = formElement.querySelector('.duplicate-schedule-error');
+      if (existingError) {
+        existingError.remove();
       }
     }
   },
@@ -2462,6 +2533,9 @@ const FormValidator = {
           }
         }
       });
+      
+      // 清除重複時段錯誤
+      FormValidator.clearDuplicateScheduleError();
     }
   },
   
@@ -2507,11 +2581,8 @@ const FormValidator = {
     // 顯示錯誤
     if (!validationResult.isValid) {
       validationResult.errors.forEach(error => {
-        // 時間相關錯誤使用彈出顯示
-        if (error && (
-          (error.includes('結束時間') && error.includes('必須晚於開始時間')) ||
-          error.includes('時間必須在營業時間內')
-        )) {
+        // 時間邏輯錯誤顯示在表單下方，營業時間錯誤使用彈出顯示
+        if (error && error.includes('時間必須在營業時間內')) {
           FormValidator.showValidationError(error);
         } else {
           FormValidator.showValidationError(error, formElement);
@@ -5307,8 +5378,13 @@ const DOM = {
         FormValidator.showValidationError(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.TIME_BUSINESS_HOURS, input);
         return false;
       } else {
-        // 清除錯誤訊息
-        FormValidator.clearValidationError(input);
+        // 只清除該輸入欄位的錯誤訊息，不清除表單下方的錯誤訊息
+        const errorElement = input.parentNode.querySelector('.validation-error');
+        if (errorElement) {
+          errorElement.classList.remove('error-visible');
+          errorElement.classList.add('error-hidden');
+          errorElement.textContent = '';
+        }
         return true;
       }
     },
@@ -5391,9 +5467,14 @@ const DOM = {
       console.log('DOM.chat.validateNotesInput called：驗證備註輸入', { value: input.value });
       const value = input.value.trim();
       
-      // 如果為空，清除錯誤訊息
+      // 如果為空，清除該欄位的錯誤訊息
       if (!value) {
-        FormValidator.clearValidationError(input);
+        const errorElement = input.parentNode.querySelector('.validation-error');
+        if (errorElement) {
+          errorElement.classList.remove('error-visible');
+          errorElement.classList.add('error-hidden');
+          errorElement.textContent = '';
+        }
         return;
       }
       
@@ -5401,8 +5482,13 @@ const DOM = {
       if (value.length > FormValidator.RULES.SCHEDULE_FORM.NOTES.MAX_LENGTH) {
         FormValidator.showValidationError(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.NOTES_TOO_LONG, input);
       } else {
-        // 清除錯誤訊息
-        FormValidator.clearValidationError(input);
+        // 清除該欄位的錯誤訊息
+        const errorElement = input.parentNode.querySelector('.validation-error');
+        if (errorElement) {
+          errorElement.classList.remove('error-visible');
+          errorElement.classList.add('error-hidden');
+          errorElement.textContent = '';
+        }
       }
     },
     
@@ -5411,9 +5497,14 @@ const DOM = {
       console.log('DOM.chat.validateDateInput called：驗證日期輸入', { value: input.value });
       const value = input.value.trim();
       
-      // 如果為空，清除錯誤訊息
+      // 如果為空，清除該欄位的錯誤訊息
       if (!value) {
-        FormValidator.clearValidationError(input);
+        const errorElement = input.parentNode.querySelector('.validation-error');
+        if (errorElement) {
+          errorElement.classList.remove('error-visible');
+          errorElement.classList.add('error-hidden');
+          errorElement.textContent = '';
+        }
         return;
       }
       
@@ -5437,8 +5528,13 @@ const DOM = {
         return;
       }
       
-      // 清除錯誤訊息
-      FormValidator.clearValidationError(input);
+      // 清除該欄位的錯誤訊息
+      const errorElement = input.parentNode.querySelector('.validation-error');
+      if (errorElement) {
+        errorElement.classList.remove('error-visible');
+        errorElement.classList.add('error-hidden');
+        errorElement.textContent = '';
+      }
     },
     
     // 提交表單
