@@ -7691,30 +7691,9 @@ const EventManager = {
             if (remainingProvided.length === 0 && remainingDrafts.length === 0) {
               DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
             } else {
-              // 更新對應的表格
-              const chatMessages = DOM_CACHE.chatMessages;
-              if (chatMessages) {
-                if (isProvideTable) {
-                  const successMessage = chatMessages.querySelector('.success-provide-table')?.closest('.giver-message');
-                  if (successMessage) {
-                    const updatedHTML = TEMPLATES.chat.successProvideTime(remainingProvided);
-                    successMessage.outerHTML = updatedHTML;
-                    Logger.info('EventManager: 成功提供表格已更新');
-                  }
-                } else if (isScheduleTable) {
-                  const tableMessage = chatMessages.querySelector('.schedule-table')?.closest('.giver-message');
-                  if (tableMessage) {
-                    // 重新生成包含草稿和正式時段的表格
-                    const allSchedules = [
-                      ...remainingProvided.map(schedule => ({ ...schedule, isDraft: false })),
-                      ...remainingDrafts.map(schedule => ({ ...schedule, isDraft: true }))
-                    ];
-                    const updatedHTML = TEMPLATES.chat.scheduleTable(allSchedules);
-                    tableMessage.outerHTML = updatedHTML;
-                    Logger.info('EventManager: 查看所有時段表格已更新');
-                  }
-                }
-              }
+              // 使用 updateScheduleDisplay 方法更新所有相關表格
+              EventManager.updateScheduleDisplay();
+              Logger.info('EventManager: 所有時段表格已更新');
             }
             resolve();
           }
