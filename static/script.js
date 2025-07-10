@@ -561,6 +561,11 @@ const CONFIG = {
         ACTIONS: '調整'
       }
     },
+    
+    // 提示文字配置
+    PROMPTS: {
+      SELECT_NEXT_ACTION: '請選擇接下來的動作：',
+    },
   }
 };
 
@@ -645,6 +650,19 @@ function getDemoTimeLabel(option) {
   Logger.debug('getDemoTimeLabel called', { option });
   const result = CONFIG.DEMO_TIME_SLOTS[option]?.label || "";
   Logger.debug('getDemoTimeLabel result', { option, result });
+  return result;
+}
+
+// =================================================================
+//   提示文字工具函數 (Prompt Text Utility Functions)
+// =================================================================
+
+// 取得統一的提示文字
+function getPromptText(key, className = 'mt-2') {
+  Logger.debug('getPromptText called', { key, className });
+  const text = CONFIG.UI_TEXT.PROMPTS[key] || '';
+  const result = `<p class="${className}">${text}</p>`;
+  Logger.debug('getPromptText result', { key, className, result });
   return result;
 }
 
@@ -2850,7 +2868,7 @@ const TEMPLATES = {
                 ${tableContent}
               </table>
             </div>
-            <p class="mt-2">請選擇接下來的動作：</p>
+            ${getPromptText('SELECT_NEXT_ACTION')}
             <div class="chat-options-buttons mt-2">
               ${buttonGroup}
             </div>
@@ -2872,10 +2890,10 @@ const TEMPLATES = {
             <div class="chat-options-buttons" role="group" aria-label="諮詢選項">
                 <button class="btn btn-outline btn-option" data-option="schedule"
                     aria-label="預約 Giver 時間">
-                    我想預約 Giver 時間
+                    ${CONFIG.UI_TEXT.BUTTONS.SCHEDULE}
                 </button>
                 <button class="btn btn-outline btn-option" data-option="skip" aria-label="暫不預約">
-                    暫不預約 Giver 時間
+                    ${CONFIG.UI_TEXT.BUTTONS.SKIP}
                 </button>
             </div>
         </div>
@@ -2988,7 +3006,7 @@ const TEMPLATES = {
                 ${tableContent}
               </table>
             </div>
-            <p class="mt-2">請選擇接下來的動作：</p>
+            ${getPromptText('SELECT_NEXT_ACTION')}
             <div class="chat-options-buttons mt-2" id="after-schedule-options">
               ${TEMPLATES.chat.buttonGroup(['continue-single-time', 'continue-multiple-times', 'submit-schedules'])}
             </div>
@@ -3050,7 +3068,7 @@ const TEMPLATES = {
                 ${tableContent}
               </table>
             </div>
-            <p class="mt-2">請選擇接下來的動作：</p>
+            ${getPromptText('SELECT_NEXT_ACTION')}
             <div class="chat-options-buttons mt-2" id="after-multiple-schedule-options">
               ${TEMPLATES.chat.buttonGroup(['continue-single-time', 'continue-multiple-times', 'submit-schedules'])}
             </div>
@@ -3062,7 +3080,7 @@ const TEMPLATES = {
     // 查看所有時段選項按鈕模板
     viewAllSchedulesOptions: (scheduleList, scheduleCount) =>
       TEMPLATES.chat.messageContainer.withAvatar(
-        `您目前已提供 ${scheduleCount} 個時段，進度如下：<br>${scheduleList}<br>請選擇接下來的動作：`,
+        `您目前已提供 ${scheduleCount} 個時段，進度如下：<br>${scheduleList}<br>${CONFIG.UI_TEXT.PROMPTS.SELECT_NEXT_ACTION}`,
         TEMPLATES.chat.buttonGroup(['single-time', 'multiple-times', 'submit-schedules', 'cancel'])
       ),
 
@@ -3113,7 +3131,7 @@ const TEMPLATES = {
                 </tbody>
               </table>
             </div>
-            <p class="mt-2">請選擇接下來的動作：</p>
+            ${getPromptText('SELECT_NEXT_ACTION')}
             <div class="chat-options-buttons mt-2" id="after-view-all-options">
               ${TEMPLATES.chat.buttonGroup(['single-time', 'multiple-times', 'submit-schedules', 'cancel'])}
             </div>
@@ -3413,7 +3431,7 @@ const TEMPLATES = {
                 </tbody>
               </table>
             </div>
-            <p class="mt-3">請選擇接下來的動作：</p>
+            ${getPromptText('SELECT_NEXT_ACTION')}
             <div class="chat-options-buttons mt-2" id="reservation-success-options">
               <button class="btn btn-orange btn-option" data-option="confirm-all">確認完畢，請協助送出給 Giver</button>
               <button class="btn btn-outline-secondary btn-option" data-option="cancel-all">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
@@ -5631,7 +5649,7 @@ const DOM = {
         let buttonsHTML = '';
         if (includeButtons) {
           buttonsHTML = `
-            <p class="mt-2">請選擇接下來的動作：</p>
+            ${getPromptText('SELECT_NEXT_ACTION')}
             <div class="chat-options-buttons mt-2" id="after-view-all-options">
               ${TEMPLATES.chat.buttonGroup(['single-time', 'multiple-times', 'submit-schedules'])}
             </div>
