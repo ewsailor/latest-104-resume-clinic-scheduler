@@ -1500,7 +1500,17 @@ const EventManager = {
       }
       
       // 更新顯示
+      console.log('EventManager.handleScheduleFormSubmit: 編輯完成，準備更新表格顯示');
       this.updateScheduleDisplay();
+      
+      // 確保表格更新後，滾動到適當位置
+      await nonBlockingDelay(DELAY_TIMES.CHAT.FORM_SUBMIT, () => {
+        const chatMessages = DOM_CACHE.chatMessages;
+        if (chatMessages) {
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+      });
+      
       return;
     }
     
@@ -1621,21 +1631,40 @@ const EventManager = {
       allSchedules: allSchedules.length 
     });
     
-    // 更新成功提供時間表格（只顯示正式提供的時段）
-    const successMessage = chatMessages.querySelector('.success-provide-table')?.closest('.giver-message');
-    if (successMessage) {
-      const updatedHTML = TEMPLATES.chat.successProvideTime(providedSchedules);
-      successMessage.outerHTML = updatedHTML;
-      console.log('EventManager.updateScheduleDisplay: 成功提供表格已更新');
-    }
+    // 更新所有相關的表格
+    // 1. 更新成功提供時間表格（只顯示正式提供的時段）
+    const successMessages = chatMessages.querySelectorAll('.success-provide-table');
+    successMessages.forEach(successTable => {
+      const giverMessage = successTable.closest('.giver-message');
+      if (giverMessage) {
+        const updatedHTML = TEMPLATES.chat.successProvideTime(providedSchedules);
+        giverMessage.outerHTML = updatedHTML;
+        console.log('EventManager.updateScheduleDisplay: 成功提供表格已更新');
+      }
+    });
     
-    // 更新查看所有時段表格（顯示所有時段，包含草稿）
-    const tableMessage = chatMessages.querySelector('.schedule-table')?.closest('.giver-message');
-    if (tableMessage) {
-      const updatedHTML = TEMPLATES.chat.scheduleTable(allSchedules);
-      tableMessage.outerHTML = updatedHTML;
-      console.log('EventManager.updateScheduleDisplay: 查看所有時段表格已更新');
-    }
+    // 2. 更新查看所有時段表格（顯示所有時段，包含草稿）
+    const scheduleTables = chatMessages.querySelectorAll('.schedule-table');
+    scheduleTables.forEach(scheduleTable => {
+      const giverMessage = scheduleTable.closest('.giver-message');
+      if (giverMessage) {
+        const updatedHTML = TEMPLATES.chat.scheduleTable(allSchedules);
+        giverMessage.outerHTML = updatedHTML;
+        console.log('EventManager.updateScheduleDisplay: 查看所有時段表格已更新');
+      }
+    });
+    
+    // 3. 更新所有包含時段資料的 giver-message（以防有其他類型的表格）
+    const giverMessages = chatMessages.querySelectorAll('.giver-message');
+    giverMessages.forEach(giverMessage => {
+      // 檢查是否包含時段相關的內容
+      const hasScheduleContent = giverMessage.querySelector('.schedule-table, .success-provide-table, .schedule-item');
+      if (hasScheduleContent && !giverMessage.querySelector('.schedule-table, .success-provide-table')) {
+        // 如果包含時段內容但沒有主要表格，可能是其他類型的時段顯示
+        // 這裡可以根據需要添加其他表格類型的更新邏輯
+        console.log('EventManager.updateScheduleDisplay: 發現其他類型的時段顯示，可能需要更新');
+      }
+    });
     
     // 滾動到底部
     chatMessages.scrollTop = chatMessages.scrollHeight;
