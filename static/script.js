@@ -578,6 +578,85 @@ const POSTER_URL = CONFIG.API.POSTER_URL;
 const GIVERS_PER_PAGE = CONFIG.PAGINATION.GIVERS_PER_PAGE;
 
 // =================================================================
+//   共用工具函數 (Shared Utility Functions)
+// =================================================================
+
+// 生成時段表格的共用函數
+const generateScheduleTable = (allSchedules, includeButtons = false) => {
+  console.log('generateScheduleTable called: 生成時段表格', { 
+    scheduleCount: allSchedules.length, 
+    includeButtons 
+  });
+  
+  let tableRows = '';
+  allSchedules.forEach((schedule, index) => {
+    const scheduleNumber = index + 1;
+    const dateObj = new Date(schedule.date);
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    const weekday = weekdays[dateObj.getDay()];
+    const formattedDate = schedule.date;
+    const startTime = schedule.startTime || '';
+    const endTime = schedule.endTime || '';
+    const notes = schedule.notes || '';
+    const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
+    const statusClass = schedule.isDraft ? 'text-warning' : 'text-success';
+    const statusText = schedule.isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING;
+    tableRows += `
+      <tr data-index="${index}">
+        <td class="text-center">${scheduleNumber}</td>
+        <td class="text-center ${statusClass}">${statusText}</td>
+        <td>${period}</td>
+        <td><span class="schedule-notes-text">${notes}</span></td>
+        <td class="text-center">
+          <div class="d-flex gap-1 justify-content-center">
+            <button class="btn btn-link btn-sm p-0 schedule-edit-btn">修改</button>
+            <button class="btn btn-link btn-sm text-danger p-0 schedule-delete-btn">刪除</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+  
+  const scheduleCount = allSchedules.length;
+  const tableContent = `
+    <div class="table-responsive mt-2">
+      <table class="table table-sm table-bordered table-hover schedule-table">
+        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>
+    </div>
+  `;
+  
+  let buttonsHTML = '';
+  if (includeButtons) {
+    buttonsHTML = `
+      ${getPromptText('SELECT_NEXT_ACTION')}
+      <div class="chat-options-buttons mt-2" id="after-view-all-options">
+        ${TEMPLATES.chat.buttonGroup(['continue-single-time', 'continue-multiple-times', 'submit-schedules'])}
+      </div>
+    `;
+  }
+  
+  const result = `
+    <div class="message giver-message">
+      <div class="d-flex align-items-center">
+        <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+      </div>
+      <div class="message-content">
+        <p class="message-title">您目前已提供 ${scheduleCount} 個時段，進度如下：</p>
+        ${tableContent}
+        ${buttonsHTML}
+      </div>
+    </div>
+  `;
+  
+  console.log('generateScheduleTable completed: 表格模板已生成');
+  return result;
+};
+
+// =================================================================
 //   工具函數 (Utility Functions)
 // =================================================================
 
@@ -1631,6 +1710,9 @@ const EventManager = {
       allSchedules: allSchedules.length 
     });
     
+    // 檢查是否有草稿時段
+    const hasDraftSchedules = draftSchedules.length > 0;
+    
     // 更新所有相關的表格
     // 1. 更新成功提供時間表格（只顯示正式提供的時段）
     const successMessages = chatMessages.querySelectorAll('.success-provide-table');
@@ -1648,9 +1730,14 @@ const EventManager = {
     scheduleTables.forEach(scheduleTable => {
       const giverMessage = scheduleTable.closest('.giver-message');
       if (giverMessage) {
-        const updatedHTML = TEMPLATES.chat.scheduleTable(allSchedules);
+        // 根據是否有草稿時段決定是否顯示按鈕
+        const includeButtons = hasDraftSchedules;
+        
+        // 使用共用函數生成表格
+        const updatedHTML = generateScheduleTable(allSchedules, includeButtons);
+        
         giverMessage.outerHTML = updatedHTML;
-        console.log('EventManager.updateScheduleDisplay: 查看所有時段表格已更新');
+        console.log('EventManager.updateScheduleDisplay: 查看所有時段表格已更新', { includeButtons });
       }
     });
     
@@ -5798,69 +5885,8 @@ const DOM = {
         ];
         console.log('renderTable() allSchedules:', allSchedules);
         
-        let tableRows = '';
-        allSchedules.forEach((schedule, index) => {
-          const scheduleNumber = index + 1;
-          const dateObj = new Date(schedule.date);
-          const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-          const weekday = weekdays[dateObj.getDay()];
-          const formattedDate = schedule.date;
-          const startTime = schedule.startTime || '';
-          const endTime = schedule.endTime || '';
-          const notes = schedule.notes || '';
-          const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
-          const statusClass = schedule.isDraft ? 'text-warning' : 'text-success';
-          const statusText = schedule.isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING;
-          tableRows += `
-            <tr data-index="${index}">
-              <td class="text-center">${scheduleNumber}</td>
-              <td class="text-center ${statusClass}">${statusText}</td>
-              <td>${period}</td>
-              <td><span class="schedule-notes-text">${notes}</span></td>
-              <td class="text-center">
-                <div class="d-flex gap-1 justify-content-center">
-                  <button class="btn btn-link btn-sm p-0 schedule-edit-btn">修改</button>
-                  <button class="btn btn-link btn-sm text-danger p-0 schedule-delete-btn">刪除</button>
-                </div>
-              </td>
-            </tr>
-          `;
-        });
-        
-        const scheduleCount = allSchedules.length;
-        const tableContent = `
-          <div class="table-responsive mt-2">
-            <table class="table table-sm table-bordered table-hover schedule-table">
-              ${TEMPLATES.chat.tableHeaders.fiveColumns()}
-              <tbody>
-                ${tableRows}
-              </tbody>
-            </table>
-          </div>
-        `;
-        
-        let buttonsHTML = '';
-        if (includeButtons) {
-          buttonsHTML = `
-            ${getPromptText('SELECT_NEXT_ACTION')}
-            <div class="chat-options-buttons mt-2" id="after-view-all-options">
-              ${TEMPLATES.chat.buttonGroup(['single-time', 'multiple-times', 'submit-schedules'])}
-            </div>
-          `;
-        }
-        
-        const result = `
-          <div class="message giver-message">
-            <div class="d-flex align-items-center">
-              <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-            </div>
-            <div class="message-content">
-              <p class="message-title">您目前已提供 ${scheduleCount} 個時段，進度如下：</p>
-              ${tableContent}
-              ${buttonsHTML}
-            </div>
-          </div>
-        `;
+        // 使用共用函數生成表格
+        const result = generateScheduleTable(allSchedules, includeButtons);
         
         console.log('renderTable() completed: 表格模板已生成');
         return result;
