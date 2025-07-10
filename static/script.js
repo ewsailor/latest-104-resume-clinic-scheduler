@@ -1,8 +1,13 @@
-// =================================================================
-//   日誌記錄模組 (Logger Module)
-// =================================================================
+// ======================================================================
+//   1. 基礎常數和配置 (Base Constants and Configurations)
+// ======================================================================
 
-// 日誌級別常數
+// ======================================================
+//   1-1. 日誌記錄模組 (Logger Module)
+// ======================================================
+
+// 日誌級別常數：用於數值比較，決定是否輸出日誌
+// 例如：if (currentLevel >= LOGGER_LEVELS.INFO)，表示輸出 INFO 級別及以上的日誌
 const LOGGER_LEVELS = {
   DEBUG: 0,
   INFO: 1,
@@ -12,6 +17,7 @@ const LOGGER_LEVELS = {
 };
 
 // 日誌級別名稱常數，使用 Object.keys() 反轉映射
+// 用於日誌輸出時，將日誌級別數值轉換為可讀的字串名稱，例如: `LOGGER_LEVEL_NAMES[currentLevel]`
 const LOGGER_LEVEL_NAMES = Object.fromEntries(
   Object.entries(LOGGER_LEVELS).map(([name, level]) => [level, name])
 );
@@ -115,7 +121,7 @@ const Logger = {
     // 控制台輸出
     if (Logger.config.enableConsole) {
       const consoleMethod = Logger.getConsoleMethod(level);
-      const prefix = `[${logEntry.levelName}] ${DateUtils.formatToLocalTime ? DateUtils.formatToLocalTime(logEntry.timestamp) : logEntry.timestamp.toLocaleString()}`;
+      const prefix = `[${logEntry.levelName}] ${logEntry.timestamp.toLocaleString()}`;
       
       if (data) {
         console[consoleMethod](prefix, message, data);
@@ -287,10 +293,11 @@ const Logger = {
 // 全域日誌實例
 const LoggerInstance = Logger;  
 
-// =================================================================
-//   全域常數設定 (Global Constants) - 為了向後相容，保留舊的常數引用
-// =================================================================
+// ======================================================
+//   1-2. 全域常數設定 (Global Constants)
+// ======================================================
 
+// 全域常數設定
 const CONFIG = {
   // 全域實例
   INSTANCES: {
@@ -558,185 +565,12 @@ const CONFIG = {
   }
 };
 
-// =================================================================
-//   全域常數設定 (Global Constants) - 為了向後相容，保留舊的常數引用
-// =================================================================
-
+// 全域常數：為了向後相容，保留舊的常數引用
 const BASE_URL = CONFIG.API.BASE_URL;
 const POSTER_URL = CONFIG.API.POSTER_URL;
 const GIVERS_PER_PAGE = CONFIG.PAGINATION.GIVERS_PER_PAGE;
 
-// =================================================================
-//   共用工具函數 (Shared Utility Functions)
-// =================================================================
-
-// 生成時段表格的共用函數
-const generateScheduleTable = (allSchedules, includeButtons = false) => {
-  console.log('generateScheduleTable called: 生成時段表格', { 
-    scheduleCount: allSchedules.length, 
-    includeButtons 
-  });
-  
-  let tableRows = '';
-  allSchedules.forEach((schedule, index) => {
-    const scheduleNumber = index + 1;
-    const dateObj = new Date(schedule.date);
-    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-    const weekday = weekdays[dateObj.getDay()];
-    const formattedDate = schedule.date;
-    const startTime = schedule.startTime || '';
-    const endTime = schedule.endTime || '';
-    const notes = schedule.notes || '';
-    const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
-    const statusClass = schedule.isDraft ? 'text-warning' : 'text-success';
-    const statusText = schedule.isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING;
-    tableRows += `
-      <tr data-index="${index}">
-        <td class="text-center">${scheduleNumber}</td>
-        <td class="text-center ${statusClass}">${statusText}</td>
-        <td>${period}</td>
-        <td><span class="schedule-notes-text">${notes}</span></td>
-        <td class="text-center">
-          <div class="d-flex gap-1 justify-content-center">
-            <button class="btn btn-link btn-sm p-0 schedule-edit-btn">修改</button>
-            <button class="btn btn-link btn-sm text-danger p-0 schedule-delete-btn">刪除</button>
-          </div>
-        </td>
-      </tr>
-    `;
-  });
-  
-  const scheduleCount = allSchedules.length;
-  const tableContent = `
-    <div class="table-responsive mt-2">
-      <table class="table table-sm table-bordered table-hover schedule-table">
-        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
-        <tbody>
-          ${tableRows}
-        </tbody>
-      </table>
-    </div>
-  `;
-  
-  let buttonsHTML = '';
-  if (includeButtons) {
-    buttonsHTML = `
-      ${getPromptText('SELECT_NEXT_ACTION')}
-      <div class="chat-options-buttons mt-2" id="after-view-all-options">
-        ${TEMPLATES.chat.buttonGroup(['continue-single-time', 'continue-multiple-times', 'submit-schedules'])}
-      </div>
-    `;
-  }
-  
-  const result = `
-    <div class="message giver-message">
-      <div class="d-flex align-items-center">
-        <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-      </div>
-      <div class="message-content">
-        <p class="message-title">您目前已提供 ${scheduleCount} 個時段，進度如下：</p>
-        ${tableContent}
-        ${buttonsHTML}
-      </div>
-    </div>
-  `;
-  
-  console.log('generateScheduleTable completed: 表格模板已生成');
-  return result;
-};
-
-// =================================================================
-//   工具函數 (Utility Functions)
-// =================================================================
-
-// 延遲時間常數管理 
-const DELAY_TIMES = {
-  // 聊天相關延遲
-  CHAT: {
-    RESPONSE: 1000,         // Giver 回覆延遲
-    FORM_SUBMIT: 1000,      // 表單提交後延遲
-    OPTION_SELECT: 1000,    // 選項選擇後延遲
-    SUCCESS_MESSAGE: 1000,  // 成功訊息延遲
-    CANCEL_MESSAGE: 1000,   // 取消訊息延遲
-    VIEW_TIMES: 1000,       // 查看時間延遲
-    SINGLE_TIME: 100,       // 單筆時段處理延遲
-    MULTIPLE_TIMES: 1000,   // 多筆時段處理延遲
-    SUBMISSION_RESULT: 1000 // 提交結果延遲
-  },
-  
-  // UI 相關延遲
-  UI: {
-    MODAL_CLEANUP: 150,    // Modal 清理延遲
-    FOCUS_TRANSFER: 0,     // 焦點轉移延遲
-    FOCUS_RETRY: 50,       // 焦點重試延遲
-    BACKDROP_CLEANUP: 0,   // Backdrop 清理延遲
-    CLOSE_CONFIRMATION: 150 // 關閉確認延遲
-  },
-  
-  // 錯誤處理延遲
-  ERROR: {
-    AUTO_REMOVE: 5000,     // 錯誤訊息自動移除
-    TOAST_DURATION: 3000,  // Toast 顯示時間
-    SUCCESS_DURATION: 3000, // 成功訊息顯示時間
-    INFO_DURATION: 3000,    // 資訊訊息顯示時間
-    VALIDATION_ERROR: 1000  // 驗證錯誤延遲
-  },
-  
-  // 動畫和過渡延遲
-  ANIMATION: {
-    TOPIC_OVERFLOW: 1000,  // 主題溢出檢查延遲
-    DOM_UPDATE: 0,         // DOM 更新延遲
-    RESIZE_DEBOUNCE: 300   // 視窗大小調整防抖延遲
-  },
-  
-  // 資料載入延遲
-  DATA: {
-    RETRY_DELAY: 1000,     // 重試延遲
-    LOADING_TIMEOUT: 30000 // 載入超時
-  }
-};
-
-// Promise 版本的延遲函數，替代 setTimeout
-const delay = (ms) => {
-  Logger.debug('delay called: 延遲執行', { ms });
-  return new Promise(resolve => setTimeout(resolve, ms));
-};
-
-// 非阻塞延遲函數，用於不需要等待的延遲操作
-const nonBlockingDelay = async (ms, callback) => {
-  Logger.debug('nonBlockingDelay called: 非阻塞延遲', { ms });
-  await delay(ms);
-  callback();
-};
-
-// =================================================================
-//   Demo 預約時間工具函數 (Demo Time Slot Utility Functions)
-// =================================================================
-
-// 根據 option 取得對應的 demo 時間標籤
-function getDemoTimeLabel(option) {
-  Logger.debug('getDemoTimeLabel called', { option });
-  const result = CONFIG.DEMO_TIME_SLOTS[option]?.label || "";
-  Logger.debug('getDemoTimeLabel result', { option, result });
-  return result;
-}
-
-// =================================================================
-//   提示文字工具函數 (Prompt Text Utility Functions)
-// =================================================================
-
-// 取得統一的提示文字
-function getPromptText(key, className = 'mt-2') {
-  Logger.debug('getPromptText called', { key, className });
-  const text = CONFIG.UI_TEXT.PROMPTS[key] || '';
-  const result = `<p class="${className}">${text}</p>`;
-  Logger.debug('getPromptText result', { key, className, result });
-  return result;
-}
-
-// =================================================================
-//   DOM 快取物件 (DOM Cache)
-// =================================================================
+//  DOM 快取物件：用於快取 DOM 元素，避免重複查詢
 const DOM_CACHE = {
   // 私有快取屬性
   _chatMessages: null,
@@ -923,9 +757,173 @@ const DOM_CACHE = {
   }
 };
 
-// =================================================================
-//   通用按鈕處理器 (Universal Button Handler)
-// =================================================================
+// ======================================================================
+//   2. 基礎工具：工具函數和通用模組 (Base Tools: Utility Functions and Common Modules)
+// ======================================================================
+
+// ======================================================
+//   2-1. 延遲函數 (Delay Functions)
+// ======================================================
+
+// 延遲時間常數
+const DELAY_TIMES = {
+  // 聊天相關延遲
+  CHAT: {
+    RESPONSE: 1000,         // Giver 回覆延遲
+    FORM_SUBMIT: 1000,      // 表單提交後延遲
+    OPTION_SELECT: 1000,    // 選項選擇後延遲
+    SUCCESS_MESSAGE: 1000,  // 成功訊息延遲
+    CANCEL_MESSAGE: 1000,   // 取消訊息延遲
+    VIEW_TIMES: 1000,       // 查看時間延遲
+    SINGLE_TIME: 100,       // 單筆時段處理延遲
+    MULTIPLE_TIMES: 1000,   // 多筆時段處理延遲
+    SUBMISSION_RESULT: 1000 // 提交結果延遲
+  },
+  
+  // UI 相關延遲
+  UI: {
+    MODAL_CLEANUP: 150,    // Modal 清理延遲
+    FOCUS_TRANSFER: 0,     // 焦點轉移延遲
+    FOCUS_RETRY: 50,       // 焦點重試延遲
+    BACKDROP_CLEANUP: 0,   // Backdrop 清理延遲
+    CLOSE_CONFIRMATION: 150 // 關閉確認延遲
+  },
+  
+  // 錯誤處理延遲
+  ERROR: {
+    AUTO_REMOVE: 5000,     // 錯誤訊息自動移除
+    TOAST_DURATION: 3000,  // Toast 顯示時間
+    SUCCESS_DURATION: 3000, // 成功訊息顯示時間
+    INFO_DURATION: 3000,    // 資訊訊息顯示時間
+    VALIDATION_ERROR: 1000  // 驗證錯誤延遲
+  },
+  
+  // 動畫和過渡延遲
+  ANIMATION: {
+    TOPIC_OVERFLOW: 1000,  // 主題溢出檢查延遲
+    DOM_UPDATE: 0,         // DOM 更新延遲
+    RESIZE_DEBOUNCE: 300   // 視窗大小調整防抖延遲
+  },
+  
+  // 資料載入延遲
+  DATA: {
+    RETRY_DELAY: 1000,     // 重試延遲
+    LOADING_TIMEOUT: 30000 // 載入超時
+  }
+};
+
+// Promise 版本的延遲函數，替代 setTimeout
+const delay = (ms) => {
+  Logger.debug('delay called: 延遲執行', { ms });
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
+
+// 非阻塞延遲函數，用於不需要等待的延遲操作
+const nonBlockingDelay = async (ms, callback) => {
+  Logger.debug('nonBlockingDelay called: 非阻塞延遲', { ms });
+  await delay(ms);
+  callback();
+};
+
+// ======================================================
+//   2-2. 工具函數 (Utility Functions)
+// ======================================================
+
+// 生成時段表格的共用函數
+const generateScheduleTable = (allSchedules, includeButtons = false) => {
+  console.log('generateScheduleTable called: 生成時段表格', { 
+    scheduleCount: allSchedules.length, 
+    includeButtons 
+  });
+  
+  let tableRows = '';
+  allSchedules.forEach((schedule, index) => {
+    const scheduleNumber = index + 1;
+    const dateObj = new Date(schedule.date);
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    const weekday = weekdays[dateObj.getDay()];
+    const formattedDate = schedule.date;
+    const startTime = schedule.startTime || '';
+    const endTime = schedule.endTime || '';
+    const notes = schedule.notes || '';
+    const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
+    const statusClass = schedule.isDraft ? 'text-warning' : 'text-success';
+    const statusText = schedule.isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING;
+    tableRows += `
+      <tr data-index="${index}">
+        <td class="text-center">${scheduleNumber}</td>
+        <td class="text-center ${statusClass}">${statusText}</td>
+        <td>${period}</td>
+        <td><span class="schedule-notes-text">${notes}</span></td>
+        <td class="text-center">
+          <div class="d-flex gap-1 justify-content-center">
+            <button class="btn btn-link btn-sm p-0 schedule-edit-btn">修改</button>
+            <button class="btn btn-link btn-sm text-danger p-0 schedule-delete-btn">刪除</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+  
+  const scheduleCount = allSchedules.length;
+  const tableContent = `
+    <div class="table-responsive mt-2">
+      <table class="table table-sm table-bordered table-hover schedule-table">
+        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>
+    </div>
+  `;
+  
+  let buttonsHTML = '';
+  if (includeButtons) {
+    buttonsHTML = `
+      ${getPromptText('SELECT_NEXT_ACTION')}
+      <div class="chat-options-buttons mt-2" id="after-view-all-options">
+        ${TEMPLATES.chat.buttonGroup(['continue-single-time', 'continue-multiple-times', 'submit-schedules'])}
+      </div>
+    `;
+  }
+  
+  const result = `
+    <div class="message giver-message">
+      <div class="d-flex align-items-center">
+        <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+      </div>
+      <div class="message-content">
+        <p class="message-title">您目前已提供 ${scheduleCount} 個時段，進度如下：</p>
+        ${tableContent}
+        ${buttonsHTML}
+      </div>
+    </div>
+  `;
+  
+  console.log('generateScheduleTable completed: 表格模板已生成');
+  return result;
+};
+
+// Demo 預約時間函數：根據 option 取得對應的 demo 時間標籤
+function getDemoTimeLabel(option) {
+  Logger.debug('getDemoTimeLabel called', { option });
+  const result = CONFIG.DEMO_TIME_SLOTS[option]?.label || "";
+  Logger.debug('getDemoTimeLabel result', { option, result });
+  return result;
+}
+
+// 取得統一的提示文字：用於在聊天訊息中顯示提示文字
+function getPromptText(key, className = 'mt-2') {
+  Logger.debug('getPromptText called', { key, className });
+  const text = CONFIG.UI_TEXT.PROMPTS[key] || '';
+  const result = `<p class="${className}">${text}</p>`;
+  Logger.debug('getPromptText result', { key, className, result });
+  return result;
+}
+
+// ======================================================
+//   2-3. 通用按鈕處理器 (Universal Button Handler)
+// ======================================================
 
 // 從按鈕元素提取資料的通用函數
 const extractButtonData = (btn, dataAttributes = []) => {
@@ -993,765 +991,14 @@ const createButtonHandler = (handlerType, config) => {
   };
 };
 
-// =================================================================
-//   統一事件委派管理器 (Event Delegation Manager)
-// =================================================================
+// ======================================================================
+//   3. 核心業務模組：依賴基礎工具 (Core Business Modules: Dependencies on Base Tools)
+// ======================================================================
 
-const EventManager = {
-  // 事件處理器映射
-  handlers: new Map(),
-  
-  // 初始化事件委派
-  init() {
-    Logger.info('EventManager: 初始化事件委派系統');
-    
-    // 綁定全域點擊事件委派
-    document.addEventListener('click', this.handleGlobalClick.bind(this));
-    
-    // 綁定全域提交事件委派
-    document.addEventListener('submit', this.handleGlobalSubmit.bind(this));
-    
-    // 綁定全域變更事件委派
-    document.addEventListener('change', this.handleGlobalChange.bind(this));
-    
-    Logger.info('EventManager: 事件委派系統初始化完成');
-  },
-  
-  // 全域點擊事件委派處理
-  handleGlobalClick(e) {
-    const target = e.target;
-    
-    // 處理各種按鈕類型
-    if (target.matches('.btn-option')) {
-      this.handleOptionButton(target, e);
-    } else if (target.matches('.edit-provide-btn, .schedule-edit-btn')) {
-      this.handleEditButton(target, e);
-    } else if (target.matches('.delete-provide-btn, .schedule-delete-btn')) {
-      this.handleDeleteButton(target, e);
-    } else if (target.matches('.cancel-reservation-btn')) {
-      this.handleCancelReservation(target, e);
-    } else if (target.matches('#cancel-schedule-form')) {
-      this.handleCancelScheduleForm(target, e);
-    } else if (target.matches('.calendar-day')) {
-      this.handleCalendarDayClick(target, e);
-    } else if (target.matches('.date-input')) {
-      this.handleDateInputClick(target, e);
-    }
-  },
-  
-  // 全域提交事件委派處理
-  handleGlobalSubmit(e) {
-    Logger.debug('EventManager: 全域提交事件觸發', { target: e.target.id });
-    if (e.target.matches('#time-schedule-form')) {
-      e.preventDefault();
-      Logger.info('EventManager: 處理時間表單提交');
-      this.handleScheduleFormSubmit(e.target, e);
-    }
-  },
-  
-  // 全域變更事件委派處理
-  handleGlobalChange(e) {
-    if (e.target.matches('.schedule-date, .schedule-start-time, .schedule-end-time')) {
-      this.handleScheduleInputChange(e.target, e);
-    }
-  },
-  
-  // 處理選項按鈕
-  handleOptionButton: createButtonHandler('option', {
-    dataAttributes: ['data-option'],
-    logMessage: '選項按鈕被點擊',
-    
-    // 預處理：跳過聊天模組專門處理的選項按鈕
-    preprocess: (data, btn, e) => {
-      if (btn.closest('.chat-options-buttons') && data.option === 'cancel') {
-        Logger.info('EventManager: 跳過聊天模組專門處理的選項按鈕');
-        return false;
-      }
-      return true;
-    },
-    
-    // 主要處理邏輯
-    handler: async (data, btn, e) => {
-      const { option } = data;
-      
-      // 處理不同選項
-      switch (option) {
-        case 'schedule':
-          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.SCHEDULE}`);
-          DOM.chat.handleSchedule();
-          break;
-        case 'skip':
-          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.SKIP}`);
-          DOM.chat.handleSkip();
-          break;
-        case 'cancel':
-          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}`);
-          DOM.chat.handleCancelSchedule();
-          // 禁用整個 Giver 訊息泡泡中的互動元素
-          DOM.chat.disableGiverMessageInteractions(btn);
-          break;
-        case 'view-times':
-          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.VIEW_GIVER_TIME}`);
-          DOM.chat.handleViewGiverTime();
-          break;  
-        case 'view-my-schedules-reservation':
-          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.VIEW_MY_SCHEDULES_RESERVATION}`);
-          DOM.chat.handleViewMySchedulesReservation();
-          break;
-        case 'view-all':
-          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.VIEW_MY_SCHEDULES_PROVIDE}`);
-          DOM.chat.handleViewAllSchedules();
-          break;
-        case 'single-time':
-          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}`);
-          DOM.chat.handleSingleTime();
-          break;
-        case 'continue-single-time':
-          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_SINGLE_TIME}`);
-          DOM.chat.handleSingleTime();
-          break;
-        case 'multiple-times':
-          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}`);
-          DOM.chat.handleMultipleTimes();
-          break;
-        case 'continue-multiple-times':
-          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_MULTIPLE_TIMES}`);
-          DOM.chat.handleMultipleTimes();
-          break;
-        case 'submit-schedules':
-          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}`);
-          // 將草稿時段轉為正式提供時段
-          const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-          if (draftSchedules.length > 0) {
-            // 將草稿時段轉為正式提供時段（移除 isDraft 標記）
-            const formalSchedules = draftSchedules.map(schedule => {
-              const { isDraft, ...formalSchedule } = schedule;
-              return formalSchedule;
-            });
-            
-            // 添加到正式提供時段列表
-            const existingSchedules = ChatStateManager.getProvidedSchedules();
-            const allSchedules = [...existingSchedules, ...formalSchedules];
-            ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, allSchedules);
-            
-            // 清空草稿列表
-            ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, []);
-            
-            Logger.info('EventManager: 草稿時段已轉為正式提供時段', { 
-              draftCount: draftSchedules.length, 
-              totalFormalCount: allSchedules.length 
-            });
-          }
-          
-          // 先更新現有表格，確保編輯功能正常
-          EventManager.updateScheduleDisplay();
-          
-          await nonBlockingDelay(DELAY_TIMES.CHAT.SUCCESS_MESSAGE, () => {
-            DOM.chat.handleSuccessProvideTime();
-          });
-          break;
-        
-        default:
-          Logger.warn('EventManager: 未知的選項按鈕', { option });
-      }
-    },
-    
-    // 成功回調：禁用整個 Giver 訊息泡泡中的互動元素
-    onSuccess: (data, btn, e) => {      
-      // 禁用整個 Giver 訊息泡泡中的互動元素
-      DOM.chat.disableGiverMessageInteractions(btn);
-    }
-  }),
-  
-  // 處理編輯按鈕
-  handleEditButton: createButtonHandler('edit', {
-    dataAttributes: [],
-    logMessage: '編輯按鈕被點擊',
-    
-    // 主要處理邏輯
-    handler: async (data, btn, e) => {
-      const { index, isScheduleTable, isSuccessProvideTable } = data;
-      
-      if (isScheduleTable) {
-        // 處理包含草稿和正式時段的表格
-        const providedSchedules = ChatStateManager.getProvidedSchedules();
-        const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-        
-        // 合併所有時段以找到要編輯的時段
-        const allSchedules = [
-          ...providedSchedules.map(schedule => ({ ...schedule, isDraft: false })),
-          ...draftSchedules.map(schedule => ({ ...schedule, isDraft: true }))
-        ];
-        
-        const scheduleToEdit = allSchedules[index];
-        
-        if (scheduleToEdit) {
-          // 傳遞編輯索引和時段資料，並標記是否為草稿
-          const editData = {
-            index: index,
-            ...scheduleToEdit,
-            isDraft: scheduleToEdit.isDraft
-          };
-          Logger.info('EventManager: 找到要編輯的時段', editData);
-          DOM.chat.handleSingleTime(index, editData);
-        }
-      } else if (isSuccessProvideTable) {
-        // 處理成功提供表格（只有正式提供時段）
-        const schedules = ChatStateManager.getProvidedSchedules();
-        const schedule = schedules[index];
-        Logger.info('EventManager: 編輯成功提供表格中的時段', { index, schedule });
-        
-        if (schedule) {
-          // 傳遞編輯索引和時段資料
-          const editData = {
-            index: index,
-            ...schedule,
-            isDraft: false
-          };
-          Logger.info('EventManager: 找到要編輯的成功提供時段', editData);
-          DOM.chat.handleSingleTime(index, editData);
-        } else {
-          console.error('EventManager: 找不到要編輯的時段', { index, totalSchedules: schedules.length });
-        }
-      } else {
-        // 處理其他表格（如成功提供表格）
-        const schedules = ChatStateManager.getProvidedSchedules();
-        const schedule = schedules[index];
-        Logger.info('EventManager: 編輯正式提供時段', { index, schedule });
-        DOM.chat.handleSingleTime(index, schedule);
-      }
-    }
-  }),
-  
-  // 處理刪除按鈕
-  handleDeleteButton: createButtonHandler('delete', {
-    dataAttributes: [],
-    logMessage: '刪除按鈕被點擊',
-    
-    // 主要處理邏輯
-    handler: async (data, btn, e) => {
-      const { index, isProvideTable, isScheduleTable } = data;
-      
-      const dialogConfig = isProvideTable ? {
-        title: '取消提供時間',
-        message: '確定要取消提供此時間嗎？',
-        confirmText: '取消提供',
-        cancelText: '保留'
-      } : {
-        title: '刪除時段',
-        message: '確定要刪除此時段嗎？',
-        confirmText: '刪除',
-        cancelText: '取消'
-      };
-      
-      return new Promise((resolve) => {
-        UIComponents.confirmDialog({
-          ...dialogConfig,
-          onConfirm: () => {
-            // 獲取當前顯示的所有時段（包含正式提供和草稿）
-            const providedSchedules = ChatStateManager.getProvidedSchedules();
-            const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-            
-            // 合併所有時段以找到要刪除的時段
-            const allSchedules = [
-              ...providedSchedules.map(schedule => ({ ...schedule, isDraft: false })),
-              ...draftSchedules.map(schedule => ({ ...schedule, isDraft: true }))
-            ];
-            
-            const scheduleToDelete = allSchedules[index];
-            
-            if (scheduleToDelete) {
-              if (scheduleToDelete.isDraft) {
-                // 刪除草稿時段
-                const updatedDraftSchedules = draftSchedules.filter((_, idx) => {
-                  const draftIndex = providedSchedules.length + idx;
-                  return draftIndex !== index;
-                });
-                ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, updatedDraftSchedules);
-                Logger.info('EventManager: 草稿時段已刪除', { deletedSchedule: scheduleToDelete, remainingDrafts: updatedDraftSchedules.length });
-              } else {
-                // 刪除正式提供時段
-                const updatedProvidedSchedules = providedSchedules.filter((_, idx) => idx !== index);
-                ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, updatedProvidedSchedules);
-                Logger.info('EventManager: 正式提供時段已刪除', { deletedSchedule: scheduleToDelete, remainingProvided: updatedProvidedSchedules.length });
-              }
-            }
-            
-            // 檢查是否還有任何時段
-            const remainingProvided = ChatStateManager.getProvidedSchedules();
-            const remainingDrafts = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-            
-            if (remainingProvided.length === 0 && remainingDrafts.length === 0) {
-              DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
-            } else {
-              // 更新對應的表格
-              const chatMessages = DOM_CACHE.chatMessages;
-              if (chatMessages) {
-                if (isProvideTable) {
-                  const successMessage = chatMessages.querySelector('.success-provide-table')?.closest('.giver-message');
-                  if (successMessage) {
-                    const updatedHTML = TEMPLATES.chat.successProvideTime(remainingProvided);
-                    successMessage.outerHTML = updatedHTML;
-                    Logger.info('EventManager: 成功提供表格已更新');
-                  }
-                } else if (isScheduleTable) {
-                  const tableMessage = chatMessages.querySelector('.schedule-table')?.closest('.giver-message');
-                  if (tableMessage) {
-                    // 重新生成包含草稿和正式時段的表格
-                    const allSchedules = [
-                      ...remainingProvided.map(schedule => ({ ...schedule, isDraft: false })),
-                      ...remainingDrafts.map(schedule => ({ ...schedule, isDraft: true }))
-                    ];
-                    const updatedHTML = TEMPLATES.chat.scheduleTable(allSchedules);
-                    tableMessage.outerHTML = updatedHTML;
-                    Logger.info('EventManager: 查看所有時段表格已更新');
-                  }
-                }
-              }
-            }
-            resolve();
-          }
-        });
-      });
-    }
-  }),
-  
-  // 處理取消預約按鈕
-  handleCancelReservation: createButtonHandler('cancelReservation', {
-    dataAttributes: ['data-schedule-id'],
-    logMessage: '取消預約按鈕被點擊',
-    
-    // 主要處理邏輯
-    handler: async (data, btn, e) => {
-      const { scheduleId } = data;
-      
-      return new Promise((resolve) => {
-        UIComponents.confirmDialog({
-          title: '取消預約',
-          message: '確定要取消此預約嗎？',
-          confirmText: '取消預約',
-          cancelText: '保留',
-          onConfirm: () => {
-            // 從狀態管理中移除預約
-            const bookedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES) || [];
-            const updatedSchedules = bookedSchedules.filter(schedule => schedule.id !== scheduleId);
-            ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES, updatedSchedules);
-            
-            // 更新顯示
-            DOM.chat.updateBookedSchedulesDisplay(updatedSchedules);
-            
-            Logger.info('EventManager: 預約已取消', { scheduleId, remainingCount: updatedSchedules.length });
-            resolve();
-          }
-        });
-      });
-    }
-  }),
-  
-  // 處理取消表單按鈕
-  handleCancelScheduleForm: createButtonHandler('cancelScheduleForm', {
-    dataAttributes: [],
-    logMessage: '取消表單按鈕被點擊',
-    
-    // 主要處理邏輯
-    handler: async (data, btn, e) => {
-      // 隱藏表單
-      const scheduleForm = DOM_CACHE.scheduleForm;
-      if (scheduleForm) {
-        scheduleForm.classList.remove('schedule-form-visible');
-        scheduleForm.classList.add('schedule-form-hidden');
-      }
-      
-      // 清空表單
-      DOM_CACHE.clearFormInputs();
+// ======================================================
+//   3-1. 應用程式狀態管理 (Application State Management)
+// ======================================================
 
-      // 清空表單所有錯誤訊息
-      FormValidator.clearAllValidationErrors(DOM_CACHE.scheduleForm);
-          
-      // 重置選中的日期
-      DOM.chat.setSelectedDate(null);
-      
-      // 顯示取消訊息
-      DOM.chat.addGiverResponse('您已取消新增時段。<br><br>如果仍想提供方便時段，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
-    }
-  }),
-  
-  // 處理表單提交
-  async handleScheduleFormSubmit(form, e) {
-    Logger.info('EventManager: 表單提交事件觸發');
-    
-    const formData = DOM_CACHE.getFormData();
-    
-    Logger.debug('EventManager: 表單資料', formData);
-    
-    // 驗證表單
-    const validationResult = FormValidator.validateScheduleForm(formData);
-    if (!validationResult.isValid) {
-      console.warn('EventManager: 表單驗證失敗', validationResult);
-      
-      // 過濾掉隱藏的錯誤訊息
-      const visibleErrors = validationResult.errors.filter(error => error !== '__HIDDEN_ERROR__');
-      
-      if (visibleErrors.length > 0) {
-        // 時間邏輯錯誤顯示在表單下方，營業時間錯誤使用彈出顯示
-        if (validationResult.message && validationResult.message !== '__HIDDEN_ERROR__' && 
-            validationResult.message.includes('時間必須在營業時間內')) {
-          FormValidator.showValidationError(validationResult.message);
-        } else if (visibleErrors.length > 0) {
-          // 根據錯誤訊息類型，顯示在對應的欄位下方
-          const errorMessage = visibleErrors[0];
-          let targetElement = form; // 預設顯示在表單上
-          
-          // 檢查錯誤訊息類型，決定顯示位置
-          if (errorMessage.includes('日期格式不正確') || 
-              errorMessage.includes('不能選擇過去的日期') || 
-              errorMessage.includes('不能預約 3 個月後的日期')) {
-            targetElement = document.getElementById('schedule-date');
-          } else if (errorMessage.includes('請輸入開始時間') || 
-                     errorMessage.includes('目前輸入內容非 4 位數字')) {
-            targetElement = document.getElementById('schedule-start-time');
-          } else if (errorMessage.includes('請輸入結束時間')) {
-            targetElement = document.getElementById('schedule-end-time');
-          } else if (errorMessage.includes('備註不能超過')) {
-            targetElement = document.getElementById('schedule-notes');
-          }
-          
-          FormValidator.showValidationError(errorMessage, targetElement);
-        }
-      }
-      return;
-    }
-    
-    // 檢查重複時段
-    const existingSchedules = ChatStateManager.getProvidedSchedules();
-    const editIndex = form.getAttribute('data-edit-index');
-    const isEditMode = editIndex !== null && editIndex !== undefined && editIndex !== 'null' && editIndex !== '';
-
-    const isDuplicate = existingSchedules.some((schedule, index) => {
-      if (editIndex !== null && index === parseInt(editIndex)) {
-        return false;
-      }
-      
-      const isExactDuplicate = schedule.date === formData.date && 
-        schedule.startTime === formData.startTime && 
-        schedule.endTime === formData.endTime;
-      
-      if (isExactDuplicate) {
-        return true;
-      }
-      
-      if (schedule.date === formData.date) {
-        const existingStart = schedule.startTime;
-        const existingEnd = schedule.endTime;
-        const newStart = formData.startTime;
-        const newEnd = formData.endTime;
-        
-        const isOverlapping = newStart < existingEnd && newEnd > existingStart;
-        return isOverlapping;
-      }
-      
-      return false;
-    });
-    
-    // 檢測重複或重疊時段
-    if (isDuplicate) {
-      console.warn('EventManager: 檢測到重複或重疊時段', formData);
-      const duplicateMessage = FormValidator.generateDuplicateScheduleMessage(formData, existingSchedules);
-      FormValidator.showValidationError(duplicateMessage);
-      return;
-    }
-    
-    // 處理編輯模式
-    if (isEditMode) {
-      console.log('EventManager: 編輯模式，覆蓋原本的時段', isEditMode);
-      
-      // 檢查是否為草稿時段的編輯
-      const isDraftEdit = form.getAttribute('data-edit-is-draft') === 'true';
-      
-      // 獲取所有現有時段（除了正在編輯的時段）
-      const providedSchedules = ChatStateManager.getProvidedSchedules();
-      const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-      
-      // 創建不包含正在編輯時段的列表
-      const otherSchedules = [];
-      
-      if (isDraftEdit) {
-        // 編輯草稿時段：排除正在編輯的草稿時段
-        const actualDraftIndex = parseInt(editIndex) - providedSchedules.length;
-        providedSchedules.forEach((schedule, index) => {
-          otherSchedules.push(schedule);
-        });
-        draftSchedules.forEach((schedule, index) => {
-          if (index !== actualDraftIndex) {
-            otherSchedules.push(schedule);
-          }
-        });
-      } else {
-        // 編輯正式提供時段：排除正在編輯的正式時段
-        providedSchedules.forEach((schedule, index) => {
-          if (index !== parseInt(editIndex)) {
-            otherSchedules.push(schedule);
-          }
-        });
-        draftSchedules.forEach((schedule, index) => {
-          otherSchedules.push(schedule);
-        });
-      }
-      
-      // 檢查修改後的時段是否與其他時段重複或重疊
-      const isDuplicate = otherSchedules.some(schedule => {
-        const isExactDuplicate = schedule.date === formData.date && 
-          schedule.startTime === formData.startTime && 
-          schedule.endTime === formData.endTime;
-        
-        if (isExactDuplicate) {
-          return true;
-        }
-        
-        if (schedule.date === formData.date) {
-          const existingStart = schedule.startTime;
-          const existingEnd = schedule.endTime;
-          const newStart = formData.startTime;
-          const newEnd = formData.endTime;
-          
-          const isOverlapping = newStart < existingEnd && newEnd > existingStart;
-          return isOverlapping;
-        }
-        
-        return false;
-      });
-      
-      // 檢測重複或重疊時段
-      if (isDuplicate) {
-        console.warn('EventManager: 編輯模式檢測到重複或重疊時段', formData);
-        const duplicateMessage = FormValidator.generateDuplicateScheduleMessage(formData, otherSchedules);
-        if (duplicateMessage) {
-          FormValidator.showValidationError(duplicateMessage);
-        } else {
-          // 如果無法生成詳細訊息，使用預設錯誤訊息
-          const errorMessage = '抱歉，您修改的時段與其他時段重複或重疊，請重新輸入。';
-          FormValidator.showValidationError(errorMessage);
-        }
-        return;
-      }
-      
-      // 沒有重複，執行更新
-      if (isDraftEdit) {
-        // 編輯草稿時段
-        const actualDraftIndex = parseInt(editIndex) - providedSchedules.length;
-        
-        if (actualDraftIndex >= 0 && actualDraftIndex < draftSchedules.length) {
-          draftSchedules[actualDraftIndex] = { 
-            ...draftSchedules[actualDraftIndex], 
-            ...formData,
-            formattedSchedule: DOM.chat.formatScheduleWithWeekday(formData.date, formData.startTime, formData.endTime)
-          };
-          ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, draftSchedules);
-          console.log('EventManager: 草稿時段已更新', { actualDraftIndex, updatedSchedule: draftSchedules[actualDraftIndex] });
-        }
-      } else {
-        // 編輯正式提供時段
-        providedSchedules[editIndex] = { 
-          ...providedSchedules[editIndex], 
-          ...formData,
-          formattedSchedule: DOM.chat.formatScheduleWithWeekday(formData.date, formData.startTime, formData.endTime)
-        };
-        ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, providedSchedules);
-        console.log('EventManager: 正式提供時段已更新', { editIndex, updatedSchedule: providedSchedules[editIndex] });
-      }
-      
-      // 隱藏表單
-      const scheduleForm = document.getElementById('schedule-form');
-      if (scheduleForm) {
-        scheduleForm.classList.remove('schedule-form-visible');
-        scheduleForm.classList.add('schedule-form-hidden');
-      }
-      
-      // 更新顯示
-      console.log('EventManager.handleScheduleFormSubmit: 編輯完成，準備更新表格顯示');
-      this.updateScheduleDisplay();
-      
-      // 確保表格更新後，滾動到適當位置
-      await nonBlockingDelay(DELAY_TIMES.CHAT.FORM_SUBMIT, () => {
-        const chatMessages = DOM_CACHE.chatMessages;
-        if (chatMessages) {
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-      });
-      
-      return;
-    }
-    
-    // 新增模式
-    const formattedSchedule = DOM.chat.formatScheduleWithWeekday(formData.date, formData.startTime, formData.endTime);
-    // 改為加入草稿狀態，而不是直接加入已提供時段列表
-    const draftSchedule = {
-      date: formData.date,
-      startTime: formData.startTime,
-      endTime: formData.endTime,
-      notes: formData.notes.trim(),
-      formattedSchedule: formattedSchedule,
-      isDraft: true // 標記為草稿
-    };
-    
-    // 使用 ChatStateManager.addDraftSchedule 方法添加草稿時段（會進行重疊檢查）
-    const addResult = ChatStateManager.addDraftSchedule({
-      date: formData.date,
-      startTime: formData.startTime,
-      endTime: formData.endTime,
-      notes: formData.notes.trim(),
-      formattedSchedule: formattedSchedule
-    });
-    
-    if (!addResult) {
-      console.warn('EventManager.handleScheduleFormSubmit: 草稿時段添加失敗，可能是重複或重疊時段');
-      // 生成詳細的重複時段錯誤訊息
-      const existingSchedules = ChatStateManager.getProvidedSchedules();
-      const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-      const allExistingSchedules = [...existingSchedules, ...draftSchedules];
-      
-      const duplicateMessage = FormValidator.generateDuplicateScheduleMessage(formData, allExistingSchedules);
-      if (duplicateMessage) {
-        FormValidator.showValidationError(duplicateMessage);
-      } else {
-        // 如果無法生成詳細訊息，使用預設錯誤訊息
-        const errorMessage = '抱歉，您輸入的時段與已提供的時段重複或重疊，請重新輸入。';
-        FormValidator.showValidationError(errorMessage);
-      }
-      return;
-    }
-    
-    // 隱藏表單並清空
-    const scheduleForm = DOM_CACHE.scheduleForm;
-    if (scheduleForm) {
-      scheduleForm.classList.remove('schedule-form-visible');
-      scheduleForm.classList.add('schedule-form-hidden');
-    }
-    
-    // 清除重複時段錯誤
-    FormValidator.clearDuplicateScheduleError();
-    
-    DOM_CACHE.clearFormInputs();
-    
-    // 重置選中的日期
-    DOM.chat.setSelectedDate(null);
-    
-    // 模擬 Giver 回覆
-    await nonBlockingDelay(DELAY_TIMES.CHAT.FORM_SUBMIT, () => {
-      const responseHTML = TEMPLATES.chat.afterScheduleOptions(formattedSchedule, formData.notes);
-      const chatMessages = DOM_CACHE.chatMessages;
-      if (chatMessages) {
-        chatMessages.insertAdjacentHTML('beforeend', responseHTML);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      }
-    });
-  },
-  
-  // 處理日曆日期點擊
-  handleCalendarDayClick(dayElement, e) {
-    const date = dayElement.getAttribute('data-date');
-    Logger.info('EventManager: 日曆日期被點擊', { date });
-    
-    // 立即驗證選擇的日期
-    if (date && !DateUtils.validateDateWithinAllowedMonths(date, true)) {
-      return; // 不設定選中的日期，讓使用者重新選擇
-    }
-    
-    DOM.chat.setSelectedDate(date);
-  },
-  
-  // 處理日期輸入框點擊
-  handleDateInputClick(input, e) {
-    Logger.info('EventManager: 日期輸入框被點擊');
-    DOM.chat.showDatePicker();
-  },
-  
-  // 處理表單輸入變更
-  handleScheduleInputChange(input, e) {
-    const field = input.id;
-    const value = input.value;
-    Logger.debug('EventManager: 表單輸入變更', { field, value });
-    
-    // 當使用者修改任何輸入欄位時，清除重複時段錯誤
-    FormValidator.clearDuplicateScheduleError();
-    
-    // 可以在這裡添加即時驗證邏輯
-  },
-  
-  // 更新時段顯示
-  updateScheduleDisplay() {
-    const chatMessages = DOM_CACHE.chatMessages;
-    if (!chatMessages) return;
-    
-    // 獲取最新的時段資料
-    const providedSchedules = ChatStateManager.getProvidedSchedules();
-    const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-    
-    // 合併所有時段
-    const allSchedules = [
-      ...providedSchedules.map(schedule => ({ ...schedule, isDraft: false })),
-      ...draftSchedules.map(schedule => ({ ...schedule, isDraft: true }))
-    ];
-    
-    console.log('EventManager.updateScheduleDisplay: 更新時段顯示', { 
-      providedSchedules: providedSchedules.length, 
-      draftSchedules: draftSchedules.length,
-      allSchedules: allSchedules.length 
-    });
-    
-    // 檢查是否有草稿時段
-    const hasDraftSchedules = draftSchedules.length > 0;
-    
-    // 更新所有相關的表格
-    // 1. 更新成功提供時間表格（只顯示正式提供的時段）
-    const successMessages = chatMessages.querySelectorAll('.success-provide-table');
-    successMessages.forEach(successTable => {
-      const giverMessage = successTable.closest('.giver-message');
-      if (giverMessage) {
-        const updatedHTML = TEMPLATES.chat.successProvideTime(providedSchedules);
-        giverMessage.outerHTML = updatedHTML;
-        console.log('EventManager.updateScheduleDisplay: 成功提供表格已更新');
-      }
-    });
-    
-    // 2. 更新查看所有時段表格（顯示所有時段，包含草稿）
-    const scheduleTables = chatMessages.querySelectorAll('.schedule-table');
-    scheduleTables.forEach(scheduleTable => {
-      const giverMessage = scheduleTable.closest('.giver-message');
-      if (giverMessage) {
-        // 根據是否有草稿時段決定是否顯示按鈕
-        const includeButtons = hasDraftSchedules;
-        
-        // 使用共用函數生成表格
-        const updatedHTML = generateScheduleTable(allSchedules, includeButtons);
-        
-        giverMessage.outerHTML = updatedHTML;
-        console.log('EventManager.updateScheduleDisplay: 查看所有時段表格已更新', { includeButtons });
-      }
-    });
-    
-    // 3. 更新所有包含時段資料的 giver-message（以防有其他類型的表格）
-    const giverMessages = chatMessages.querySelectorAll('.giver-message');
-    giverMessages.forEach(giverMessage => {
-      // 檢查是否包含時段相關的內容
-      const hasScheduleContent = giverMessage.querySelector('.schedule-table, .success-provide-table, .schedule-item');
-      if (hasScheduleContent && !giverMessage.querySelector('.schedule-table, .success-provide-table')) {
-        // 如果包含時段內容但沒有主要表格，可能是其他類型的時段顯示
-        // 這裡可以根據需要添加其他表格類型的更新邏輯
-        console.log('EventManager.updateScheduleDisplay: 發現其他類型的時段顯示，可能需要更新');
-      }
-    });
-    
-    // 滾動到底部
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
-};
-
-// =================================================================
-//   應用程式狀態管理 (Application State Management)
-// =================================================================
-
-// 全域應用程式狀態
 const appState = {
   // Giver 資料
   givers: [],
@@ -1769,39 +1016,853 @@ const appState = {
   giverModalInstance: null
 };
 
-// =================================================================
-//   業務邏輯模組 (Business Logic Module)
-// =================================================================
+// ======================================================
+//   3-2. 聊天狀態管理模組 (Chat State Management Module)
+// ======================================================
 
-const BusinessLogic = {
-  chat: {
-    // 驗證訊息
-    validateMessage: (message) => {
-      Logger.debug('BusinessLogic.chat.validateMessage called', { message });
-      if (!message || typeof message !== 'string') return false;
-      if (message.trim().length === 0) return false;
-      if (message.length > CONFIG.CHAT.MAX_MESSAGE_LENGTH) return false;
-      return true;
+const ChatStateManager = {
+  // 狀態配置
+  CONFIG: {
+    // 狀態鍵值
+    STATE_KEYS: {
+      CURRENT_GIVER: 'currentGiver',
+      IS_ACTIVE: 'isActive',
+      MESSAGE_HISTORY: 'messageHistory',
+      LAST_MESSAGE_TIME: 'lastMessageTime',
+      PROVIDED_SCHEDULES: 'providedSchedules',
+      BOOKED_SCHEDULES: 'bookedSchedules',
+      IS_MULTIPLE_TIMES_MODE: 'isMultipleTimesMode',
+      SELECTED_DATE: 'selectedDate',
+      DRAFT_SCHEDULES: 'draftSchedules' // 新增草稿時段列表
     },
-    // 生成回應
-    generateResponse: (userMessage) => {
-      Logger.debug('BusinessLogic.chat.generateResponse called', { userMessage });
-      const responses = [
-        '謝謝您的諮詢！我會盡快回覆您。',
-        '您的問題很有價值，讓我為您詳細說明。',
-        '根據我的經驗，我建議您可以這樣做...',
-        '這是一個很好的問題，讓我分享一些實用的建議。',
-        '我理解您的需求，讓我為您提供專業的建議。'
-      ];
-      const randomIndex = Math.floor(Math.random() * responses.length);
-      return responses[randomIndex];
+    
+    // 預設狀態
+    DEFAULT_STATE: {
+      currentGiver: null,
+      isActive: false,
+      messageHistory: [],
+      lastMessageTime: null,
+      providedSchedules: [],
+      bookedSchedules: [],
+      isMultipleTimesMode: false,
+      selectedDate: null,
+      draftSchedules: [] // 新增草稿時段列表
+    },
+    
+    // 狀態驗證規則
+    VALIDATION_RULES: {
+      MESSAGE_HISTORY_MAX_LENGTH: 1000,
+      PROVIDED_SCHEDULES_MAX_LENGTH: 50,
+      LAST_MESSAGE_TIME_MAX_AGE: 24 * 60 * 60 * 1000 // 24小時
+    }
+  },
+  
+  // 內部狀態存儲
+  _state: {
+    currentGiver: null,
+    isActive: false,
+    messageHistory: [],
+    lastMessageTime: null,
+    providedSchedules: [],
+    bookedSchedules: [],
+    isMultipleTimesMode: false,
+    selectedDate: null,
+    draftSchedules: [] // 新增草稿時段列表
+  },
+  
+  // 狀態變更監聽器
+  _listeners: new Map(),
+  
+  // 初始化狀態管理器
+  init: () => {
+    console.log('ChatStateManager.init called：初始化聊天狀態管理器');
+    ChatStateManager.reset();
+    console.log('ChatStateManager.init: 狀態管理器初始化完成');
+  },
+  
+  // 重置狀態到預設值
+  reset: () => {
+    console.log('ChatStateManager.reset called：重置聊天狀態');
+    ChatStateManager._state = { ...ChatStateManager.CONFIG.DEFAULT_STATE };
+    ChatStateManager._notifyListeners('reset', ChatStateManager._state);
+    console.log('ChatStateManager.reset: 狀態已重置', ChatStateManager._state);
+  },
+  
+  // 獲取完整狀態
+  getState: () => {
+    return { ...ChatStateManager._state };
+  },
+  
+  // 獲取特定狀態值
+  get: (key) => {
+    console.log('ChatStateManager.get called', { key });
+    const value = ChatStateManager._state[key];
+    console.log('ChatStateManager.get: 獲取狀態值', { key, value });
+    return value;
+  },
+  
+  // 設定特定狀態值
+  set: (key, value) => {
+    console.log('ChatStateManager.set called', { key, value });
+    
+    // 驗證狀態鍵值
+    if (!Object.values(ChatStateManager.CONFIG.STATE_KEYS).includes(key)) {
+      console.warn('ChatStateManager.set: 無效的狀態鍵值', { key });
+      return false;
+    }
+    
+    // 驗證狀態值
+    if (!ChatStateManager._validateStateValue(key, value)) {
+      console.warn('ChatStateManager.set: 狀態值驗證失敗', { key, value });
+      return false;
+    }
+    
+    const oldValue = ChatStateManager._state[key];
+    ChatStateManager._state[key] = value;
+    
+    // 通知監聽器
+    ChatStateManager._notifyListeners(key, value, oldValue);
+    
+    console.log('ChatStateManager.set: 狀態值已更新', { key, oldValue, newValue: value });
+    return true;
+  },
+  
+  // 批量更新狀態
+  setMultiple: (updates) => {
+    console.log('ChatStateManager.setMultiple called', { updates });
+    
+    const results = {};
+    let hasChanges = false;
+    
+    for (const [key, value] of Object.entries(updates)) {
+      const success = ChatStateManager.set(key, value);
+      results[key] = success;
+      if (success) hasChanges = true;
+    }
+    
+    if (hasChanges) {
+      ChatStateManager._notifyListeners('multiple', updates);
+    }
+    
+    console.log('ChatStateManager.setMultiple: 批量更新完成', { results });
+    return results;
+  },
+  
+  // 初始化聊天會話
+  initChatSession: (giver) => {
+    console.log('ChatStateManager.initChatSession called', { giver });
+    
+    const updates = {
+      [ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER]: giver,
+      [ChatStateManager.CONFIG.STATE_KEYS.IS_ACTIVE]: true,
+      [ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY]: [],
+      [ChatStateManager.CONFIG.STATE_KEYS.LAST_MESSAGE_TIME]: new Date(),
+      [ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES]: [],
+      [ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES]: [],
+      [ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE]: false,
+      [ChatStateManager.CONFIG.STATE_KEYS.SELECTED_DATE]: null,
+      [ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES]: [] // 新增草稿時段列表
+    };
+    
+    ChatStateManager.setMultiple(updates);
+    console.log('ChatStateManager.initChatSession: 聊天會話已初始化');
+  },
+  
+  // 結束聊天會話
+  endChatSession: () => {
+    console.log('ChatStateManager.endChatSession called');
+    
+    const updates = {
+      [ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER]: null,
+      [ChatStateManager.CONFIG.STATE_KEYS.IS_ACTIVE]: false,
+      [ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE]: false,
+      [ChatStateManager.CONFIG.STATE_KEYS.SELECTED_DATE]: null
+    };
+    
+    ChatStateManager.setMultiple(updates);
+    console.log('ChatStateManager.endChatSession: 聊天會話已結束');
+  },
+  
+  // 添加訊息到歷史記錄
+  addMessage: (message) => {
+    console.log('ChatStateManager.addMessage called', { message });
+    
+    const messageHistory = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY);
+    
+    // 檢查訊息歷史長度限制
+    if (messageHistory.length >= ChatStateManager.CONFIG.VALIDATION_RULES.MESSAGE_HISTORY_MAX_LENGTH) {
+      // 移除最舊的訊息
+      messageHistory.shift();
+    }
+    
+    // 添加新訊息
+    messageHistory.push({
+      ...message,
+      timestamp: new Date()
+    });
+    
+    // 更新狀態
+    ChatStateManager.setMultiple({
+      [ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY]: messageHistory,
+      [ChatStateManager.CONFIG.STATE_KEYS.LAST_MESSAGE_TIME]: new Date()
+    });
+    
+    console.log('ChatStateManager.addMessage: 訊息已添加到歷史記錄');
+  },
+  
+  // 添加使用者訊息
+  addUserMessage: (content) => {
+    console.log('ChatStateManager.addUserMessage called', { content });
+    
+    const message = {
+      type: 'user',
+      content: content,
+      timestamp: new Date()
+    };
+    
+    ChatStateManager.addMessage(message);
+  },
+  
+  // 添加 Giver 訊息
+  addGiverMessage: (content) => {
+    console.log('ChatStateManager.addGiverMessage called', { content });
+    
+    const message = {
+      type: 'giver',
+      content: content,
+      timestamp: new Date()
+    };
+    
+    ChatStateManager.addMessage(message);
+  },
+  
+  // 添加時段到已提供時段列表
+  addSchedule: (schedule) => {
+    console.log('ChatStateManager.addSchedule called', { schedule });
+    
+    const providedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES);
+    
+    // 檢查時段列表長度限制
+    if (providedSchedules.length >= ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
+      console.warn('ChatStateManager.addSchedule: 時段列表已達最大長度限制');
+      return false;
+    }
+    
+    // 檢查重複時段（與已提供時段和草稿時段的重複）
+    const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+    const allExistingSchedules = [...providedSchedules, ...draftSchedules];
+    
+    const isDuplicate = allExistingSchedules.some(existingSchedule => {
+      // 檢查是否為完全相同的時段
+      const isExactDuplicate = existingSchedule.date === schedule.date && 
+        existingSchedule.startTime === schedule.startTime && 
+        existingSchedule.endTime === schedule.endTime;
+      
+      if (isExactDuplicate) {
+        return true;
+      }
+      
+      // 檢查是否為重疊時段（相同日期且時間有重疊）
+      if (existingSchedule.date === schedule.date) {
+        const existingStart = existingSchedule.startTime;
+        const existingEnd = existingSchedule.endTime;
+        const newStart = schedule.startTime;
+        const newEnd = schedule.endTime;
+        
+        // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
+        const isOverlapping = newStart < existingEnd && newEnd > existingStart;
+        
+        return isOverlapping;
+      }
+      
+      return false;
+    });
+    
+    if (isDuplicate) {
+      console.warn('ChatStateManager.addSchedule: 檢測到重複或重疊時段', schedule);
+      return false;
+    }
+    
+    // 添加新時段
+    providedSchedules.push({
+      ...schedule,
+      timestamp: new Date()
+    });
+    
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, providedSchedules);
+    console.log('ChatStateManager.addSchedule: 時段已添加到列表');
+    return true;
+  },
+  
+  // 添加草稿時段到草稿時段列表
+  addDraftSchedule: (schedule) => {
+    console.log('ChatStateManager.addDraftSchedule called', { schedule });
+    
+    const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES);
+    
+    // 檢查時段列表長度限制
+    if (draftSchedules.length >= ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
+      console.warn('ChatStateManager.addDraftSchedule: 草稿時段列表已達最大長度限制');
+      return false;
+    }
+    
+    // 檢查重複時段（與已提供時段和草稿時段的重複）
+    const providedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES);
+    const allExistingSchedules = [...providedSchedules, ...draftSchedules];
+    
+    const isDuplicate = allExistingSchedules.some(existingSchedule => {
+      // 檢查是否為完全相同的時段
+      const isExactDuplicate = existingSchedule.date === schedule.date && 
+        existingSchedule.startTime === schedule.startTime && 
+        existingSchedule.endTime === schedule.endTime;
+      
+      if (isExactDuplicate) {
+        return true;
+      }
+      
+      // 檢查是否為重疊時段（相同日期且時間有重疊）
+      if (existingSchedule.date === schedule.date) {
+        const existingStart = existingSchedule.startTime;
+        const existingEnd = existingSchedule.endTime;
+        const newStart = schedule.startTime;
+        const newEnd = schedule.endTime;
+        
+        // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
+        const isOverlapping = newStart < existingEnd && newEnd > existingStart;
+        
+        return isOverlapping;
+      }
+      
+      return false;
+    });
+    
+    if (isDuplicate) {
+      console.warn('ChatStateManager.addDraftSchedule: 檢測到重複或重疊時段', schedule);
+      return false;
+    }
+    
+    // 添加新草稿時段
+    draftSchedules.push({
+      ...schedule,
+      timestamp: new Date(),
+      isDraft: true
+    });
+    
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, draftSchedules);
+    console.log('ChatStateManager.addDraftSchedule: 草稿時段已添加到列表');
+    return true;
+  },
+  
+  // 批量添加時段
+  addSchedules: (schedules) => {
+    console.log('ChatStateManager.addSchedules called', { schedules });
+    
+    const providedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES);
+    
+    // 檢查是否會超過長度限制
+    if (providedSchedules.length + schedules.length > ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
+      console.warn('ChatStateManager.addSchedules: 批量添加會超過長度限制');
+      return false;
+    }
+    
+    // 檢查重複時段（與已提供時段和草稿時段的重複）
+    const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+    const allExistingSchedules = [...providedSchedules, ...draftSchedules];
+    const duplicateSchedules = [];
+    
+    schedules.forEach(schedule => {
+      const isDuplicate = allExistingSchedules.some(existingSchedule => {
+        // 檢查是否為完全相同的時段
+        const isExactDuplicate = existingSchedule.date === schedule.date && 
+          existingSchedule.startTime === schedule.startTime && 
+          existingSchedule.endTime === schedule.endTime;
+        
+        if (isExactDuplicate) {
+          return true;
+        }
+        
+        // 檢查是否為重疊時段（相同日期且時間有重疊）
+        if (existingSchedule.date === schedule.date) {
+          const existingStart = existingSchedule.startTime;
+          const existingEnd = existingSchedule.endTime;
+          const newStart = schedule.startTime;
+          const newEnd = schedule.endTime;
+          
+          // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
+          const isOverlapping = newStart < existingEnd && newEnd > existingStart;
+          
+          return isOverlapping;
+        }
+        
+        return false;
+      });
+      
+      if (isDuplicate) {
+        duplicateSchedules.push(schedule);
+      }
+    });
+    
+    // 檢查批次內的重複時段
+    const batchDuplicateSchedules = [];
+    
+    for (let i = 0; i < schedules.length; i++) {
+      for (let j = i + 1; j < schedules.length; j++) {
+        const schedule1 = schedules[i];
+        const schedule2 = schedules[j];
+        
+        // 檢查是否為完全相同的時段
+        const isExactDuplicate = schedule1.date === schedule2.date && 
+          schedule1.startTime === schedule2.startTime && 
+          schedule1.endTime === schedule2.endTime;
+        
+        if (isExactDuplicate) {
+          if (!batchDuplicateSchedules.includes(schedule1)) {
+            batchDuplicateSchedules.push(schedule1);
+          }
+          if (!batchDuplicateSchedules.includes(schedule2)) {
+            batchDuplicateSchedules.push(schedule2);
+          }
+          continue;
+        }
+        
+        // 檢查是否為重疊時段（相同日期且時間有重疊）
+        if (schedule1.date === schedule2.date) {
+          const start1 = schedule1.startTime;
+          const end1 = schedule1.endTime;
+          const start2 = schedule2.startTime;
+          const end2 = schedule2.endTime;
+          
+          // 檢查時間重疊：時段1的開始時間 < 時段2的結束時間 且 時段1的結束時間 > 時段2的開始時間
+          const isOverlapping = start1 < end2 && end1 > start2;
+          
+          if (isOverlapping) {
+            if (!batchDuplicateSchedules.includes(schedule1)) {
+              batchDuplicateSchedules.push(schedule1);
+            }
+            if (!batchDuplicateSchedules.includes(schedule2)) {
+              batchDuplicateSchedules.push(schedule2);
+            }
+          }
+        }
+      }
+    }
+    
+    // 合併所有重複時段
+    const allDuplicateSchedules = [...duplicateSchedules, ...batchDuplicateSchedules];
+    
+    if (allDuplicateSchedules.length > 0) {
+      console.warn('ChatStateManager.addSchedules: 檢測到重複或重疊時段', allDuplicateSchedules);
+      return false;
+    }
+    
+    // 批量添加時段
+    const newSchedules = schedules.map(schedule => ({
+      ...schedule,
+      timestamp: new Date()
+    }));
+    
+    providedSchedules.push(...newSchedules);
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, providedSchedules);
+    console.log('ChatStateManager.addSchedules: 批量時段已添加到列表');
+    return true;
+  },
+  
+  // 批量添加草稿時段
+  addDraftSchedules: (schedules) => {
+    console.log('ChatStateManager.addDraftSchedules called', { schedules });
+    
+    const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES);
+    
+    // 檢查是否會超過長度限制
+    if (draftSchedules.length + schedules.length > ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
+      console.warn('ChatStateManager.addDraftSchedules: 批量添加會超過長度限制');
+      return false;
+    }
+    
+    // 檢查重複時段（與已提供時段和草稿時段的重複）
+    const providedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES);
+    const allExistingSchedules = [...providedSchedules, ...draftSchedules];
+    const duplicateSchedules = [];
+    
+    schedules.forEach(schedule => {
+      const isDuplicate = allExistingSchedules.some(existingSchedule => {
+        // 檢查是否為完全相同的時段
+        const isExactDuplicate = existingSchedule.date === schedule.date && 
+          existingSchedule.startTime === schedule.startTime && 
+          existingSchedule.endTime === schedule.endTime;
+        
+        if (isExactDuplicate) {
+          return true;
+        }
+        
+        // 檢查是否為重疊時段（相同日期且時間有重疊）
+        if (existingSchedule.date === schedule.date) {
+          const existingStart = existingSchedule.startTime;
+          const existingEnd = existingSchedule.endTime;
+          const newStart = schedule.startTime;
+          const newEnd = schedule.endTime;
+          
+          // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
+          const isOverlapping = newStart < existingEnd && newEnd > existingStart;
+          
+          return isOverlapping;
+        }
+        
+        return false;
+      });
+      
+      if (isDuplicate) {
+        duplicateSchedules.push(schedule);
+      }
+    });
+    
+    // 檢查批次內的重複時段
+    const batchDuplicateSchedules = [];
+    
+    for (let i = 0; i < schedules.length; i++) {
+      for (let j = i + 1; j < schedules.length; j++) {
+        const schedule1 = schedules[i];
+        const schedule2 = schedules[j];
+        
+        // 檢查是否為完全相同的時段
+        const isExactDuplicate = schedule1.date === schedule2.date && 
+          schedule1.startTime === schedule2.startTime && 
+          schedule1.endTime === schedule2.endTime;
+        
+        if (isExactDuplicate) {
+          if (!batchDuplicateSchedules.includes(schedule1)) {
+            batchDuplicateSchedules.push(schedule1);
+          }
+          if (!batchDuplicateSchedules.includes(schedule2)) {
+            batchDuplicateSchedules.push(schedule2);
+          }
+          continue;
+        }
+        
+        // 檢查是否為重疊時段（相同日期且時間有重疊）
+        if (schedule1.date === schedule2.date) {
+          const start1 = schedule1.startTime;
+          const end1 = schedule1.endTime;
+          const start2 = schedule2.startTime;
+          const end2 = schedule2.endTime;
+          
+          // 檢查時間重疊：時段1的開始時間 < 時段2的結束時間 且 時段1的結束時間 > 時段2的開始時間
+          const isOverlapping = start1 < end2 && end1 > start2;
+          
+          if (isOverlapping) {
+            if (!batchDuplicateSchedules.includes(schedule1)) {
+              batchDuplicateSchedules.push(schedule1);
+            }
+            if (!batchDuplicateSchedules.includes(schedule2)) {
+              batchDuplicateSchedules.push(schedule2);
+            }
+          }
+        }
+      }
+    }
+    
+    // 合併所有重複時段
+    const allDuplicateSchedules = [...duplicateSchedules, ...batchDuplicateSchedules];
+    
+    if (allDuplicateSchedules.length > 0) {
+      console.warn('ChatStateManager.addDraftSchedules: 檢測到重複或重疊時段', allDuplicateSchedules);
+      return false;
+    }
+    
+    // 批量添加草稿時段
+    const newDraftSchedules = schedules.map(schedule => ({
+      ...schedule,
+      timestamp: new Date(),
+      isDraft: true
+    }));
+    
+    draftSchedules.push(...newDraftSchedules);
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, draftSchedules);
+    console.log('ChatStateManager.addDraftSchedules: 批量草稿時段已添加到列表');
+    return true;
+  },
+  
+  // 設定多筆時段模式
+  setMultipleTimesMode: (isEnabled) => {
+    console.log('ChatStateManager.setMultipleTimesMode called', { isEnabled });
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE, isEnabled);
+  },
+  
+  // 設定選中的日期
+  setSelectedDate: (date) => {
+    console.log('ChatStateManager.setSelectedDate called', { date });
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.SELECTED_DATE, date);
+  },
+  
+  // 獲取聊天統計
+  getStats: () => {
+    console.log('ChatStateManager.getStats called');
+    
+    const state = ChatStateManager.getState();
+    const messageHistory = state[ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY];
+    
+    const stats = {
+      totalMessages: messageHistory.length,
+      userMessages: messageHistory.filter(msg => msg.type === 'user').length,
+      giverMessages: messageHistory.filter(msg => msg.type === 'giver').length,
+      lastMessageTime: state[ChatStateManager.CONFIG.STATE_KEYS.LAST_MESSAGE_TIME],
+      isActive: state[ChatStateManager.CONFIG.STATE_KEYS.IS_ACTIVE],
+      currentGiver: state[ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER],
+      providedSchedulesCount: state[ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES].length,
+      bookedSchedulesCount: state[ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES].length,
+      isMultipleTimesMode: state[ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE]
+    };
+    
+    console.log('ChatStateManager.getStats: 統計資料', stats);
+    return stats;
+  },
+  
+  // 獲取訊息歷史
+  getMessageHistory: () => {
+    console.log('ChatStateManager.getMessageHistory called');
+    const messageHistory = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY);
+    return [...messageHistory];
+  },
+  
+  // 清空訊息歷史
+  clearMessageHistory: () => {
+    console.log('ChatStateManager.clearMessageHistory called');
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY, []);
+  },
+  
+  // 獲取已提供時段列表
+  getProvidedSchedules: () => {
+    console.log('ChatStateManager.getProvidedSchedules called');
+    const providedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES);
+    return [...providedSchedules];
+  },
+  
+  // 清空已提供時段列表
+  clearProvidedSchedules: () => {
+    console.log('ChatStateManager.clearProvidedSchedules called');
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, []);
+  },
+  
+  // 獲取已預約時段列表
+  getBookedSchedules: () => {
+    console.log('ChatStateManager.getBookedSchedules called');
+    const bookedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES);
+    return [...bookedSchedules];
+  },
+  
+  // 添加預約時段
+  addBookedSchedule: (schedule) => {
+    console.log('ChatStateManager.addBookedSchedule called', { schedule });
+    
+    const bookedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES);
+    
+    // 檢查是否會超過長度限制
+    if (bookedSchedules.length >= ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
+      console.warn('ChatStateManager.addBookedSchedule: 已達到預約時段數量限制');
+      return false;
+    }
+    
+    // 添加新預約時段
+    bookedSchedules.push({
+      ...schedule,
+      timestamp: new Date()
+    });
+    
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES, bookedSchedules);
+    console.log('ChatStateManager.addBookedSchedule: 預約時段已添加到列表');
+    return true;
+  },
+  
+  // 批量添加預約時段
+  addBookedSchedules: (schedules) => {
+    console.log('ChatStateManager.addBookedSchedules called', { schedules });
+    
+    const bookedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES);
+    
+    // 檢查是否會超過長度限制
+    if (bookedSchedules.length + schedules.length > ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
+      console.warn('ChatStateManager.addBookedSchedules: 批量添加會超過長度限制');
+      return false;
+    }
+    
+    // 批量添加預約時段
+    const newSchedules = schedules.map(schedule => ({
+      ...schedule,
+      timestamp: new Date()
+    }));
+    
+    bookedSchedules.push(...newSchedules);
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES, bookedSchedules);
+    console.log('ChatStateManager.addBookedSchedules: 批量預約時段已添加到列表');
+    return true;
+  },
+  
+  // 清空已預約時段列表
+  clearBookedSchedules: () => {
+    console.log('ChatStateManager.clearBookedSchedules called');
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES, []);
+  },
+  
+  // 檢查聊天是否活躍
+  isActive: () => {
+    console.log('ChatStateManager.isActive called');
+    return ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.IS_ACTIVE);
+  },
+  
+  // 獲取當前 Giver
+  getCurrentGiver: () => {
+    console.log('ChatStateManager.getCurrentGiver called');
+    return ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER);
+  },
+  
+  // 檢查是否為多筆時段模式
+  isMultipleTimesMode: () => {
+    console.log('ChatStateManager.isMultipleTimesMode called');
+    return ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE);
+  },
+  
+  // 獲取選中的日期
+  getSelectedDate: () => {
+    console.log('ChatStateManager.getSelectedDate called');
+    return ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.SELECTED_DATE);
+  },
+  
+  // 添加狀態變更監聽器
+  addListener: (key, callback) => {
+    console.log('ChatStateManager.addListener called', { key, callback });
+    
+    if (!ChatStateManager._listeners.has(key)) {
+      ChatStateManager._listeners.set(key, new Set());
+    }
+    
+    ChatStateManager._listeners.get(key).add(callback);
+    console.log('ChatStateManager.addListener: 監聽器已添加');
+  },
+  
+  // 移除狀態變更監聽器
+  removeListener: (key, callback) => {
+    console.log('ChatStateManager.removeListener called', { key, callback });
+    
+    if (ChatStateManager._listeners.has(key)) {
+      ChatStateManager._listeners.get(key).delete(callback);
+      console.log('ChatStateManager.removeListener: 監聽器已移除');
+    }
+  },
+  
+  // 通知監聽器
+  _notifyListeners: (key, newValue, oldValue) => {
+    console.log('ChatStateManager._notifyListeners called', { key, newValue, oldValue });
+    
+    if (ChatStateManager._listeners.has(key)) {
+      const callbacks = ChatStateManager._listeners.get(key);
+      callbacks.forEach(callback => {
+        try {
+          callback(newValue, oldValue);
+        } catch (error) {
+          console.error('ChatStateManager._notifyListeners: 監聽器執行錯誤', error);
+        }
+      });
+    }
+  },
+  
+  // 驗證狀態值
+  _validateStateValue: (key, value) => {
+    console.log('ChatStateManager._validateStateValue called', { key, value });
+    
+    switch (key) {
+      case ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER:
+        return value === null || typeof value === 'object';
+        
+      case ChatStateManager.CONFIG.STATE_KEYS.IS_ACTIVE:
+      case ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE:
+        return typeof value === 'boolean';
+        
+      case ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY:
+        return Array.isArray(value);
+        
+      case ChatStateManager.CONFIG.STATE_KEYS.LAST_MESSAGE_TIME:
+        return value === null || value instanceof Date;
+        
+      case ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES:
+      case ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES:
+        return Array.isArray(value);
+        
+      case ChatStateManager.CONFIG.STATE_KEYS.SELECTED_DATE:
+        return value === null || value instanceof Date;
+        
+      case ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES:
+        return Array.isArray(value);
+        
+      default:
+        return true;
+    }
+  },
+  
+  // 調試功能
+  debug: () => {
+    Logger.group('ChatStateManager.debug called：聊天狀態調試資訊');
+    Logger.log('當前狀態:', ChatStateManager.getState());
+    Logger.log('統計資料:', ChatStateManager.getStats());
+    Logger.log('訊息歷史:', ChatStateManager.getMessageHistory());
+    Logger.log('已提供時段:', ChatStateManager.getProvidedSchedules());
+    Logger.log('已預約時段:', ChatStateManager.getBookedSchedules());
+    Logger.log('監聽器數量:', ChatStateManager._listeners.size);
+    Logger.groupEnd();
+  },
+  
+  // 匯出狀態（用於持久化）
+  export: () => {
+    console.log('ChatStateManager.export called');
+    const state = ChatStateManager.getState();
+    const exportData = {
+      ...state,
+      lastMessageTime: state.lastMessageTime ? state.lastMessageTime.toISOString() : null,
+      selectedDate: state.selectedDate ? state.selectedDate.toISOString() : null
+    };
+    console.log('ChatStateManager.export: 狀態匯出完成', exportData);
+    return exportData;
+  },
+  
+  // 匯入狀態（用於恢復）
+  import: (data) => {
+    console.log('ChatStateManager.import called', { data });
+    
+    if (!data || typeof data !== 'object') {
+      console.warn('ChatStateManager.import: 無效的匯入資料');
+      return false;
+    }
+    
+    try {
+      const importedState = {
+        ...data,
+        lastMessageTime: data.lastMessageTime ? new Date(data.lastMessageTime) : null,
+        selectedDate: data.selectedDate ? new Date(data.selectedDate) : null
+      };
+      
+      // 驗證匯入的資料
+      for (const [key, value] of Object.entries(importedState)) {
+        if (!ChatStateManager._validateStateValue(key, value)) {
+          console.warn('ChatStateManager.import: 匯入資料驗證失敗', { key, value });
+          return false;
+        }
+      }
+      
+      // 更新狀態
+      ChatStateManager._state = { ...ChatStateManager.CONFIG.DEFAULT_STATE, ...importedState };
+      ChatStateManager._notifyListeners('import', ChatStateManager._state);
+      
+      console.log('ChatStateManager.import: 狀態匯入完成');
+      return true;
+    } catch (error) {
+      console.error('ChatStateManager.import: 狀態匯入失敗', error);
+      return false;
     }
   }
 };
 
-// =================================================================
-//   日期時間處理模組 (Date Time Utilities Module)
-// =================================================================
+// ======================================================
+//   3-3. 日期時間處理模組 (Date Time Utilities Module)
+// ======================================================
 
 const DateUtils = {
   // 格式化選項
@@ -2052,9 +2113,9 @@ const DateUtils = {
   },  
 };
 
-// =================================================================
-//   表單驗證模組 (Form Validation Module)
-// =================================================================
+// ======================================================
+//   3-4. 表單驗證模組 (Form Validation Module)
+// ======================================================
 
 const FormValidator = {
   // 驗證規則配置
@@ -2707,104 +2768,43 @@ const FormValidator = {
   }
 };
 
-// =================================================================
-//   UI 互動模組 (UI Interaction Module)
-// =================================================================
+// ======================================================
+//   3-5. 業務邏輯模組 (Business Logic Module)
+// ======================================================
 
-const UIInteraction = {
-  // 開啟聊天對話框
-  openChatDialog: (giver) => {
-    console.log('UIInteraction.openChatDialog called', { giver });
-    DOM.chat.init(giver);
-  },
-  
-  // 顯示確認對話框
-  showConfirmDialog: (options) => {
-    console.log('UIInteraction.showConfirmDialog called', { options });
-    const { // options 是一個物件，預設為以下屬性：
-      title = '確認',
-      message = '您確定要執行此操作嗎？',
-      confirmText = '確定',
-      cancelText = '取消',
-      onConfirm = () => {}, // 預設為空函式
-      onCancel = () => {}, // 預設為空函式
-      cleanupBackdrop = true // 預設為 true，控制是否清理 backdrop 背景遮罩
-    } = options;
-    
-    // 更新確認對話框內容
-    const modalTitle = DOM.confirm.title();
-    const modalMessage = DOM.confirm.message();
-    const confirmBtn = DOM.confirm.confirmBtn();
-    const cancelBtn = DOM.confirm.cancelBtn();
-    
-    if (modalTitle) DOM.utils.setTextContent(modalTitle, title);
-    if (modalMessage) DOM.utils.setTextContent(modalMessage, message);
-    if (confirmBtn) DOM.utils.setTextContent(confirmBtn, confirmText);
-    if (cancelBtn) DOM.utils.setTextContent(cancelBtn, cancelText);
-    
-    // 確認按鈕事件監聽器（內部函式）：當使用者點擊確認按鈕時，會執行 onConfirm 函式，這通常是實際要執行的業務邏輯（如刪除資料、取消預約等）
-    const confirmHandler = async () => {
-      console.log('confirmHandler called');
-      onConfirm(); // 執行傳入的 onConfirm 函式，這通常是實際要執行的業務邏輯（如刪除資料、取消預約等）
-      const modal = bootstrap.Modal.getInstance(DOM.confirm.modal());
-      if (modal) {
-        modal.hide(); // 隱藏對話框
-        // 只有在需要清理 backdrop 時才清理
-        if (cleanupBackdrop) {
-          await nonBlockingDelay(DELAY_TIMES.UI.MODAL_CLEANUP, () => {
-            const backdrop = document.querySelector('.modal-backdrop');
-            if (backdrop) backdrop.remove();
-            document.body.classList.remove('modal-open');
-            document.body.style.paddingRight = ''; // paddingRight 樣式是 Bootstrap 為防止頁面跳動而添加的樣式
-            // 強制處理焦點問題
-            document.body.focus();
-          });
-        }
-      }
-    };
-    
-    // 取消按鈕事件監聽器（內部函式）：當使用者點擊取消按鈕時，會執行 onCancel 函式，這通常是實際要執行的業務邏輯（如取消預約等）
-    const cancelHandler = async () => {
-      console.log('cancelHandler called');
-      onCancel(); // 執行傳入的 onCancel 函式，這通常是實際要執行的業務邏輯（如取消預約等）
-      const modal = bootstrap.Modal.getInstance(DOM.confirm.modal());
-      if (modal) {
-        modal.hide();
-        // 確保 backdrop 被清理
-        await nonBlockingDelay(DELAY_TIMES.UI.MODAL_CLEANUP, () => {
-          const backdrop = document.querySelector('.modal-backdrop');
-          if (backdrop) backdrop.remove();
-          document.body.classList.remove('modal-open');
-          document.body.style.paddingRight = '';
-          // 強制處理焦點問題
-          document.body.focus();
-        });
-      }
-    };
-    
-    // 移除舊的事件監聽器：解決重覆綁定事件監聽器
-    if (confirmBtn) { // 如果確認按鈕存在
-      // 使用 cloneNode 來移除所有舊的事件監聽器
-      const newConfirmBtn = confirmBtn.cloneNode(true); // 複製確認按鈕
-      confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn); // 替換確認按鈕
-      newConfirmBtn.addEventListener('click', confirmHandler); // 綁定確認按鈕的事件監聽器
+const BusinessLogic = {
+  chat: {
+    // 驗證訊息
+    validateMessage: (message) => {
+      Logger.debug('BusinessLogic.chat.validateMessage called', { message });
+      if (!message || typeof message !== 'string') return false;
+      if (message.trim().length === 0) return false;
+      if (message.length > CONFIG.CHAT.MAX_MESSAGE_LENGTH) return false;
+      return true;
+    },
+    // 生成回應
+    generateResponse: (userMessage) => {
+      Logger.debug('BusinessLogic.chat.generateResponse called', { userMessage });
+      const responses = [
+        '謝謝您的諮詢！我會盡快回覆您。',
+        '您的問題很有價值，讓我為您詳細說明。',
+        '根據我的經驗，我建議您可以這樣做...',
+        '這是一個很好的問題，讓我分享一些實用的建議。',
+        '我理解您的需求，讓我為您提供專業的建議。'
+      ];
+      const randomIndex = Math.floor(Math.random() * responses.length);
+      return responses[randomIndex];
     }
-    
-    if (cancelBtn) { // 如果取消按鈕存在
-      const newCancelBtn = cancelBtn.cloneNode(true); // 複製取消按鈕
-      cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn); // 替換取消按鈕
-      newCancelBtn.addEventListener('click', cancelHandler); // 綁定取消按鈕的事件監聽器
-    }
-    
-    // 顯示確認對話框，讓使用者可以看到確認對話框並進行相應的操作。
-    const modal = new bootstrap.Modal(DOM.confirm.modal());
-    modal.show();
   }
 };
 
-// =================================================================
-//   模板管理 (Template Management)
-// =================================================================
+// ======================================================================
+//   4. UI 和互動模組：依賴核心模組 (UI and Interaction Modules: Dependencies on Core Modules)
+// ======================================================================
+
+// ======================================================
+//   4-1. 模板管理 (Template Management)
+// ======================================================
 
 const TEMPLATES = {
   // Giver 卡片模板
@@ -3685,9 +3685,9 @@ const TEMPLATES = {
   },
 };
 
-// =================================================================
-//   DOM 元素查詢工具 (DOM Element Query Utilities)
-// =================================================================
+// ======================================================
+//   4-2. DOM 元素查詢工具 (DOM Element Query Utilities)
+// ======================================================
 
 const DOM = {
   // 基礎查詢方法
@@ -7242,24 +7242,923 @@ const DOM = {
   },
 };
 
-// =================================================================
-//   全域函式 (Global Functions) - 為了向後相容
-// =================================================================
+// ======================================================
+//   4-3. UI 互動模組 (UI Interaction Module)
+// ======================================================
 
-// 為了向後相容，保留舊的函式引用
-const renderPaginator = DOM.pagination.renderPaginator;
-const getGiversByPage = DOM.pagination.getGiversByPage;
-const renderGiverList = DOM.giver.renderGiverList;
-const checkTopicOverflow = DOM.utils.checkTopicOverflow;
-const scrollToBottom = DOM.utils.scrollToBottom;
-const cleanupModal = DOM.utils.cleanupModal;
-const openChatDialog = UIInteraction.openChatDialog;
-const showConfirmDialog = UIInteraction.showConfirmDialog;
+const UIInteraction = {
+  // 開啟聊天對話框
+  openChatDialog: (giver) => {
+    console.log('UIInteraction.openChatDialog called', { giver });
+    DOM.chat.init(giver);
+  },
+  
+  // 顯示確認對話框
+  showConfirmDialog: (options) => {
+    console.log('UIInteraction.showConfirmDialog called', { options });
+    const { // options 是一個物件，預設為以下屬性：
+      title = '確認',
+      message = '您確定要執行此操作嗎？',
+      confirmText = '確定',
+      cancelText = '取消',
+      onConfirm = () => {}, // 預設為空函式
+      onCancel = () => {}, // 預設為空函式
+      cleanupBackdrop = true // 預設為 true，控制是否清理 backdrop 背景遮罩
+    } = options;
+    
+    // 更新確認對話框內容
+    const modalTitle = DOM.confirm.title();
+    const modalMessage = DOM.confirm.message();
+    const confirmBtn = DOM.confirm.confirmBtn();
+    const cancelBtn = DOM.confirm.cancelBtn();
+    
+    if (modalTitle) DOM.utils.setTextContent(modalTitle, title);
+    if (modalMessage) DOM.utils.setTextContent(modalMessage, message);
+    if (confirmBtn) DOM.utils.setTextContent(confirmBtn, confirmText);
+    if (cancelBtn) DOM.utils.setTextContent(cancelBtn, cancelText);
+    
+    // 確認按鈕事件監聽器（內部函式）：當使用者點擊確認按鈕時，會執行 onConfirm 函式，這通常是實際要執行的業務邏輯（如刪除資料、取消預約等）
+    const confirmHandler = async () => {
+      console.log('confirmHandler called');
+      onConfirm(); // 執行傳入的 onConfirm 函式，這通常是實際要執行的業務邏輯（如刪除資料、取消預約等）
+      const modal = bootstrap.Modal.getInstance(DOM.confirm.modal());
+      if (modal) {
+        modal.hide(); // 隱藏對話框
+        // 只有在需要清理 backdrop 時才清理
+        if (cleanupBackdrop) {
+          await nonBlockingDelay(DELAY_TIMES.UI.MODAL_CLEANUP, () => {
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) backdrop.remove();
+            document.body.classList.remove('modal-open');
+            document.body.style.paddingRight = ''; // paddingRight 樣式是 Bootstrap 為防止頁面跳動而添加的樣式
+            // 強制處理焦點問題
+            document.body.focus();
+          });
+        }
+      }
+    };
+    
+    // 取消按鈕事件監聽器（內部函式）：當使用者點擊取消按鈕時，會執行 onCancel 函式，這通常是實際要執行的業務邏輯（如取消預約等）
+    const cancelHandler = async () => {
+      console.log('cancelHandler called');
+      onCancel(); // 執行傳入的 onCancel 函式，這通常是實際要執行的業務邏輯（如取消預約等）
+      const modal = bootstrap.Modal.getInstance(DOM.confirm.modal());
+      if (modal) {
+        modal.hide();
+        // 確保 backdrop 被清理
+        await nonBlockingDelay(DELAY_TIMES.UI.MODAL_CLEANUP, () => {
+          const backdrop = document.querySelector('.modal-backdrop');
+          if (backdrop) backdrop.remove();
+          document.body.classList.remove('modal-open');
+          document.body.style.paddingRight = '';
+          // 強制處理焦點問題
+          document.body.focus();
+        });
+      }
+    };
+    
+    // 移除舊的事件監聽器：解決重覆綁定事件監聽器
+    if (confirmBtn) { // 如果確認按鈕存在
+      // 使用 cloneNode 來移除所有舊的事件監聽器
+      const newConfirmBtn = confirmBtn.cloneNode(true); // 複製確認按鈕
+      confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn); // 替換確認按鈕
+      newConfirmBtn.addEventListener('click', confirmHandler); // 綁定確認按鈕的事件監聽器
+    }
+    
+    if (cancelBtn) { // 如果取消按鈕存在
+      const newCancelBtn = cancelBtn.cloneNode(true); // 複製取消按鈕
+      cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn); // 替換取消按鈕
+      newCancelBtn.addEventListener('click', cancelHandler); // 綁定取消按鈕的事件監聽器
+    }
+    
+    // 顯示確認對話框，讓使用者可以看到確認對話框並進行相應的操作。
+    const modal = new bootstrap.Modal(DOM.confirm.modal());
+    modal.show();
+  }
+};
 
-// =================================================================
-//   錯誤型別常數 (Error Types Constants)
-// =================================================================
+// ======================================================
+//   4-4. UI 組件模組 (UIComponents)
+// ======================================================
 
+const UIComponents = {
+  // 產生按鈕
+  button: ({ text = '', className = '', icon = '', attrs = {} } = {}) => {
+    console.log('UIComponents.button called: 產生按鈕', { text, className, icon, attrs });
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = className;
+    if (icon) {
+      const iconElem = document.createElement('i');
+      iconElem.className = icon;
+      btn.appendChild(iconElem);
+      if (text) btn.appendChild(document.createTextNode(' '));
+    }
+    if (text) btn.appendChild(document.createTextNode(text));
+    Object.entries(attrs).forEach(([k, v]) => btn.setAttribute(k, v));
+    return btn;
+  },
+
+  // 產生確認對話框
+  confirmDialog: ({ title = '', message = '', confirmText = '確定', cancelText = '取消', onConfirm, onCancel }) => {
+    console.log('UIComponents.confirmDialog called: 產生確認對話框', { title, message, confirmText, cancelText });
+    // 可根據現有 showConfirmDialog 實作
+    return showConfirmDialog({ title, message, confirmText, cancelText, onConfirm, onCancel });
+  },
+
+  // 產生 Toast 訊息
+  toast: ({ message = '', type = 'info', duration = 2000 }) => {
+    console.log('UIComponents.toast called: 產生 Toast 訊息', { message, type, duration });
+    const toast = document.createElement('div');
+    toast.className = `ui-toast ui-toast-${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.remove(); }, duration);
+    return toast;
+  },
+
+  // 產生載入動畫
+  spinner: ({ size = 'md', className = '' } = {}) => {
+    console.log('UIComponents.spinner called: 產生載入動畫', { size, className });
+    const spinner = document.createElement('div');
+    spinner.className = `ui-spinner spinner-border spinner-border-${size} ${className}`;
+    spinner.setAttribute('role', 'status');
+    spinner.innerHTML = '<span class="visually-hidden">Loading...</span>';
+    return spinner;
+  },
+
+  // 產生 icon
+  icon: (iconClass = '', extraClass = '') => {
+    console.log('UIComponents.icon called: 產生 icon', { iconClass, extraClass });
+    const icon = document.createElement('i');
+    icon.className = `${iconClass} ${extraClass}`.trim();
+    return icon;
+  }
+};
+
+// ======================================================================
+//   5. 事件和狀態管理：依賴 UI 模組 (Event and State Management: Dependencies on UI Modules)
+// ======================================================================
+
+// ======================================================
+//   5-1. 統一事件委派管理器 (Event Delegation Manager)
+// ======================================================
+
+const EventManager = {
+  // 事件處理器映射
+  handlers: new Map(),
+  
+  // 初始化事件委派
+  init() {
+    Logger.info('EventManager: 初始化事件委派系統');
+    
+    // 綁定全域點擊事件委派
+    document.addEventListener('click', this.handleGlobalClick.bind(this));
+    
+    // 綁定全域提交事件委派
+    document.addEventListener('submit', this.handleGlobalSubmit.bind(this));
+    
+    // 綁定全域變更事件委派
+    document.addEventListener('change', this.handleGlobalChange.bind(this));
+    
+    Logger.info('EventManager: 事件委派系統初始化完成');
+  },
+  
+  // 全域點擊事件委派處理
+  handleGlobalClick(e) {
+    const target = e.target;
+    
+    // 處理各種按鈕類型
+    if (target.matches('.btn-option')) {
+      this.handleOptionButton(target, e);
+    } else if (target.matches('.edit-provide-btn, .schedule-edit-btn')) {
+      this.handleEditButton(target, e);
+    } else if (target.matches('.delete-provide-btn, .schedule-delete-btn')) {
+      this.handleDeleteButton(target, e);
+    } else if (target.matches('.cancel-reservation-btn')) {
+      this.handleCancelReservation(target, e);
+    } else if (target.matches('#cancel-schedule-form')) {
+      this.handleCancelScheduleForm(target, e);
+    } else if (target.matches('.calendar-day')) {
+      this.handleCalendarDayClick(target, e);
+    } else if (target.matches('.date-input')) {
+      this.handleDateInputClick(target, e);
+    }
+  },
+  
+  // 全域提交事件委派處理
+  handleGlobalSubmit(e) {
+    Logger.debug('EventManager: 全域提交事件觸發', { target: e.target.id });
+    if (e.target.matches('#time-schedule-form')) {
+      e.preventDefault();
+      Logger.info('EventManager: 處理時間表單提交');
+      this.handleScheduleFormSubmit(e.target, e);
+    }
+  },
+  
+  // 全域變更事件委派處理
+  handleGlobalChange(e) {
+    if (e.target.matches('.schedule-date, .schedule-start-time, .schedule-end-time')) {
+      this.handleScheduleInputChange(e.target, e);
+    }
+  },
+  
+  // 處理選項按鈕
+  handleOptionButton: createButtonHandler('option', {
+    dataAttributes: ['data-option'],
+    logMessage: '選項按鈕被點擊',
+    
+    // 預處理：跳過聊天模組專門處理的選項按鈕
+    preprocess: (data, btn, e) => {
+      if (btn.closest('.chat-options-buttons') && data.option === 'cancel') {
+        Logger.info('EventManager: 跳過聊天模組專門處理的選項按鈕');
+        return false;
+      }
+      return true;
+    },
+    
+    // 主要處理邏輯
+    handler: async (data, btn, e) => {
+      const { option } = data;
+      
+      // 處理不同選項
+      switch (option) {
+        case 'schedule':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.SCHEDULE}`);
+          DOM.chat.handleSchedule();
+          break;
+        case 'skip':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.SKIP}`);
+          DOM.chat.handleSkip();
+          break;
+        case 'cancel':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}`);
+          DOM.chat.handleCancelSchedule();
+          // 禁用整個 Giver 訊息泡泡中的互動元素
+          DOM.chat.disableGiverMessageInteractions(btn);
+          break;
+        case 'view-times':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.VIEW_GIVER_TIME}`);
+          DOM.chat.handleViewGiverTime();
+          break;  
+        case 'view-my-schedules-reservation':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.VIEW_MY_SCHEDULES_RESERVATION}`);
+          DOM.chat.handleViewMySchedulesReservation();
+          break;
+        case 'view-all':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.VIEW_MY_SCHEDULES_PROVIDE}`);
+          DOM.chat.handleViewAllSchedules();
+          break;
+        case 'single-time':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.PROVIDE_SINGLE_TIME}`);
+          DOM.chat.handleSingleTime();
+          break;
+        case 'continue-single-time':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_SINGLE_TIME}`);
+          DOM.chat.handleSingleTime();
+          break;
+        case 'multiple-times':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MULTIPLE_TIMES}`);
+          DOM.chat.handleMultipleTimes();
+          break;
+        case 'continue-multiple-times':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.CONTINUE_PROVIDE_MULTIPLE_TIMES}`);
+          DOM.chat.handleMultipleTimes();
+          break;
+        case 'submit-schedules':
+          DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}`);
+          // 將草稿時段轉為正式提供時段
+          const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+          if (draftSchedules.length > 0) {
+            // 將草稿時段轉為正式提供時段（移除 isDraft 標記）
+            const formalSchedules = draftSchedules.map(schedule => {
+              const { isDraft, ...formalSchedule } = schedule;
+              return formalSchedule;
+            });
+            
+            // 添加到正式提供時段列表
+            const existingSchedules = ChatStateManager.getProvidedSchedules();
+            const allSchedules = [...existingSchedules, ...formalSchedules];
+            ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, allSchedules);
+            
+            // 清空草稿列表
+            ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, []);
+            
+            Logger.info('EventManager: 草稿時段已轉為正式提供時段', { 
+              draftCount: draftSchedules.length, 
+              totalFormalCount: allSchedules.length 
+            });
+          }
+          
+          // 先更新現有表格，確保編輯功能正常
+          EventManager.updateScheduleDisplay();
+          
+          await nonBlockingDelay(DELAY_TIMES.CHAT.SUCCESS_MESSAGE, () => {
+            DOM.chat.handleSuccessProvideTime();
+          });
+          break;
+        
+        default:
+          Logger.warn('EventManager: 未知的選項按鈕', { option });
+      }
+    },
+    
+    // 成功回調：禁用整個 Giver 訊息泡泡中的互動元素
+    onSuccess: (data, btn, e) => {      
+      // 禁用整個 Giver 訊息泡泡中的互動元素
+      DOM.chat.disableGiverMessageInteractions(btn);
+    }
+  }),
+  
+  // 處理編輯按鈕
+  handleEditButton: createButtonHandler('edit', {
+    dataAttributes: [],
+    logMessage: '編輯按鈕被點擊',
+    
+    // 主要處理邏輯
+    handler: async (data, btn, e) => {
+      const { index, isScheduleTable, isSuccessProvideTable } = data;
+      
+      if (isScheduleTable) {
+        // 處理包含草稿和正式時段的表格
+        const providedSchedules = ChatStateManager.getProvidedSchedules();
+        const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+        
+        // 合併所有時段以找到要編輯的時段
+        const allSchedules = [
+          ...providedSchedules.map(schedule => ({ ...schedule, isDraft: false })),
+          ...draftSchedules.map(schedule => ({ ...schedule, isDraft: true }))
+        ];
+        
+        const scheduleToEdit = allSchedules[index];
+        
+        if (scheduleToEdit) {
+          // 傳遞編輯索引和時段資料，並標記是否為草稿
+          const editData = {
+            index: index,
+            ...scheduleToEdit,
+            isDraft: scheduleToEdit.isDraft
+          };
+          Logger.info('EventManager: 找到要編輯的時段', editData);
+          DOM.chat.handleSingleTime(index, editData);
+        }
+      } else if (isSuccessProvideTable) {
+        // 處理成功提供表格（只有正式提供時段）
+        const schedules = ChatStateManager.getProvidedSchedules();
+        const schedule = schedules[index];
+        Logger.info('EventManager: 編輯成功提供表格中的時段', { index, schedule });
+        
+        if (schedule) {
+          // 傳遞編輯索引和時段資料
+          const editData = {
+            index: index,
+            ...schedule,
+            isDraft: false
+          };
+          Logger.info('EventManager: 找到要編輯的成功提供時段', editData);
+          DOM.chat.handleSingleTime(index, editData);
+        } else {
+          console.error('EventManager: 找不到要編輯的時段', { index, totalSchedules: schedules.length });
+        }
+      } else {
+        // 處理其他表格（如成功提供表格）
+        const schedules = ChatStateManager.getProvidedSchedules();
+        const schedule = schedules[index];
+        Logger.info('EventManager: 編輯正式提供時段', { index, schedule });
+        DOM.chat.handleSingleTime(index, schedule);
+      }
+    }
+  }),
+  
+  // 處理刪除按鈕
+  handleDeleteButton: createButtonHandler('delete', {
+    dataAttributes: [],
+    logMessage: '刪除按鈕被點擊',
+    
+    // 主要處理邏輯
+    handler: async (data, btn, e) => {
+      const { index, isProvideTable, isScheduleTable } = data;
+      
+      const dialogConfig = isProvideTable ? {
+        title: '取消提供時間',
+        message: '確定要取消提供此時間嗎？',
+        confirmText: '取消提供',
+        cancelText: '保留'
+      } : {
+        title: '刪除時段',
+        message: '確定要刪除此時段嗎？',
+        confirmText: '刪除',
+        cancelText: '取消'
+      };
+      
+      return new Promise((resolve) => {
+        UIComponents.confirmDialog({
+          ...dialogConfig,
+          onConfirm: () => {
+            // 獲取當前顯示的所有時段（包含正式提供和草稿）
+            const providedSchedules = ChatStateManager.getProvidedSchedules();
+            const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+            
+            // 合併所有時段以找到要刪除的時段
+            const allSchedules = [
+              ...providedSchedules.map(schedule => ({ ...schedule, isDraft: false })),
+              ...draftSchedules.map(schedule => ({ ...schedule, isDraft: true }))
+            ];
+            
+            const scheduleToDelete = allSchedules[index];
+            
+            if (scheduleToDelete) {
+              if (scheduleToDelete.isDraft) {
+                // 刪除草稿時段
+                const updatedDraftSchedules = draftSchedules.filter((_, idx) => {
+                  const draftIndex = providedSchedules.length + idx;
+                  return draftIndex !== index;
+                });
+                ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, updatedDraftSchedules);
+                Logger.info('EventManager: 草稿時段已刪除', { deletedSchedule: scheduleToDelete, remainingDrafts: updatedDraftSchedules.length });
+              } else {
+                // 刪除正式提供時段
+                const updatedProvidedSchedules = providedSchedules.filter((_, idx) => idx !== index);
+                ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, updatedProvidedSchedules);
+                Logger.info('EventManager: 正式提供時段已刪除', { deletedSchedule: scheduleToDelete, remainingProvided: updatedProvidedSchedules.length });
+              }
+            }
+            
+            // 檢查是否還有任何時段
+            const remainingProvided = ChatStateManager.getProvidedSchedules();
+            const remainingDrafts = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+            
+            if (remainingProvided.length === 0 && remainingDrafts.length === 0) {
+              DOM.chat.addGiverResponse('已取消所有提供時間。<br><br>如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
+            } else {
+              // 更新對應的表格
+              const chatMessages = DOM_CACHE.chatMessages;
+              if (chatMessages) {
+                if (isProvideTable) {
+                  const successMessage = chatMessages.querySelector('.success-provide-table')?.closest('.giver-message');
+                  if (successMessage) {
+                    const updatedHTML = TEMPLATES.chat.successProvideTime(remainingProvided);
+                    successMessage.outerHTML = updatedHTML;
+                    Logger.info('EventManager: 成功提供表格已更新');
+                  }
+                } else if (isScheduleTable) {
+                  const tableMessage = chatMessages.querySelector('.schedule-table')?.closest('.giver-message');
+                  if (tableMessage) {
+                    // 重新生成包含草稿和正式時段的表格
+                    const allSchedules = [
+                      ...remainingProvided.map(schedule => ({ ...schedule, isDraft: false })),
+                      ...remainingDrafts.map(schedule => ({ ...schedule, isDraft: true }))
+                    ];
+                    const updatedHTML = TEMPLATES.chat.scheduleTable(allSchedules);
+                    tableMessage.outerHTML = updatedHTML;
+                    Logger.info('EventManager: 查看所有時段表格已更新');
+                  }
+                }
+              }
+            }
+            resolve();
+          }
+        });
+      });
+    }
+  }),
+  
+  // 處理取消預約按鈕
+  handleCancelReservation: createButtonHandler('cancelReservation', {
+    dataAttributes: ['data-schedule-id'],
+    logMessage: '取消預約按鈕被點擊',
+    
+    // 主要處理邏輯
+    handler: async (data, btn, e) => {
+      const { scheduleId } = data;
+      
+      return new Promise((resolve) => {
+        UIComponents.confirmDialog({
+          title: '取消預約',
+          message: '確定要取消此預約嗎？',
+          confirmText: '取消預約',
+          cancelText: '保留',
+          onConfirm: () => {
+            // 從狀態管理中移除預約
+            const bookedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES) || [];
+            const updatedSchedules = bookedSchedules.filter(schedule => schedule.id !== scheduleId);
+            ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES, updatedSchedules);
+            
+            // 更新顯示
+            DOM.chat.updateBookedSchedulesDisplay(updatedSchedules);
+            
+            Logger.info('EventManager: 預約已取消', { scheduleId, remainingCount: updatedSchedules.length });
+            resolve();
+          }
+        });
+      });
+    }
+  }),
+  
+  // 處理取消表單按鈕
+  handleCancelScheduleForm: createButtonHandler('cancelScheduleForm', {
+    dataAttributes: [],
+    logMessage: '取消表單按鈕被點擊',
+    
+    // 主要處理邏輯
+    handler: async (data, btn, e) => {
+      // 隱藏表單
+      const scheduleForm = DOM_CACHE.scheduleForm;
+      if (scheduleForm) {
+        scheduleForm.classList.remove('schedule-form-visible');
+        scheduleForm.classList.add('schedule-form-hidden');
+      }
+      
+      // 清空表單
+      DOM_CACHE.clearFormInputs();
+
+      // 清空表單所有錯誤訊息
+      FormValidator.clearAllValidationErrors(DOM_CACHE.scheduleForm);
+          
+      // 重置選中的日期
+      DOM.chat.setSelectedDate(null);
+      
+      // 顯示取消訊息
+      DOM.chat.addGiverResponse('您已取消新增時段。<br><br>如果仍想提供方便時段，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
+    }
+  }),
+  
+  // 處理表單提交
+  async handleScheduleFormSubmit(form, e) {
+    Logger.info('EventManager: 表單提交事件觸發');
+    
+    const formData = DOM_CACHE.getFormData();
+    
+    Logger.debug('EventManager: 表單資料', formData);
+    
+    // 驗證表單
+    const validationResult = FormValidator.validateScheduleForm(formData);
+    if (!validationResult.isValid) {
+      console.warn('EventManager: 表單驗證失敗', validationResult);
+      
+      // 過濾掉隱藏的錯誤訊息
+      const visibleErrors = validationResult.errors.filter(error => error !== '__HIDDEN_ERROR__');
+      
+      if (visibleErrors.length > 0) {
+        // 時間邏輯錯誤顯示在表單下方，營業時間錯誤使用彈出顯示
+        if (validationResult.message && validationResult.message !== '__HIDDEN_ERROR__' && 
+            validationResult.message.includes('時間必須在營業時間內')) {
+          FormValidator.showValidationError(validationResult.message);
+        } else if (visibleErrors.length > 0) {
+          // 根據錯誤訊息類型，顯示在對應的欄位下方
+          const errorMessage = visibleErrors[0];
+          let targetElement = form; // 預設顯示在表單上
+          
+          // 檢查錯誤訊息類型，決定顯示位置
+          if (errorMessage.includes('日期格式不正確') || 
+              errorMessage.includes('不能選擇過去的日期') || 
+              errorMessage.includes('不能預約 3 個月後的日期')) {
+            targetElement = document.getElementById('schedule-date');
+          } else if (errorMessage.includes('請輸入開始時間') || 
+                     errorMessage.includes('目前輸入內容非 4 位數字')) {
+            targetElement = document.getElementById('schedule-start-time');
+          } else if (errorMessage.includes('請輸入結束時間')) {
+            targetElement = document.getElementById('schedule-end-time');
+          } else if (errorMessage.includes('備註不能超過')) {
+            targetElement = document.getElementById('schedule-notes');
+          }
+          
+          FormValidator.showValidationError(errorMessage, targetElement);
+        }
+      }
+      return;
+    }
+    
+    // 檢查重複時段
+    const existingSchedules = ChatStateManager.getProvidedSchedules();
+    const editIndex = form.getAttribute('data-edit-index');
+    const isEditMode = editIndex !== null && editIndex !== undefined && editIndex !== 'null' && editIndex !== '';
+
+    const isDuplicate = existingSchedules.some((schedule, index) => {
+      if (editIndex !== null && index === parseInt(editIndex)) {
+        return false;
+      }
+      
+      const isExactDuplicate = schedule.date === formData.date && 
+        schedule.startTime === formData.startTime && 
+        schedule.endTime === formData.endTime;
+      
+      if (isExactDuplicate) {
+        return true;
+      }
+      
+      if (schedule.date === formData.date) {
+        const existingStart = schedule.startTime;
+        const existingEnd = schedule.endTime;
+        const newStart = formData.startTime;
+        const newEnd = formData.endTime;
+        
+        const isOverlapping = newStart < existingEnd && newEnd > existingStart;
+        return isOverlapping;
+      }
+      
+      return false;
+    });
+    
+    // 檢測重複或重疊時段
+    if (isDuplicate) {
+      console.warn('EventManager: 檢測到重複或重疊時段', formData);
+      const duplicateMessage = FormValidator.generateDuplicateScheduleMessage(formData, existingSchedules);
+      FormValidator.showValidationError(duplicateMessage);
+      return;
+    }
+    
+    // 處理編輯模式
+    if (isEditMode) {
+      console.log('EventManager: 編輯模式，覆蓋原本的時段', isEditMode);
+      
+      // 檢查是否為草稿時段的編輯
+      const isDraftEdit = form.getAttribute('data-edit-is-draft') === 'true';
+      
+      // 獲取所有現有時段（除了正在編輯的時段）
+      const providedSchedules = ChatStateManager.getProvidedSchedules();
+      const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+      
+      // 創建不包含正在編輯時段的列表
+      const otherSchedules = [];
+      
+      if (isDraftEdit) {
+        // 編輯草稿時段：排除正在編輯的草稿時段
+        const actualDraftIndex = parseInt(editIndex) - providedSchedules.length;
+        providedSchedules.forEach((schedule, index) => {
+          otherSchedules.push(schedule);
+        });
+        draftSchedules.forEach((schedule, index) => {
+          if (index !== actualDraftIndex) {
+            otherSchedules.push(schedule);
+          }
+        });
+      } else {
+        // 編輯正式提供時段：排除正在編輯的正式時段
+        providedSchedules.forEach((schedule, index) => {
+          if (index !== parseInt(editIndex)) {
+            otherSchedules.push(schedule);
+          }
+        });
+        draftSchedules.forEach((schedule, index) => {
+          otherSchedules.push(schedule);
+        });
+      }
+      
+      // 檢查修改後的時段是否與其他時段重複或重疊
+      const isDuplicate = otherSchedules.some(schedule => {
+        const isExactDuplicate = schedule.date === formData.date && 
+          schedule.startTime === formData.startTime && 
+          schedule.endTime === formData.endTime;
+        
+        if (isExactDuplicate) {
+          return true;
+        }
+        
+        if (schedule.date === formData.date) {
+          const existingStart = schedule.startTime;
+          const existingEnd = schedule.endTime;
+          const newStart = formData.startTime;
+          const newEnd = formData.endTime;
+          
+          const isOverlapping = newStart < existingEnd && newEnd > existingStart;
+          return isOverlapping;
+        }
+        
+        return false;
+      });
+      
+      // 檢測重複或重疊時段
+      if (isDuplicate) {
+        console.warn('EventManager: 編輯模式檢測到重複或重疊時段', formData);
+        const duplicateMessage = FormValidator.generateDuplicateScheduleMessage(formData, otherSchedules);
+        if (duplicateMessage) {
+          FormValidator.showValidationError(duplicateMessage);
+        } else {
+          // 如果無法生成詳細訊息，使用預設錯誤訊息
+          const errorMessage = '抱歉，您修改的時段與其他時段重複或重疊，請重新輸入。';
+          FormValidator.showValidationError(errorMessage);
+        }
+        return;
+      }
+      
+      // 沒有重複，執行更新
+      if (isDraftEdit) {
+        // 編輯草稿時段
+        const actualDraftIndex = parseInt(editIndex) - providedSchedules.length;
+        
+        if (actualDraftIndex >= 0 && actualDraftIndex < draftSchedules.length) {
+          draftSchedules[actualDraftIndex] = { 
+            ...draftSchedules[actualDraftIndex], 
+            ...formData,
+            formattedSchedule: DOM.chat.formatScheduleWithWeekday(formData.date, formData.startTime, formData.endTime)
+          };
+          ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, draftSchedules);
+          console.log('EventManager: 草稿時段已更新', { actualDraftIndex, updatedSchedule: draftSchedules[actualDraftIndex] });
+        }
+      } else {
+        // 編輯正式提供時段
+        providedSchedules[editIndex] = { 
+          ...providedSchedules[editIndex], 
+          ...formData,
+          formattedSchedule: DOM.chat.formatScheduleWithWeekday(formData.date, formData.startTime, formData.endTime)
+        };
+        ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, providedSchedules);
+        console.log('EventManager: 正式提供時段已更新', { editIndex, updatedSchedule: providedSchedules[editIndex] });
+      }
+      
+      // 隱藏表單
+      const scheduleForm = document.getElementById('schedule-form');
+      if (scheduleForm) {
+        scheduleForm.classList.remove('schedule-form-visible');
+        scheduleForm.classList.add('schedule-form-hidden');
+      }
+      
+      // 更新顯示
+      console.log('EventManager.handleScheduleFormSubmit: 編輯完成，準備更新表格顯示');
+      this.updateScheduleDisplay();
+      
+      // 確保表格更新後，滾動到適當位置
+      await nonBlockingDelay(DELAY_TIMES.CHAT.FORM_SUBMIT, () => {
+        const chatMessages = DOM_CACHE.chatMessages;
+        if (chatMessages) {
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+      });
+      
+      return;
+    }
+    
+    // 新增模式
+    const formattedSchedule = DOM.chat.formatScheduleWithWeekday(formData.date, formData.startTime, formData.endTime);
+    // 改為加入草稿狀態，而不是直接加入已提供時段列表
+    const draftSchedule = {
+      date: formData.date,
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      notes: formData.notes.trim(),
+      formattedSchedule: formattedSchedule,
+      isDraft: true // 標記為草稿
+    };
+    
+    // 使用 ChatStateManager.addDraftSchedule 方法添加草稿時段（會進行重疊檢查）
+    const addResult = ChatStateManager.addDraftSchedule({
+      date: formData.date,
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      notes: formData.notes.trim(),
+      formattedSchedule: formattedSchedule
+    });
+    
+    if (!addResult) {
+      console.warn('EventManager.handleScheduleFormSubmit: 草稿時段添加失敗，可能是重複或重疊時段');
+      // 生成詳細的重複時段錯誤訊息
+      const existingSchedules = ChatStateManager.getProvidedSchedules();
+      const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+      const allExistingSchedules = [...existingSchedules, ...draftSchedules];
+      
+      const duplicateMessage = FormValidator.generateDuplicateScheduleMessage(formData, allExistingSchedules);
+      if (duplicateMessage) {
+        FormValidator.showValidationError(duplicateMessage);
+      } else {
+        // 如果無法生成詳細訊息，使用預設錯誤訊息
+        const errorMessage = '抱歉，您輸入的時段與已提供的時段重複或重疊，請重新輸入。';
+        FormValidator.showValidationError(errorMessage);
+      }
+      return;
+    }
+    
+    // 隱藏表單並清空
+    const scheduleForm = DOM_CACHE.scheduleForm;
+    if (scheduleForm) {
+      scheduleForm.classList.remove('schedule-form-visible');
+      scheduleForm.classList.add('schedule-form-hidden');
+    }
+    
+    // 清除重複時段錯誤
+    FormValidator.clearDuplicateScheduleError();
+    
+    DOM_CACHE.clearFormInputs();
+    
+    // 重置選中的日期
+    DOM.chat.setSelectedDate(null);
+    
+    // 模擬 Giver 回覆
+    await nonBlockingDelay(DELAY_TIMES.CHAT.FORM_SUBMIT, () => {
+      const responseHTML = TEMPLATES.chat.afterScheduleOptions(formattedSchedule, formData.notes);
+      const chatMessages = DOM_CACHE.chatMessages;
+      if (chatMessages) {
+        chatMessages.insertAdjacentHTML('beforeend', responseHTML);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+    });
+  },
+  
+  // 處理日曆日期點擊
+  handleCalendarDayClick(dayElement, e) {
+    const date = dayElement.getAttribute('data-date');
+    Logger.info('EventManager: 日曆日期被點擊', { date });
+    
+    // 立即驗證選擇的日期
+    if (date && !DateUtils.validateDateWithinAllowedMonths(date, true)) {
+      return; // 不設定選中的日期，讓使用者重新選擇
+    }
+    
+    DOM.chat.setSelectedDate(date);
+  },
+  
+  // 處理日期輸入框點擊
+  handleDateInputClick(input, e) {
+    Logger.info('EventManager: 日期輸入框被點擊');
+    DOM.chat.showDatePicker();
+  },
+  
+  // 處理表單輸入變更
+  handleScheduleInputChange(input, e) {
+    const field = input.id;
+    const value = input.value;
+    Logger.debug('EventManager: 表單輸入變更', { field, value });
+    
+    // 當使用者修改任何輸入欄位時，清除重複時段錯誤
+    FormValidator.clearDuplicateScheduleError();
+    
+    // 可以在這裡添加即時驗證邏輯
+  },
+  
+  // 更新時段顯示
+  updateScheduleDisplay() {
+    const chatMessages = DOM_CACHE.chatMessages;
+    if (!chatMessages) return;
+    
+    // 獲取最新的時段資料
+    const providedSchedules = ChatStateManager.getProvidedSchedules();
+    const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+    
+    // 合併所有時段
+    const allSchedules = [
+      ...providedSchedules.map(schedule => ({ ...schedule, isDraft: false })),
+      ...draftSchedules.map(schedule => ({ ...schedule, isDraft: true }))
+    ];
+    
+    console.log('EventManager.updateScheduleDisplay: 更新時段顯示', { 
+      providedSchedules: providedSchedules.length, 
+      draftSchedules: draftSchedules.length,
+      allSchedules: allSchedules.length 
+    });
+    
+    // 檢查是否有草稿時段
+    const hasDraftSchedules = draftSchedules.length > 0;
+    
+    // 更新所有相關的表格
+    // 1. 更新成功提供時間表格（只顯示正式提供的時段）
+    const successMessages = chatMessages.querySelectorAll('.success-provide-table');
+    successMessages.forEach(successTable => {
+      const giverMessage = successTable.closest('.giver-message');
+      if (giverMessage) {
+        const updatedHTML = TEMPLATES.chat.successProvideTime(providedSchedules);
+        giverMessage.outerHTML = updatedHTML;
+        console.log('EventManager.updateScheduleDisplay: 成功提供表格已更新');
+      }
+    });
+    
+    // 2. 更新查看所有時段表格（顯示所有時段，包含草稿）
+    const scheduleTables = chatMessages.querySelectorAll('.schedule-table');
+    scheduleTables.forEach(scheduleTable => {
+      const giverMessage = scheduleTable.closest('.giver-message');
+      if (giverMessage) {
+        // 根據是否有草稿時段決定是否顯示按鈕
+        const includeButtons = hasDraftSchedules;
+        
+        // 使用共用函數生成表格
+        const updatedHTML = generateScheduleTable(allSchedules, includeButtons);
+        
+        giverMessage.outerHTML = updatedHTML;
+        console.log('EventManager.updateScheduleDisplay: 查看所有時段表格已更新', { includeButtons });
+      }
+    });
+    
+    // 3. 更新所有包含時段資料的 giver-message（以防有其他類型的表格）
+    const giverMessages = chatMessages.querySelectorAll('.giver-message');
+    giverMessages.forEach(giverMessage => {
+      // 檢查是否包含時段相關的內容
+      const hasScheduleContent = giverMessage.querySelector('.schedule-table, .success-provide-table, .schedule-item');
+      if (hasScheduleContent && !giverMessage.querySelector('.schedule-table, .success-provide-table')) {
+        // 如果包含時段內容但沒有主要表格，可能是其他類型的時段顯示
+        // 這裡可以根據需要添加其他表格類型的更新邏輯
+        console.log('EventManager.updateScheduleDisplay: 發現其他類型的時段顯示，可能需要更新');
+      }
+    });
+    
+    // 滾動到底部
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+};
+
+// ======================================================
+//   5-2. 錯誤處理模組 (Error Handling Module)
+// ======================================================
+
+// 錯誤型別常數
 const ERROR_TYPES = {
   NETWORK: 'NETWORK_ERROR',
   VALIDATION: 'VALIDATION_ERROR',
@@ -7268,10 +8167,7 @@ const ERROR_TYPES = {
   UNKNOWN: 'UNKNOWN_ERROR'
 };
 
-// =================================================================
-//   錯誤處理器 (Error Handlers)
-// =================================================================
-
+// 錯誤處理器：包含多個處理函數的集合，用於處理不同類型的錯誤
 const errorHandlers = {
   [ERROR_TYPES.NETWORK]: (error) => {
     console.error('DOM.errorHandler.handle: 網路錯誤:', error);
@@ -7325,10 +8221,7 @@ const errorHandlers = {
   }
 };
 
-// =================================================================
-//   錯誤處理模組 (Error Handling Module)
-// =================================================================
-
+// 錯誤處理器：單一的錯誤處理物件，包含錯誤歷史、錯誤處理器、錯誤類型等
 const ErrorHandler = {
   ERROR_TYPES,
   handlers: errorHandlers,
@@ -7513,9 +8406,100 @@ const ErrorHandler = {
   }
 };
 
-// =================================================================
-//   效能監控模組 (Performance Monitoring Module)
-// =================================================================
+// ======================================================================
+//   6. API 和外部服務：API 請求模組 (API and External Services: API Request Module)
+// ======================================================================
+
+// ======================================================
+//   6-1. API 請求模組 (APIClient)
+// ======================================================
+
+const APIClient = {
+  // GET 請求
+  get: async (url, options = {}) => {
+    console.log('APIClient.get called: GET 請求', { url, options });
+    try {
+      const res = await fetch(url, { ...options, method: 'GET' });
+      return await APIClient._handleResponse(res);
+    } catch (err) {
+      APIClient._handleError(err);
+      throw err;
+    }
+  },
+
+  // POST 請求
+  post: async (url, data = {}, options = {}) => {
+    console.log('APIClient.post called: POST 請求', { url, data, options });
+    try {
+      const res = await fetch(url, {
+        ...options,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+        body: JSON.stringify(data)
+      });
+      return await APIClient._handleResponse(res);
+    } catch (err) {
+      APIClient._handleError(err);
+      throw err;
+    }
+  },
+
+  // PUT 請求
+  put: async (url, data = {}, options = {}) => {
+    console.log('APIClient.put called: PUT 請求', { url, data, options });
+    try {
+      const res = await fetch(url, {
+        ...options,
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+        body: JSON.stringify(data)
+      });
+      return await APIClient._handleResponse(res);
+    } catch (err) {
+      APIClient._handleError(err);
+      throw err;
+    }
+  },
+
+  // DELETE 請求
+  delete: async (url, options = {}) => {
+    console.log('APIClient.delete called: DELETE 請求', { url, options });
+    try {
+      const res = await fetch(url, { ...options, method: 'DELETE' });
+      return await APIClient._handleResponse(res);
+    } catch (err) {
+      APIClient._handleError(err);
+      throw err;
+    }
+  },
+
+  // 統一處理回應
+  _handleResponse: async (res) => {
+    console.log('APIClient._handleResponse called: 處理 API 回應', { status: res.status, statusText: res.statusText });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`API 錯誤: ${res.status} ${res.statusText} - ${errorText}`);
+    }
+    // 嘗試解析 JSON，若失敗則回傳原始文字
+    try {
+      return await res.json();
+    } catch {
+      return await res.text();
+    }
+  },
+
+  // 統一錯誤處理
+  _handleError: (err) => {
+    console.log('APIClient._handleError called: 處理 API 錯誤', { error: err.message });
+    console.error('APIClient 請求錯誤:', err);
+    // 可在這裡加上全域錯誤提示、上報等
+    UIComponents.toast({ message: '伺服器連線失敗，請稍後再試', type: 'error' });
+  }
+};
+
+// ======================================================
+//   6-2. 效能監控模組 (Performance Monitoring Module)
+// ======================================================
 
 const PerformanceMonitor = {
   // 效能指標
@@ -7858,11 +8842,14 @@ const PerformanceMonitor = {
   }
 };
 
-// =================================================================
-//   初始化模組 (Initialization Module)
-// =================================================================
+// ======================================================================
+//   7. 初始化和全域函式 (Initialization and Global Functions)
+// ======================================================================
 
-// 初始化應用程式
+// ======================================================
+//   7-1. 初始化模組 (Initialization Module)
+// ======================================================
+
 const Initializer = {  
   init: () => {
     console.log('DOM.Initializer.init called：開始初始化應用程式');
@@ -7888,7 +8875,23 @@ const Initializer = {
   }
 };
 
-// 頁面載入時設定全域事件監聽器
+// ======================================================
+//   7-2. 全域函式 (Global Functions)：為了向後相容，保留舊的函式引用
+// ======================================================
+
+const renderPaginator = DOM.pagination.renderPaginator;
+const getGiversByPage = DOM.pagination.getGiversByPage;
+const renderGiverList = DOM.giver.renderGiverList;
+const checkTopicOverflow = DOM.utils.checkTopicOverflow;
+const scrollToBottom = DOM.utils.scrollToBottom;
+const cleanupModal = DOM.utils.cleanupModal;
+const openChatDialog = UIInteraction.openChatDialog;
+const showConfirmDialog = UIInteraction.showConfirmDialog;
+
+// ======================================================
+//   7-3. 頁面載入時設定全域事件監聽器 (Setting Global Event Listeners on Page Load)
+// ======================================================
+
 DOM.events.add(document, 'DOMContentLoaded', function() {
   Logger.info('DOM.events.add called：頁面載入時設定全域事件監聽器');
   
@@ -7946,10 +8949,11 @@ DOM.events.add(document, 'DOMContentLoaded', function() {
   }
 });
 
-// === 新增：表單欄位初始化 function ===
-// 初始化時段表單的輸入欄位：設定預設值、事件監聽器、日期、開始時間、結束時間的輸入事件和驗證
-// =================================================================
-//   通用輸入欄位設定器 (Universal Input Field Setup)
+// ======================================================================
+//   7-4. 初始化時段表單的輸入欄位 (Initializing Input Fields for Time Schedule Form)：設定預設值、事件監聽器、日期、開始時間、結束時間的輸入事件和驗證
+// ======================================================================
+
+// 通用輸入欄位設定器 (Universal Input Field Setup)
 // =================================================================
 
 // 通用輸入欄位設定器
@@ -8059,6 +9063,7 @@ const setupMultipleInputFields = (formElement, fieldConfigs) => {
   return results;
 };
 
+// 初始化表單欄位
 const initScheduleFormInputs = (formElement) => {
   Logger.debug('initScheduleFormInputs called: 初始化表單欄位', { formElement });
   
@@ -8134,993 +9139,3 @@ if (formElement) {
 }
 // ...
 // setupScheduleForm 只負責表單提交事件即可
-
-// =================================================================
-//   聊天狀態管理模組 (Chat State Management Module)
-// =================================================================
-
-const ChatStateManager = {
-  // 狀態配置
-  CONFIG: {
-    // 狀態鍵值
-    STATE_KEYS: {
-      CURRENT_GIVER: 'currentGiver',
-      IS_ACTIVE: 'isActive',
-      MESSAGE_HISTORY: 'messageHistory',
-      LAST_MESSAGE_TIME: 'lastMessageTime',
-      PROVIDED_SCHEDULES: 'providedSchedules',
-      BOOKED_SCHEDULES: 'bookedSchedules',
-      IS_MULTIPLE_TIMES_MODE: 'isMultipleTimesMode',
-      SELECTED_DATE: 'selectedDate',
-      DRAFT_SCHEDULES: 'draftSchedules' // 新增草稿時段列表
-    },
-    
-    // 預設狀態
-    DEFAULT_STATE: {
-      currentGiver: null,
-      isActive: false,
-      messageHistory: [],
-      lastMessageTime: null,
-      providedSchedules: [],
-      bookedSchedules: [],
-      isMultipleTimesMode: false,
-      selectedDate: null,
-      draftSchedules: [] // 新增草稿時段列表
-    },
-    
-    // 狀態驗證規則
-    VALIDATION_RULES: {
-      MESSAGE_HISTORY_MAX_LENGTH: 1000,
-      PROVIDED_SCHEDULES_MAX_LENGTH: 50,
-      LAST_MESSAGE_TIME_MAX_AGE: 24 * 60 * 60 * 1000 // 24小時
-    }
-  },
-  
-  // 內部狀態存儲
-  _state: {
-    currentGiver: null,
-    isActive: false,
-    messageHistory: [],
-    lastMessageTime: null,
-    providedSchedules: [],
-    bookedSchedules: [],
-    isMultipleTimesMode: false,
-    selectedDate: null,
-    draftSchedules: [] // 新增草稿時段列表
-  },
-  
-  // 狀態變更監聽器
-  _listeners: new Map(),
-  
-  // 初始化狀態管理器
-  init: () => {
-    console.log('ChatStateManager.init called：初始化聊天狀態管理器');
-    ChatStateManager.reset();
-    console.log('ChatStateManager.init: 狀態管理器初始化完成');
-  },
-  
-  // 重置狀態到預設值
-  reset: () => {
-    console.log('ChatStateManager.reset called：重置聊天狀態');
-    ChatStateManager._state = { ...ChatStateManager.CONFIG.DEFAULT_STATE };
-    ChatStateManager._notifyListeners('reset', ChatStateManager._state);
-    console.log('ChatStateManager.reset: 狀態已重置', ChatStateManager._state);
-  },
-  
-  // 獲取完整狀態
-  getState: () => {
-    return { ...ChatStateManager._state };
-  },
-  
-  // 獲取特定狀態值
-  get: (key) => {
-    console.log('ChatStateManager.get called', { key });
-    const value = ChatStateManager._state[key];
-    console.log('ChatStateManager.get: 獲取狀態值', { key, value });
-    return value;
-  },
-  
-  // 設定特定狀態值
-  set: (key, value) => {
-    console.log('ChatStateManager.set called', { key, value });
-    
-    // 驗證狀態鍵值
-    if (!Object.values(ChatStateManager.CONFIG.STATE_KEYS).includes(key)) {
-      console.warn('ChatStateManager.set: 無效的狀態鍵值', { key });
-      return false;
-    }
-    
-    // 驗證狀態值
-    if (!ChatStateManager._validateStateValue(key, value)) {
-      console.warn('ChatStateManager.set: 狀態值驗證失敗', { key, value });
-      return false;
-    }
-    
-    const oldValue = ChatStateManager._state[key];
-    ChatStateManager._state[key] = value;
-    
-    // 通知監聽器
-    ChatStateManager._notifyListeners(key, value, oldValue);
-    
-    console.log('ChatStateManager.set: 狀態值已更新', { key, oldValue, newValue: value });
-    return true;
-  },
-  
-  // 批量更新狀態
-  setMultiple: (updates) => {
-    console.log('ChatStateManager.setMultiple called', { updates });
-    
-    const results = {};
-    let hasChanges = false;
-    
-    for (const [key, value] of Object.entries(updates)) {
-      const success = ChatStateManager.set(key, value);
-      results[key] = success;
-      if (success) hasChanges = true;
-    }
-    
-    if (hasChanges) {
-      ChatStateManager._notifyListeners('multiple', updates);
-    }
-    
-    console.log('ChatStateManager.setMultiple: 批量更新完成', { results });
-    return results;
-  },
-  
-  // 初始化聊天會話
-  initChatSession: (giver) => {
-    console.log('ChatStateManager.initChatSession called', { giver });
-    
-    const updates = {
-      [ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER]: giver,
-      [ChatStateManager.CONFIG.STATE_KEYS.IS_ACTIVE]: true,
-      [ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY]: [],
-      [ChatStateManager.CONFIG.STATE_KEYS.LAST_MESSAGE_TIME]: new Date(),
-      [ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES]: [],
-      [ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES]: [],
-      [ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE]: false,
-      [ChatStateManager.CONFIG.STATE_KEYS.SELECTED_DATE]: null,
-      [ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES]: [] // 新增草稿時段列表
-    };
-    
-    ChatStateManager.setMultiple(updates);
-    console.log('ChatStateManager.initChatSession: 聊天會話已初始化');
-  },
-  
-  // 結束聊天會話
-  endChatSession: () => {
-    console.log('ChatStateManager.endChatSession called');
-    
-    const updates = {
-      [ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER]: null,
-      [ChatStateManager.CONFIG.STATE_KEYS.IS_ACTIVE]: false,
-      [ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE]: false,
-      [ChatStateManager.CONFIG.STATE_KEYS.SELECTED_DATE]: null
-    };
-    
-    ChatStateManager.setMultiple(updates);
-    console.log('ChatStateManager.endChatSession: 聊天會話已結束');
-  },
-  
-  // 添加訊息到歷史記錄
-  addMessage: (message) => {
-    console.log('ChatStateManager.addMessage called', { message });
-    
-    const messageHistory = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY);
-    
-    // 檢查訊息歷史長度限制
-    if (messageHistory.length >= ChatStateManager.CONFIG.VALIDATION_RULES.MESSAGE_HISTORY_MAX_LENGTH) {
-      // 移除最舊的訊息
-      messageHistory.shift();
-    }
-    
-    // 添加新訊息
-    messageHistory.push({
-      ...message,
-      timestamp: new Date()
-    });
-    
-    // 更新狀態
-    ChatStateManager.setMultiple({
-      [ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY]: messageHistory,
-      [ChatStateManager.CONFIG.STATE_KEYS.LAST_MESSAGE_TIME]: new Date()
-    });
-    
-    console.log('ChatStateManager.addMessage: 訊息已添加到歷史記錄');
-  },
-  
-  // 添加使用者訊息
-  addUserMessage: (content) => {
-    console.log('ChatStateManager.addUserMessage called', { content });
-    
-    const message = {
-      type: 'user',
-      content: content,
-      timestamp: new Date()
-    };
-    
-    ChatStateManager.addMessage(message);
-  },
-  
-  // 添加 Giver 訊息
-  addGiverMessage: (content) => {
-    console.log('ChatStateManager.addGiverMessage called', { content });
-    
-    const message = {
-      type: 'giver',
-      content: content,
-      timestamp: new Date()
-    };
-    
-    ChatStateManager.addMessage(message);
-  },
-  
-  // 添加時段到已提供時段列表
-  addSchedule: (schedule) => {
-    console.log('ChatStateManager.addSchedule called', { schedule });
-    
-    const providedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES);
-    
-    // 檢查時段列表長度限制
-    if (providedSchedules.length >= ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
-      console.warn('ChatStateManager.addSchedule: 時段列表已達最大長度限制');
-      return false;
-    }
-    
-    // 檢查重複時段（與已提供時段和草稿時段的重複）
-    const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-    const allExistingSchedules = [...providedSchedules, ...draftSchedules];
-    
-    const isDuplicate = allExistingSchedules.some(existingSchedule => {
-      // 檢查是否為完全相同的時段
-      const isExactDuplicate = existingSchedule.date === schedule.date && 
-        existingSchedule.startTime === schedule.startTime && 
-        existingSchedule.endTime === schedule.endTime;
-      
-      if (isExactDuplicate) {
-        return true;
-      }
-      
-      // 檢查是否為重疊時段（相同日期且時間有重疊）
-      if (existingSchedule.date === schedule.date) {
-        const existingStart = existingSchedule.startTime;
-        const existingEnd = existingSchedule.endTime;
-        const newStart = schedule.startTime;
-        const newEnd = schedule.endTime;
-        
-        // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
-        const isOverlapping = newStart < existingEnd && newEnd > existingStart;
-        
-        return isOverlapping;
-      }
-      
-      return false;
-    });
-    
-    if (isDuplicate) {
-      console.warn('ChatStateManager.addSchedule: 檢測到重複或重疊時段', schedule);
-      return false;
-    }
-    
-    // 添加新時段
-    providedSchedules.push({
-      ...schedule,
-      timestamp: new Date()
-    });
-    
-    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, providedSchedules);
-    console.log('ChatStateManager.addSchedule: 時段已添加到列表');
-    return true;
-  },
-  
-  // 添加草稿時段到草稿時段列表
-  addDraftSchedule: (schedule) => {
-    console.log('ChatStateManager.addDraftSchedule called', { schedule });
-    
-    const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES);
-    
-    // 檢查時段列表長度限制
-    if (draftSchedules.length >= ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
-      console.warn('ChatStateManager.addDraftSchedule: 草稿時段列表已達最大長度限制');
-      return false;
-    }
-    
-    // 檢查重複時段（與已提供時段和草稿時段的重複）
-    const providedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES);
-    const allExistingSchedules = [...providedSchedules, ...draftSchedules];
-    
-    const isDuplicate = allExistingSchedules.some(existingSchedule => {
-      // 檢查是否為完全相同的時段
-      const isExactDuplicate = existingSchedule.date === schedule.date && 
-        existingSchedule.startTime === schedule.startTime && 
-        existingSchedule.endTime === schedule.endTime;
-      
-      if (isExactDuplicate) {
-        return true;
-      }
-      
-      // 檢查是否為重疊時段（相同日期且時間有重疊）
-      if (existingSchedule.date === schedule.date) {
-        const existingStart = existingSchedule.startTime;
-        const existingEnd = existingSchedule.endTime;
-        const newStart = schedule.startTime;
-        const newEnd = schedule.endTime;
-        
-        // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
-        const isOverlapping = newStart < existingEnd && newEnd > existingStart;
-        
-        return isOverlapping;
-      }
-      
-      return false;
-    });
-    
-    if (isDuplicate) {
-      console.warn('ChatStateManager.addDraftSchedule: 檢測到重複或重疊時段', schedule);
-      return false;
-    }
-    
-    // 添加新草稿時段
-    draftSchedules.push({
-      ...schedule,
-      timestamp: new Date(),
-      isDraft: true
-    });
-    
-    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, draftSchedules);
-    console.log('ChatStateManager.addDraftSchedule: 草稿時段已添加到列表');
-    return true;
-  },
-  
-  // 批量添加時段
-  addSchedules: (schedules) => {
-    console.log('ChatStateManager.addSchedules called', { schedules });
-    
-    const providedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES);
-    
-    // 檢查是否會超過長度限制
-    if (providedSchedules.length + schedules.length > ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
-      console.warn('ChatStateManager.addSchedules: 批量添加會超過長度限制');
-      return false;
-    }
-    
-    // 檢查重複時段（與已提供時段和草稿時段的重複）
-    const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-    const allExistingSchedules = [...providedSchedules, ...draftSchedules];
-    const duplicateSchedules = [];
-    
-    schedules.forEach(schedule => {
-      const isDuplicate = allExistingSchedules.some(existingSchedule => {
-        // 檢查是否為完全相同的時段
-        const isExactDuplicate = existingSchedule.date === schedule.date && 
-          existingSchedule.startTime === schedule.startTime && 
-          existingSchedule.endTime === schedule.endTime;
-        
-        if (isExactDuplicate) {
-          return true;
-        }
-        
-        // 檢查是否為重疊時段（相同日期且時間有重疊）
-        if (existingSchedule.date === schedule.date) {
-          const existingStart = existingSchedule.startTime;
-          const existingEnd = existingSchedule.endTime;
-          const newStart = schedule.startTime;
-          const newEnd = schedule.endTime;
-          
-          // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
-          const isOverlapping = newStart < existingEnd && newEnd > existingStart;
-          
-          return isOverlapping;
-        }
-        
-        return false;
-      });
-      
-      if (isDuplicate) {
-        duplicateSchedules.push(schedule);
-      }
-    });
-    
-    // 檢查批次內的重複時段
-    const batchDuplicateSchedules = [];
-    
-    for (let i = 0; i < schedules.length; i++) {
-      for (let j = i + 1; j < schedules.length; j++) {
-        const schedule1 = schedules[i];
-        const schedule2 = schedules[j];
-        
-        // 檢查是否為完全相同的時段
-        const isExactDuplicate = schedule1.date === schedule2.date && 
-          schedule1.startTime === schedule2.startTime && 
-          schedule1.endTime === schedule2.endTime;
-        
-        if (isExactDuplicate) {
-          if (!batchDuplicateSchedules.includes(schedule1)) {
-            batchDuplicateSchedules.push(schedule1);
-          }
-          if (!batchDuplicateSchedules.includes(schedule2)) {
-            batchDuplicateSchedules.push(schedule2);
-          }
-          continue;
-        }
-        
-        // 檢查是否為重疊時段（相同日期且時間有重疊）
-        if (schedule1.date === schedule2.date) {
-          const start1 = schedule1.startTime;
-          const end1 = schedule1.endTime;
-          const start2 = schedule2.startTime;
-          const end2 = schedule2.endTime;
-          
-          // 檢查時間重疊：時段1的開始時間 < 時段2的結束時間 且 時段1的結束時間 > 時段2的開始時間
-          const isOverlapping = start1 < end2 && end1 > start2;
-          
-          if (isOverlapping) {
-            if (!batchDuplicateSchedules.includes(schedule1)) {
-              batchDuplicateSchedules.push(schedule1);
-            }
-            if (!batchDuplicateSchedules.includes(schedule2)) {
-              batchDuplicateSchedules.push(schedule2);
-            }
-          }
-        }
-      }
-    }
-    
-    // 合併所有重複時段
-    const allDuplicateSchedules = [...duplicateSchedules, ...batchDuplicateSchedules];
-    
-    if (allDuplicateSchedules.length > 0) {
-      console.warn('ChatStateManager.addSchedules: 檢測到重複或重疊時段', allDuplicateSchedules);
-      return false;
-    }
-    
-    // 批量添加時段
-    const newSchedules = schedules.map(schedule => ({
-      ...schedule,
-      timestamp: new Date()
-    }));
-    
-    providedSchedules.push(...newSchedules);
-    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, providedSchedules);
-    console.log('ChatStateManager.addSchedules: 批量時段已添加到列表');
-    return true;
-  },
-  
-  // 批量添加草稿時段
-  addDraftSchedules: (schedules) => {
-    console.log('ChatStateManager.addDraftSchedules called', { schedules });
-    
-    const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES);
-    
-    // 檢查是否會超過長度限制
-    if (draftSchedules.length + schedules.length > ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
-      console.warn('ChatStateManager.addDraftSchedules: 批量添加會超過長度限制');
-      return false;
-    }
-    
-    // 檢查重複時段（與已提供時段和草稿時段的重複）
-    const providedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES);
-    const allExistingSchedules = [...providedSchedules, ...draftSchedules];
-    const duplicateSchedules = [];
-    
-    schedules.forEach(schedule => {
-      const isDuplicate = allExistingSchedules.some(existingSchedule => {
-        // 檢查是否為完全相同的時段
-        const isExactDuplicate = existingSchedule.date === schedule.date && 
-          existingSchedule.startTime === schedule.startTime && 
-          existingSchedule.endTime === schedule.endTime;
-        
-        if (isExactDuplicate) {
-          return true;
-        }
-        
-        // 檢查是否為重疊時段（相同日期且時間有重疊）
-        if (existingSchedule.date === schedule.date) {
-          const existingStart = existingSchedule.startTime;
-          const existingEnd = existingSchedule.endTime;
-          const newStart = schedule.startTime;
-          const newEnd = schedule.endTime;
-          
-          // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
-          const isOverlapping = newStart < existingEnd && newEnd > existingStart;
-          
-          return isOverlapping;
-        }
-        
-        return false;
-      });
-      
-      if (isDuplicate) {
-        duplicateSchedules.push(schedule);
-      }
-    });
-    
-    // 檢查批次內的重複時段
-    const batchDuplicateSchedules = [];
-    
-    for (let i = 0; i < schedules.length; i++) {
-      for (let j = i + 1; j < schedules.length; j++) {
-        const schedule1 = schedules[i];
-        const schedule2 = schedules[j];
-        
-        // 檢查是否為完全相同的時段
-        const isExactDuplicate = schedule1.date === schedule2.date && 
-          schedule1.startTime === schedule2.startTime && 
-          schedule1.endTime === schedule2.endTime;
-        
-        if (isExactDuplicate) {
-          if (!batchDuplicateSchedules.includes(schedule1)) {
-            batchDuplicateSchedules.push(schedule1);
-          }
-          if (!batchDuplicateSchedules.includes(schedule2)) {
-            batchDuplicateSchedules.push(schedule2);
-          }
-          continue;
-        }
-        
-        // 檢查是否為重疊時段（相同日期且時間有重疊）
-        if (schedule1.date === schedule2.date) {
-          const start1 = schedule1.startTime;
-          const end1 = schedule1.endTime;
-          const start2 = schedule2.startTime;
-          const end2 = schedule2.endTime;
-          
-          // 檢查時間重疊：時段1的開始時間 < 時段2的結束時間 且 時段1的結束時間 > 時段2的開始時間
-          const isOverlapping = start1 < end2 && end1 > start2;
-          
-          if (isOverlapping) {
-            if (!batchDuplicateSchedules.includes(schedule1)) {
-              batchDuplicateSchedules.push(schedule1);
-            }
-            if (!batchDuplicateSchedules.includes(schedule2)) {
-              batchDuplicateSchedules.push(schedule2);
-            }
-          }
-        }
-      }
-    }
-    
-    // 合併所有重複時段
-    const allDuplicateSchedules = [...duplicateSchedules, ...batchDuplicateSchedules];
-    
-    if (allDuplicateSchedules.length > 0) {
-      console.warn('ChatStateManager.addDraftSchedules: 檢測到重複或重疊時段', allDuplicateSchedules);
-      return false;
-    }
-    
-    // 批量添加草稿時段
-    const newDraftSchedules = schedules.map(schedule => ({
-      ...schedule,
-      timestamp: new Date(),
-      isDraft: true
-    }));
-    
-    draftSchedules.push(...newDraftSchedules);
-    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, draftSchedules);
-    console.log('ChatStateManager.addDraftSchedules: 批量草稿時段已添加到列表');
-    return true;
-  },
-  
-  // 設定多筆時段模式
-  setMultipleTimesMode: (isEnabled) => {
-    console.log('ChatStateManager.setMultipleTimesMode called', { isEnabled });
-    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE, isEnabled);
-  },
-  
-  // 設定選中的日期
-  setSelectedDate: (date) => {
-    console.log('ChatStateManager.setSelectedDate called', { date });
-    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.SELECTED_DATE, date);
-  },
-  
-  // 獲取聊天統計
-  getStats: () => {
-    console.log('ChatStateManager.getStats called');
-    
-    const state = ChatStateManager.getState();
-    const messageHistory = state[ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY];
-    
-    const stats = {
-      totalMessages: messageHistory.length,
-      userMessages: messageHistory.filter(msg => msg.type === 'user').length,
-      giverMessages: messageHistory.filter(msg => msg.type === 'giver').length,
-      lastMessageTime: state[ChatStateManager.CONFIG.STATE_KEYS.LAST_MESSAGE_TIME],
-      isActive: state[ChatStateManager.CONFIG.STATE_KEYS.IS_ACTIVE],
-      currentGiver: state[ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER],
-      providedSchedulesCount: state[ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES].length,
-      bookedSchedulesCount: state[ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES].length,
-      isMultipleTimesMode: state[ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE]
-    };
-    
-    console.log('ChatStateManager.getStats: 統計資料', stats);
-    return stats;
-  },
-  
-  // 獲取訊息歷史
-  getMessageHistory: () => {
-    console.log('ChatStateManager.getMessageHistory called');
-    const messageHistory = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY);
-    return [...messageHistory];
-  },
-  
-  // 清空訊息歷史
-  clearMessageHistory: () => {
-    console.log('ChatStateManager.clearMessageHistory called');
-    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY, []);
-  },
-  
-  // 獲取已提供時段列表
-  getProvidedSchedules: () => {
-    console.log('ChatStateManager.getProvidedSchedules called');
-    const providedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES);
-    return [...providedSchedules];
-  },
-  
-  // 清空已提供時段列表
-  clearProvidedSchedules: () => {
-    console.log('ChatStateManager.clearProvidedSchedules called');
-    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, []);
-  },
-  
-  // 獲取已預約時段列表
-  getBookedSchedules: () => {
-    console.log('ChatStateManager.getBookedSchedules called');
-    const bookedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES);
-    return [...bookedSchedules];
-  },
-  
-  // 添加預約時段
-  addBookedSchedule: (schedule) => {
-    console.log('ChatStateManager.addBookedSchedule called', { schedule });
-    
-    const bookedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES);
-    
-    // 檢查是否會超過長度限制
-    if (bookedSchedules.length >= ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
-      console.warn('ChatStateManager.addBookedSchedule: 已達到預約時段數量限制');
-      return false;
-    }
-    
-    // 添加新預約時段
-    bookedSchedules.push({
-      ...schedule,
-      timestamp: new Date()
-    });
-    
-    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES, bookedSchedules);
-    console.log('ChatStateManager.addBookedSchedule: 預約時段已添加到列表');
-    return true;
-  },
-  
-  // 批量添加預約時段
-  addBookedSchedules: (schedules) => {
-    console.log('ChatStateManager.addBookedSchedules called', { schedules });
-    
-    const bookedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES);
-    
-    // 檢查是否會超過長度限制
-    if (bookedSchedules.length + schedules.length > ChatStateManager.CONFIG.VALIDATION_RULES.PROVIDED_SCHEDULES_MAX_LENGTH) {
-      console.warn('ChatStateManager.addBookedSchedules: 批量添加會超過長度限制');
-      return false;
-    }
-    
-    // 批量添加預約時段
-    const newSchedules = schedules.map(schedule => ({
-      ...schedule,
-      timestamp: new Date()
-    }));
-    
-    bookedSchedules.push(...newSchedules);
-    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES, bookedSchedules);
-    console.log('ChatStateManager.addBookedSchedules: 批量預約時段已添加到列表');
-    return true;
-  },
-  
-  // 清空已預約時段列表
-  clearBookedSchedules: () => {
-    console.log('ChatStateManager.clearBookedSchedules called');
-    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES, []);
-  },
-  
-  // 檢查聊天是否活躍
-  isActive: () => {
-    console.log('ChatStateManager.isActive called');
-    return ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.IS_ACTIVE);
-  },
-  
-  // 獲取當前 Giver
-  getCurrentGiver: () => {
-    console.log('ChatStateManager.getCurrentGiver called');
-    return ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER);
-  },
-  
-  // 檢查是否為多筆時段模式
-  isMultipleTimesMode: () => {
-    console.log('ChatStateManager.isMultipleTimesMode called');
-    return ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE);
-  },
-  
-  // 獲取選中的日期
-  getSelectedDate: () => {
-    console.log('ChatStateManager.getSelectedDate called');
-    return ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.SELECTED_DATE);
-  },
-  
-  // 添加狀態變更監聽器
-  addListener: (key, callback) => {
-    console.log('ChatStateManager.addListener called', { key, callback });
-    
-    if (!ChatStateManager._listeners.has(key)) {
-      ChatStateManager._listeners.set(key, new Set());
-    }
-    
-    ChatStateManager._listeners.get(key).add(callback);
-    console.log('ChatStateManager.addListener: 監聽器已添加');
-  },
-  
-  // 移除狀態變更監聽器
-  removeListener: (key, callback) => {
-    console.log('ChatStateManager.removeListener called', { key, callback });
-    
-    if (ChatStateManager._listeners.has(key)) {
-      ChatStateManager._listeners.get(key).delete(callback);
-      console.log('ChatStateManager.removeListener: 監聽器已移除');
-    }
-  },
-  
-  // 通知監聽器
-  _notifyListeners: (key, newValue, oldValue) => {
-    console.log('ChatStateManager._notifyListeners called', { key, newValue, oldValue });
-    
-    if (ChatStateManager._listeners.has(key)) {
-      const callbacks = ChatStateManager._listeners.get(key);
-      callbacks.forEach(callback => {
-        try {
-          callback(newValue, oldValue);
-        } catch (error) {
-          console.error('ChatStateManager._notifyListeners: 監聽器執行錯誤', error);
-        }
-      });
-    }
-  },
-  
-  // 驗證狀態值
-  _validateStateValue: (key, value) => {
-    console.log('ChatStateManager._validateStateValue called', { key, value });
-    
-    switch (key) {
-      case ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER:
-        return value === null || typeof value === 'object';
-        
-      case ChatStateManager.CONFIG.STATE_KEYS.IS_ACTIVE:
-      case ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE:
-        return typeof value === 'boolean';
-        
-      case ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY:
-        return Array.isArray(value);
-        
-      case ChatStateManager.CONFIG.STATE_KEYS.LAST_MESSAGE_TIME:
-        return value === null || value instanceof Date;
-        
-      case ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES:
-      case ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES:
-        return Array.isArray(value);
-        
-      case ChatStateManager.CONFIG.STATE_KEYS.SELECTED_DATE:
-        return value === null || value instanceof Date;
-        
-      case ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES:
-        return Array.isArray(value);
-        
-      default:
-        return true;
-    }
-  },
-  
-  // 調試功能
-  debug: () => {
-    Logger.group('ChatStateManager.debug called：聊天狀態調試資訊');
-    Logger.log('當前狀態:', ChatStateManager.getState());
-    Logger.log('統計資料:', ChatStateManager.getStats());
-    Logger.log('訊息歷史:', ChatStateManager.getMessageHistory());
-    Logger.log('已提供時段:', ChatStateManager.getProvidedSchedules());
-    Logger.log('已預約時段:', ChatStateManager.getBookedSchedules());
-    Logger.log('監聽器數量:', ChatStateManager._listeners.size);
-    Logger.groupEnd();
-  },
-  
-  // 匯出狀態（用於持久化）
-  export: () => {
-    console.log('ChatStateManager.export called');
-    const state = ChatStateManager.getState();
-    const exportData = {
-      ...state,
-      lastMessageTime: state.lastMessageTime ? state.lastMessageTime.toISOString() : null,
-      selectedDate: state.selectedDate ? state.selectedDate.toISOString() : null
-    };
-    console.log('ChatStateManager.export: 狀態匯出完成', exportData);
-    return exportData;
-  },
-  
-  // 匯入狀態（用於恢復）
-  import: (data) => {
-    console.log('ChatStateManager.import called', { data });
-    
-    if (!data || typeof data !== 'object') {
-      console.warn('ChatStateManager.import: 無效的匯入資料');
-      return false;
-    }
-    
-    try {
-      const importedState = {
-        ...data,
-        lastMessageTime: data.lastMessageTime ? new Date(data.lastMessageTime) : null,
-        selectedDate: data.selectedDate ? new Date(data.selectedDate) : null
-      };
-      
-      // 驗證匯入的資料
-      for (const [key, value] of Object.entries(importedState)) {
-        if (!ChatStateManager._validateStateValue(key, value)) {
-          console.warn('ChatStateManager.import: 匯入資料驗證失敗', { key, value });
-          return false;
-        }
-      }
-      
-      // 更新狀態
-      ChatStateManager._state = { ...ChatStateManager.CONFIG.DEFAULT_STATE, ...importedState };
-      ChatStateManager._notifyListeners('import', ChatStateManager._state);
-      
-      console.log('ChatStateManager.import: 狀態匯入完成');
-      return true;
-    } catch (error) {
-      console.error('ChatStateManager.import: 狀態匯入失敗', error);
-      return false;
-    }
-  }
-};
-
-// =================================================================
-//   UI 組件模組 (UIComponents)
-// =================================================================
-
-const UIComponents = {
-  // 產生按鈕
-  button: ({ text = '', className = '', icon = '', attrs = {} } = {}) => {
-    console.log('UIComponents.button called: 產生按鈕', { text, className, icon, attrs });
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = className;
-    if (icon) {
-      const iconElem = document.createElement('i');
-      iconElem.className = icon;
-      btn.appendChild(iconElem);
-      if (text) btn.appendChild(document.createTextNode(' '));
-    }
-    if (text) btn.appendChild(document.createTextNode(text));
-    Object.entries(attrs).forEach(([k, v]) => btn.setAttribute(k, v));
-    return btn;
-  },
-
-  // 產生確認對話框
-  confirmDialog: ({ title = '', message = '', confirmText = '確定', cancelText = '取消', onConfirm, onCancel }) => {
-    console.log('UIComponents.confirmDialog called: 產生確認對話框', { title, message, confirmText, cancelText });
-    // 可根據現有 showConfirmDialog 實作
-    return showConfirmDialog({ title, message, confirmText, cancelText, onConfirm, onCancel });
-  },
-
-  // 產生 Toast 訊息
-  toast: ({ message = '', type = 'info', duration = 2000 }) => {
-    console.log('UIComponents.toast called: 產生 Toast 訊息', { message, type, duration });
-    const toast = document.createElement('div');
-    toast.className = `ui-toast ui-toast-${type}`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(() => { toast.remove(); }, duration);
-    return toast;
-  },
-
-  // 產生載入動畫
-  spinner: ({ size = 'md', className = '' } = {}) => {
-    console.log('UIComponents.spinner called: 產生載入動畫', { size, className });
-    const spinner = document.createElement('div');
-    spinner.className = `ui-spinner spinner-border spinner-border-${size} ${className}`;
-    spinner.setAttribute('role', 'status');
-    spinner.innerHTML = '<span class="visually-hidden">Loading...</span>';
-    return spinner;
-  },
-
-  // 產生 icon
-  icon: (iconClass = '', extraClass = '') => {
-    console.log('UIComponents.icon called: 產生 icon', { iconClass, extraClass });
-    const icon = document.createElement('i');
-    icon.className = `${iconClass} ${extraClass}`.trim();
-    return icon;
-  }
-};
-
-// =================================================================
-//   API 請求模組 (APIClient)
-// =================================================================
-
-const APIClient = {
-  // GET 請求
-  get: async (url, options = {}) => {
-    console.log('APIClient.get called: GET 請求', { url, options });
-    try {
-      const res = await fetch(url, { ...options, method: 'GET' });
-      return await APIClient._handleResponse(res);
-    } catch (err) {
-      APIClient._handleError(err);
-      throw err;
-    }
-  },
-
-  // POST 請求
-  post: async (url, data = {}, options = {}) => {
-    console.log('APIClient.post called: POST 請求', { url, data, options });
-    try {
-      const res = await fetch(url, {
-        ...options,
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-        body: JSON.stringify(data)
-      });
-      return await APIClient._handleResponse(res);
-    } catch (err) {
-      APIClient._handleError(err);
-      throw err;
-    }
-  },
-
-  // PUT 請求
-  put: async (url, data = {}, options = {}) => {
-    console.log('APIClient.put called: PUT 請求', { url, data, options });
-    try {
-      const res = await fetch(url, {
-        ...options,
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-        body: JSON.stringify(data)
-      });
-      return await APIClient._handleResponse(res);
-    } catch (err) {
-      APIClient._handleError(err);
-      throw err;
-    }
-  },
-
-  // DELETE 請求
-  delete: async (url, options = {}) => {
-    console.log('APIClient.delete called: DELETE 請求', { url, options });
-    try {
-      const res = await fetch(url, { ...options, method: 'DELETE' });
-      return await APIClient._handleResponse(res);
-    } catch (err) {
-      APIClient._handleError(err);
-      throw err;
-    }
-  },
-
-  // 統一處理回應
-  _handleResponse: async (res) => {
-    console.log('APIClient._handleResponse called: 處理 API 回應', { status: res.status, statusText: res.statusText });
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`API 錯誤: ${res.status} ${res.statusText} - ${errorText}`);
-    }
-    // 嘗試解析 JSON，若失敗則回傳原始文字
-    try {
-      return await res.json();
-    } catch {
-      return await res.text();
-    }
-  },
-
-  // 統一錯誤處理
-  _handleError: (err) => {
-    console.log('APIClient._handleError called: 處理 API 錯誤', { error: err.message });
-    console.error('APIClient 請求錯誤:', err);
-    // 可在這裡加上全域錯誤提示、上報等
-    UIComponents.toast({ message: '伺服器連線失敗，請稍後再試', type: 'error' });
-  }
-};
