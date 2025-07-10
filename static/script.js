@@ -5090,6 +5090,9 @@ const DOM = {
       document.body.style.overflow = '';
       document.body.style.paddingRight = '';
       
+      // 清除任何現有的錯誤訊息
+      DOM.chat.clearDatePickerError();
+      
       // 初始化日期選擇器
       DOM.chat.initDatePicker();
       
@@ -5104,7 +5107,10 @@ const DOM = {
           datePickerModalElement.removeEventListener('hidden.bs.modal', DOM.chat._onModalHidden);
           
           // 顯示 Modal
-          const datePickerModal = new bootstrap.Modal(datePickerModalElement);
+          const datePickerModal = new bootstrap.Modal(datePickerModalElement, {
+            backdrop: 'static',
+            keyboard: false
+          });
           console.log('DOM.chat.showDatePicker: 創建 Bootstrap Modal 實例', { datePickerModal });
           
           datePickerModal.show();
@@ -5121,6 +5127,9 @@ const DOM = {
           // 添加隱藏完成的事件監聽器
           DOM.chat._onModalHidden = () => {
             console.log('DOM.chat.showDatePicker: Modal 已隱藏');
+            
+            // 清除錯誤訊息
+            DOM.chat.clearDatePickerError();
             
             // 檢查是否是因為取消而關閉（沒有選擇日期）
             const dateInput = DOM_CACHE.dateInput;
@@ -5149,9 +5158,10 @@ const DOM = {
           datePickerModalElement.style.display = 'block';
           document.body.classList.add('modal-open');
           
-          // 添加 backdrop
+          // 添加 backdrop（靜態，不允許點擊關閉）
           const backdrop = document.createElement('div');
           backdrop.className = 'modal-backdrop fade show';
+          backdrop.style.pointerEvents = 'none'; // 防止點擊 backdrop 關閉 modal
           document.body.appendChild(backdrop);
           
           console.log('DOM.chat.showDatePicker: 使用備案方式顯示 Modal');
@@ -5169,6 +5179,9 @@ const DOM = {
     initDatePicker: () => {
       console.log('DOM.chat.initDatePicker called：初始化日期選擇器');
       
+      // 清除任何現有的錯誤訊息
+      DOM.chat.clearDatePickerError();
+      
       // 每次初始化都從當前日期開始，確保不會保留上次的狀態
       const currentDate = new Date();
       let currentMonth = currentDate.getMonth();
@@ -5179,6 +5192,32 @@ const DOM = {
         currentYear, 
         currentDate: currentDate.toDateString() 
       });
+      
+      // 設定關閉按鈕事件
+      const closeBtn = document.getElementById('date-picker-close-btn');
+      if (closeBtn) {
+        // 移除舊的事件監聽器
+        const newCloseBtn = closeBtn.cloneNode(true);
+        if (closeBtn.parentNode) {
+          closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+        }
+        DOM.events.add(newCloseBtn, 'click', () => {
+          console.log('DOM.chat.initDatePicker: 關閉按鈕被點擊');
+          const datePickerModal = bootstrap.Modal.getInstance(document.getElementById('date-picker-modal'));
+          if (datePickerModal) {
+            datePickerModal.hide();
+          }
+          // 強制清理 backdrop 和 body 狀態
+          setTimeout(() => {
+            document.querySelectorAll('.modal-backdrop').forEach(bd => bd.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+            // 重置日期選擇器快取，確保下次開啟時從當前月份開始
+            DOM_CACHE.resetDatePicker();
+          }, 200);
+        });
+      }
       
       // 更新日期選擇器的月份年份顯示（內部函式）
       const updateMonthYear = () => {
@@ -6153,6 +6192,8 @@ const DOM = {
       const datePickerModal = bootstrap.Modal.getInstance(document.getElementById('date-picker-modal'));
       if (datePickerModal) {
         datePickerModal.hide();
+        // 清除錯誤訊息
+        DOM.chat.clearDatePickerError();
         // 重置日期選擇器快取，確保下次開啟時從當前月份開始
         DOM_CACHE.resetDatePicker();
       }

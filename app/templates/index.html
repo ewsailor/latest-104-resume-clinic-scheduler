@@ -297,12 +297,12 @@
 
     <!-- 日期選擇器 Modal -->
     <div class="modal fade" id="date-picker-modal" tabindex="-1" aria-labelledby="datePickerModalLabel"
-        aria-hidden="true" role="dialog">
+        aria-hidden="true" role="dialog" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="datePickerModalLabel">選擇日期</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉日期選擇器"></button>
+                    <button type="button" class="btn-close" id="date-picker-close-btn" aria-label="關閉日期選擇器"></button>
                 </div>
                 <div class="modal-body">
                     <div class="date-picker-container">
