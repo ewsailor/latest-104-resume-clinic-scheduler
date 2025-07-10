@@ -1045,6 +1045,20 @@ body {
     color: var(--text-secondary);
 }
 
+/* 特定按鈕樣式覆蓋 */
+.chat-option-btn[data-option="submit-schedules"] {
+    background-color: var(--primary-orange);
+    border-color: var(--primary-orange);
+    color: var(--text-white);
+}
+
+.chat-option-btn[data-option="submit-schedules"]:hover,
+.chat-option-btn[data-option="submit-schedules"]:focus {
+    background-color: var(--primary-orange-hover);
+    border-color: var(--primary-orange-hover);
+    color: var(--text-white);
+}
+
 /* 聊天輸入 */
 .chat-input {
     padding: var(--spacing-md);
