@@ -1,7 +1,8 @@
 // =================================================================
-//   日誌級別常數 (Logger Level Constants)
+//   日誌記錄模組 (Logger Module)
 // =================================================================
 
+// 日誌級別常數
 const LOGGER_LEVELS = {
   DEBUG: 0,
   INFO: 1,
@@ -10,18 +11,12 @@ const LOGGER_LEVELS = {
   FATAL: 4
 };
 
-const LOGGER_LEVEL_NAMES = {
-  0: 'DEBUG',
-  1: 'INFO',
-  2: 'WARN',
-  3: 'ERROR',
-  4: 'FATAL'
-};
+// 日誌級別名稱常數，使用 Object.keys() 反轉映射
+const LOGGER_LEVEL_NAMES = Object.fromEntries(
+  Object.entries(LOGGER_LEVELS).map(([name, level]) => [level, name])
+);
 
-// =================================================================
-//   環境檢測函數，用於控制日誌輸出
-// =================================================================
-
+// 環境檢測函數，用於控制日誌輸出
 const isDevelopment = () => {
   console.log('isDevelopment called: 檢查是否為開發環境');
   if (typeof window !== 'undefined' && window.location) {
@@ -39,10 +34,7 @@ const isDevelopment = () => {
   return false;
 };
 
-// =================================================================
-//   簡化日誌介面 (Simple Logger Interface)，使用環境變數控制
-// =================================================================
-
+// 簡化日誌介面，使用環境變數控制
 const SimpleLogger = {
   // 環境檢測
   isDevelopment,
@@ -66,10 +58,7 @@ const SimpleLogger = {
   table: (data) => isDevelopment() && console.table(data)
 };
 
-// =================================================================
-//   完整日誌記錄模組 (Complete Logging Module)
-// =================================================================
-
+// 完整日誌記錄模組
 const Logger = {
   LEVELS: LOGGER_LEVELS,
   LEVEL_NAMES: LOGGER_LEVEL_NAMES,
