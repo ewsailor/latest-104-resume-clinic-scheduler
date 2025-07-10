@@ -2,6 +2,9 @@
 /*    全域樣式 (Global Styles)                                        */
 /* ================================================================= */
 
+/* 性能優化：關鍵渲染路徑 CSS */
+/* 這些樣式會立即載入，確保頁面快速渲染 */
+
 /* CSS 變數定義 */
 :root {
     /* 顏色系統 */
@@ -58,8 +61,9 @@
     --max-width-400: 400px;
 
     /* 行高系統 */
-    --line-height-1: 1;
-
+    --line-height-base: 1.5;
+    --line-height-tight: 1;
+    
     /* 尺寸系統 */
     --avatar-size-xs: 40px;
     --avatar-size-md: 90px;
@@ -88,6 +92,7 @@
     --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.1);
     --shadow-modal: 0 10px 30px rgba(0, 0, 0, 0.2);
     --shadow-dropdown: 0 2px 10px rgba(0, 0, 0, 0.15);
+    --transition-fast: all 0.15s ease; /* 優化過渡時間 */
     --transition-default: all 0.3s ease;
     --backdrop-filter: blur(2px);
     
@@ -198,8 +203,8 @@
     --resize-horizontal: horizontal;
     --resize-both: both;
     --resize-none: none;
-
-    /* min-height 系統 */   
+    
+    /* min-height 系統 */
     --min-height-80: 80px;
     --min-height-3em: 3em;
     --min-height-100: 100%;
@@ -207,12 +212,12 @@
 
     /* outline 系統 */
     --outline-none: none;
-    
+
     /* 特殊值 */
     --transparent: transparent;
-    --none: none; 
+    --none: none;
     --white: white;
-    
+
     /* 常用組合值 */
     --padding-zero-sm: var(--spacing-zero) var(--spacing-sm);
     --padding-zero-auto: var(--spacing-zero) var(--auto);
@@ -225,33 +230,95 @@
     --margin-zero-sm: var(--spacing-zero) var(--spacing-zero) var(--spacing-sm) var(--spacing-zero);
     --margin-zero-md: var(--spacing-zero) var(--spacing-zero) var(--spacing-md) var(--spacing-zero);
     --margin-zero-auto: var(--spacing-zero) var(--auto) var(--spacing-zero) var(--auto);
-    --margin-auto: var(--spacing-zero) var(--auto); 
+    --margin-auto: var(--spacing-zero) var(--auto);
 
     --border-thin-light: var(--border-width-thin) solid var(--border-color-light);
     --border-thin-default: var(--border-width-thin) solid var(--border-color-default);
     --border-medium-avatar: var(--border-width-medium) solid var(--border-color-avatar);
     --border-none: none;
     --border-transparent: transparent;
+    
+    /* 性能優化：GPU 加速 */
+    --transform-gpu: translateZ(0);
+    --will-change-transform: transform;
+    --will-change-opacity: opacity;
+    --will-change-auto: auto;
 
     /* text-decoration 系統 */
     --text-decoration-none: none;
-} 
+};
 
-/* 全域重置 */
+/* 性能優化：關鍵渲染路徑樣式 */
+/* 這些樣式會立即載入，確保頁面快速渲染 */
+
+/* 全域重置 - 性能優化版本 */
 * {
     box-sizing: var(--box-sizing-border-box);
+    margin: 0;
+    padding: 0;
 }
 
+/* 性能優化：減少重繪和重排 */
 html,
-body { /* CSS 選擇器 html, body 代表「整張網頁」 */
-    width: 100%;
+body {
     height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     margin: var(--spacing-zero); /* 清除預設邊界 */
-    padding: var(--spacing-zero); /* 清除預設邊界 */ 
-    font-family: 'Lato', 'Noto Sans TC', sans-serif;
+    padding: var(--spacing-zero); /* 清除預設邊界 */
+    font-size: var(--font-size-md);
+    line-height: var(--line-height-base);
+    color: var(--text-primary);
     background-color: var(--background-page);
+    /* 性能優化：啟用 GPU 加速 */
+    transform: var(--transform-gpu);
+    will-change: var(--will-change-auto);
     overflow-x: var(--overflow-hidden); /* 水平捲軸 */
     overflow-y: var(--overflow-auto); /* 垂直捲軸 */
+}
+
+/* 性能優化：按鈕響應優化 */
+.btn {
+    transition: var(--transition-fast);
+    /* 性能優化：啟用 GPU 加速 */
+    transform: var(--transform-gpu);
+    will-change: var(--will-change-transform);
+}
+
+.btn:active {
+    transform: scale(0.98) translateZ(0);
+}
+
+/* 性能優化：卡片載入動畫 */
+.giverCard {
+    opacity: 0;
+    animation: fadeIn 0.3s ease-in forwards;
+    /* 性能優化：啟用 GPU 加速 */
+    transform: var(--transform-gpu);
+    will-change: var(--will-change-opacity);
+}
+
+@keyframes fadeIn {
+    to { 
+        opacity: 1; 
+    }
+}
+
+/* 性能優化：模態框優化 */
+.modal {
+    /* 性能優化：啟用 GPU 加速 */
+    transform: var(--transform-gpu);
+    will-change: var(--will-change-transform);
+}
+
+.modal.show {
+    display: block;
+}
+
+/* 性能優化：滾動優化 */
+.chat-messages {
+    /* 性能優化：啟用 GPU 加速 */
+    transform: var(--transform-gpu);
+    will-change: var(--will-change-auto);
 }
 
 /* ================================================================= */
@@ -536,7 +603,7 @@ body { /* CSS 選擇器 html, body 代表「整張網頁」 */
     display: var(--display-flex);
     align-items: var(--align-center);
     justify-content: var(--justify-center);
-    line-height: var(--line-height-1);
+    line-height: var(--line-height-tight);
 }
 
 .btn-close-header {

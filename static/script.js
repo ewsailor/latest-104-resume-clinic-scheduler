@@ -2,6 +2,23 @@
 //   1. 基礎常數和配置 (Base Constants and Configurations)
 // ======================================================================
 
+// 性能優化配置
+const PERFORMANCE_CONFIG = {
+  // 減少調試日誌以提高性能
+  enableDebugLogs: false,
+  enableInfoLogs: false,
+  enableWarnLogs: true,
+  enableErrorLogs: true,
+  
+  // 事件處理優化
+  debounceDelay: 150,
+  throttleDelay: 100,
+  
+  // 動畫優化
+  animationDuration: 300,
+  transitionDuration: 150
+};
+
 // ======================================================
 //   1-1. 日誌記錄模組 (Logger Module)
 // ======================================================
@@ -24,20 +41,16 @@ const LOGGER_LEVEL_NAMES = Object.fromEntries(
 
 // 環境檢測函數，用於控制日誌輸出
 const isDevelopment = () => {
-  console.log('isDevelopment called: 檢查是否為開發環境');
-  if (typeof window !== 'undefined' && window.location) {
-    const isDev = window.location.search.includes('debug=true') || 
-           window.location.hostname === 'localhost' ||
-           window.location.hostname === '127.0.0.1';
-    console.log('isDevelopment: 環境檢測結果', { 
-      isDev, 
-      hostname: window.location.hostname, 
-      search: window.location.search 
-    });
-    return isDev;
+  // 性能優化：減少不必要的檢查
+  if (typeof window === 'undefined' || !window.location) {
+    return false;
   }
-  console.log('isDevelopment: 無法檢測環境，返回 false');
-  return false;
+  
+  const isDev = window.location.search.includes('debug=true') || 
+         window.location.hostname === 'localhost' ||
+         window.location.hostname === '127.0.0.1';
+  
+  return isDev;
 };
 
 // 簡化日誌介面，使用環境變數控制
@@ -45,36 +58,36 @@ const SimpleLogger = {
   // 環境檢測
   isDevelopment,
   
-  // 日誌方法
-  log: (...args) => isDevelopment() && console.log(...args),
-  warn: (...args) => isDevelopment() && console.warn(...args),
-  error: (...args) => console.error(...args), // 錯誤總是記錄
-  debug: (...args) => isDevelopment() && console.debug(...args),
-  info: (...args) => isDevelopment() && console.info(...args),
+  // 日誌方法 - 性能優化版本
+  log: (...args) => PERFORMANCE_CONFIG.enableDebugLogs && isDevelopment() && console.log(...args),
+  warn: (...args) => PERFORMANCE_CONFIG.enableWarnLogs && console.warn(...args),
+  error: (...args) => PERFORMANCE_CONFIG.enableErrorLogs && console.error(...args),
+  debug: (...args) => PERFORMANCE_CONFIG.enableDebugLogs && isDevelopment() && console.debug(...args),
+  info: (...args) => PERFORMANCE_CONFIG.enableInfoLogs && isDevelopment() && console.info(...args),
   
-  // 效能監控
+  // 效能監控 - 只在開發環境啟用
   time: (label) => isDevelopment() && console.time(label),
   timeEnd: (label) => isDevelopment() && console.timeEnd(label),
   
-  // 群組日誌
+  // 群組日誌 - 只在開發環境啟用
   group: (label) => isDevelopment() && console.group(label),
   groupEnd: () => isDevelopment() && console.groupEnd(),
   
-  // 表格日誌
+  // 表格日誌 - 只在開發環境啟用
   table: (data) => isDevelopment() && console.table(data)
 };
 
-// 完整日誌記錄模組
+// 完整日誌記錄模組 - 性能優化版本
 const Logger = {
   LEVELS: LOGGER_LEVELS,
   LEVEL_NAMES: LOGGER_LEVEL_NAMES,
 
   // 配置
   config: {
-    level: LOGGER_LEVELS.INFO,
+    level: LOGGER_LEVELS.WARN, // 提高預設級別以減少日誌
     enableConsole: true,
-    enableStorage: false,
-    maxLogs: 1000,
+    enableStorage: false, // 關閉儲存以提高性能
+    maxLogs: 100, // 減少日誌數量
     storageKey: 'app_logs',
     // 環境檢測：自動檢測開發/生產環境
     isDebug: isDevelopment(),
@@ -130,11 +143,6 @@ const Logger = {
       }
     }
 
-    // 儲存到本地儲存
-    if (Logger.config.enableStorage) {
-      Logger.saveToStorage(logEntry);
-    }
-
     return logEntry;
   },
 
@@ -155,138 +163,25 @@ const Logger = {
     }
   },
 
-  // 儲存到本地儲存
-  saveToStorage: (logEntry) => {
-    try {
-      const existingLogs = JSON.parse(localStorage.getItem(Logger.config.storageKey) || '[]');
-      existingLogs.push(logEntry);
-      
-      // 限制儲存的日誌數量
-      if (existingLogs.length > Logger.config.maxLogs) {
-        existingLogs.splice(0, existingLogs.length - Logger.config.maxLogs);
-      }
-      
-      localStorage.setItem(Logger.config.storageKey, JSON.stringify(existingLogs));
-    } catch (error) {
-      console.error('DOM.Logger.saveToStorage: 儲存日誌失敗:', error);
-    }
-  },
-
-  // 便捷方法
+  // 便捷方法 - 性能優化版本
   debug: (message, data = null, context = {}) => {
-    return Logger.log(LOGGER_LEVELS.DEBUG, message, data, context);
+    return PERFORMANCE_CONFIG.enableDebugLogs ? Logger.log(LOGGER_LEVELS.DEBUG, message, data, context) : null;
   },
 
   info: (message, data = null, context = {}) => {
-    return Logger.log(LOGGER_LEVELS.INFO, message, data, context);
+    return PERFORMANCE_CONFIG.enableInfoLogs ? Logger.log(LOGGER_LEVELS.INFO, message, data, context) : null;
   },
 
   warn: (message, data = null, context = {}) => {
-    return Logger.log(LOGGER_LEVELS.WARN, message, data, context);
+    return PERFORMANCE_CONFIG.enableWarnLogs ? Logger.log(LOGGER_LEVELS.WARN, message, data, context) : null;
   },
 
   error: (message, data = null, context = {}) => {
-    return Logger.log(LOGGER_LEVELS.ERROR, message, data, context);
+    return PERFORMANCE_CONFIG.enableErrorLogs ? Logger.log(LOGGER_LEVELS.ERROR, message, data, context) : null;
   },
 
   fatal: (message, data = null, context = {}) => {
-    return Logger.log(LOGGER_LEVELS.FATAL, message, data, context);
-  },
-
-  // 工具方法
-  utils: {
-    // 獲取日誌統計
-    getStats: () => {
-      const stats = {
-        total: Logger.logs.length,
-        byLevel: {},
-        byTime: {
-          lastHour: 0,
-          lastDay: 0,
-          lastWeek: 0
-        }
-      };
-
-      const now = new Date();
-      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-      Logger.logs.forEach(log => {
-        // 按級別統計
-        stats.byLevel[log.levelName] = (stats.byLevel[log.levelName] || 0) + 1;
-
-        // 按時間統計
-        if (log.timestamp > oneHourAgo) {
-          stats.byTime.lastHour++;
-        }
-        if (log.timestamp > oneDayAgo) {
-          stats.byTime.lastDay++;
-        }
-        if (log.timestamp > oneWeekAgo) {
-          stats.byTime.lastWeek++;
-        }
-      });
-
-      return stats;
-    },
-
-    // 清理日誌
-    clear: () => {
-      Logger.logs = [];
-    },
-
-    // 獲取最近的日誌
-    getRecent: (count = 50, level = null) => {
-      let filteredLogs = Logger.logs;
-      
-      if (level !== null) {
-        filteredLogs = Logger.logs.filter(log => log.level >= level);
-      }
-      
-      return filteredLogs.slice(-count);
-    },
-
-    // 搜尋日誌
-    search: (query, options = {}) => {
-      const {
-        level = null,
-        startTime = null,
-        endTime = null,
-        caseSensitive = false
-      } = options;
-
-      return Logger.logs.filter(log => {
-        // 級別過濾
-        if (level !== null && log.level !== level) {
-          return false;
-        }
-
-        // 時間過濾
-        if (startTime && log.timestamp < startTime) {
-          return false;
-        }
-        if (endTime && log.timestamp > endTime) {
-          return false;
-        }
-
-        // 文字搜尋
-        const searchText = caseSensitive ? query : query.toLowerCase();
-        const logText = caseSensitive ? log.message : log.message.toLowerCase();
-        
-        return logText.includes(searchText);
-      });
-    },
-
-    // 匯出日誌
-    export: () => {
-      return {
-        timestamp: new Date().toISOString(),
-        logs: Logger.logs,
-        config: Logger.config,
-        stats: Logger.utils.getStats()
-      };
-    }
+    return PERFORMANCE_CONFIG.enableErrorLogs ? Logger.log(LOGGER_LEVELS.FATAL, message, data, context) : null;
   }
 };
 

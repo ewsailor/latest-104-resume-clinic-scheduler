@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request, Body, HTTPException, status, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from app.routers import giver, taker, chat, match, admin
 from sqlalchemy.orm import Session  # 引入 SQLAlchemy 的 Session 類別，用於資料庫操作
 from app.models.database import SessionLocal  # 引入資料庫 session 工廠：從 database.py 引入 SessionLocal 用於資料庫操作
@@ -18,6 +20,8 @@ from app.schemas.schedule import (
 import logging
 from logging.handlers import RotatingFileHandler
 import os
+import time as time_module
+from functools import wraps
 
 # 建立 logs 目錄
 os.makedirs('logs', exist_ok=True)
@@ -51,9 +55,31 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Resume Clinic Scheduler", version="1.0.0") # 定義叫 app 的 FastAPI 應用實例，所有 API 路由（像 /, /users, /products）都掛在這個 app 上。
 
+# 性能優化：添加中間件
+app.add_middleware(GZipMiddleware, minimum_size=1000)  # 啟用 Gzip 壓縮
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # 全域變數記錄啟動時間
 last_reload_time = datetime.now()
 logger.info(f"🚀 FastAPI 啟動時間：{last_reload_time}")
+
+# 性能監控裝飾器
+def performance_monitor(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time_module.time()
+        result = func(*args, **kwargs)
+        end_time = time_module.time()
+        execution_time = (end_time - start_time) * 1000
+        logger.info(f"{func.__name__} 執行時間: {execution_time:.2f}ms")
+        return result
+    return wrapper
 
 # 星期名稱轉換常數
 WEEKDAY_MAP = {
@@ -80,6 +106,7 @@ def get_db():
         db.close()  # 每次請求結束後，無論有沒有錯誤發生，都自動關閉 session 連線，避免資源浪費、外洩
 
 # 工具函數
+@performance_monitor
 def convert_weekday_to_english(weekday: str) -> str:
     """將中文星期轉換為英文"""
     logger.info(f"convert_weekday_to_english() called: {weekday}")
@@ -87,6 +114,7 @@ def convert_weekday_to_english(weekday: str) -> str:
     logger.info(f"convert_weekday_to_english() result: {result}")
     return result
 
+@performance_monitor
 def convert_weekday_to_chinese(weekday: str) -> str:
     """將英文星期轉換為中文"""
     logger.info(f"convert_weekday_to_chinese() called: {weekday}")
@@ -94,6 +122,7 @@ def convert_weekday_to_chinese(weekday: str) -> str:
     logger.info(f"convert_weekday_to_chinese() result: {result}")
     return result
 
+@performance_monitor
 def format_time_for_response(time_obj) -> str:
     """格式化時間物件為字串"""
     logger.info(f"format_time_for_response() called: {time_obj}")
@@ -104,6 +133,7 @@ def format_time_for_response(time_obj) -> str:
     logger.info(f"format_time_for_response() result: {result}")
     return result
 
+@performance_monitor
 def format_date_for_response(date_obj) -> str:
     """格式化日期物件為字串"""
     logger.info(f"format_date_for_response() called: {date_obj}")
@@ -114,6 +144,7 @@ def format_date_for_response(date_obj) -> str:
     logger.info(f"format_date_for_response() result: {result}")
     return result
 
+@performance_monitor
 def check_schedule_overlap(db: Session, schedule_date: date, start_time: time, end_time: time, exclude_id: Optional[int] = None) -> bool:
     """檢查排程時間是否重疊"""
     logger.info(f"check_schedule_overlap() called: date={schedule_date}, start={start_time}, end={end_time}, exclude_id={exclude_id}")
@@ -137,6 +168,7 @@ def check_schedule_overlap(db: Session, schedule_date: date, start_time: time, e
     logger.info(f"check_schedule_overlap() result: {result}")
     return result
 
+@performance_monitor
 def schedule_to_response_dict(schedule: Schedule) -> dict:
     """將 Schedule 物件轉換為回應字典"""
     logger.info(f"schedule_to_response_dict() called: schedule_id={schedule.id}")
