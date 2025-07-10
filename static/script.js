@@ -1934,7 +1934,13 @@ const DateUtils = {
     // 如果需要顯示錯誤訊息且驗證失敗
     if (!isValid && showError) {
       console.log(`DateUtils.validateDateWithinAllowedMonths: 日期超過${maxMonthsAhead}個月，顯示錯誤訊息`);
-      FormValidator.showValidationError(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_TOO_FAR);
+      // 檢查是否在日期選擇器中，如果是則不顯示 alert
+      const datePickerModal = document.getElementById('date-picker-modal');
+      const isInDatePicker = datePickerModal && datePickerModal.classList.contains('show');
+      
+      if (!isInDatePicker) {
+        FormValidator.showValidationError(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_TOO_FAR);
+      }
     }
     
     return isValid;
@@ -5231,7 +5237,9 @@ const DOM = {
               console.log('DOM.chat.initDatePicker: 日期被點擊', date);
               
               // 立即驗證選擇的日期
-              if (!DateUtils.validateDateWithinAllowedMonths(date, true)) {
+              if (!DateUtils.validateDateWithinAllowedMonths(date, false)) {
+                // 驗證失敗，在日期選擇器 modal 內部顯示錯誤訊息
+                DOM.chat.showDatePickerError(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_TOO_FAR);
                 return; // 不設定日期，不關閉 modal，讓使用者重新選擇
               }
               
@@ -5251,6 +5259,8 @@ const DOM = {
                 
                 // 清除任何現有的錯誤訊息
                 FormValidator.clearValidationError(dateInput);
+                // 清除日期選擇器 modal 內部的錯誤訊息
+                DOM.chat.clearDatePickerError();
               }
               // 關閉 Modal
               const datePickerModal = bootstrap.Modal.getInstance(document.getElementById('date-picker-modal'));
@@ -5331,7 +5341,9 @@ const DOM = {
           const selectedDate = DOM.chat.getSelectedDate();
           if (selectedDate) {
             // 立即驗證選擇的日期
-            if (!DateUtils.validateDateWithinAllowedMonths(selectedDate, true)) {
+            if (!DateUtils.validateDateWithinAllowedMonths(selectedDate, false)) {
+              // 驗證失敗，在日期選擇器 modal 內部顯示錯誤訊息
+              DOM.chat.showDatePickerError(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_TOO_FAR);
               return; // 不關閉 modal，讓使用者重新選擇
             }
             
@@ -5341,6 +5353,16 @@ const DOM = {
               const formattedDate = DateUtils.formatDate(selectedDate);
               dateInput.value = formattedDate;
               console.log('DOM.chat.initDatePicker: 日期已設定', formattedDate);
+              
+              // 清除日期輸入欄位的錯誤訊息
+              const errorElement = dateInput.parentNode.querySelector('.validation-error');
+              if (errorElement) {
+                errorElement.classList.remove('error-visible');
+                errorElement.classList.add('error-hidden');
+                errorElement.textContent = '';
+              }
+              // 清除日期選擇器 modal 內部的錯誤訊息
+              DOM.chat.clearDatePickerError();
             }
           }
           
@@ -5364,6 +5386,52 @@ const DOM = {
       // 初始化顯示
       updateMonthYear();
       generateCalendar();
+    },
+    
+    // 在日期選擇器 modal 內部顯示錯誤訊息
+    showDatePickerError: (message) => {
+      console.log('DOM.chat.showDatePickerError called', { message });
+      
+      // 找到日期選擇器 modal
+      const datePickerModal = document.getElementById('date-picker-modal');
+      if (!datePickerModal) {
+        console.warn('DOM.chat.showDatePickerError: 找不到日期選擇器 modal');
+        return;
+      }
+      
+      // 先清除現有的錯誤訊息
+      DOM.chat.clearDatePickerError();
+      
+      // 創建錯誤訊息元素
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'validation-error text-danger small mt-2 date-picker-error';
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      
+      // 找到標題元素
+      const modalTitle = datePickerModal.querySelector('.modal-title');
+      if (modalTitle) {
+        // 在標題後面插入錯誤訊息
+        modalTitle.parentNode.insertBefore(errorDiv, modalTitle.nextSibling);
+      } else {
+        // 如果找不到標題，則插入到 modal 的最前面
+        datePickerModal.insertBefore(errorDiv, datePickerModal.firstChild);
+      }
+      
+      console.log('DOM.chat.showDatePickerError: 日期選擇器錯誤已顯示');
+    },
+    
+    // 清除日期選擇器 modal 內部的錯誤訊息
+    clearDatePickerError: () => {
+      console.log('DOM.chat.clearDatePickerError called');
+      
+      const datePickerModal = document.getElementById('date-picker-modal');
+      if (datePickerModal) {
+        const existingError = datePickerModal.querySelector('.date-picker-error');
+        if (existingError) {
+          existingError.remove();
+        }
+      }
     },
     
     // 檢查營業時間並顯示錯誤訊息
