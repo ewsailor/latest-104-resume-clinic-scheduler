@@ -765,6 +765,58 @@ const generateActionButtons = (schedule, index, buttonType = 'schedule') => {
   }
 };
 
+// 通用時段表格行生成函數
+const generateScheduleTableRow = (schedule, index, options = {}) => {
+  console.log('generateScheduleTableRow called: 生成時段表格行', { schedule, index, options });
+  
+  // 解構選項參數，提供預設值
+  const {
+    showNumber = true,
+    showStatus = true,
+    showNotes = true,
+    showButtons = true,
+    buttonType = 'schedule',
+    useGlobalIndex = false,
+    startIndex = 0
+  } = options;
+  
+  // 計算實際索引
+  const actualIndex = useGlobalIndex ? startIndex + index : index;
+  const scheduleNumber = index + 1;
+  
+  // 處理日期和時間格式
+  const dateObj = new Date(schedule.date);
+  const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+  const weekday = weekdays[dateObj.getDay()];
+  const formattedDate = schedule.date;
+  const startTime = schedule.startTime || '';
+  const endTime = schedule.endTime || '';
+  const notes = schedule.notes || '';
+  const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
+  
+  // 處理狀態
+  const isDraft = schedule.isDraft || false;
+  const statusClass = isDraft ? 'text-warning' : 'text-success';
+  const statusText = isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING;
+  
+  // 生成按鈕 HTML
+  const buttonsHTML = showButtons ? generateActionButtons(schedule, actualIndex, buttonType) : '';
+  
+  // 生成表格行 HTML
+  const rowHTML = `
+    <tr data-index="${actualIndex}">
+      ${showNumber ? `<td class="text-center">${scheduleNumber}</td>` : ''}
+      ${showStatus ? `<td class="text-center ${statusClass}">${statusText}</td>` : ''}
+      <td class="text-center">${period}</td>
+      ${showNotes ? `<td class="text-center">${notes}</td>` : ''}
+      ${showButtons ? `<td class="text-center">${buttonsHTML}</td>` : ''}
+    </tr>
+  `;
+  
+  console.log('generateScheduleTableRow completed: 表格行已生成', { actualIndex, scheduleNumber, period });
+  return rowHTML;
+};
+
 // 生成時段表格的共用函數
 const generateScheduleTable = (allSchedules, includeButtons = false) => {
   console.log('generateScheduleTable called: 生成時段表格', { 
@@ -774,32 +826,11 @@ const generateScheduleTable = (allSchedules, includeButtons = false) => {
   
   let tableRows = '';
   allSchedules.forEach((schedule, index) => {
-    const scheduleNumber = index + 1;
-    const dateObj = new Date(schedule.date);
-    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-    const weekday = weekdays[dateObj.getDay()];
-    const formattedDate = schedule.date;
-    const startTime = schedule.startTime || '';
-    const endTime = schedule.endTime || '';
-    const notes = schedule.notes || '';
-    const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
-    const statusClass = schedule.isDraft ? 'text-warning' : 'text-success';
-    const statusText = schedule.isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING;
-    
-    // 使用通用函數生成按鈕 HTML
-    const buttonsHTML = generateActionButtons(schedule, index, 'schedule');
-    
-    tableRows += `
-      <tr data-index="${index}">
-        <td class="text-center">${scheduleNumber}</td>
-        <td class="text-center ${statusClass}">${statusText}</td>
-        <td>${period}</td>
-        <td><span class="schedule-notes-text">${notes}</span></td>
-        <td class="text-center">
-          ${buttonsHTML}
-        </td>
-      </tr>
-    `;
+    // 使用通用函數生成表格行
+    tableRows += generateScheduleTableRow(schedule, index, {
+      buttonType: 'schedule',
+      showNotes: true
+    });
   });
   
   const scheduleCount = allSchedules.length;
@@ -3082,30 +3113,10 @@ const TEMPLATES = {
       // 生成表格內容
       let tableRows = '';
       allSchedules.forEach((schedule, index) => {
-        const scheduleNumber = index + 1;
-        const dateObj = new Date(schedule.date);
-        const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-        const weekday = weekdays[dateObj.getDay()];
-        const formattedDate = schedule.date;
-        const startTime = schedule.startTime || '';
-        const endTime = schedule.endTime || '';
-        const notes = schedule.notes || '';
-        const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
-        
-        // 使用通用函數生成按鈕 HTML
-        const buttonsHTML = generateActionButtons(schedule, index, 'schedule');
-        
-        tableRows += `
-          <tr data-index="${index}">
-            <td class="text-center">${scheduleNumber}</td>
-            <td class="text-center ${schedule.isDraft ? 'text-warning' : 'text-success'}">${schedule.isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING}</td>
-            <td class="text-center">${period}</td>
-            <td class="text-center">${notes}</td>
-            <td class="text-center">
-              ${buttonsHTML}
-            </td>
-          </tr>
-        `;
+        // 使用通用函數生成表格行
+        tableRows += generateScheduleTableRow(schedule, index, {
+          buttonType: 'schedule'
+        });
       });
       
       const tableContent = `
@@ -3150,30 +3161,10 @@ const TEMPLATES = {
       // 生成表格內容
       let tableRows = '';
       allSchedules.forEach((schedule, index) => {
-        const scheduleNumber = index + 1;
-        const dateObj = new Date(schedule.date);
-        const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-        const weekday = weekdays[dateObj.getDay()];
-        const formattedDate = schedule.date;
-        const startTime = schedule.startTime || '';
-        const endTime = schedule.endTime || '';
-        const notes = schedule.notes || '';
-        const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
-        
-        // 使用通用函數生成按鈕 HTML
-        const buttonsHTML = generateActionButtons(schedule, index, 'schedule');
-        
-        tableRows += `
-          <tr data-index="${index}">
-            <td class="text-center">${scheduleNumber}</td>
-            <td class="text-center ${schedule.isDraft ? 'text-warning' : 'text-success'}">${schedule.isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING}</td>
-            <td class="text-center">${period}</td>
-            <td class="text-center">${notes}</td>
-            <td class="text-center">
-              ${buttonsHTML}
-            </td>
-          </tr>
-        `;
+        // 使用通用函數生成表格行
+        tableRows += generateScheduleTableRow(schedule, index, {
+          buttonType: 'schedule'
+        });
       });
       
       const tableContent = `
@@ -3216,32 +3207,11 @@ const TEMPLATES = {
       Logger.debug('TEMPLATES.chat.scheduleTable called', { schedules });
       let tableRows = '';
       schedules.forEach((schedule, index) => {
-        const scheduleNumber = index + 1;
-        const dateObj = new Date(schedule.date);
-        const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-        const weekday = weekdays[dateObj.getDay()];
-        const formattedDate = schedule.date;
-        const startTime = schedule.startTime || '';
-        const endTime = schedule.endTime || '';
-        const notes = schedule.notes || '';
-        const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
-        const statusClass = schedule.isDraft ? 'text-warning' : 'text-success';
-        const statusText = schedule.isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING;
-        
-        // 使用通用函數生成按鈕 HTML
-        const buttonsHTML = generateActionButtons(schedule, index, 'schedule');
-        
-        tableRows += `
-          <tr data-index="${index}">
-            <td class="text-center">${scheduleNumber}</td>
-            <td class="text-center ${statusClass}">${statusText}</td>
-            <td>${period}</td>
-            <td><span class="schedule-notes-text">${notes}</span></td>
-            <td class="text-center">
-              ${buttonsHTML}
-            </td>
-          </tr>
-        `;
+        // 使用通用函數生成表格行
+        tableRows += generateScheduleTableRow(schedule, index, {
+          buttonType: 'schedule',
+          showNotes: true
+        });
       });
       const scheduleCount = schedules.length;
       return `
@@ -3314,36 +3284,12 @@ const TEMPLATES = {
       console.log('TEMPLATES.chat.successProvideTime called', { schedules, startIndex });
       let tableRows = '';
       schedules.forEach((schedule, localIndex) => {
-        const globalIndex = startIndex + localIndex;
-        const scheduleNumber = localIndex + 1;
-        const dateObj = new Date(schedule.date);
-        const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-        const weekday = weekdays[dateObj.getDay()];
-        const formattedDate = schedule.date;
-        const startTime = schedule.startTime || '';
-        const endTime = schedule.endTime || '';
-        const notes = schedule.notes || '';
-        const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
-        
-        // 根據狀態決定顯示哪些按鈕
-        const isDraft = schedule.isDraft || false;
-        const statusClass = isDraft ? 'text-warning' : 'text-success';
-        const statusText = isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING;
-        
-        // 使用通用函數生成按鈕 HTML，使用全域索引
-        const buttonsHTML = generateActionButtons(schedule, globalIndex, 'provide');
-        
-        tableRows += `
-          <tr data-index="${globalIndex}">
-            <td class="text-center">${scheduleNumber}</td>
-            <td class="text-center ${statusClass}">${statusText}</td>
-            <td class="text-center">${period}</td>
-            <td class="text-center">${notes}</td>
-            <td class="text-center">
-              ${buttonsHTML}
-            </td>
-          </tr>
-        `;
+        // 使用通用函數生成表格行，使用全域索引
+        tableRows += generateScheduleTableRow(schedule, localIndex, {
+          buttonType: 'provide',
+          useGlobalIndex: true,
+          startIndex: startIndex
+        });
       });
       const scheduleCount = schedules.length;
       const tableContent = `
