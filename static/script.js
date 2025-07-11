@@ -724,6 +724,47 @@ const nonBlockingDelay = async (ms, callback) => {
 //   2-2. 工具函數 (Utility Functions)
 // ======================================================
 
+// 生成按鈕 HTML 的通用函數
+const generateActionButtons = (schedule, index, buttonType = 'schedule') => {
+  console.log('generateActionButtons called: 生成按鈕 HTML', { schedule, index, buttonType });
+  
+  const isDraft = schedule.isDraft || false;
+  
+  if (isDraft) {
+    // 草稿狀態：顯示修改和刪除按鈕
+    if (buttonType === 'provide') {
+      return `
+        <div class="d-flex gap-1 justify-content-center">
+          <button class="btn btn-link btn-sm p-0 edit-provide-btn" data-option="edit-provide-${index}">修改</button>
+          <button class="btn btn-link btn-sm text-danger p-0 delete-provide-btn" data-option="delete-provide-${index}">刪除</button>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="d-flex gap-1 justify-content-center">
+          <button class="btn btn-link btn-sm p-0 schedule-edit-btn">修改</button>
+          <button class="btn btn-link btn-sm text-danger p-0 schedule-delete-btn">刪除</button>
+        </div>
+      `;
+    }
+  } else {
+    // 已提交狀態：只顯示刪除按鈕
+    if (buttonType === 'provide') {
+      return `
+        <div class="d-flex gap-1 justify-content-center">
+          <button class="btn btn-link btn-sm text-danger p-0 delete-provide-btn" data-option="delete-provide-${index}">刪除</button>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="d-flex gap-1 justify-content-center">
+          <button class="btn btn-link btn-sm text-danger p-0 schedule-delete-btn">刪除</button>
+        </div>
+      `;
+    }
+  }
+};
+
 // 生成時段表格的共用函數
 const generateScheduleTable = (allSchedules, includeButtons = false) => {
   console.log('generateScheduleTable called: 生成時段表格', { 
@@ -744,6 +785,10 @@ const generateScheduleTable = (allSchedules, includeButtons = false) => {
     const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
     const statusClass = schedule.isDraft ? 'text-warning' : 'text-success';
     const statusText = schedule.isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING;
+    
+    // 使用通用函數生成按鈕 HTML
+    const buttonsHTML = generateActionButtons(schedule, index, 'schedule');
+    
     tableRows += `
       <tr data-index="${index}">
         <td class="text-center">${scheduleNumber}</td>
@@ -751,10 +796,7 @@ const generateScheduleTable = (allSchedules, includeButtons = false) => {
         <td>${period}</td>
         <td><span class="schedule-notes-text">${notes}</span></td>
         <td class="text-center">
-          <div class="d-flex gap-1 justify-content-center">
-            <button class="btn btn-link btn-sm p-0 schedule-edit-btn">修改</button>
-            <button class="btn btn-link btn-sm text-danger p-0 schedule-delete-btn">刪除</button>
-          </div>
+          ${buttonsHTML}
         </td>
       </tr>
     `;
@@ -3028,13 +3070,18 @@ const TEMPLATES = {
 
     // 表單提交後選項按鈕模板
     afterScheduleOptions: (formattedSchedule, notes) => {
-      // 獲取所有草稿時段
+      // 獲取所有時段（正式提供 + 草稿）
+      const providedSchedules = ChatStateManager.getProvidedSchedules();
       const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-      const scheduleCount = draftSchedules.length;
+      const allSchedules = [
+        ...providedSchedules.map(schedule => ({ ...schedule, isDraft: false })),
+        ...draftSchedules.map(schedule => ({ ...schedule, isDraft: true }))
+      ];
+      const scheduleCount = allSchedules.length;
       
       // 生成表格內容
       let tableRows = '';
-      draftSchedules.forEach((schedule, index) => {
+      allSchedules.forEach((schedule, index) => {
         const scheduleNumber = index + 1;
         const dateObj = new Date(schedule.date);
         const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
@@ -3044,17 +3091,18 @@ const TEMPLATES = {
         const endTime = schedule.endTime || '';
         const notes = schedule.notes || '';
         const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
+        
+        // 使用通用函數生成按鈕 HTML
+        const buttonsHTML = generateActionButtons(schedule, index, 'schedule');
+        
         tableRows += `
           <tr data-index="${index}">
             <td class="text-center">${scheduleNumber}</td>
-            <td class="text-center text-warning">${CONFIG.UI_TEXT.STATUS.DRAFT}</td>
+            <td class="text-center ${schedule.isDraft ? 'text-warning' : 'text-success'}">${schedule.isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING}</td>
             <td class="text-center">${period}</td>
             <td class="text-center">${notes}</td>
             <td class="text-center">
-              <div class="d-flex gap-1 justify-content-center">
-                <button class="btn btn-link btn-sm p-0 schedule-edit-btn">修改</button>
-                <button class="btn btn-link btn-sm text-danger p-0 schedule-delete-btn">刪除</button>
-              </div>
+              ${buttonsHTML}
             </td>
           </tr>
         `;
@@ -3090,13 +3138,18 @@ const TEMPLATES = {
 
     // 多筆時段提交後選項按鈕模板
     afterMultipleScheduleOptions: () => {
-      // 獲取所有草稿時段
+      // 獲取所有時段（正式提供 + 草稿）
+      const providedSchedules = ChatStateManager.getProvidedSchedules();
       const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-      const scheduleCount = draftSchedules.length;
+      const allSchedules = [
+        ...providedSchedules.map(schedule => ({ ...schedule, isDraft: false })),
+        ...draftSchedules.map(schedule => ({ ...schedule, isDraft: true }))
+      ];
+      const scheduleCount = allSchedules.length;
       
       // 生成表格內容
       let tableRows = '';
-      draftSchedules.forEach((schedule, index) => {
+      allSchedules.forEach((schedule, index) => {
         const scheduleNumber = index + 1;
         const dateObj = new Date(schedule.date);
         const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
@@ -3106,17 +3159,18 @@ const TEMPLATES = {
         const endTime = schedule.endTime || '';
         const notes = schedule.notes || '';
         const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
+        
+        // 使用通用函數生成按鈕 HTML
+        const buttonsHTML = generateActionButtons(schedule, index, 'schedule');
+        
         tableRows += `
           <tr data-index="${index}">
             <td class="text-center">${scheduleNumber}</td>
-            <td class="text-center text-warning">${CONFIG.UI_TEXT.STATUS.DRAFT}</td>
+            <td class="text-center ${schedule.isDraft ? 'text-warning' : 'text-success'}">${schedule.isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING}</td>
             <td class="text-center">${period}</td>
             <td class="text-center">${notes}</td>
             <td class="text-center">
-              <div class="d-flex gap-1 justify-content-center">
-                <button class="btn btn-link btn-sm p-0 schedule-edit-btn">修改</button>
-                <button class="btn btn-link btn-sm text-danger p-0 schedule-delete-btn">刪除</button>
-              </div>
+              ${buttonsHTML}
             </td>
           </tr>
         `;
@@ -3173,6 +3227,10 @@ const TEMPLATES = {
         const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
         const statusClass = schedule.isDraft ? 'text-warning' : 'text-success';
         const statusText = schedule.isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING;
+        
+        // 使用通用函數生成按鈕 HTML
+        const buttonsHTML = generateActionButtons(schedule, index, 'schedule');
+        
         tableRows += `
           <tr data-index="${index}">
             <td class="text-center">${scheduleNumber}</td>
@@ -3180,10 +3238,7 @@ const TEMPLATES = {
             <td>${period}</td>
             <td><span class="schedule-notes-text">${notes}</span></td>
             <td class="text-center">
-              <div class="d-flex gap-1 justify-content-center">
-                <button class="btn btn-link btn-sm p-0 schedule-edit-btn">修改</button>
-                <button class="btn btn-link btn-sm text-danger p-0 schedule-delete-btn">刪除</button>
-              </div>
+              ${buttonsHTML}
             </td>
           </tr>
         `;
@@ -3255,11 +3310,12 @@ const TEMPLATES = {
       ), 
 
     // 成功提供時間的模板
-    successProvideTime: (schedules) => {
-      console.log('TEMPLATES.chat.successProvideTime called', { schedules });
+    successProvideTime: (schedules, startIndex = 0) => {
+      console.log('TEMPLATES.chat.successProvideTime called', { schedules, startIndex });
       let tableRows = '';
-      schedules.forEach((schedule, index) => {
-        const scheduleNumber = index + 1;
+      schedules.forEach((schedule, localIndex) => {
+        const globalIndex = startIndex + localIndex;
+        const scheduleNumber = localIndex + 1;
         const dateObj = new Date(schedule.date);
         const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
         const weekday = weekdays[dateObj.getDay()];
@@ -3268,17 +3324,23 @@ const TEMPLATES = {
         const endTime = schedule.endTime || '';
         const notes = schedule.notes || '';
         const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
+        
+        // 根據狀態決定顯示哪些按鈕
+        const isDraft = schedule.isDraft || false;
+        const statusClass = isDraft ? 'text-warning' : 'text-success';
+        const statusText = isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING;
+        
+        // 使用通用函數生成按鈕 HTML，使用全域索引
+        const buttonsHTML = generateActionButtons(schedule, globalIndex, 'provide');
+        
         tableRows += `
-          <tr data-index="${index}">
+          <tr data-index="${globalIndex}">
             <td class="text-center">${scheduleNumber}</td>
-            <td class="text-center text-success">${CONFIG.UI_TEXT.STATUS.PENDING}</td>
+            <td class="text-center ${statusClass}">${statusText}</td>
             <td class="text-center">${period}</td>
             <td class="text-center">${notes}</td>
             <td class="text-center">
-              <div class="d-flex gap-1 justify-content-center">
-                <button class="btn btn-link btn-sm p-0 edit-provide-btn" data-option="edit-provide-${index}">修改</button>
-                <button class="btn btn-link btn-sm text-danger p-0 delete-provide-btn" data-option="delete-provide-${index}">刪除</button>
-              </div>
+              ${buttonsHTML}
             </td>
           </tr>
         `;
@@ -5900,7 +5962,7 @@ const DOM = {
           
           // 每次都創建新的成功提供表格
           console.log('DOM.chat.handleSuccessProvideTime: 創建新的成功提供表格');
-          const responseHTML = TEMPLATES.chat.successProvideTime(providedSchedules);
+          const responseHTML = TEMPLATES.chat.successProvideTime(providedSchedules, 0);
           chatMessages.insertAdjacentHTML('beforeend', responseHTML);
           
           console.log('按鈕事件由 EventManager 統一處理');
@@ -7530,14 +7592,37 @@ const EventManager = {
         const scheduleToEdit = allSchedules[index];
         
         if (scheduleToEdit) {
+          // 計算實際的編輯索引
+          let actualEditIndex;
+          if (scheduleToEdit.isDraft) {
+            // 如果是草稿時段，計算在草稿陣列中的實際索引
+            const draftIndex = index - providedSchedules.length;
+            actualEditIndex = providedSchedules.length + draftIndex;
+          } else {
+            // 如果是正式提供時段，使用原始索引
+            actualEditIndex = index;
+          }
+          
           // 傳遞編輯索引和時段資料，並標記是否為草稿
           const editData = {
-            index: index,
+            index: actualEditIndex,
             ...scheduleToEdit,
             isDraft: scheduleToEdit.isDraft
           };
-          Logger.info('EventManager: 找到要編輯的時段', editData);
-          DOM.chat.handleSingleTime(index, editData);
+          Logger.info('EventManager: 找到要編輯的時段', { 
+            originalIndex: index, 
+            actualEditIndex, 
+            isDraft: scheduleToEdit.isDraft,
+            editData 
+          });
+          DOM.chat.handleSingleTime(actualEditIndex, editData);
+        } else {
+          Logger.error('EventManager: 找不到要編輯的時段', { 
+            index, 
+            totalSchedules: allSchedules.length,
+            providedSchedules: providedSchedules.length,
+            draftSchedules: draftSchedules.length
+          });
         }
       } else if (isSuccessProvideTable) {
         // 處理成功提供表格（只有正式提供時段）
@@ -8031,9 +8116,12 @@ const EventManager = {
     successMessages.forEach(successTable => {
       const giverMessage = successTable.closest('.giver-message');
       if (giverMessage) {
-        const updatedHTML = TEMPLATES.chat.successProvideTime(providedSchedules);
+        // 計算正式提供時段在全域索引中的起始位置
+        // 由於成功提供表格只顯示正式提供時段，所以起始索引為 0
+        const startIndex = 0;
+        const updatedHTML = TEMPLATES.chat.successProvideTime(providedSchedules, startIndex);
         giverMessage.outerHTML = updatedHTML;
-        console.log('EventManager.updateScheduleDisplay: 成功提供表格已更新');
+        console.log('EventManager.updateScheduleDisplay: 成功提供表格已更新', { startIndex });
       }
     });
     
@@ -8050,6 +8138,12 @@ const EventManager = {
         
         giverMessage.outerHTML = updatedHTML;
         console.log('EventManager.updateScheduleDisplay: 查看所有時段表格已更新', { includeButtons });
+        
+        // 重新設定選項按鈕事件監聽器
+        const newGiverMessage = chatMessages.querySelector('.giver-message:last-child');
+        if (newGiverMessage) {
+          DOM.chat.setupOptionButtons();
+        }
       }
     });
     
