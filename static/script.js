@@ -817,6 +817,36 @@ const generateScheduleTableRow = (schedule, index, options = {}) => {
   return rowHTML;
 };
 
+// 通用時段資料合併函數
+const getAllSchedulesWithDraftStatus = () => {
+  console.log('getAllSchedulesWithDraftStatus called: 合併正式提供和草稿時段');
+  
+  // 獲取所有時段（正式提供 + 草稿）
+  const providedSchedules = ChatStateManager.getProvidedSchedules();
+  const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+  
+  // 合併並標記狀態
+  const allSchedules = [
+    ...providedSchedules.map(schedule => ({ ...schedule, isDraft: false })),
+    ...draftSchedules.map(schedule => ({ ...schedule, isDraft: true }))
+  ];
+  
+  const scheduleCount = allSchedules.length;
+  
+  console.log('getAllSchedulesWithDraftStatus completed: 時段資料已合併', { 
+    providedCount: providedSchedules.length, 
+    draftCount: draftSchedules.length, 
+    totalCount: scheduleCount 
+  });
+  
+  return {
+    allSchedules,
+    scheduleCount,
+    providedSchedules,
+    draftSchedules
+  };
+};
+
 // 生成時段表格的共用函數
 const generateScheduleTable = (allSchedules, includeButtons = false) => {
   console.log('generateScheduleTable called: 生成時段表格', { 
@@ -3102,13 +3132,7 @@ const TEMPLATES = {
     // 表單提交後選項按鈕模板
     afterScheduleOptions: (formattedSchedule, notes) => {
       // 獲取所有時段（正式提供 + 草稿）
-      const providedSchedules = ChatStateManager.getProvidedSchedules();
-      const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-      const allSchedules = [
-        ...providedSchedules.map(schedule => ({ ...schedule, isDraft: false })),
-        ...draftSchedules.map(schedule => ({ ...schedule, isDraft: true }))
-      ];
-      const scheduleCount = allSchedules.length;
+      const { allSchedules, scheduleCount } = getAllSchedulesWithDraftStatus();
       
       // 生成表格內容
       let tableRows = '';
@@ -3138,13 +3162,7 @@ const TEMPLATES = {
     // 多筆時段提交後選項按鈕模板
     afterMultipleScheduleOptions: () => {
       // 獲取所有時段（正式提供 + 草稿）
-      const providedSchedules = ChatStateManager.getProvidedSchedules();
-      const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-      const allSchedules = [
-        ...providedSchedules.map(schedule => ({ ...schedule, isDraft: false })),
-        ...draftSchedules.map(schedule => ({ ...schedule, isDraft: true }))
-      ];
-      const scheduleCount = allSchedules.length;
+      const { allSchedules, scheduleCount } = getAllSchedulesWithDraftStatus();
       
       // 生成表格內容
       let tableRows = '';
@@ -5652,10 +5670,7 @@ const DOM = {
       const renderTable = (includeButtons = false) => {
         console.log('renderTable() called: 重繪時段表格', { includeButtons });
         // 合併正式提供時段和草稿時段，但標記草稿時段
-        const allSchedules = [
-          ...providedSchedules.map(schedule => ({ ...schedule, isDraft: false })),
-          ...draftSchedules.map(schedule => ({ ...schedule, isDraft: true }))
-        ];
+        const { allSchedules } = getAllSchedulesWithDraftStatus();
         console.log('renderTable() allSchedules:', allSchedules);
         
         // 使用共用函數生成表格
@@ -7376,10 +7391,7 @@ const EventManager = {
         const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
         
         // 合併所有時段以找到要編輯的時段
-        const allSchedules = [
-          ...providedSchedules.map(schedule => ({ ...schedule, isDraft: false })),
-          ...draftSchedules.map(schedule => ({ ...schedule, isDraft: true }))
-        ];
+        const { allSchedules } = getAllSchedulesWithDraftStatus();
         
         const scheduleToEdit = allSchedules[index];
         
@@ -7474,10 +7486,7 @@ const EventManager = {
             const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
             
             // 合併所有時段以找到要刪除的時段
-            const allSchedules = [
-              ...providedSchedules.map(schedule => ({ ...schedule, isDraft: false })),
-              ...draftSchedules.map(schedule => ({ ...schedule, isDraft: true }))
-            ];
+            const { allSchedules } = getAllSchedulesWithDraftStatus();
             
             const scheduleToDelete = allSchedules[index];
             
@@ -7888,10 +7897,7 @@ const EventManager = {
     const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
     
     // 合併所有時段
-    const allSchedules = [
-      ...providedSchedules.map(schedule => ({ ...schedule, isDraft: false })),
-      ...draftSchedules.map(schedule => ({ ...schedule, isDraft: true }))
-    ];
+    const { allSchedules } = getAllSchedulesWithDraftStatus();
     
     console.log('EventManager.updateScheduleDisplay: 更新時段顯示', { 
       providedSchedules: providedSchedules.length, 
