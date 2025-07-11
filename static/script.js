@@ -457,6 +457,10 @@ const CONFIG = {
     PROMPTS: {
       SELECT_NEXT_ACTION: '請選擇接下來的動作：',
     },
+    // 預約成功提示文字配置
+    RESERVATION_SUCCESS: {
+      TEXT: '✅ 預約已送出！<br><br>Giver 已收到您對上述時段的預約通知，請耐心等待對方確認回覆。<br><br>⚠️ 貼心提醒：<br><br>Giver 可能因臨時狀況無法如期面談，請以對方回覆確認為準，謝謝您的體諒！<br><br>以下是您的預約時段：'
+    }
   }
 };
 
@@ -3312,11 +3316,17 @@ const TEMPLATES = {
       Logger.debug('TEMPLATES.chat.reservationSuccessMessageAndTable called', { demoTimeOptions, provideMyTimeOption });
       const totalCount = demoTimeOptions.length + (provideMyTimeOption ? 1 : 0);
       
-      // 準備所有項目
+      // 準備所有項目 - 處理 demoTimeOptions 的資料結構
       const allItems = [
-        ...demoTimeOptions,
+        ...demoTimeOptions.map(option => ({
+          option: option.option,
+          timeSlot: getDemoTimeLabel(option.option),
+          status: CONFIG.UI_TEXT.STATUS.PENDING
+        })),
         ...(provideMyTimeOption ? [{
           option: 'provide-my-time',
+          timeSlot: CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME,
+          status: CONFIG.UI_TEXT.STATUS.PENDING,
           buttonText: CONFIG.UI_TEXT.BUTTONS.CANCEL_OPTION
         }] : [])
       ];
@@ -3327,7 +3337,7 @@ const TEMPLATES = {
       const tableContent = generateTableContent(tableRows);
       
       return TEMPLATES.chat.messageContainer.withTable(
-        `✅ 預約已送出！<br><br>Giver 已收到您對上述時段的預約通知，請耐心等待對方確認回覆。<br><br>⚠️貼心提醒：<br><br>Giver 可能因臨時狀況無法如期面談，請以對方回覆確認為準，謝謝您的體諒！<br><br>以下是您的預約時段：`,
+        CONFIG.UI_TEXT.RESERVATION_SUCCESS.TEXT,
         tableContent,
         'reservation-success-table table-hover'
       );
@@ -3343,7 +3353,7 @@ const TEMPLATES = {
       const tableContent = generateTableContent(tableRows);
       
       return TEMPLATES.chat.messageContainer.withTable(
-        `✅ 預約已送出！<br><br>Giver 已收到您對上述時段的預約通知，請耐心等待對方確認回覆。<br><br>⚠️貼心提醒：<br><br>Giver 可能因臨時狀況無法如期面談，請以對方回覆確認為準，謝謝您的體諒！<br><br>以下是您的預約時段：`,
+        CONFIG.UI_TEXT.RESERVATION_SUCCESS.TEXT,
         tableContent,
         'reservation-success-table table-hover'
       );
@@ -3354,11 +3364,17 @@ const TEMPLATES = {
       console.log('TEMPLATES.chat.cancelSuccessMessageAndTable called', { demoTimeOptions, provideMyTimeOption });
       const totalCount = demoTimeOptions.length + (provideMyTimeOption ? 1 : 0);
       
-      // 準備所有項目
+      // 準備所有項目 - 處理 demoTimeOptions 的資料結構
       const allItems = [
-        ...demoTimeOptions,
+        ...demoTimeOptions.map(option => ({
+          option: option.option,
+          timeSlot: getDemoTimeLabel(option.option),
+          status: CONFIG.UI_TEXT.STATUS.PENDING
+        })),
         ...(provideMyTimeOption ? [{
           option: 'provide-my-time',
+          timeSlot: CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME,
+          status: CONFIG.UI_TEXT.STATUS.PENDING,
           buttonText: CONFIG.UI_TEXT.BUTTONS.CANCEL_OPTION
         }] : [])
       ];
@@ -4444,7 +4460,7 @@ const DOM = {
       DOM.chat.addUserMessage('確認完畢，請協助送出給 Giver');
       
       await nonBlockingDelay(DELAY_TIMES.CHAT.RESPONSE, () => {
-        const response = '✅ 預約已送出！<br><br>Giver 已收到您對上述時段的預約通知，請耐心等待對方確認回覆。<br><br>⚠️ 貼心提醒：<br><br>Giver 可能因臨時狀況無法如期面談，請以對方回覆確認為準，謝謝您的體諒！<br><br>以下是您的預約時段：';
+        const response = CONFIG.UI_TEXT.RESERVATION_SUCCESS.TEXT;
         DOM.chat.addGiverResponse(response);
       });
     },
