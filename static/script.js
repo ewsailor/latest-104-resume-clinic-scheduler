@@ -3217,48 +3217,48 @@ const TEMPLATES = {
       `;
     },
 
-    // 新增 5 按鈕版本模板（使用新的按鈕組合系統）
+    // 5 按鈕版本模板
     scheduleOptionsWithViewAll: () => 
       TEMPLATES.chat.messageContainer.withAvatar(
         '好的！我來幫您安排預約時間。請選擇以下選項：', 
         TEMPLATES.chat.buttonGroup(['view-times', 'single-time', 'multiple-times', 'view-all', 'cancel'])
       ),
 
-    // 新增：只有提供時段按鈕的模板（使用新的按鈕組合系統）
+    // 只有提供時段按鈕的模板
     onlyScheduleButtons: () => 
       TEMPLATES.chat.messageContainer.buttonsOnly( 
         TEMPLATES.chat.buttonGroup(['view-times', 'single-time', 'multiple-times', 'view-all', 'cancel'])
       ),
 
-    // 新增：您目前還沒有提供任何時段的模板（使用新的按鈕組合系統）
+    // 您目前還沒有提供任何時段的模板
     noSchedulesWithButtons: () => 
       TEMPLATES.chat.messageContainer.withAvatar(
         '您目前還沒有提供任何時段，請先提供方便時段，然後再查看。', 
         TEMPLATES.chat.buttonGroup(['view-times', 'single-time', 'multiple-times', 'cancel'])
       ),
 
-    // 新增：Giver 尚末提供方便時間的模板
+    // Giver 尚末提供方便時間的模板
     noGiverTimesWithButtons: () =>
       TEMPLATES.chat.messageContainer.withAvatar(
         `Giver 尚末提供方便的時間。請選擇以下選項：`,
         TEMPLATES.chat.buttonGroup(['single-time', 'multiple-times', 'cancel'])
       ),
 
-    // 新增：您目前還沒有預約任何 Giver 時間的模板
+    // 您目前還沒有預約任何 Giver 時間的模板
     noBookedTimesWithButtons: () =>
       TEMPLATES.chat.messageContainer.withAvatar(
         `您目前還沒有預約任何 Giver 時間。請選擇以下選項：`,
         TEMPLATES.chat.buttonGroup(['view-times', 'single-time', 'multiple-times', 'cancel'])
       ), 
 
-    // 新增：多筆時段功能在建置中的模板
+    // 多筆時段功能的模板：預計於未來開放
     multipleTimesUnderConstruction: () => 
       TEMPLATES.chat.messageContainer.withAvatar(
-        `此功能仍在建置中，請先使用「提供單筆方便時段」方式新增時間，謝謝。`,
+        `此功能預計於未來開放，請先使用「提供單筆方便時段」方式新增時間，謝謝。`,
         TEMPLATES.chat.buttonGroup(['single-time', 'cancel'])
       ), 
 
-    // 新增：成功提供時間的模板
+    // 成功提供時間的模板
     successProvideTime: (schedules) => {
       console.log('TEMPLATES.chat.successProvideTime called', { schedules });
       let tableRows = '';
