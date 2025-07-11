@@ -5133,7 +5133,7 @@ const DOM = {
         startDate.setDate(startDate.getDate() - firstDay.getDay());
         
         const today = new Date();
-        const selectedDate = DOM.chat.getSelectedDate();
+        const selectedDate = ChatStateManager.getSelectedDate();
         
         for (let i = 0; i < CONFIG.DATE_PICKER.CALENDAR.TOTAL_CELLS; i++) {
           const date = new Date(startDate);
@@ -5179,7 +5179,7 @@ const DOM = {
               });
               // 選中當前日期
               dateCell.classList.add('selected');
-              DOM.chat.setSelectedDate(date);
+              ChatStateManager.setSelectedDate(date);
               // 直接寫入 input 並關閉 modal
               const dateInput = document.getElementById('schedule-date');
               if (dateInput) {
@@ -5268,7 +5268,7 @@ const DOM = {
         }
         DOM.events.add(newConfirmBtn, 'click', () => {
           console.log('DOM.chat.initDatePicker: 確定按鈕被點擊');
-          const selectedDate = DOM.chat.getSelectedDate();
+          const selectedDate = ChatStateManager.getSelectedDate();
           if (selectedDate) {
             // 立即驗證選擇的日期
             if (!DateUtils.validateDateWithinAllowedMonths(selectedDate, false)) {
@@ -5592,7 +5592,7 @@ const DOM = {
       DOM_CACHE.clearFormInputs();
       
       // 重置選中的日期
-      DOM.chat.setSelectedDate(null);
+      ChatStateManager.setSelectedDate(null);
       
       // 模擬 Giver 回覆
       await delay(DELAY_TIMES.CHAT.RESPONSE);  
@@ -5762,18 +5762,6 @@ const DOM = {
           
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
-    },
-    
-    // 獲取選中的日期
-    getSelectedDate: () => {
-      console.log('DOM.chat.getSelectedDate called：獲取選中的日期');
-      return ChatStateManager.getSelectedDate();
-    },
-    
-    // 設定選中的日期
-    setSelectedDate: (date) => {
-      console.log('DOM.chat.setSelectedDate called：設定選中的日期', { date });
-      ChatStateManager.setSelectedDate(date);
     },
     
     // 格式化時段字串，包含星期幾
@@ -7540,7 +7528,7 @@ const EventManager = {
       FormValidator.clearAllValidationErrors(DOM_CACHE.scheduleForm);
           
       // 重置選中的日期
-      DOM.chat.setSelectedDate(null);
+      ChatStateManager.setSelectedDate(null);
       
       // 顯示取消訊息
       DOM.chat.addGiverResponse('您已取消新增時段。<br><br>如果仍想提供方便時段，請使用聊天輸入區域下方的功能按鈕。<br><br>有其他問題需要協助嗎？');
@@ -7761,7 +7749,7 @@ const EventManager = {
     DOM_CACHE.clearFormInputs();
     
     // 重置選中的日期
-    DOM.chat.setSelectedDate(null);
+    ChatStateManager.setSelectedDate(null);
     
     // 模擬 Giver 回覆
     await nonBlockingDelay(DELAY_TIMES.CHAT.FORM_SUBMIT, () => {
@@ -7784,7 +7772,7 @@ const EventManager = {
       return; // 不設定選中的日期，讓使用者重新選擇
     }
     
-    DOM.chat.setSelectedDate(date);
+    ChatStateManager.setSelectedDate(date);
   },
   
   // 處理日期輸入框點擊
