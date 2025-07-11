@@ -4510,27 +4510,40 @@ const DOM = {
         return;
       }
       
-      // 禁用所有 checkbox
-      const checkboxes = giverMessage.querySelectorAll('input[type="checkbox"]');
-      checkboxes.forEach(checkbox => {
-        checkbox.disabled = true;
-        checkbox.style.pointerEvents = 'none';
-        checkbox.style.opacity = '0.6';
-      });
+      // 定義需要禁用的元素類型和樣式
+      const elementsToDisable = [
+        { selector: 'input[type="checkbox"]', type: 'checkbox' },
+        { selector: 'button', type: 'button' },
+        { selector: 'label', type: 'label' }
+      ];
       
-      // 禁用所有按鈕
-      const buttons = giverMessage.querySelectorAll('button');
-      buttons.forEach(btn => {
-        btn.disabled = true;
-        btn.style.pointerEvents = 'none';
-        btn.style.opacity = '0.6';
-      });
+      // 統一的禁用樣式設定
+      const disableStyles = {
+        pointerEvents: 'none',
+        opacity: '0.6'
+      };
       
-      // 禁用所有可點擊的標籤
-      const labels = giverMessage.querySelectorAll('label');
-      labels.forEach(label => {
-        label.style.pointerEvents = 'none';
-        label.style.opacity = '0.6';
+      // 通用函數：禁用單個元素
+      const disableElement = (element, elementType) => {
+        console.log(`DOM.chat.disableGiverMessageInteractions: 禁用 ${elementType} 元素`, { element });
+        
+        // 設定禁用狀態（適用於表單元素）
+        if (element.disabled !== undefined) {
+          element.disabled = true;
+        }
+        
+        // 應用統一的禁用樣式
+        Object.assign(element.style, disableStyles);
+      };
+      
+      // 遍歷所有需要禁用的元素類型
+      elementsToDisable.forEach(({ selector, type }) => {
+        const elements = giverMessage.querySelectorAll(selector);
+        console.log(`DOM.chat.disableGiverMessageInteractions: 找到 ${elements.length} 個 ${type} 元素`);
+        
+        elements.forEach(element => {
+          disableElement(element, type);
+        });
       });
       
       console.log('DOM.chat.disableGiverMessageInteractions: 已禁用 Giver 訊息泡泡中的所有互動元素');
