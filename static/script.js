@@ -2681,11 +2681,7 @@ const BusinessLogic = {
     generateResponse: (userMessage) => {
       Logger.debug('BusinessLogic.chat.generateResponse called', { userMessage });
       const responses = [
-        '謝謝您的諮詢！我會盡快回覆您。',
-        '您的問題很有價值，讓我為您詳細說明。',
-        '根據我的經驗，我建議您可以這樣做...',
-        '這是一個很好的問題，讓我分享一些實用的建議。',
-        '我理解您的需求，讓我為您提供專業的建議。'
+        '如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。',
       ];
       const randomIndex = Math.floor(Math.random() * responses.length);
       return responses[randomIndex];
@@ -5987,9 +5983,14 @@ const DOM = {
           console.log('DOM.chat.setupInputControls: 處理多筆時段輸入', message);
           DOM.chat.handleMultipleTimesSubmission(message);
         } else {
+          // 先顯示用戶訊息
+          console.log('DOM.chat.setupInputControls: 顯示用戶訊息', message);
+          DOM.chat.addUserMessage(message);
+          
           // 模擬 Giver 回覆
           await delay(DELAY_TIMES.CHAT.RESPONSE);
-          DOM.chat.addGiverResponse(message);
+          const giverResponse = DOM.chat.getGiverResponse(message);
+          DOM.chat.addGiverResponse(giverResponse);
         }
       };
       
