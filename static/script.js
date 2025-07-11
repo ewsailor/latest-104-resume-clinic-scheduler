@@ -4586,6 +4586,49 @@ const DOM = {
       const selectedText = selectedOptions.map(option => option.label).join('、');
       DOM.chat.addUserMessage(`您選擇：${selectedText}`);
       
+      // 分析選項組合並決定處理策略
+      const optionAnalysis = DOM.chat.analyzeSelectedOptions(selectedOptions);
+      console.log('DOM.chat.handleSelectedOptions: 選項分析結果', optionAnalysis);
+      
+      // 使用 switch-case 結構處理不同的選項組合
+      switch (optionAnalysis.strategy) {
+        case 'cancel':
+          console.log('DOM.chat.handleSelectedOptions: 處理取消選項');
+          DOM.chat.handleCancelSchedule();
+          break;
+          
+        case 'demo_with_provide':
+          console.log('DOM.chat.handleSelectedOptions: 處理 Demo 時間 + 提供我的時間選項');
+          DOM.chat.handleMultipleDemoTimeSelection(optionAnalysis.demoTimeOptions, optionAnalysis.provideMyTimeOption);
+          break;
+          
+        case 'demo_only':
+          console.log('DOM.chat.handleSelectedOptions: 處理僅 Demo 時間選項');
+          DOM.chat.handleMultipleDemoTimeSelection(optionAnalysis.demoTimeOptions, null);
+          break;
+          
+        case 'provide_only':
+          console.log('DOM.chat.handleSelectedOptions: 處理僅提供我的時間選項');
+          DOM.chat.handleProvideMyTime();
+          break;
+          
+        case 'unknown':
+          console.warn('DOM.chat.handleSelectedOptions: 處理未知選項組合');
+          selectedOptions.forEach(selectedOption => {
+            console.warn('未知的選項:', selectedOption.option);
+          });
+          break;
+          
+        default:
+          console.error('DOM.chat.handleSelectedOptions: 未定義的處理策略', optionAnalysis.strategy);
+          break;
+      }
+    },
+    
+    // 分析選中的選項並決定處理策略
+    analyzeSelectedOptions: (selectedOptions) => {
+      console.log('DOM.chat.analyzeSelectedOptions called：分析選中的選項', selectedOptions);
+      
       // 分類選中的選項
       const demoTimeOptions = selectedOptions.filter(option => 
         option.option === 'demo-time-1' || option.option === 'demo-time-2'
@@ -4597,28 +4640,29 @@ const DOM = {
         option.option === 'cancel'
       );
       
-      // 如果有取消選項，優先處理
+      // 決定處理策略
+      let strategy = 'unknown';
+      
       if (cancelOption) {
-        DOM.chat.handleCancelSchedule();
-        return;
+        strategy = 'cancel';
+      } else if (demoTimeOptions.length > 0 && provideMyTimeOption) {
+        strategy = 'demo_with_provide';
+      } else if (demoTimeOptions.length > 0) {
+        strategy = 'demo_only';
+      } else if (provideMyTimeOption) {
+        strategy = 'provide_only';
       }
       
-      // 如果有 Demo 時間選項，顯示預約成功表格
-      if (demoTimeOptions.length > 0) {
-        DOM.chat.handleMultipleDemoTimeSelection(demoTimeOptions, provideMyTimeOption);
-        return;
-      }
+      const analysis = {
+        strategy,
+        demoTimeOptions,
+        provideMyTimeOption,
+        cancelOption,
+        totalOptions: selectedOptions.length
+      };
       
-      // 如果只有提供我的時間選項
-      if (provideMyTimeOption) {
-        DOM.chat.handleProvideMyTime();
-        return;
-      }
-      
-      // 處理其他未知選項
-      selectedOptions.forEach(selectedOption => {
-        console.warn('未知的選項:', selectedOption.option);
-      });
+      console.log('DOM.chat.analyzeSelectedOptions: 分析完成', analysis);
+      return analysis;
     },
 
     // 處理 Demo 時間選擇
