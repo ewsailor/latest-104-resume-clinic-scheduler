@@ -3126,25 +3126,13 @@ const TEMPLATES = {
         </tbody>
       `;
       
-      return `
-        <div class="message giver-message">
-          <div class="d-flex align-items-center">
-            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-          </div>
-          <div class="message-content">
-            <p class="message-title">您目前已提供 ${scheduleCount} 個時段，進度如下：</p>
-            <div class="table-responsive mt-2">
-              <table class="table table-sm table-bordered table-hover schedule-table">
-                ${tableContent}
-              </table>
-            </div>
-            ${getPromptText('SELECT_NEXT_ACTION')}
-            <div class="chat-options-buttons mt-2" id="after-schedule-options">
-              ${TEMPLATES.chat.buttonGroup(['continue-single-time', 'continue-multiple-times', 'submit-schedules'])}
-            </div>
-          </div>
-        </div>
-      `;
+      const buttonGroup = TEMPLATES.chat.buttonGroup(['continue-single-time', 'continue-multiple-times', 'submit-schedules']);
+      return TEMPLATES.chat.messageContainer.withTableAndButtons(
+        `您目前已提供 ${scheduleCount} 個時段，進度如下：`,
+        tableContent,
+        buttonGroup,
+        'schedule-table table-hover'
+      );
     },
 
     // 多筆時段提交後選項按鈕模板
@@ -3174,25 +3162,13 @@ const TEMPLATES = {
         </tbody>
       `;
       
-      return `
-        <div class="message giver-message">
-          <div class="d-flex align-items-center">
-            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-          </div>
-          <div class="message-content">
-            <p class="message-title">您目前已提供 ${scheduleCount} 個時段，進度如下：</p>
-            <div class="table-responsive mt-2">
-              <table class="table table-sm table-bordered table-hover schedule-table">
-                ${tableContent}
-              </table>
-            </div>
-            ${getPromptText('SELECT_NEXT_ACTION')}
-            <div class="chat-options-buttons mt-2" id="after-multiple-schedule-options">
-              ${TEMPLATES.chat.buttonGroup(['continue-single-time', 'continue-multiple-times', 'submit-schedules'])}
-            </div>
-          </div>
-        </div>
-      `;
+      const buttonGroup = TEMPLATES.chat.buttonGroup(['continue-single-time', 'continue-multiple-times', 'submit-schedules']);
+      return TEMPLATES.chat.messageContainer.withTableAndButtons(
+        `您目前已提供 ${scheduleCount} 個時段，進度如下：`,
+        tableContent,
+        buttonGroup,
+        'schedule-table table-hover'
+      );
     },
 
     // 查看所有時段選項按鈕模板
@@ -3214,28 +3190,19 @@ const TEMPLATES = {
         });
       });
       const scheduleCount = schedules.length;
-      return `
-        <div class="message giver-message">
-          <div class="d-flex align-items-center">
-            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-          </div>
-          <div class="message-content">
-            <p class="message-title">您目前已提供 ${scheduleCount} 個時段，進度如下：</p>
-            <div class="table-responsive mt-2">
-              <table class="table table-sm table-bordered table-hover schedule-table">
-                ${TEMPLATES.chat.tableHeaders.fiveColumns()}
-                <tbody>
-                  ${tableRows}
-                </tbody>
-              </table>
-            </div>
-            ${getPromptText('SELECT_NEXT_ACTION')}
-            <div class="chat-options-buttons mt-2" id="after-view-all-options">
-              ${TEMPLATES.chat.buttonGroup(['single-time', 'multiple-times', 'submit-schedules', 'cancel'])}
-            </div>
-          </div>
-        </div>
+      const tableContent = `
+        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
+        <tbody>
+          ${tableRows}
+        </tbody>
       `;
+      const buttonGroup = TEMPLATES.chat.buttonGroup(['single-time', 'multiple-times', 'submit-schedules', 'cancel']);
+      return TEMPLATES.chat.messageContainer.withTableAndButtons(
+        `您目前已提供 ${scheduleCount} 個時段，進度如下：`,
+        tableContent,
+        buttonGroup,
+        'schedule-table table-hover'
+      );
     },
 
     // 5 按鈕版本模板
@@ -3446,80 +3413,6 @@ const TEMPLATES = {
         tableContent,
         'reservation-success-table table-hover'
       );
-    },
-
-    // 新增：預約成功表格模板
-    reservationSuccessTable: (demoTimeOptions, provideMyTimeOption, isUpdate = false) => {
-      console.log('TEMPLATES.chat.reservationSuccessTable called', { demoTimeOptions, provideMyTimeOption, isUpdate });
-      const totalCount = demoTimeOptions.length + (provideMyTimeOption ? 1 : 0);
-      
-      // 根據是否為更新模式選擇訊息
-      const messageTitle = isUpdate 
-        ? `取消預約成功！您目前已預約 Giver 以下 ${totalCount} 個時段：`
-        : `預約成功！您目前已預約 Giver 以下 ${totalCount} 個時段：`;
-      
-      // 生成表格行
-      let tableRows = '';
-      let rowIndex = 1;
-      
-      // Demo 時間選項
-      demoTimeOptions.forEach(option => {
-        const timeSlot = getDemoTimeLabel(option.option);
-        
-        tableRows += `
-          <tr>
-            <td class="text-center">${rowIndex}</td>
-            <td class="text-center">${timeSlot}</td>
-            <td class="text-center text-success">預約成功</td>
-            <td class="text-center">
-              <button class="btn btn-sm btn-outline-danger cancel-reservation-btn" data-option="${option.option}">
-                ${CONFIG.UI_TEXT.BUTTONS.CANCEL_RESERVATION}
-              </button>
-            </td>
-          </tr>
-        `;
-        rowIndex++;
-      });
-      
-      // 提供我的時間選項
-      if (provideMyTimeOption) {
-        tableRows += `
-          <tr>
-            <td class="text-center">${rowIndex}</td>
-            <td class="text-center">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME}</td>
-            <td class="text-center text-warning">待提供</td>
-            <td class="text-center">
-              <button class="btn btn-sm btn-outline-danger cancel-reservation-btn" data-option="provide-my-time">
-                ${CONFIG.UI_TEXT.BUTTONS.CANCEL_OPTION}
-              </button>
-            </td>
-          </tr>
-        `;
-      }
-      
-      return `
-        <div class="message giver-message">
-          <div class="d-flex align-items-center">
-            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
-          </div>
-          <div class="message-content">
-            <p class="message-title">${messageTitle}</p>
-            <div class="table-responsive mt-2">
-              <table class="table table-sm table-bordered table-hover reservation-table">
-                ${TEMPLATES.chat.tableHeaders.fiveColumns()}
-                <tbody>
-                  ${tableRows}
-                </tbody>
-              </table>
-            </div>
-            ${getPromptText('SELECT_NEXT_ACTION')}
-            <div class="chat-options-buttons mt-2" id="reservation-success-options">
-              <button class="btn btn-orange btn-option" data-option="confirm-all">確認完畢，請協助送出給 Giver</button>
-              <button class="btn btn-outline-secondary btn-option" data-option="cancel-all">${CONFIG.UI_TEXT.BUTTONS.CANCEL_SCHEDULE}</button>
-            </div>
-          </div>
-        </div>
-      `;
     },
 
     // 新增：取消成功訊息和表格模板
@@ -4688,54 +4581,7 @@ const DOM = {
       await nonBlockingDelay(DELAY_TIMES.CHAT.RESPONSE, () => {
         DOM.chat.addGiverResponse('已取消提供時段。<br><br>如果仍想預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。');
       });
-    },
-
-    // 更新預約表格
-    updateReservationTable: (visibleRows) => {
-      console.log('DOM.chat.updateReservationTable called：更新預約表格', { visibleRowsCount: visibleRows.length });
-      
-      // 分析剩餘的預約選項
-      const remainingOptions = [];
-      visibleRows.forEach(row => {
-        const cancelBtn = row.querySelector('.cancel-reservation-btn');
-        if (cancelBtn) {
-          const option = cancelBtn.getAttribute('data-option');
-          const timeSlotCell = row.querySelector('td:nth-child(2)');
-          const timeSlot = timeSlotCell ? timeSlotCell.textContent.trim() : '';
-          
-          if (option && timeSlot) {
-            remainingOptions.push({ option, label: timeSlot });
-          }
-        }
-      });
-      
-      // 分類剩餘選項
-      const demoTimeOptions = remainingOptions.filter(option => 
-        option.option === 'demo-time-1' || option.option === 'demo-time-2'
-      );
-      const provideMyTimeOption = remainingOptions.find(option => 
-        option.option === 'provide-my-time'
-      );
-      
-      // 生成更新後的表格 HTML
-      const updatedTableHTML = TEMPLATES.chat.reservationSuccessTable(demoTimeOptions, provideMyTimeOption, true);
-      
-      // 移除舊的表格訊息
-      const oldTableMessage = document.querySelector('.reservation-table').closest('.message');
-      if (oldTableMessage) {
-        oldTableMessage.remove();
-      }
-      
-      // 在聊天對話框最下方插入新的表格
-      const chatMessages = document.getElementById('chat-messages');
-      if (chatMessages) {
-        chatMessages.insertAdjacentHTML('beforeend', updatedTableHTML);
-        // 綁定新的表格按鈕事件
-        DOM.chat.setupReservationTableButtons();
-        // 滾動到底部
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      }
-    },
+    },  
 
     // 禁用整個 Giver 訊息泡泡中的互動元素
     disableGiverMessageInteractions: (button) => {
