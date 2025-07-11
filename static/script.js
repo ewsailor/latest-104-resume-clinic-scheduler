@@ -862,6 +862,62 @@ const generateTableContent = (tableRows) => {
   return tableContent;
 };
 
+// 通用時段重疊檢查函數：支援排除特定索引
+  const checkScheduleOverlap = (schedule, existingSchedules, excludeIndex = null) => {
+    console.log('checkScheduleOverlap called: 檢查時段重疊', {
+      schedule,
+      existingSchedulesCount: existingSchedules.length,
+      excludeIndex
+    });
+
+    const isDuplicate = existingSchedules.some((existingSchedule, index) => {
+      // 排除指定索引的時段（用於編輯時排除自己）
+      if (excludeIndex !== null && index === parseInt(excludeIndex)) {
+        return false;
+      }
+
+      // 檢查是否為完全相同的時段
+      const isExactDuplicate = existingSchedule.date === schedule.date &&
+        existingSchedule.startTime === schedule.startTime &&
+        existingSchedule.endTime === schedule.endTime;
+
+      if (isExactDuplicate) {
+        console.log('checkScheduleOverlap: 檢測到完全相同時段', { schedule, existingSchedule });
+        return true;
+      }
+
+      // 檢查是否為重疊時段（相同日期且時間有重疊）
+      if (existingSchedule.date === schedule.date) {
+        const existingStart = existingSchedule.startTime;
+        const existingEnd = existingSchedule.endTime;
+        const newStart = schedule.startTime;
+        const newEnd = schedule.endTime;
+
+        // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
+        const isOverlapping = newStart < existingEnd && newEnd > existingStart;
+
+        if (isOverlapping) {
+          console.log('checkScheduleOverlap: 檢測到時間重疊', {
+            schedule,
+            existingSchedule,
+            newStart,
+            newEnd,
+            existingStart,
+            existingEnd
+          });
+        }
+
+        return isOverlapping;
+      }
+
+      return false;
+    });
+
+    console.log('checkScheduleOverlap completed: 重疊檢查完成', { isDuplicate });
+    return isDuplicate;
+  };
+
+
 // 生成時段表格的共用函數
 const generateScheduleTable = (allSchedules, includeButtons = false) => {
   console.log('generateScheduleTable called: 生成時段表格', { 
@@ -1043,7 +1099,7 @@ const ChatStateManager = {
       BOOKED_SCHEDULES: 'bookedSchedules',
       IS_MULTIPLE_TIMES_MODE: 'isMultipleTimesMode',
       SELECTED_DATE: 'selectedDate',
-      DRAFT_SCHEDULES: 'draftSchedules' // 新增草稿時段列表
+      DRAFT_SCHEDULES: 'draftSchedules' 
     },
     
     // 預設狀態
@@ -1056,7 +1112,7 @@ const ChatStateManager = {
       bookedSchedules: [],
       isMultipleTimesMode: false,
       selectedDate: null,
-      draftSchedules: [] // 新增草稿時段列表
+      draftSchedules: [] 
     },
     
     // 狀態驗證規則
@@ -1077,7 +1133,7 @@ const ChatStateManager = {
     bookedSchedules: [],
     isMultipleTimesMode: false,
     selectedDate: null,
-    draftSchedules: [] // 新增草稿時段列表
+    draftSchedules: [] 
   },
   
   // 狀態變更監聽器
@@ -1171,7 +1227,7 @@ const ChatStateManager = {
       [ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES]: [],
       [ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE]: false,
       [ChatStateManager.CONFIG.STATE_KEYS.SELECTED_DATE]: null,
-      [ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES]: [] // 新增草稿時段列表
+      [ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES]: [] 
     };
     
     ChatStateManager.setMultiple(updates);
@@ -1260,33 +1316,8 @@ const ChatStateManager = {
     
     // 檢查重複時段（與已提供時段和草稿時段的重複）
     const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-    const allExistingSchedules = [...providedSchedules, ...draftSchedules];
-    
-    const isDuplicate = allExistingSchedules.some(existingSchedule => {
-      // 檢查是否為完全相同的時段
-      const isExactDuplicate = existingSchedule.date === schedule.date && 
-        existingSchedule.startTime === schedule.startTime && 
-        existingSchedule.endTime === schedule.endTime;
-      
-      if (isExactDuplicate) {
-        return true;
-      }
-      
-      // 檢查是否為重疊時段（相同日期且時間有重疊）
-      if (existingSchedule.date === schedule.date) {
-        const existingStart = existingSchedule.startTime;
-        const existingEnd = existingSchedule.endTime;
-        const newStart = schedule.startTime;
-        const newEnd = schedule.endTime;
-        
-        // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
-        const isOverlapping = newStart < existingEnd && newEnd > existingStart;
-        
-        return isOverlapping;
-      }
-      
-      return false;
-    });
+    const allExistingSchedules = [...providedSchedules, ...draftSchedules];    
+    const isDuplicate = checkScheduleOverlap(schedule, allExistingSchedules);
     
     if (isDuplicate) {
       console.warn('ChatStateManager.addSchedule: 檢測到重複或重疊時段', schedule);
@@ -1319,32 +1350,7 @@ const ChatStateManager = {
     // 檢查重複時段（與已提供時段和草稿時段的重複）
     const providedSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES);
     const allExistingSchedules = [...providedSchedules, ...draftSchedules];
-    
-    const isDuplicate = allExistingSchedules.some(existingSchedule => {
-      // 檢查是否為完全相同的時段
-      const isExactDuplicate = existingSchedule.date === schedule.date && 
-        existingSchedule.startTime === schedule.startTime && 
-        existingSchedule.endTime === schedule.endTime;
-      
-      if (isExactDuplicate) {
-        return true;
-      }
-      
-      // 檢查是否為重疊時段（相同日期且時間有重疊）
-      if (existingSchedule.date === schedule.date) {
-        const existingStart = existingSchedule.startTime;
-        const existingEnd = existingSchedule.endTime;
-        const newStart = schedule.startTime;
-        const newEnd = schedule.endTime;
-        
-        // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
-        const isOverlapping = newStart < existingEnd && newEnd > existingStart;
-        
-        return isOverlapping;
-      }
-      
-      return false;
-    });
+    const isDuplicate = checkScheduleOverlap(schedule, allExistingSchedules);
     
     if (isDuplicate) {
       console.warn('ChatStateManager.addDraftSchedule: 檢測到重複或重疊時段', schedule);
@@ -1381,31 +1387,7 @@ const ChatStateManager = {
     const duplicateSchedules = [];
     
     schedules.forEach(schedule => {
-      const isDuplicate = allExistingSchedules.some(existingSchedule => {
-        // 檢查是否為完全相同的時段
-        const isExactDuplicate = existingSchedule.date === schedule.date && 
-          existingSchedule.startTime === schedule.startTime && 
-          existingSchedule.endTime === schedule.endTime;
-        
-        if (isExactDuplicate) {
-          return true;
-        }
-        
-        // 檢查是否為重疊時段（相同日期且時間有重疊）
-        if (existingSchedule.date === schedule.date) {
-          const existingStart = existingSchedule.startTime;
-          const existingEnd = existingSchedule.endTime;
-          const newStart = schedule.startTime;
-          const newEnd = schedule.endTime;
-          
-          // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
-          const isOverlapping = newStart < existingEnd && newEnd > existingStart;
-          
-          return isOverlapping;
-        }
-        
-        return false;
-      });
+      const isDuplicate = checkScheduleOverlap(schedule, allExistingSchedules);
       
       if (isDuplicate) {
         duplicateSchedules.push(schedule);
@@ -1421,37 +1403,14 @@ const ChatStateManager = {
         const schedule2 = schedules[j];
         
         // 檢查是否為完全相同的時段
-        const isExactDuplicate = schedule1.date === schedule2.date && 
-          schedule1.startTime === schedule2.startTime && 
-          schedule1.endTime === schedule2.endTime;
-        
-        if (isExactDuplicate) {
+        const isDuplicate = checkScheduleOverlap(schedule1, [schedule2]);
+
+        if (isDuplicate) {
           if (!batchDuplicateSchedules.includes(schedule1)) {
             batchDuplicateSchedules.push(schedule1);
           }
           if (!batchDuplicateSchedules.includes(schedule2)) {
             batchDuplicateSchedules.push(schedule2);
-          }
-          continue;
-        }
-        
-        // 檢查是否為重疊時段（相同日期且時間有重疊）
-        if (schedule1.date === schedule2.date) {
-          const start1 = schedule1.startTime;
-          const end1 = schedule1.endTime;
-          const start2 = schedule2.startTime;
-          const end2 = schedule2.endTime;
-          
-          // 檢查時間重疊：時段1的開始時間 < 時段2的結束時間 且 時段1的結束時間 > 時段2的開始時間
-          const isOverlapping = start1 < end2 && end1 > start2;
-          
-          if (isOverlapping) {
-            if (!batchDuplicateSchedules.includes(schedule1)) {
-              batchDuplicateSchedules.push(schedule1);
-            }
-            if (!batchDuplicateSchedules.includes(schedule2)) {
-              batchDuplicateSchedules.push(schedule2);
-            }
           }
         }
       }
@@ -1494,33 +1453,10 @@ const ChatStateManager = {
     const allExistingSchedules = [...providedSchedules, ...draftSchedules];
     const duplicateSchedules = [];
     
+    // 使用通用函數檢查重複時段
     schedules.forEach(schedule => {
-      const isDuplicate = allExistingSchedules.some(existingSchedule => {
-        // 檢查是否為完全相同的時段
-        const isExactDuplicate = existingSchedule.date === schedule.date && 
-          existingSchedule.startTime === schedule.startTime && 
-          existingSchedule.endTime === schedule.endTime;
-        
-        if (isExactDuplicate) {
-          return true;
-        }
-        
-        // 檢查是否為重疊時段（相同日期且時間有重疊）
-        if (existingSchedule.date === schedule.date) {
-          const existingStart = existingSchedule.startTime;
-          const existingEnd = existingSchedule.endTime;
-          const newStart = schedule.startTime;
-          const newEnd = schedule.endTime;
-          
-          // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
-          const isOverlapping = newStart < existingEnd && newEnd > existingStart;
-          
-          return isOverlapping;
-        }
-        
-        return false;
-      });
-      
+      const isDuplicate = checkScheduleOverlap(schedule, allExistingSchedules);
+
       if (isDuplicate) {
         duplicateSchedules.push(schedule);
       }
@@ -5509,31 +5445,14 @@ const DOM = {
       const existingSchedules = ChatStateManager.getProvidedSchedules();
       const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
       const allExistingSchedules = [...existingSchedules, ...draftSchedules];
-      const isDuplicate = allExistingSchedules.some(schedule => {
-        // 檢查是否為完全相同的時段
-        const isExactDuplicate = schedule.date === formData.date && 
-          schedule.startTime === formData.startTime && 
-          schedule.endTime === formData.endTime;
-        
-        if (isExactDuplicate) {
-          return true;
-        }
-        
-        // 檢查是否為重疊時段（相同日期且時間有重疊）
-        if (schedule.date === formData.date) {
-          const existingStart = schedule.startTime;
-          const existingEnd = schedule.endTime;
-          const newStart = formData.startTime;
-          const newEnd = formData.endTime;
-          
-          // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
-          const isOverlapping = newStart < existingEnd && newEnd > existingStart;
-          
-          return isOverlapping;
-        }
-        
-        return false;
-      });
+      // 將 formData 轉換為標準時段格式
+      const newSchedule = {
+        date: formData.date,
+        startTime: formData.startTime,
+        endTime: formData.endTime
+      };
+
+      const isDuplicate = checkScheduleOverlap(newSchedule, allExistingSchedules);
       
       if (isDuplicate) {
         console.warn('DOM.chat.submitScheduleForm: 檢測到重複或重疊時段', formData);
@@ -6167,31 +6086,7 @@ const DOM = {
       const duplicateSchedules = [];
       
       schedules.forEach(schedule => {
-        const isDuplicate = allExistingSchedules.some(existingSchedule => {
-          // 檢查是否為完全相同的時段
-          const isExactDuplicate = existingSchedule.date === schedule.date && 
-            existingSchedule.startTime === schedule.startTime && 
-            existingSchedule.endTime === schedule.endTime;
-          
-          if (isExactDuplicate) {
-            return true;
-          }
-          
-          // 檢查是否為重疊時段（相同日期且時間有重疊）
-          if (existingSchedule.date === schedule.date) {
-            const existingStart = existingSchedule.startTime;
-            const existingEnd = existingSchedule.endTime;
-            const newStart = schedule.startTime;
-            const newEnd = schedule.endTime;
-            
-            // 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
-            const isOverlapping = newStart < existingEnd && newEnd > existingStart;
-            
-            return isOverlapping;
-          }
-          
-          return false;
-        });
+        const isDuplicate = checkScheduleOverlap(schedule, allExistingSchedules);
         
         if (isDuplicate) {
           duplicateSchedules.push(schedule);
@@ -7612,31 +7507,7 @@ const EventManager = {
     const editIndex = form.getAttribute('data-edit-index');
     const isEditMode = editIndex !== null && editIndex !== undefined && editIndex !== 'null' && editIndex !== '';
 
-    const isDuplicate = existingSchedules.some((schedule, index) => {
-      if (editIndex !== null && index === parseInt(editIndex)) {
-        return false;
-      }
-      
-      const isExactDuplicate = schedule.date === formData.date && 
-        schedule.startTime === formData.startTime && 
-        schedule.endTime === formData.endTime;
-      
-      if (isExactDuplicate) {
-        return true;
-      }
-      
-      if (schedule.date === formData.date) {
-        const existingStart = schedule.startTime;
-        const existingEnd = schedule.endTime;
-        const newStart = formData.startTime;
-        const newEnd = formData.endTime;
-        
-        const isOverlapping = newStart < existingEnd && newEnd > existingStart;
-        return isOverlapping;
-      }
-      
-      return false;
-    });
+    const isDuplicate = checkScheduleOverlap(formData, existingSchedules, editIndex);
     
     // 檢測重複或重疊時段
     if (isDuplicate) {
@@ -7684,27 +7555,7 @@ const EventManager = {
       }
       
       // 檢查修改後的時段是否與其他時段重複或重疊
-      const isDuplicate = otherSchedules.some(schedule => {
-        const isExactDuplicate = schedule.date === formData.date && 
-          schedule.startTime === formData.startTime && 
-          schedule.endTime === formData.endTime;
-        
-        if (isExactDuplicate) {
-          return true;
-        }
-        
-        if (schedule.date === formData.date) {
-          const existingStart = schedule.startTime;
-          const existingEnd = schedule.endTime;
-          const newStart = formData.startTime;
-          const newEnd = formData.endTime;
-          
-          const isOverlapping = newStart < existingEnd && newEnd > existingStart;
-          return isOverlapping;
-        }
-        
-        return false;
-      });
+      const isDuplicate = checkScheduleOverlap(formData, otherSchedules, editIndex);
       
       // 檢測重複或重疊時段
       if (isDuplicate) {
