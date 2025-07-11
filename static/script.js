@@ -2112,6 +2112,85 @@ const DateUtils = {
 //   3-4. 表單驗證模組 (Form Validation Module)
 // ======================================================
 
+// 錯誤元素處理工具
+const ErrorElementUtils = {
+  // 清除指定輸入欄位的錯誤訊息
+  clearInputError: (input) => {
+    console.log('ErrorElementUtils.clearInputError called：清除輸入欄位錯誤', { input });
+    
+    if (!input) {
+      console.warn('ErrorElementUtils.clearInputError: 輸入元素不存在');
+      return;
+    }
+    
+    const errorElement = input.parentNode.querySelector('.validation-error');
+    if (errorElement) {
+      errorElement.classList.remove('error-visible');
+      errorElement.classList.add('error-hidden');
+      errorElement.textContent = '';
+      console.log('ErrorElementUtils.clearInputError: 錯誤元素已清除');
+    } else {
+      console.log('ErrorElementUtils.clearInputError: 未找到錯誤元素');
+    }
+  },
+  
+  // 清除多個輸入欄位的錯誤訊息
+  clearMultipleInputErrors: (inputs) => {
+    console.log('ErrorElementUtils.clearMultipleInputErrors called：清除多個輸入欄位錯誤', { inputCount: inputs.length });
+    
+    if (!Array.isArray(inputs)) {
+      console.warn('ErrorElementUtils.clearMultipleInputErrors: 輸入參數不是陣列');
+      return;
+    }
+    
+    inputs.forEach(input => {
+      if (input) {
+        ErrorElementUtils.clearInputError(input);
+      }
+    });
+    
+    console.log('ErrorElementUtils.clearMultipleInputErrors: 所有錯誤元素已清除');
+  },
+  
+  // 檢查輸入欄位是否有錯誤訊息
+  hasInputError: (input, errorText = '') => {
+    console.log('ErrorElementUtils.hasInputError called：檢查輸入欄位是否有錯誤', { input, errorText });
+    
+    if (!input) {
+      console.warn('ErrorElementUtils.hasInputError: 輸入元素不存在');
+      return false;
+    }
+    
+    const errorElement = input.parentNode.querySelector('.validation-error.error-visible');
+    if (!errorElement) {
+      console.log('ErrorElementUtils.hasInputError: 未找到可見的錯誤元素');
+      return false;
+    }
+    
+    if (errorText && !errorElement.textContent.includes(errorText)) {
+      console.log('ErrorElementUtils.hasInputError: 錯誤文字不匹配');
+      return false;
+    }
+    
+    console.log('ErrorElementUtils.hasInputError: 找到匹配的錯誤元素');
+    return true;
+  },
+  
+  // 獲取輸入欄位的錯誤元素
+  getInputErrorElement: (input) => {
+    console.log('ErrorElementUtils.getInputErrorElement called：獲取輸入欄位錯誤元素', { input });
+    
+    if (!input) {
+      console.warn('ErrorElementUtils.getInputErrorElement: 輸入元素不存在');
+      return null;
+    }
+    
+    const errorElement = input.parentNode.querySelector('.validation-error');
+    console.log('ErrorElementUtils.getInputErrorElement: 錯誤元素', { errorElement });
+    return errorElement;
+  }
+};
+
 const FormValidator = {
   // 驗證規則配置
   RULES: {
@@ -2308,8 +2387,7 @@ const FormValidator = {
       if (!DateUtils.isValidDateFormat(formData.date)) {
         // 檢查是否已經有日期格式錯誤訊息
         const dateInput = document.getElementById('schedule-date');
-        const hasExistingDateFormatError = dateInput && dateInput.parentNode.querySelector('.validation-error.error-visible') && 
-                                          dateInput.parentNode.querySelector('.validation-error.error-visible').textContent.includes('日期格式不正確');
+        const hasExistingDateFormatError = ErrorElementUtils.hasInputError(dateInput, '日期格式不正確');
         
         if (!hasExistingDateFormatError) {
           errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_INVALID);
@@ -2323,8 +2401,7 @@ const FormValidator = {
         if (selectedDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
           // 檢查是否已經有過去日期錯誤訊息
           const dateInput = document.getElementById('schedule-date');
-          const hasExistingPastDateError = dateInput && dateInput.parentNode.querySelector('.validation-error.error-visible') && 
-                                          dateInput.parentNode.querySelector('.validation-error.error-visible').textContent.includes('不能選擇過去的日期');
+          const hasExistingPastDateError = ErrorElementUtils.hasInputError(dateInput, '不能選擇過去的日期');
           
           if (!hasExistingPastDateError) {
             errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_PAST);
@@ -2337,8 +2414,7 @@ const FormValidator = {
         if (!DateUtils.validateDateWithinAllowedMonths(selectedDate)) {
           // 檢查是否已經有超過3個月錯誤訊息
           const dateInput = document.getElementById('schedule-date');
-          const hasExistingTooFarError = dateInput && dateInput.parentNode.querySelector('.validation-error.error-visible') && 
-                                        dateInput.parentNode.querySelector('.validation-error.error-visible').textContent.includes('不能預約 3 個月後的日期');
+          const hasExistingTooFarError = ErrorElementUtils.hasInputError(dateInput, '不能預約 3 個月後的日期');
           
           if (!hasExistingTooFarError) {
             errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.DATE_TOO_FAR);
@@ -2355,7 +2431,7 @@ const FormValidator = {
     } else if (formData.startTime && !DateUtils.isValidTimeFormat(formData.startTime)) {
       // 檢查是否已經有錯誤訊息
       const startTimeInput = document.getElementById('schedule-start-time');
-      const hasExistingError = startTimeInput && startTimeInput.parentNode.querySelector('.validation-error.error-visible');
+      const hasExistingError = ErrorElementUtils.hasInputError(startTimeInput);
       if (!hasExistingError) {
         // 如果沒有現有錯誤訊息，添加預設錯誤訊息
         errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.TIME_INVALID);
@@ -2371,7 +2447,7 @@ const FormValidator = {
     } else if (formData.endTime && !DateUtils.isValidTimeFormat(formData.endTime)) {
       // 檢查是否已經有錯誤訊息
       const endTimeInput = document.getElementById('schedule-end-time');
-      const hasExistingError = endTimeInput && endTimeInput.parentNode.querySelector('.validation-error.error-visible');
+      const hasExistingError = ErrorElementUtils.hasInputError(endTimeInput);
       if (!hasExistingError) {
         // 如果沒有現有錯誤訊息，添加預設錯誤訊息
         errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.TIME_INVALID);
@@ -2402,10 +2478,8 @@ const FormValidator = {
         const startTimeInput = document.getElementById('schedule-start-time');
         const endTimeInput = document.getElementById('schedule-end-time');
         const hasExistingBusinessHoursError = (
-          (startTimeInput && startTimeInput.parentNode.querySelector('.validation-error.error-visible') && 
-           startTimeInput.parentNode.querySelector('.validation-error.error-visible').textContent.includes('營業時間')) ||
-          (endTimeInput && endTimeInput.parentNode.querySelector('.validation-error.error-visible') && 
-           endTimeInput.parentNode.querySelector('.validation-error.error-visible').textContent.includes('營業時間'))
+          ErrorElementUtils.hasInputError(startTimeInput, '營業時間') ||
+          ErrorElementUtils.hasInputError(endTimeInput, '營業時間')
         );
         
         if (!hasExistingBusinessHoursError) {
@@ -2424,8 +2498,7 @@ const FormValidator = {
       if (notes.length > rules.NOTES.MAX_LENGTH) {
         // 檢查是否已經有備註相關的錯誤訊息
         const notesInput = document.getElementById('schedule-notes');
-        const hasExistingNotesError = notesInput && notesInput.parentNode.querySelector('.validation-error.error-visible') && 
-                                     notesInput.parentNode.querySelector('.validation-error.error-visible').textContent.includes('備註不能超過');
+        const hasExistingNotesError = ErrorElementUtils.hasInputError(notesInput, '備註不能超過');
         
         if (!hasExistingNotesError) {
           errors.push(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.NOTES_TOO_LONG);
@@ -2557,12 +2630,7 @@ const FormValidator = {
       FormValidator.clearValidationError(element);
       
       // 在特定元素上顯示錯誤
-      let errorElement = element.querySelector('.validation-error');
-      
-      if (!errorElement) {
-        // 如果元素內部沒有錯誤元素，檢查父元素中是否有
-        errorElement = element.parentNode.querySelector('.validation-error');
-      }
+      let errorElement = ErrorElementUtils.getInputErrorElement(element);
       
       if (errorElement) {
         // 使用現有的錯誤元素
@@ -2609,15 +2677,12 @@ const FormValidator = {
     
     if (element) {
       // 只清除該元素及其直接父元素的錯誤訊息，不清除表單下方的錯誤訊息
-      const errorElement = element.querySelector('.validation-error') || 
-                          element.parentNode.querySelector('.validation-error');
+      const errorElement = ErrorElementUtils.getInputErrorElement(element);
       
       if (errorElement) {
         // 檢查是否為表單下方的錯誤訊息（duplicate-schedule-error），如果是則不清除
         if (!errorElement.classList.contains('duplicate-schedule-error')) {
-          errorElement.classList.remove('error-visible');
-          errorElement.classList.add('error-hidden');
-          errorElement.textContent = '';
+          ErrorElementUtils.clearInputError(element);
         }
       }
     }
@@ -2690,16 +2755,8 @@ const FormValidator = {
       const dateInput = document.getElementById('schedule-date');
       const notesInput = document.getElementById('schedule-notes');
       
-      [startTimeInput, endTimeInput, dateInput, notesInput].forEach(input => {
-        if (input) {
-          const errorElement = input.parentNode.querySelector('.validation-error');
-          if (errorElement) {
-            errorElement.classList.remove('error-visible');
-            errorElement.classList.add('error-hidden');
-            errorElement.textContent = '';
-          }
-        }
-      });
+      // 使用 ErrorElementUtils 清除多個輸入欄位的錯誤
+      ErrorElementUtils.clearMultipleInputErrors([startTimeInput, endTimeInput, dateInput, notesInput]);
       
       // 清除重複時段錯誤
       FormValidator.clearDuplicateScheduleError();
@@ -4292,25 +4349,29 @@ const DOM = {
         });
       });
       
-      // 為確認按鈕添加事件監聽器
-      if (confirmBtn) {
-        DOM.events.add(confirmBtn, 'click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          
-          console.log('確認選擇按鈕被點擊');
-          
-          // 獲取選中的選項
-          const selectedOptions = DOM.chat.getSelectedCheckboxOptions();
-          console.log('選中的選項:', selectedOptions);
-          
-          // 處理選中的選項
-          DOM.chat.handleSelectedOptions(selectedOptions);
-          
-          // 禁用整個 Giver 訊息泡泡中的互動元素
-          DOM.chat.disableGiverMessageInteractions(confirmBtn);
-        });
-      }
+              // 為確認按鈕添加事件監聽器
+        if (confirmBtn) {
+          DOM.events.add(confirmBtn, 'click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('確認選擇按鈕被點擊');
+            
+            try {
+              // 獲取選中的選項
+              const selectedOptions = DOM.chat.getSelectedCheckboxOptions();
+              console.log('選中的選項:', selectedOptions);
+              
+              // 處理選中的選項
+              await DOM.chat.handleSelectedOptions(selectedOptions);
+              
+              // 禁用整個 Giver 訊息泡泡中的互動元素
+              DOM.chat.disableGiverMessageInteractions(confirmBtn);
+            } catch (error) {
+              console.error('確認選擇按鈕處理時發生錯誤:', error);
+            }
+          });
+        }
     },
 
     // 設定預約成功表格按鈕事件監聽器
@@ -4579,49 +4640,56 @@ const DOM = {
     },
 
     // 處理選中的選項
-    handleSelectedOptions: (selectedOptions) => {
+    handleSelectedOptions: async (selectedOptions) => {
       console.log('DOM.chat.handleSelectedOptions called：處理選中的選項', selectedOptions);
       
-      // 添加使用者選擇的訊息
-      const selectedText = selectedOptions.map(option => option.label).join('、');
-      DOM.chat.addUserMessage(`您選擇：${selectedText}`);
-      
-      // 分析選項組合並決定處理策略
-      const optionAnalysis = DOM.chat.analyzeSelectedOptions(selectedOptions);
-      console.log('DOM.chat.handleSelectedOptions: 選項分析結果', optionAnalysis);
-      
-      // 使用 switch-case 結構處理不同的選項組合
-      switch (optionAnalysis.strategy) {
-        case 'cancel':
-          console.log('DOM.chat.handleSelectedOptions: 處理取消選項');
-          DOM.chat.handleCancelSchedule();
-          break;
-          
-        case 'demo_with_provide':
-          console.log('DOM.chat.handleSelectedOptions: 處理 Demo 時間 + 提供我的時間選項');
-          DOM.chat.handleMultipleDemoTimeSelection(optionAnalysis.demoTimeOptions, optionAnalysis.provideMyTimeOption);
-          break;
-          
-        case 'demo_only':
-          console.log('DOM.chat.handleSelectedOptions: 處理僅 Demo 時間選項');
-          DOM.chat.handleMultipleDemoTimeSelection(optionAnalysis.demoTimeOptions, null);
-          break;
-          
-        case 'provide_only':
-          console.log('DOM.chat.handleSelectedOptions: 處理僅提供我的時間選項');
-          DOM.chat.handleProvideMyTime();
-          break;
-          
-        case 'unknown':
-          console.warn('DOM.chat.handleSelectedOptions: 處理未知選項組合');
-          selectedOptions.forEach(selectedOption => {
-            console.warn('未知的選項:', selectedOption.option);
-          });
-          break;
-          
-        default:
-          console.error('DOM.chat.handleSelectedOptions: 未定義的處理策略', optionAnalysis.strategy);
-          break;
+      try {
+        // 添加使用者選擇的訊息
+        const selectedText = selectedOptions.map(option => option.label).join('、');
+        DOM.chat.addUserMessage(`您選擇：${selectedText}`);
+        
+        // 分析選項組合並決定處理策略
+        const optionAnalysis = DOM.chat.analyzeSelectedOptions(selectedOptions);
+        console.log('DOM.chat.handleSelectedOptions: 選項分析結果', optionAnalysis);
+        
+        // 使用 switch-case 結構處理不同的選項組合
+        switch (optionAnalysis.strategy) {
+          case 'cancel':
+            console.log('DOM.chat.handleSelectedOptions: 處理取消選項');
+            await DOM.chat.handleCancelSchedule();
+            break;
+            
+          case 'demo_with_provide':
+            console.log('DOM.chat.handleSelectedOptions: 處理 Demo 時間 + 提供我的時間選項');
+            await DOM.chat.handleMultipleDemoTimeSelection(optionAnalysis.demoTimeOptions, optionAnalysis.provideMyTimeOption);
+            break;
+            
+          case 'demo_only':
+            console.log('DOM.chat.handleSelectedOptions: 處理僅 Demo 時間選項');
+            await DOM.chat.handleMultipleDemoTimeSelection(optionAnalysis.demoTimeOptions, null);
+            break;
+            
+          case 'provide_only':
+            console.log('DOM.chat.handleSelectedOptions: 處理僅提供我的時間選項');
+            await DOM.chat.handleProvideMyTime();
+            break;
+            
+          case 'unknown':
+            console.warn('DOM.chat.handleSelectedOptions: 處理未知選項組合');
+            selectedOptions.forEach(selectedOption => {
+              console.warn('未知的選項:', selectedOption.option);
+            });
+            break;
+            
+          default:
+            console.error('DOM.chat.handleSelectedOptions: 未定義的處理策略', optionAnalysis.strategy);
+            break;
+        }
+        
+        console.log('DOM.chat.handleSelectedOptions: 選項處理完成');
+      } catch (error) {
+        console.error('DOM.chat.handleSelectedOptions: 處理選項時發生錯誤', error);
+        // 可以在這裡添加錯誤處理邏輯，例如顯示錯誤訊息給使用者
       }
     },
     
@@ -5399,12 +5467,7 @@ const DOM = {
       
       // 如果為空，清除該欄位的錯誤訊息
       if (!value) {
-        const errorElement = input.parentNode.querySelector('.validation-error');
-        if (errorElement) {
-          errorElement.classList.remove('error-visible');
-          errorElement.classList.add('error-hidden');
-          errorElement.textContent = '';
-        }
+        ErrorElementUtils.clearInputError(input);
         return;
       }
       
@@ -5413,12 +5476,7 @@ const DOM = {
         FormValidator.showValidationError(FormValidator.ERROR_MESSAGES.SCHEDULE_FORM.NOTES_TOO_LONG, input);
       } else {
         // 清除該欄位的錯誤訊息
-        const errorElement = input.parentNode.querySelector('.validation-error');
-        if (errorElement) {
-          errorElement.classList.remove('error-visible');
-          errorElement.classList.add('error-hidden');
-          errorElement.textContent = '';
-        }
+        ErrorElementUtils.clearInputError(input);
       }
     },
     
@@ -5429,12 +5487,7 @@ const DOM = {
       
       // 如果為空，清除該欄位的錯誤訊息
       if (!value) {
-        const errorElement = input.parentNode.querySelector('.validation-error');
-        if (errorElement) {
-          errorElement.classList.remove('error-visible');
-          errorElement.classList.add('error-hidden');
-          errorElement.textContent = '';
-        }
+        ErrorElementUtils.clearInputError(input);
         return;
       }
       
@@ -5459,12 +5512,7 @@ const DOM = {
       }
       
       // 清除該欄位的錯誤訊息
-      const errorElement = input.parentNode.querySelector('.validation-error');
-      if (errorElement) {
-        errorElement.classList.remove('error-visible');
-        errorElement.classList.add('error-hidden');
-        errorElement.textContent = '';
-      }
+      ErrorElementUtils.clearInputError(input);
     },
     
     // 提交表單
