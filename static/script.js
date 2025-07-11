@@ -728,6 +728,72 @@ const nonBlockingDelay = async (ms, callback) => {
 //   2-2. 工具函數 (Utility Functions)
 // ======================================================
 
+// Modal 清理工具
+const ModalCleanupUtils = {
+  // 清理 Modal 相關的 DOM 元素和樣式
+  cleanupModal: (options = {}) => {
+    console.log('ModalCleanupUtils.cleanupModal called：清理 Modal 相關元素和樣式', options);
+    
+    const {
+      removeBackdrop = true,
+      removeModalOpen = true,
+      clearOverflow = true,
+      clearPaddingRight = true,
+      delay = 0
+    } = options;
+    
+    const cleanup = () => {
+      // 移除所有 modal backdrop 元素
+      if (removeBackdrop) {
+        document.querySelectorAll('.modal-backdrop').forEach(bd => {
+          console.log('ModalCleanupUtils.cleanupModal: 移除 backdrop 元素', bd);
+          bd.remove();
+        });
+      }
+      
+      // 移除 body 的 modal-open 類別
+      if (removeModalOpen) {
+        console.log('ModalCleanupUtils.cleanupModal: 移除 body modal-open 類別');
+        document.body.classList.remove('modal-open');
+      }
+      
+      // 清除 body 的 overflow 樣式
+      if (clearOverflow) {
+        console.log('ModalCleanupUtils.cleanupModal: 清除 body overflow 樣式');
+        document.body.style.overflow = '';
+      }
+      
+      // 清除 body 的 paddingRight 樣式
+      if (clearPaddingRight) {
+        console.log('ModalCleanupUtils.cleanupModal: 清除 body paddingRight 樣式');
+        document.body.style.paddingRight = '';
+      }
+      
+      console.log('ModalCleanupUtils.cleanupModal: Modal 清理完成');
+    };
+    
+    // 如果有延遲，使用 setTimeout，否則立即執行
+    if (delay > 0) {
+      console.log(`ModalCleanupUtils.cleanupModal: 延遲 ${delay}ms 後執行清理`);
+      setTimeout(cleanup, delay);
+    } else {
+      cleanup();
+    }
+  },
+  
+  // 快速清理（使用預設選項）
+  quickCleanup: () => {
+    console.log('ModalCleanupUtils.quickCleanup called：快速清理 Modal');
+    ModalCleanupUtils.cleanupModal();
+  },
+  
+  // 延遲清理（使用預設選項但帶延遲）
+  delayedCleanup: (delay = 200) => {
+    console.log(`ModalCleanupUtils.delayedCleanup called：延遲 ${delay}ms 清理 Modal`);
+    ModalCleanupUtils.cleanupModal({ delay });
+  }
+};
+
 // 生成按鈕 HTML 的通用函數
 const generateActionButtons = (schedule, index, buttonType = 'schedule') => {
   console.log('generateActionButtons called: 生成按鈕 HTML', { schedule, index, buttonType });
@@ -3601,12 +3667,13 @@ const DOM = {
         modal.removeAttribute('tabindex');             // 移除 tabindex 屬性
         modal.setAttribute('inert', '');               // 使用 inert 屬性
         
-        document.body.classList.remove('modal-open');  // 移除 Bootstrap 的背景滾動鎖定
-        document.body.style.paddingRight = '';         // 清除 Bootstrap 動畫期間加的 padding
-        
-        // 移除 backdrop 元素
-        const backdrop = document.querySelector('.modal-backdrop');
-        if (backdrop) backdrop.remove();
+        // 使用 ModalCleanupUtils 清理 modal 相關元素和樣式
+        ModalCleanupUtils.cleanupModal({ 
+          removeBackdrop: true, 
+          removeModalOpen: true, 
+          clearOverflow: false, 
+          clearPaddingRight: true 
+        });
         
         // 強制處理焦點問題
         if (DOM.chat && DOM.chat.forceFocusToBody) {
@@ -4976,10 +5043,7 @@ const DOM = {
       DOM.chat._isShowingDatePicker = true;
       
       // 強制清理殘留的 backdrop 和 body 狀態
-      document.querySelectorAll('.modal-backdrop').forEach(bd => bd.remove());
-      document.body.classList.remove('modal-open');
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
+      ModalCleanupUtils.quickCleanup();
       
       // 清除任何現有的錯誤訊息
       DOM.chat.clearDatePickerError();
@@ -5099,12 +5163,9 @@ const DOM = {
             datePickerModal.hide();
           }
           // 強制清理 backdrop 和 body 狀態
+          ModalCleanupUtils.delayedCleanup(200);
+          // 重置日期選擇器快取，確保下次開啟時從當前月份開始
           setTimeout(() => {
-            document.querySelectorAll('.modal-backdrop').forEach(bd => bd.remove());
-            document.body.classList.remove('modal-open');
-            document.body.style.overflow = '';
-            document.body.style.paddingRight = '';
-            // 重置日期選擇器快取，確保下次開啟時從當前月份開始
             DOM_CACHE.resetDatePicker();
           }, 200);
         });
@@ -5198,12 +5259,9 @@ const DOM = {
                 datePickerModal.hide();
               }
               // 強制清理 backdrop 和 body 狀態
+              ModalCleanupUtils.delayedCleanup(200);
+              // 重置日期選擇器快取，確保下次開啟時從當前月份開始
               setTimeout(() => {
-                document.querySelectorAll('.modal-backdrop').forEach(bd => bd.remove());
-                document.body.classList.remove('modal-open');
-                document.body.style.overflow = '';
-                document.body.style.paddingRight = '';
-                // 重置日期選擇器快取，確保下次開啟時從當前月份開始
                 DOM_CACHE.resetDatePicker();
               }, 200);
             });
@@ -5302,12 +5360,9 @@ const DOM = {
             confirmDatePickerModal.hide();
           }
           // 強制清理 backdrop 和 body 狀態
+          ModalCleanupUtils.delayedCleanup(200);
+          // 重置日期選擇器快取，確保下次開啟時從當前月份開始
           setTimeout(() => {
-            document.querySelectorAll('.modal-backdrop').forEach(bd => bd.remove());
-            document.body.classList.remove('modal-open');
-            document.body.style.overflow = '';
-            document.body.style.paddingRight = '';
-            // 重置日期選擇器快取，確保下次開啟時從當前月份開始
             DOM_CACHE.resetDatePicker();
           }, 200);
         });
@@ -5866,14 +5921,7 @@ const DOM = {
           DOM.chat.forceFocusToBody();
           
           // 確保 backdrop 被清理
-          setTimeout(() => {
-            const backdrop = document.querySelector('.modal-backdrop');
-            if (backdrop) {
-              backdrop.remove();
-            }
-            document.body.classList.remove('modal-open');
-            document.body.style.paddingRight = '';
-          }, 0);
+          ModalCleanupUtils.delayedCleanup(0);
         });
         
         // 監聽 modal 顯示事件
@@ -5944,10 +5992,7 @@ const DOM = {
               DOM.utils.cleanupModal(modalElement);
             }
             // 額外清理 backdrop
-            const backdrop = document.querySelector('.modal-backdrop');
-            if (backdrop) backdrop.remove();
-            document.body.classList.remove('modal-open');
-            document.body.style.paddingRight = '';
+            ModalCleanupUtils.quickCleanup();
             
             // 強制處理焦點問題：當使用者關閉對話框時，強制將焦點移到 body，避免使用者無法操作其他元素。
             DOM.chat.forceFocusToBody(); 
@@ -7064,10 +7109,7 @@ const UIInteraction = {
         // 只有在需要清理 backdrop 時才清理
         if (cleanupBackdrop) {
           await nonBlockingDelay(DELAY_TIMES.UI.MODAL_CLEANUP, () => {
-            const backdrop = document.querySelector('.modal-backdrop');
-            if (backdrop) backdrop.remove();
-            document.body.classList.remove('modal-open');
-            document.body.style.paddingRight = ''; // paddingRight 樣式是 Bootstrap 為防止頁面跳動而添加的樣式
+            ModalCleanupUtils.quickCleanup();
             // 強制處理焦點問題
             document.body.focus();
           });
@@ -7084,10 +7126,7 @@ const UIInteraction = {
         modal.hide();
         // 確保 backdrop 被清理
         await nonBlockingDelay(DELAY_TIMES.UI.MODAL_CLEANUP, () => {
-          const backdrop = document.querySelector('.modal-backdrop');
-          if (backdrop) backdrop.remove();
-          document.body.classList.remove('modal-open');
-          document.body.style.paddingRight = '';
+          ModalCleanupUtils.quickCleanup();
           // 強制處理焦點問題
           document.body.focus();
         });
