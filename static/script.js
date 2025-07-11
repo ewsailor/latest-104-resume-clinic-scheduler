@@ -862,6 +862,51 @@ const generateTableContent = (tableRows) => {
   return tableContent;
 };
 
+// 通用預約表格行生成函數
+const generateReservationTableRows = (items, options = {}) => {
+  console.log('generateReservationTableRows called: 生成預約表格行', { items, options });
+  
+  // 解構選項參數，提供預設值
+  const {
+    startIndex = 1,
+    statusClass = 'text-success',
+    statusText = CONFIG.UI_TEXT.STATUS.PENDING,
+    buttonText = CONFIG.UI_TEXT.BUTTONS.CANCEL_RESERVATION,
+    buttonClass = 'btn btn-sm btn-outline-danger cancel-reservation-btn',
+    notesColumn = '-'
+  } = options;
+  
+  let tableRows = '';
+  let rowIndex = startIndex;
+  
+  items.forEach(item => {
+    // 處理不同的資料結構
+    const timeSlot = item.timeSlot || getDemoTimeLabel(item.option) || item.label || item.text || '';
+    const status = item.status || statusText;
+    const option = item.option || item.dataOption || '';
+    const buttonDataOption = item.buttonDataOption || option;
+    const customButtonText = item.buttonText || buttonText;
+    
+    tableRows += `
+      <tr>
+        <td class="text-center">${rowIndex}</td>
+        <td class="text-center ${statusClass}">${status}</td>
+        <td class="text-center">${timeSlot}</td>
+        <td class="text-center">${notesColumn}</td>
+        <td class="text-center">
+          <button class="${buttonClass}" data-option="${buttonDataOption}">
+            ${customButtonText}
+          </button>
+        </td>
+      </tr>
+    `;
+    rowIndex++;
+  });
+  
+  console.log('generateReservationTableRows completed: 預約表格行已生成', { rowCount: items.length });
+  return tableRows;
+};
+
 // 通用時段重疊檢查函數：支援排除特定索引
   const checkScheduleOverlap = (schedule, existingSchedules, excludeIndex = null) => {
     console.log('checkScheduleOverlap called: 檢查時段重疊', {
@@ -3267,46 +3312,18 @@ const TEMPLATES = {
       Logger.debug('TEMPLATES.chat.reservationSuccessMessageAndTable called', { demoTimeOptions, provideMyTimeOption });
       const totalCount = demoTimeOptions.length + (provideMyTimeOption ? 1 : 0);
       
-      // 生成表格行
-      let tableRows = '';
-      let rowIndex = 1;
-      
-      // Demo 時間選項
-      demoTimeOptions.forEach(option => {
-        const timeSlot = getDemoTimeLabel(option.option);
-        
-        tableRows += `
-          <tr>
-            <td class="text-center">${rowIndex}</td>
-            <td class="text-center text-success">${CONFIG.UI_TEXT.STATUS.PENDING}</td>
-            <td class="text-center">${timeSlot}</td>
-            <td class="text-center">-</td>
-            <td class="text-center">
-              <button class="btn btn-sm btn-outline-danger cancel-reservation-btn" data-option="${option.option}">
-                ${CONFIG.UI_TEXT.BUTTONS.CANCEL_RESERVATION}
-              </button>
-            </td>
-          </tr>
-        `;
-        rowIndex++;
-      });
-      
-      // 提供我的時間選項
-      if (provideMyTimeOption) {
-        tableRows += `
-          <tr>
-            <td class="text-center">${rowIndex}</td>
-            <td class="text-center text-success">${CONFIG.UI_TEXT.STATUS.PENDING}</td>
-            <td class="text-center">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME}</td>
-            <td class="text-center">-</td>
-            <td class="text-center">
-              <button class="btn btn-sm btn-outline-danger cancel-reservation-btn" data-option="provide-my-time">
-                ${CONFIG.UI_TEXT.BUTTONS.CANCEL_OPTION}
-              </button>
-            </td>
-          </tr>
-        `;
-      }
+      // 準備所有項目
+      const allItems = [
+        ...demoTimeOptions,
+        ...(provideMyTimeOption ? [{
+          option: 'provide-my-time',
+          buttonText: CONFIG.UI_TEXT.BUTTONS.CANCEL_OPTION
+        }] : [])
+      ];
+
+      // 使用通用函數生成表格行
+      const tableRows = generateReservationTableRows(allItems);
+
       const tableContent = generateTableContent(tableRows);
       
       return TEMPLATES.chat.messageContainer.withTable(
@@ -3320,26 +3337,8 @@ const TEMPLATES = {
     bookedTimesMessageAndTable: (bookedSchedules) => {
       Logger.debug('TEMPLATES.chat.bookedTimesMessageAndTable called', { bookedSchedules });
       
-      // 生成表格行
-      let tableRows = '';
-      let rowIndex = 1;
-      
-      bookedSchedules.forEach(schedule => {
-        tableRows += `
-          <tr>
-            <td class="text-center">${rowIndex}</td>
-            <td class="text-center text-success">${schedule.status}</td>
-            <td class="text-center">${schedule.timeSlot}</td>
-            <td class="text-center">-</td>
-            <td class="text-center">
-              <button class="btn btn-sm btn-outline-danger cancel-reservation-btn" data-option="${schedule.option}">
-                ${CONFIG.UI_TEXT.BUTTONS.CANCEL_RESERVATION}
-              </button>
-            </td>
-          </tr>
-        `;
-        rowIndex++;
-      });
+      // 使用通用函數生成表格行
+      const tableRows = generateReservationTableRows(bookedSchedules);
       
       const tableContent = generateTableContent(tableRows);
       
@@ -3355,46 +3354,17 @@ const TEMPLATES = {
       console.log('TEMPLATES.chat.cancelSuccessMessageAndTable called', { demoTimeOptions, provideMyTimeOption });
       const totalCount = demoTimeOptions.length + (provideMyTimeOption ? 1 : 0);
       
-      // 生成表格行
-      let tableRows = '';
-      let rowIndex = 1;
-      
-      // Demo 時間選項
-      demoTimeOptions.forEach(option => {
-        const timeSlot = getDemoTimeLabel(option.option);
-        
-        tableRows += `
-          <tr>
-            <td class="text-center">${rowIndex}</td>
-            <td class="text-center text-success">${CONFIG.UI_TEXT.STATUS.PENDING}</td>
-            <td class="text-center">${timeSlot}</td>
-            <td class="text-center">-</td>
-            <td class="text-center">
-              <button class="btn btn-sm btn-outline-danger cancel-reservation-btn" data-option="${option.option}">
-                ${CONFIG.UI_TEXT.BUTTONS.CANCEL_RESERVATION}
-              </button>
-            </td>
-          </tr>
-        `;
-        rowIndex++;
-      });
-      
-      // 提供我的時間選項
-      if (provideMyTimeOption) {
-        tableRows += `
-          <tr>
-            <td class="text-center">${rowIndex}</td>
-            <td class="text-center text-success">${CONFIG.UI_TEXT.STATUS.PENDING}</td>
-            <td class="text-center">${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME}</td>
-            <td class="text-center">-</td>
-            <td class="text-center">
-              <button class="btn btn-sm btn-outline-danger cancel-reservation-btn" data-option="provide-my-time">
-                ${CONFIG.UI_TEXT.BUTTONS.CANCEL_OPTION}
-              </button>
-            </td>
-          </tr>
-        `;
-      }
+      // 準備所有項目
+      const allItems = [
+        ...demoTimeOptions,
+        ...(provideMyTimeOption ? [{
+          option: 'provide-my-time',
+          buttonText: CONFIG.UI_TEXT.BUTTONS.CANCEL_OPTION
+        }] : [])
+      ];
+
+      // 使用通用函數生成表格行
+      const tableRows = generateReservationTableRows(allItems);
       
       const tableContent = generateTableContent(tableRows);
       
