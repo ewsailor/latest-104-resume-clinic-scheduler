@@ -847,6 +847,21 @@ const getAllSchedulesWithDraftStatus = () => {
   };
 };
 
+// 通用表格內容生成函數
+const generateTableContent = (tableRows) => {
+  console.log('generateTableContent called: 生成表格內容', { tableRowsLength: tableRows.length });
+  
+  const tableContent = `
+    ${TEMPLATES.chat.tableHeaders.fiveColumns()}
+    <tbody>
+      ${tableRows}
+    </tbody>
+  `;
+  
+  console.log('generateTableContent completed: 表格內容已生成');
+  return tableContent;
+};
+
 // 生成時段表格的共用函數
 const generateScheduleTable = (allSchedules, includeButtons = false) => {
   console.log('generateScheduleTable called: 生成時段表格', { 
@@ -867,10 +882,7 @@ const generateScheduleTable = (allSchedules, includeButtons = false) => {
   const tableContent = `
     <div class="table-responsive mt-2">
       <table class="table table-sm table-bordered table-hover schedule-table">
-        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
-        <tbody>
-          ${tableRows}
-        </tbody>
+        ${generateTableContent(tableRows)}
       </table>
     </div>
   `;
@@ -3143,12 +3155,7 @@ const TEMPLATES = {
         });
       });
       
-      const tableContent = `
-        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
-        <tbody>
-          ${tableRows}
-        </tbody>
-      `;
+      const tableContent = generateTableContent(tableRows);
       
       const buttonGroup = TEMPLATES.chat.buttonGroup(['continue-single-time', 'continue-multiple-times', 'submit-schedules']);
       return TEMPLATES.chat.messageContainer.withTableAndButtons(
@@ -3173,12 +3180,7 @@ const TEMPLATES = {
         });
       });
       
-      const tableContent = `
-        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
-        <tbody>
-          ${tableRows}
-        </tbody>
-      `;
+      const tableContent = generateTableContent(tableRows);
       
       const buttonGroup = TEMPLATES.chat.buttonGroup(['continue-single-time', 'continue-multiple-times', 'submit-schedules']);
       return TEMPLATES.chat.messageContainer.withTableAndButtons(
@@ -3208,12 +3210,7 @@ const TEMPLATES = {
         });
       });
       const scheduleCount = schedules.length;
-      const tableContent = `
-        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
-        <tbody>
-          ${tableRows}
-        </tbody>
-      `;
+      const tableContent = generateTableContent(tableRows);
       const buttonGroup = TEMPLATES.chat.buttonGroup(['single-time', 'multiple-times', 'submit-schedules', 'cancel']);
       return TEMPLATES.chat.messageContainer.withTableAndButtons(
         `您目前已提供 ${scheduleCount} 個時段，進度如下：`,
@@ -3277,12 +3274,7 @@ const TEMPLATES = {
         });
       });
       const scheduleCount = schedules.length;
-      const tableContent = `
-        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
-        <tbody>
-          ${tableRows}
-        </tbody>
-      `;
+      const tableContent = generateTableContent(tableRows);
       
       return TEMPLATES.chat.messageContainer.withTable(
         `✅ 成功提供時間！您目前已提供 Giver 以下 ${scheduleCount} 個時段，請耐心等待對方確認回覆。`,
@@ -3379,13 +3371,7 @@ const TEMPLATES = {
           </tr>
         `;
       }
-      
-      const tableContent = `
-        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
-        <tbody>
-          ${tableRows}
-        </tbody>
-      `;
+      const tableContent = generateTableContent(tableRows);
       
       return TEMPLATES.chat.messageContainer.withTable(
         `✅ 預約已送出！<br><br>Giver 已收到您對上述時段的預約通知，請耐心等待對方確認回覆。<br><br>⚠️貼心提醒：<br><br>Giver 可能因臨時狀況無法如期面談，請以對方回覆確認為準，謝謝您的體諒！<br><br>以下是您的預約時段：`,
@@ -3419,12 +3405,7 @@ const TEMPLATES = {
         rowIndex++;
       });
       
-      const tableContent = `
-        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
-        <tbody>
-          ${tableRows}
-        </tbody>
-      `;
+      const tableContent = generateTableContent(tableRows);
       
       return TEMPLATES.chat.messageContainer.withTable(
         `✅ 預約已送出！<br><br>Giver 已收到您對上述時段的預約通知，請耐心等待對方確認回覆。<br><br>⚠️貼心提醒：<br><br>Giver 可能因臨時狀況無法如期面談，請以對方回覆確認為準，謝謝您的體諒！<br><br>以下是您的預約時段：`,
@@ -3479,12 +3460,7 @@ const TEMPLATES = {
         `;
       }
       
-      const tableContent = `
-        ${TEMPLATES.chat.tableHeaders.fiveColumns()}
-        <tbody>
-          ${tableRows}
-        </tbody>
-      `;
+      const tableContent = generateTableContent(tableRows);
       
       return TEMPLATES.chat.messageContainer.withTable(
         `取消預約成功！您目前已預約 Giver 以下 ${totalCount} 個時段：`,
