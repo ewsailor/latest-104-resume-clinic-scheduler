@@ -6241,7 +6241,6 @@ const DOM = {
       });
       
       const allCheckboxes = document.querySelectorAll('.chat-checkbox-options input[type="checkbox"]');
-      const changedOption = changedCheckbox.getAttribute('data-option');
       
       // 獲取當前所有選中的選項
       const selectedOptions = Array.from(allCheckboxes)
@@ -6251,14 +6250,7 @@ const DOM = {
       console.log('當前選中的選項:', selectedOptions);
       
       // 重置所有選項的狀態
-      allCheckboxes.forEach(checkbox => {
-        const label = checkbox.nextElementSibling;
-        if (label) {
-          label.style.textDecoration = 'none';
-          label.style.color = '';
-        }
-        checkbox.disabled = false;
-      });
+      DOM.chat.resetCheckboxStates(allCheckboxes);
       
       // 根據當前所有選中的選項來決定哪些選項應該被禁用
       const hasDemoTime = selectedOptions.includes('demo-time-1') || selectedOptions.includes('demo-time-2');
@@ -6268,36 +6260,65 @@ const DOM = {
       // 應用互斥邏輯
       allCheckboxes.forEach(checkbox => {
         const option = checkbox.getAttribute('data-option');
-        const label = checkbox.nextElementSibling;
+        const shouldDisable = DOM.chat.shouldDisableCheckbox(option, hasDemoTime, hasProvideMyTime, hasCancel);
         
-                 // 如果選中了 Demo 時間，禁用其他所有選項
-         if (hasDemoTime && option !== 'demo-time-1' && option !== 'demo-time-2') {
-           checkbox.disabled = true;
-           checkbox.checked = false;
-           if (label) {
-             label.style.textDecoration = 'line-through';
-             label.style.color = CONFIG.COLORS.DISABLED_TEXT;
-           }
-         }
-                 // 如果選中了提供我的時間，禁用 Demo 時間和取消選項
-         else if (hasProvideMyTime && (option === 'demo-time-1' || option === 'demo-time-2' || option === 'cancel')) {
-           checkbox.disabled = true;
-           checkbox.checked = false;
-           if (label) {
-             label.style.textDecoration = 'line-through';
-             label.style.color = CONFIG.COLORS.DISABLED_TEXT;
-           }
-         }
-                 // 如果選中了取消，禁用其他所有選項
-         else if (hasCancel && option !== 'cancel') {
-           checkbox.disabled = true;
-           checkbox.checked = false;
-           if (label) {
-             label.style.textDecoration = 'line-through';
-             label.style.color = CONFIG.COLORS.DISABLED_TEXT;
-           }
-         }
+        if (shouldDisable) {
+          DOM.chat.disableCheckbox(checkbox);
+        }
       });
+    },
+
+    // 重置複選框狀態的通用函數
+    resetCheckboxStates: (checkboxes) => {
+      console.log('DOM.chat.resetCheckboxStates called：重置複選框狀態');
+      
+      checkboxes.forEach(checkbox => {
+        const label = checkbox.nextElementSibling;
+        if (label) {
+          label.style.textDecoration = 'none';
+          label.style.color = '';
+        }
+        checkbox.disabled = false;
+      });
+    },
+
+    // 判斷是否應該禁用複選框的通用函數
+    shouldDisableCheckbox: (option, hasDemoTime, hasProvideMyTime, hasCancel) => {
+      console.log('DOM.chat.shouldDisableCheckbox called：判斷是否應該禁用複選框', { 
+        option, hasDemoTime, hasProvideMyTime, hasCancel 
+      });
+      
+      // 如果選中了 Demo 時間，禁用其他所有選項
+      if (hasDemoTime && option !== 'demo-time-1' && option !== 'demo-time-2') {
+        return true;
+      }
+      // 如果選中了提供我的時間，禁用 Demo 時間和取消選項
+      else if (hasProvideMyTime && (option === 'demo-time-1' || option === 'demo-time-2' || option === 'cancel')) {
+        return true;
+      }
+      // 如果選中了取消，禁用其他所有選項
+      else if (hasCancel && option !== 'cancel') {
+        return true;
+      }
+      
+      return false;
+    },
+
+    // 禁用複選框的通用函數
+    disableCheckbox: (checkbox) => {
+      console.log('DOM.chat.disableCheckbox called：禁用複選框', { 
+        option: checkbox.getAttribute('data-option') 
+      });
+      
+      const label = checkbox.nextElementSibling;
+      
+      checkbox.disabled = true;
+      checkbox.checked = false;
+      
+      if (label) {
+        label.style.textDecoration = 'line-through';
+        label.style.color = CONFIG.COLORS.DISABLED_TEXT;
+      }
     },
   },
   
