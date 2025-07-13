@@ -2,7 +2,10 @@
 //   1. 基礎常數和配置 (Base Constants and Configurations)
 // ======================================================================
 
-// 性能優化配置
+// ======================================================
+//   1-1. 效能優化配置 (Performance Optimization Configuration)
+// ======================================================
+
 const PERFORMANCE_CONFIG = {
   // 減少調試日誌以提高性能
   enableDebugLogs: false,
@@ -20,7 +23,7 @@ const PERFORMANCE_CONFIG = {
 };
 
 // ======================================================
-//   1-1. 日誌記錄模組 (Logger Module)
+//   1-2. 日誌記錄模組 (Logger Module)
 // ======================================================
 
 // 日誌級別常數：用於數值比較，決定是否輸出日誌
@@ -189,7 +192,7 @@ const Logger = {
 const LoggerInstance = Logger;  
 
 // ======================================================
-//   1-2. 全域常數設定 (Global Constants)
+//   1-3. 全域常數設定 (Global Constants)
 // ======================================================
 
 // 全域常數設定
@@ -8285,14 +8288,23 @@ const PerformanceMonitor = {
     errors: []
   },
 
-  // 配置
+  // 配置 - 整合全域效能配置
   config: {
+    // 基本監控配置
     enableMonitoring: true,
     enableMemoryTracking: true,
     enableAPITracking: true,
     enableDOMTracking: true,
     maxMetricsCount: 100,
-    reportInterval: 60000 // 1分鐘
+    reportInterval: 60000, // 1分鐘
+    
+    // 整合全域效能配置
+    ...PERFORMANCE_CONFIG,
+    
+    // 效能監控專用配置
+    enablePerformanceLogs: PERFORMANCE_CONFIG.enableDebugLogs,
+    enableMetricsCollection: true,
+    enableRealTimeMonitoring: false
   },
 
   // 計時器
