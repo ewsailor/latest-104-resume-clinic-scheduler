@@ -3228,20 +3228,20 @@ const TEMPLATES = {
             <div class="row">
               <div class="col-md-6">
                 <div class="form-group mb-3">
-                  <label for="schedule-start-time" class="form-label">起（幾時幾分）<span class="text-danger">*</span></label>
+                  <label for="schedule-start-time" class="form-label">開始時間<span class="text-danger">*</span></label>
                   <input type="text" id="schedule-start-time" class="form-control" placeholder="請輸入 4 位數字如「2000」，無需輸入「:」" required>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="form-group mb-3">
-                  <label for="schedule-end-time" class="form-label">迄（幾時幾分）<span class="text-danger">*</span></label>
+                  <label for="schedule-end-time" class="form-label">結束時間<span class="text-danger">*</span></label>
                   <input type="text" id="schedule-end-time" class="form-control" placeholder="請輸入 4 位數字如「2200」，無需輸入「:」" required>
                 </div>
               </div>
             </div>
             <div class="form-group mb-3">
-              <label for="schedule-notes" class="form-label">備註</label>
-              <textarea id="schedule-notes" class="form-control" rows="3" placeholder="請輸入備註（非必填）"></textarea>
+              <label for="schedule-notes" class="form-label">備註（非必填）</label>
+              <input type="text" id="schedule-notes" class="form-control" placeholder="請輸入備註（非必填）">
             </div>
             <div class="d-flex justify-content-end gap-2">
               <button type="button" class="btn btn-outline-secondary" id="cancel-schedule-form">取消</button>

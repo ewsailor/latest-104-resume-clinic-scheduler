@@ -1,5 +1,3 @@
-# TEST
-
 from fastapi import FastAPI, Request, Body, HTTPException, status, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
