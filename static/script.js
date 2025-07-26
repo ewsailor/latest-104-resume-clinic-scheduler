@@ -440,10 +440,27 @@ const CONFIG = {
     },
     // 狀態文字配置
     STATUS: {
-      DRAFT: '草稿：尚未送出給 Giver',         
-      PENDING: '預約 Giver 時間成功，待 Giver 回覆',  
-      COMPLETED: 'Giver 已接受預約',          
-      REJECTED: 'Giver 已拒絕預約',           
+      GIVER: {
+        DRAFT: '草稿：尚未公開預約',
+        AVAILABLE: '已公開，尚無人預約',
+        PENDING: '有人預約您的時間，待您回覆中',
+        ACCEPTED: '您已接受預約',
+        REJECTED: '您已婉拒預約',
+        CANCELLED: '您已取消時段'
+      },
+      TAKER_VIEW: {
+        PENDING: '預約 Giver 時間成功，待 Giver 回覆',
+        ACCEPTED: 'Giver 已接受預約',
+        REJECTED: 'Giver 已婉拒預約',
+        CANCELLED: '預約已取消'
+      },
+      TAKER_OFFER: {
+        DRAFT: '草稿：尚未送出給 Giver',
+        PENDING: '提供時間成功，待 Giver 回覆',
+        ACCEPTED: 'Giver 已接受預約',
+        REJECTED: 'Giver 已婉拒預約',
+        CANCELLED: '您已取消提供時間'
+      }
     },
     // 表格標題配置
     TABLE_HEADERS: {
@@ -870,7 +887,7 @@ const generateScheduleTableRow = (schedule, index, options = {}) => {
   // 處理狀態
   const isDraft = schedule.isDraft || false;
   const statusClass = isDraft ? 'text-warning' : 'text-success';
-  const statusText = isDraft ? CONFIG.UI_TEXT.STATUS.DRAFT : CONFIG.UI_TEXT.STATUS.PENDING;
+  const statusText = isDraft ? CONFIG.UI_TEXT.STATUS.TAKER_OFFER.DRAFT : CONFIG.UI_TEXT.STATUS.TAKER_OFFER.PENDING;
   
   // 生成按鈕 HTML
   const buttonsHTML = showButtons ? generateActionButtons(schedule, actualIndex, buttonType) : '';
@@ -943,7 +960,7 @@ const generateReservationTableRows = (items, options = {}) => {
   const {
     startIndex = 1,
     statusClass = 'text-success',
-    statusText = CONFIG.UI_TEXT.STATUS.PENDING,
+    statusText = CONFIG.UI_TEXT.STATUS.TAKER_VIEW.PENDING,
     buttonText = CONFIG.UI_TEXT.BUTTONS.CANCEL_RESERVATION,
     buttonClass = 'btn btn-sm btn-outline-danger cancel-reservation-btn',
     notesColumn = '-'
@@ -3388,7 +3405,7 @@ const TEMPLATES = {
       const tableContent = generateTableContent(tableRows);
       
       return TEMPLATES.chat.messageContainer.withTable(
-        `✅ 成功提供時間！您目前已提供 Giver 以下 ${scheduleCount} 個時段，請耐心等待對方確認回覆。`,
+        `✅ 提供時間成功！您目前已提供 Giver 以下 ${scheduleCount} 個時段，請耐心等待對方確認回覆。`,
         tableContent,
         'success-provide-table table-hover'
       );
@@ -3447,12 +3464,12 @@ const TEMPLATES = {
         ...demoTimeOptions.map(option => ({
           option: option.option,
           timeSlot: getDemoTimeLabel(option.option),
-          status: CONFIG.UI_TEXT.STATUS.PENDING
+          status: CONFIG.UI_TEXT.STATUS.TAKER_VIEW.PENDING
         })),
         ...(provideMyTimeOption ? [{
           option: 'provide-my-time',
           timeSlot: CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME,
-          status: CONFIG.UI_TEXT.STATUS.PENDING,
+          status: CONFIG.UI_TEXT.STATUS.TAKER_VIEW.PENDING,
           buttonText: CONFIG.UI_TEXT.BUTTONS.CANCEL_OPTION
         }] : [])
       ];
@@ -3495,12 +3512,12 @@ const TEMPLATES = {
         ...demoTimeOptions.map(option => ({
           option: option.option,
           timeSlot: getDemoTimeLabel(option.option),
-          status: CONFIG.UI_TEXT.STATUS.PENDING
+          status: CONFIG.UI_TEXT.STATUS.TAKER_VIEW.PENDING
         })),
         ...(provideMyTimeOption ? [{
           option: 'provide-my-time',
           timeSlot: CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME,
-          status: CONFIG.UI_TEXT.STATUS.PENDING,
+          status: CONFIG.UI_TEXT.STATUS.TAKER_VIEW.PENDING,
           buttonText: CONFIG.UI_TEXT.BUTTONS.CANCEL_OPTION
         }] : [])
       ];
@@ -4385,6 +4402,10 @@ const DOM = {
             case 'cancel':
               DOM.chat.handleCancelSchedule();
               break;
+            case 'submit-schedules':
+              // 使用 EventManager 處理 submit-schedules 按鈕
+              EventManager.handleOptionButton(newBtn, e);
+              break;
             default:
               console.warn('未知的預約選項:', option);
           }
@@ -4836,7 +4857,7 @@ const DOM = {
           type: 'demo',
           option: option.option,
           timeSlot: timeSlot,
-          status: CONFIG.UI_TEXT.STATUS.PENDING
+          status: CONFIG.UI_TEXT.STATUS.TAKER_VIEW.PENDING
         });
       });
       
@@ -4846,7 +4867,7 @@ const DOM = {
           type: 'provide-my-time',
           option: 'provide-my-time',
           timeSlot: `${CONFIG.UI_TEXT.BUTTONS.PROVIDE_MY_TIME}`,
-          status: CONFIG.UI_TEXT.STATUS.PENDING
+          status: CONFIG.UI_TEXT.STATUS.TAKER_VIEW.PENDING
         });
       }
       
@@ -5801,25 +5822,24 @@ const DOM = {
       const providedSchedules = ChatStateManager.getProvidedSchedules();
       console.log('DOM.chat.handleSuccessProvideTime: 已提供的時段資料', providedSchedules);
       
-      await delay(DELAY_TIMES.CHAT.SUCCESS_MESSAGE);
-        const chatMessages = document.getElementById('chat-messages');
-        if (chatMessages) {
-          // 先移除舊的成功提供表格（如果存在）
-          const existingSuccessMessage = chatMessages.querySelector('.success-provide-table')?.closest('.giver-message');
-          if (existingSuccessMessage) {
-            console.log('DOM.chat.handleSuccessProvideTime: 移除舊的成功提供表格');
-            existingSuccessMessage.remove();
-          }
-          
-          // 每次都創建新的成功提供表格
-          console.log('DOM.chat.handleSuccessProvideTime: 創建新的成功提供表格');
-          const responseHTML = TEMPLATES.chat.successProvideTime(providedSchedules, 0);
-          chatMessages.insertAdjacentHTML('beforeend', responseHTML);
-          
-          console.log('按鈕事件由 EventManager 統一處理');
-          
-          chatMessages.scrollTop = chatMessages.scrollHeight;
+      const chatMessages = document.getElementById('chat-messages');
+      if (chatMessages) {
+        // 先移除舊的成功提供表格（如果存在）
+        const existingSuccessMessage = chatMessages.querySelector('.success-provide-table')?.closest('.giver-message');
+        if (existingSuccessMessage) {
+          console.log('DOM.chat.handleSuccessProvideTime: 移除舊的成功提供表格');
+          existingSuccessMessage.remove();
         }
+        
+        // 每次都創建新的成功提供表格
+        console.log('DOM.chat.handleSuccessProvideTime: 創建新的成功提供表格');
+        const responseHTML = TEMPLATES.chat.successProvideTime(providedSchedules, 0);
+        chatMessages.insertAdjacentHTML('beforeend', responseHTML);
+        
+        console.log('按鈕事件由 EventManager 統一處理');
+        
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
     },
     
     // 格式化時段字串，包含星期幾
@@ -6170,6 +6190,9 @@ const DOM = {
             DOM.chat.handleScheduleOption();
           } else if (option === 'skip') {
             DOM.chat.handleSkipOption();
+          } else if (option === 'submit-schedules') {
+            // 使用 EventManager 處理 submit-schedules 按鈕
+            EventManager.handleOptionButton(newBtn, e);
           }
           // 隱藏選項按鈕
           const optionsContainer = newBtn.closest('.chat-options-buttons');
@@ -7229,7 +7252,7 @@ const EventManager = {
   
   // 初始化事件委派
   init() {
-    Logger.info('EventManager: 初始化事件委派系統');
+    console.log('EventManager: 初始化事件委派系統');
     
     // 綁定全域點擊事件委派
     document.addEventListener('click', this.handleGlobalClick.bind(this));
@@ -7240,7 +7263,7 @@ const EventManager = {
     // 綁定全域變更事件委派
     document.addEventListener('change', this.handleGlobalChange.bind(this));
     
-    Logger.info('EventManager: 事件委派系統初始化完成');
+    console.log('EventManager: 事件委派系統初始化完成');
   },
   
   // 全域點擊事件委派處理
@@ -7267,10 +7290,10 @@ const EventManager = {
   
   // 全域提交事件委派處理
   handleGlobalSubmit(e) {
-    Logger.debug('EventManager: 全域提交事件觸發', { target: e.target.id });
+    console.log('EventManager: 全域提交事件觸發', { target: e.target.id });
     if (e.target.matches('#time-schedule-form')) {
       e.preventDefault();
-      Logger.info('EventManager: 處理時間表單提交');
+      console.log('EventManager: 處理時間表單提交');
       this.handleScheduleFormSubmit(e.target, e);
     }
   },
@@ -7290,7 +7313,7 @@ const EventManager = {
     // 預處理：跳過聊天模組專門處理的選項按鈕
     preprocess: (data, btn, e) => {
       if (btn.closest('.chat-options-buttons') && data.option === 'cancel') {
-        Logger.info('EventManager: 跳過聊天模組專門處理的選項按鈕');
+        console.log('EventManager: 跳過聊天模組專門處理的選項按鈕');
         return false;
       }
       return true;
@@ -7299,6 +7322,8 @@ const EventManager = {
     // 主要處理邏輯
     handler: async (data, btn, e) => {
       const { option } = data;
+      
+      console.log('EventManager: 處理選項按鈕', { option, data });
       
       // 處理不同選項
       switch (option) {
@@ -7345,25 +7370,30 @@ const EventManager = {
           DOM.chat.handleMultipleTimes();
           break;
         case 'submit-schedules':
+          console.log('EventManager: 進入 submit-schedules case');
           DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}`);
           // 將草稿時段轉為正式提供時段
           const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+          console.log('EventManager: 檢查草稿時段', { draftSchedulesCount: draftSchedules.length, draftSchedules });
           if (draftSchedules.length > 0) {
             // 將草稿時段轉為正式提供時段（移除 isDraft 標記）
             const formalSchedules = draftSchedules.map(schedule => {
               const { isDraft, ...formalSchedule } = schedule;
               return formalSchedule;
             });
+            console.log('EventManager: 草稿時段已轉換為正式時段', { formalSchedules });
             
             // 添加到正式提供時段列表
             const existingSchedules = ChatStateManager.getProvidedSchedules();
             const allSchedules = [...existingSchedules, ...formalSchedules];
+            console.log('EventManager: 合併時段列表', { existingSchedulesCount: existingSchedules.length, formalSchedulesCount: formalSchedules.length, allSchedulesCount: allSchedules.length });
             ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, allSchedules);
             
             // 清空草稿列表
             ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, []);
+            console.log('EventManager: 草稿列表已清空');
             
-            Logger.info('EventManager: 草稿時段已轉為正式提供時段', { 
+            console.log('EventManager: 草稿時段已轉為正式提供時段', { 
               draftCount: draftSchedules.length, 
               totalFormalCount: allSchedules.length 
             });
@@ -7371,14 +7401,17 @@ const EventManager = {
           
           // 先更新現有表格，確保編輯功能正常
           EventManager.updateScheduleDisplay();
-          
-          await nonBlockingDelay(DELAY_TIMES.CHAT.SUCCESS_MESSAGE, () => {
-            DOM.chat.handleSuccessProvideTime();
-          });
+
+          // 延遲顯示成功訊息泡泡
+          console.log('EventManager: 準備延遲顯示成功訊息泡泡');
+          await delay(DELAY_TIMES.CHAT.SUCCESS_MESSAGE);
+          console.log('EventManager: 延遲完成，準備顯示成功訊息泡泡');
+          DOM.chat.handleSuccessProvideTime();
+          console.log('EventManager: submit-schedules case 處理完成');
           break;
         
         default:
-          Logger.warn('EventManager: 未知的選項按鈕', { option });
+          console.log('EventManager: 未知的選項按鈕', { option });
       }
     },
     
@@ -7426,7 +7459,7 @@ const EventManager = {
             ...scheduleToEdit,
             isDraft: scheduleToEdit.isDraft
           };
-          Logger.info('EventManager: 找到要編輯的時段', { 
+          console.log('EventManager: 找到要編輯的時段', { 
             originalIndex: index, 
             actualEditIndex, 
             isDraft: scheduleToEdit.isDraft,
@@ -7434,7 +7467,7 @@ const EventManager = {
           });
           DOM.chat.handleSingleTime(actualEditIndex, editData);
         } else {
-          Logger.error('EventManager: 找不到要編輯的時段', { 
+          console.error('EventManager: 找不到要編輯的時段', { 
             index, 
             totalSchedules: allSchedules.length,
             providedSchedules: providedSchedules.length,
@@ -7445,7 +7478,7 @@ const EventManager = {
         // 處理成功提供表格（只有正式提供時段）
         const schedules = ChatStateManager.getProvidedSchedules();
         const schedule = schedules[index];
-        Logger.info('EventManager: 編輯成功提供表格中的時段', { index, schedule });
+        console.log('EventManager: 編輯成功提供表格中的時段', { index, schedule });
         
         if (schedule) {
           // 傳遞編輯索引和時段資料
@@ -7454,7 +7487,7 @@ const EventManager = {
             ...schedule,
             isDraft: false
           };
-          Logger.info('EventManager: 找到要編輯的成功提供時段', editData);
+          console.log('EventManager: 找到要編輯的成功提供時段', editData);
           DOM.chat.handleSingleTime(index, editData);
         } else {
           console.error('EventManager: 找不到要編輯的時段', { index, totalSchedules: schedules.length });
@@ -7463,7 +7496,7 @@ const EventManager = {
         // 處理其他表格（如成功提供表格）
         const schedules = ChatStateManager.getProvidedSchedules();
         const schedule = schedules[index];
-        Logger.info('EventManager: 編輯正式提供時段', { index, schedule });
+        console.log('EventManager: 編輯正式提供時段', { index, schedule });
         DOM.chat.handleSingleTime(index, schedule);
       }
     }
@@ -7511,12 +7544,12 @@ const EventManager = {
                   return draftIndex !== index;
                 });
                 ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, updatedDraftSchedules);
-                Logger.info('EventManager: 草稿時段已刪除', { deletedSchedule: scheduleToDelete, remainingDrafts: updatedDraftSchedules.length });
+                console.log('EventManager: 草稿時段已刪除', { deletedSchedule: scheduleToDelete, remainingDrafts: updatedDraftSchedules.length });
               } else {
                 // 刪除正式提供時段
                 const updatedProvidedSchedules = providedSchedules.filter((_, idx) => idx !== index);
                 ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, updatedProvidedSchedules);
-                Logger.info('EventManager: 正式提供時段已刪除', { deletedSchedule: scheduleToDelete, remainingProvided: updatedProvidedSchedules.length });
+                console.log('EventManager: 正式提供時段已刪除', { deletedSchedule: scheduleToDelete, remainingProvided: updatedProvidedSchedules.length });
               }
             }
             
@@ -7529,7 +7562,7 @@ const EventManager = {
             } else {
               // 使用 updateScheduleDisplay 方法更新所有相關表格
               EventManager.updateScheduleDisplay();
-              Logger.info('EventManager: 所有時段表格已更新');
+              console.log('EventManager: 所有時段表格已更新');
             }
             resolve();
           }
@@ -7562,7 +7595,7 @@ const EventManager = {
             // 更新顯示
             DOM.chat.updateBookedSchedulesDisplay(updatedSchedules);
             
-            Logger.info('EventManager: 預約已取消', { scheduleId, remainingCount: updatedSchedules.length });
+            console.log('EventManager: 預約已取消', { scheduleId, remainingCount: updatedSchedules.length });
             resolve();
           }
         });
