@@ -1,30 +1,59 @@
-[project]
-name = "104-resume-clinic-scheduler"
-version = "0.1.0"
-description = ""
-authors = [
-    {name = "Oscar",email = "ew12136@gmail.com"}
-]
+# 定義專案基本資訊
+[tool.poetry]
+name = "104-resume-clinic-scheduler"                             
+version = "0.1.0"                                                 
+description = "【MVP】104 履歷診療室 - 站內諮詢時間媒合系統"      
+authors = ["Oscar <ew12136@gmail.com>"]                       
+license = "MIT"  # 授權是歡迎自由使用，但要保留版權與授權資訊
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-    "fastapi (>=0.115.12,<0.116.0)",
-    "uvicorn[standard] (>=0.34.3,<0.35.0)",
-    "pymysql (>=1.1.1,<2.0.0)",
-    "sqlalchemy (>=2.0.41,<3.0.0)",
-    "motor (>=3.7.1,<4.0.0)",
-    "redis (>=6.2.0,<7.0.0)",
-    "pydantic (>=2.11.5,<3.0.0)"
+packages = [{ include = "app" }]  # 僅將 app/ 目錄打包進套件中，避免將 tests/、scripts/ 等非部署用內容加入發佈包，利於部署與 CI/CD 整合
+classifiers = [                                           
+    "Development Status :: 3 - Alpha",  # 開發狀態：Alpha 版本，有初步功能，可以跑，但可能會大改
+    "Programming Language :: Python :: 3.12",                    
+    "Framework :: FastAPI",                                 
+    "License :: OSI Approved :: MIT License",                     
+    "Operating System :: OS Independent"            
 ]
 
+# 定義專案運行所需的套件
+[tool.poetry.dependencies]
+python = "^3.12"      
+fastapi = "^0.111.0"  
+uvicorn = { extras = ["standard"], version = ">=0.34.3,<0.35.0" }   
+pymysql = ">=1.1.1,<2.0.0" 
+sqlalchemy = ">=2.0.41,<3.0.0"  
+motor = ">=3.7.1,<4.0.0"  # 用 motor 建立非同步 MongoDB 連線，進行非同步資料庫查詢
+pymongo = ">=4.0.0,<5.0.0"  # 用 pymongo 做同步操作，寫管理工具或腳本（例如資料匯入匯出）時使用
+redis = ">=6.2.0,<7.0.0" 
+python-dotenv = ">=1.0.0,<2.0.0"  # 載入環境變數檔案 
+jinja2 = ">=3.1.0,<4.0.0" 
+pydantic = ">=2.11.5,<3.0.0"
+boto3 = "^1.34.0"  # Boto3 AWS SDK - 用於與 AWS 服務互動
 
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.group.dev.dependencies]
+# 僅在開發時需要的套件
+[tool.poetry.group.dev.dependencies] 
 pytest = "^8.3.5"
-black = "^25.1.0"
-isort = "^6.0.1"
-mypy = "^1.16.0"
+black = "^25.1.0"  # 自動格式化 Python 程式碼
+isort = "^6.0.1"  # 自動整理 import 語句的順序
+mypy = "^1.16.0"  # 靜態型別檢查
+pre-commit = "^3.7.0"  # 提交前，自動檢查程式碼品質
 
+# Black 格式化工具配置
+[tool.black]
+line-length = 88  # 每行最大字元數，超過此長度會自動換行
+target-version = ["py312"]
+
+# isort 匯入排序工具配置
+[tool.isort]
+profile = "black"  # 確保與 Black 格式化工具相容
+
+# MyPy 型別檢查工具配置
+[tool.mypy] 
+python_version = "3.12"
+strict = true  # 嚴格模式，啟用所有型別檢查規則
+ignore_missing_imports = true  # 忽略缺少的匯入，對於無法找到的套件不報錯
+
+# 建置系統配置
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]  
+build-backend = "poetry.core.masonry.api"
