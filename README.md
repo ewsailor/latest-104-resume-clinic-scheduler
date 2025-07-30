@@ -58,17 +58,36 @@
 4. **設定環境變數**
 
    ```bash
-   cp .env.example .env
+   cp env.example .env
    # 編輯 .env 檔案，填入必要的資料庫連線資訊
    ```
 
-5. **啟動開發伺服器**
+5. **資料庫安全設定 ⚠️** 
+
+   ```bash
+   # 連接到 MySQL：建立專用的應用程式帳號（不要使用 root）
+   mysql -u root -p
+   ```
+
+   **安全提醒：**
+
+   - ❌ **絕對不要使用 `root` 帳號**作為應用程式資料庫使用者
+   - ❌ 不要在版本控制中提交 `.env` 檔案
+   - ❌ 不要將資料庫憑證硬編碼在程式碼中  
+   - ✅ 建立專用的應用程式帳號（如：`fastapi_user`）
+   - ✅ 將 `.env` 檔案加入 `.gitignore`   
+   - ✅ 使用強密碼（至少 8 個字元，包含大小寫字母、數字、符號）
+   - ✅ 定期更換密碼
+   - ✅ 授予權限時，遵循最小權限原則
+   - ✅ 使用環境變數管理敏感資訊      
+
+6. **啟動開發伺服器**
 
    ```bash
    poetry run uvicorn app.main:app --reload --reload-dir app
    ```
 
-6. **開啟瀏覽器**
+7. **開啟瀏覽器**
    訪問 http://127.0.0.1:8000
 
 ## 🛠️ 開發工具
@@ -92,6 +111,7 @@
 ### 後端技術棧
 
 - **框架**: FastAPI (現代、高效能的 Python Web 框架)
+- **配置管理**: Pydantic Settings (型別安全的配置管理)
 - **資料庫**:
   - **MySQL/MariaDB**: 核心業務資料儲存
   - **MongoDB**: 彈性資料儲存（日誌、使用者偏好等）
@@ -113,15 +133,14 @@
 - **監控**: 整合日誌系統
 - **AWS 整合**: Boto3 SDK 支援
 
-
 - 開發環境：[Visual Studio Code](https://visualstudio.microsoft.com/zh-hant/)
 - 執行環境(1)：[Node.js v18.15.0](https://github.com/coreybutler/nvm-windows)
 - 執行環境(2)：[MySQL v8.0.15](https://downloads.mysql.com/archives/installer/)
 - 自動重啟伺服器套件：[nodemon @3.1.7](https://nodemon.io/)
-- 應用程式框架：[express ^4.21.1](https://www.npmjs.com/package/express) 
+- 應用程式框架：[express ^4.21.1](https://www.npmjs.com/package/express)
 - HTTP method 套件：[method-override ^3.0.0](https://www.npmjs.com/package/method-override)
-- 資料庫套件：[mysql2 v3.2.0](https://www.npmjs.com/package/mysql2) 
-- 資料庫管理工具：[MySQL Workbench 8.0.15](https://downloads.mysql.com/archives/installer/) 
+- 資料庫套件：[mysql2 v3.2.0](https://www.npmjs.com/package/mysql2)
+- 資料庫管理工具：[MySQL Workbench 8.0.15](https://downloads.mysql.com/archives/installer/)
 
 ## 📁 專案結構
 

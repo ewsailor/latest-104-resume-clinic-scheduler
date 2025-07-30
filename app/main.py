@@ -12,17 +12,17 @@ from fastapi import FastAPI, Request  # Web 框架核心
 from fastapi.responses import HTMLResponse  # HTML 回應類型
 
 # ===== 本地模組 =====
-from app.config import config, get_project_version  # 應用程式配置
+from app.config import settings, get_project_version  # 應用程式配置
 from app.factory import create_app, create_templates, create_static_files  # 應用程式工廠
 from app.routers.main import router as main_router  # 主要路由
 
 
 # ===== 應用程式初始化 =====
 # 建立應用程式實例
-app = create_app(config)
+app = create_app(settings)
 
 # 建立模板引擎實例
-templates = create_templates(config)
+templates = create_templates(settings)
 
 # 將 templates 設定到應用程式狀態中，用依賴注入解決循環匯入問題
 app.state.templates = templates
