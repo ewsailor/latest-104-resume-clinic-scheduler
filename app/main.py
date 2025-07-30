@@ -12,7 +12,7 @@ from fastapi import FastAPI, Request  # Web 框架核心
 from fastapi.responses import HTMLResponse  # HTML 回應類型
 
 # ===== 本地模組 =====
-from app.config import settings, get_project_version  # 應用程式配置
+from app.core import settings, get_project_version # 應用程式配置
 from app.factory import create_app, create_templates, create_static_files  # 應用程式工廠
 from app.routers.main import router as main_router  # 主要路由
 

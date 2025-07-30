@@ -62,7 +62,7 @@
    # 編輯 .env 檔案，填入必要的資料庫連線資訊
    ```
 
-5. **資料庫安全設定 ⚠️** 
+5. **資料庫安全設定 ⚠️**
 
    ```bash
    # 連接到 MySQL：建立專用的應用程式帳號（不要使用 root）
@@ -73,13 +73,13 @@
 
    - ❌ **絕對不要使用 `root` 帳號**作為應用程式資料庫使用者
    - ❌ 不要在版本控制中提交 `.env` 檔案
-   - ❌ 不要將資料庫憑證硬編碼在程式碼中  
+   - ❌ 不要將資料庫憑證硬編碼在程式碼中
    - ✅ 建立專用的應用程式帳號（如：`fastapi_user`）
-   - ✅ 將 `.env` 檔案加入 `.gitignore`   
+   - ✅ 將 `.env` 檔案加入 `.gitignore`
    - ✅ 使用強密碼（至少 8 個字元，包含大小寫字母、數字、符號）
    - ✅ 定期更換密碼
    - ✅ 授予權限時，遵循最小權限原則
-   - ✅ 使用環境變數管理敏感資訊      
+   - ✅ 使用環境變數管理敏感資訊
 
 6. **啟動開發伺服器**
 
@@ -142,23 +142,46 @@
 - 資料庫套件：[mysql2 v3.2.0](https://www.npmjs.com/package/mysql2)
 - 資料庫管理工具：[MySQL Workbench 8.0.15](https://downloads.mysql.com/archives/installer/)
 
-## 📁 專案結構
+## 🏗️ 專案結構
 
 ```
 104-resume-clinic-scheduler/
-├── app/                    # 主要應用程式目錄
-│   ├── main.py            # FastAPI 應用程式入口
-│   ├── models/            # 資料模型定義
-│   ├── routers/           # API 路由定義
-│   ├── schemas/           # Pydantic 資料驗證模型
-│   ├── templates/         # Jinja2 模板檔案
-│   └── utils/             # 工具函數和輔助模組
-├── static/                # 靜態檔案 (CSS, JS, 圖片)
-├── logs/                  # 日誌檔案
-├── tests/                 # 測試檔案
-├── pyproject.toml         # Poetry 專案配置
-├── poetry.lock           # 依賴鎖定檔案
-└── README.md             # 專案說明文件
+├── app/                          # 應用程式主目錄
+│   ├── core/                     # 核心功能模組
+│   │   ├── __init__.py           # 核心模組初始化
+│   │   └── settings.py           # 應用程式設定管理
+│   ├── models/                   # 資料模型
+│   │   ├── database.py           # 資料庫模型
+│   │   └── schedule.py           # 排程模型
+│   ├── routers/                  # 路由模組
+│   │   ├── __init__.py           # 核心模組初始化
+│   │   ├── main.py               # 主要路由
+│   │   └── schedule.py           # 排程路由
+│   ├── schemas/                  # Pydantic 模式
+│   │   └── schedule.py           # 排程相關模式
+│   ├── templates/                # HTML 模板
+│   │   └── index.html            # 首頁模板
+│   ├── factory.py                # 應用程式工廠
+│   └── main.py                   # 應用程式入口點
+├── database/                     # 資料庫相關
+│   └── schema.sql                # 資料庫結構
+├── scripts/                      # 開發工具腳本
+│   ├── test_config.py            # 配置驗證腳本
+│   └── README.md                 # 腳本說明文件
+├── static/                       # 靜態檔案
+│   ├── style.css                 # 樣式表
+│   ├── script.js                 # JavaScript
+│   └── images/                   # 圖片資源
+├── tests/                        # 測試檔案
+│   ├── test_config.py            # 配置類別測試
+│   └── test_main.py              # 主要功能測試
+├── logs/                         # 日誌檔案
+├── .env                          # 環境變數（本地開發）
+├── .env.example                  # 環境變數範例
+├── .gitignore                    # Git 忽略檔案
+├── pyproject.toml                # Poetry 專案配置
+├── poetry.lock                   # Poetry 依賴鎖定
+└── README.md                     # 專案說明文件
 ```
 
 ## 🧪 測試

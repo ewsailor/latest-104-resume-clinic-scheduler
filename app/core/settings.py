@@ -23,7 +23,8 @@ def get_project_version() -> str:
         str: 專案版本號，如果讀取失敗則返回預設版本。
     """
     try:
-        project_root = Path(__file__).parent.parent
+        # 現在 settings.py 在 app/core/ 目錄中，需要往上三層才能到達專案根目錄
+        project_root = Path(__file__).parent.parent.parent
         pyproject_path = project_root / "pyproject.toml"
         
         with open(pyproject_path, "rb") as f:
@@ -58,11 +59,11 @@ class Settings(BaseSettings):
     
     # ===== 基礎路徑配置 =====
     project_root: Path = Field(
-        default_factory=lambda: Path(__file__).parent.parent,
+        default_factory=lambda: Path(__file__).parent.parent.parent,
         description="專案的根目錄，用來定位 pyproject.toml 等檔案"
     )
     app_dir: Path = Field(
-        default_factory=lambda: Path(__file__).parent,
+        default_factory=lambda: Path(__file__).parent.parent,
         description="應用程式目錄，用來定位 templates 等檔案"
     )
     

@@ -15,7 +15,7 @@
 # from sqlalchemy.exc import SQLAlchemyError  # 資料庫錯誤
 
 # # ===== 本地模組 =====
-# from app.config import config  # 應用程式配置
+# from app.core import settings  # 應用程式配置
 
 # # 設定日誌
 # logger = logging.getLogger(__name__)

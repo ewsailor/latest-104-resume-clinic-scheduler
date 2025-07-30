@@ -12,7 +12,7 @@ from fastapi import APIRouter, Request  # 路由和請求物件
 from fastapi.responses import HTMLResponse  # HTML 回應類型
 
 # ===== 本地模組 =====
-from app.config import settings, get_project_version  # 應用程式配置
+from app.core import settings, get_project_version  # 應用程式配置
 
 
 # 建立路由器
