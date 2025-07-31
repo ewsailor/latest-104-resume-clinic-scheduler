@@ -15,6 +15,7 @@ from fastapi.responses import HTMLResponse  # HTML 回應類型
 from app.core import settings, get_project_version # 應用程式配置
 from app.factory import create_app, create_templates, create_static_files  # 應用程式工廠
 from app.routers.main import router as main_router  # 主要路由
+from app.routers.health import router as health_router  # 健康檢查路由
 
 
 # ===== 應用程式初始化 =====
@@ -29,3 +30,4 @@ app.state.templates = templates
 
 # 註冊路由
 app.include_router(main_router)
+app.include_router(health_router)
