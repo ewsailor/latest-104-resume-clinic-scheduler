@@ -5,108 +5,38 @@
 [![Poetry](https://img.shields.io/badge/Poetry-1.8+-orange.svg)](https://python-poetry.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 📋 專案概述
+## 專案概述
 
-104 履歷診療室是一個專業的職涯諮詢平台，提供履歷健診、模擬面試、職涯諮詢等服務。本系統專注於解決 Giver（諮詢師）與 Taker（求職者）之間的時間媒合問題，讓雙方能夠方便地設定可面談時段並完成配對。讓 Giver、Taker 在平台內，方便地設定可面談時段並完成配對媒合，同時能快速發送預計回覆時間通知，以減少等待回應時的不確定與焦慮感。
+讓 Giver（諮詢師）與 Taker（求職者）使用 104 履歷診療室時，雙方能在平台內，設定可面談時段並完成配對媒合，同時快速發送預計回覆時間通知，以減少等待回應時的不確定與焦慮感。
 
-## 🎯 核心功能
+## 核心功能
 
 ### 主要功能
 
 - **時間媒合系統**：Giver 和 Taker 可以設定可面談時段並完成配對
 - **即時通知**：快速發送預計回覆時間通知，減少等待回應時的不確定感
-- **履歷健診**：專業的履歷檢視和建議服務
-- **模擬面試**：提供面試練習和回饋
-- **職涯諮詢**：個人化的職涯規劃建議
 
 ### 使用者故事 (User Stories)
 
+#### Giver（諮詢師）視角
+
 - 作為 Giver，我希望能夠設定我的可諮詢時段，讓 Taker 可以預約
+- 作為 Giver，我希望能夠查看預約請求並快速回覆
+- 作為 Giver，我希望能夠管理我的諮詢時間表
+
+#### Taker（求職者）視角
+
 - 作為 Taker，我希望能夠搜尋合適的 Giver 並預約諮詢時段
+- 作為 Taker，我希望能夠收到即時的通知和狀態更新
+- 作為 Taker，我希望能夠查看諮詢歷史記錄
+
+#### 系統自動化功能
+
 - 作為系統，我希望能夠自動媒合最佳的時間配對
-- 作為使用者，我希望能夠收到即時的通知和狀態更新
+- 作為系統，我希望能夠發送預計回覆時間通知
+- 作為系統，我希望能夠追蹤諮詢完成狀態
 
-## 🚀 快速開始
-
-### 環境需求
-
-- **Python**: 3.12+
-- **Poetry**: 1.8+
-- **資料庫**: MySQL/MariaDB, MongoDB, Redis
-
-### 安裝步驟
-
-1. **複製專案**
-
-   ```bash
-   git clone https://github.com/ewsailor/104-resume-clinic-scheduler.git
-   cd 104-resume-clinic-scheduler
-   ```
-
-2. **安裝 Poetry (如果尚未安裝)**
-
-   ```bash
-   pip install poetry
-   ```
-
-3. **安裝專案依賴**
-
-   ```bash
-   poetry install
-   ```
-
-4. **設定環境變數**
-
-   ```bash
-   cp env.example .env
-   # 編輯 .env 檔案，填入必要的資料庫連線資訊
-   ```
-
-5. **資料庫安全設定 ⚠️**
-
-   ```bash
-   # 連接到 MySQL：建立專用的應用程式帳號（不要使用 root）
-   mysql -u root -p
-   ```
-
-   **安全提醒：**
-
-   - ❌ **絕對不要使用 `root` 帳號**作為應用程式資料庫使用者
-   - ❌ 不要在版本控制中提交 `.env` 檔案
-   - ❌ 不要將資料庫憑證硬編碼在程式碼中
-   - ✅ 建立專用的應用程式帳號（如：`fastapi_user`）
-   - ✅ 將 `.env` 檔案加入 `.gitignore`
-   - ✅ 使用強密碼（至少 8 個字元，包含大小寫字母、數字、符號）
-   - ✅ 定期更換密碼
-   - ✅ 授予權限時，遵循最小權限原則
-   - ✅ 使用環境變數管理敏感資訊
-
-6. **啟動開發伺服器**
-
-   ```bash
-   poetry run uvicorn app.main:app --reload --reload-dir app
-   ```
-
-7. **開啟瀏覽器**
-   訪問 http://127.0.0.1:8000
-
-## 🛠️ 開發工具
-
-### 程式碼品質工具
-
-- **Black**: 自動程式碼格式化
-- **isort**: 自動整理 import 語句
-- **MyPy**: 靜態型別檢查
-- **Flake8**: 程式碼風格檢查
-- **Pre-commit**: 提交前自動檢查
-
-### 測試工具
-
-- **Pytest**: 測試框架
-- **Pytest-asyncio**: 異步測試支援
-- **HTTPX**: FastAPI 測試客戶端
-
-## 🏗️ 技術架構
+## 技術架構
 
 ### 後端技術棧
 
@@ -126,6 +56,18 @@
 - **圖標**: Font Awesome (豐富的圖標庫)
 - **JavaScript**: 原生 JS + 現代 ES6+ 語法
 
+### 開發工具
+
+- **IDE**: Visual Studio Code
+- **資料庫管理**: MySQL Workbench 8.0.15
+- **版本控制**: Git
+- **套件管理**: Poetry
+- **自動程式碼格式化**: Black
+- **自動整理 import 語句**: isort
+- **靜態型別檢查**: MyPy
+- **程式碼風格檢查**: Flake8
+- **提交前自動檢查**: Pre-commit
+
 ### 部署和 DevOps
 
 - **容器化**: Docker 支援
@@ -142,7 +84,7 @@
 - 資料庫套件：[mysql2 v3.2.0](https://www.npmjs.com/package/mysql2)
 - 資料庫管理工具：[MySQL Workbench 8.0.15](https://downloads.mysql.com/archives/installer/)
 
-## 🏗️ 專案結構
+## 專案結構
 
 ```
 104-resume-clinic-scheduler/
@@ -166,7 +108,7 @@
 ├── database/                     # 資料庫相關
 │   └── schema.sql                # 資料庫結構
 ├── scripts/                      # 開發工具腳本
-│   ├── test_config.py            # 配置驗證腳本
+│   ├── config_validator.py       # 配置驗證腳本
 │   └── README.md                 # 腳本說明文件
 ├── static/                       # 靜態檔案
 │   ├── style.css                 # 樣式表
@@ -184,7 +126,81 @@
 └── README.md                     # 專案說明文件
 ```
 
-## 🧪 測試
+## 快速開始
+
+### 1. 環境需求
+
+- **Python**: 3.12+
+- **Poetry**: 1.8+
+- **資料庫**: MySQL/MariaDB, MongoDB, Redis
+
+### 2. 安裝步驟
+
+1. **複製專案**
+
+   ```bash
+   git clone https://github.com/ewsailor/104-resume-clinic-scheduler.git
+   cd 104-resume-clinic-scheduler
+   ```
+
+2. **安裝 Poetry (如果尚未安裝)**
+
+   ```bash
+   pip install poetry
+   ```
+
+3. **安裝專案依賴**
+
+   ```bash
+   poetry install
+   ```
+
+4. **設定環境變數**
+
+   ```bash
+   cp .env.example .env
+   # 將 .env.example 檔案複製成 .env 檔案，並在 .env 檔案填入環境變數*
+   ```
+
+5. **資料庫初始化（使用 root 建立專用帳號） ⚠️**
+
+   ⚠️ 本步驟僅限開發者操作，用來建立資料庫與應用程式專用帳號
+
+   ```bash
+   mysql -u root -p
+   # 連接到 MySQL：以使用者 root 的身份，登入 MySQL，並提示輸入密碼
+   ```
+### 3. 啟動方式
+
+1. **啟動伺服器**
+
+   ```bash
+   uvicorn app.main:app --reload --reload-dir app
+   ```
+
+2. **瀏覽器輸入網址**
+
+   訪問 http://127.0.0.1:8000
+
+### 4. 安全提醒：
+
+- ❌ 絕對不要使用 `root` 帳號，作為應用程式資料庫使用者
+- ❌ 不要在版本控制中提交 `.env` 檔案
+- ❌ 不要將資料庫憑證硬編碼在程式碼中
+- ✅ 建立專用的應用程式帳號（如：`fastapi_user`）
+- ✅ 將 `.env` 檔案加入 `.gitignore`
+- ✅ 使用強密碼（至少 8 個字元，包含大小寫字母、數字、符號）
+- ✅ 定期更換密碼
+- ✅ 授予權限時，遵循最小權限原則
+- ✅ 使用環境變數管理敏感資訊
+
+## 測試
+
+### 測試工具
+
+- **Pytest**: 測試框架
+- **Pytest-asyncio**: 異步測試支援
+- **HTTPX**: FastAPI 測試客戶端
 
 ### 執行測試
 
@@ -215,14 +231,14 @@ poetry run mypy app/
 poetry run flake8 app/
 ```
 
-## 📝 API 文件
+## API 文件
 
 啟動伺服器後，可以訪問以下文件：
 
 - **Swagger UI**: http://127.0.0.1:8000/docs
 - **ReDoc**: http://127.0.0.1:8000/redoc
 
-## 🤝 貢獻指南
+## 貢獻指南
 
 1. Fork 本專案
 2. 建立功能分支 (`git checkout -b feature/AmazingFeature`)
@@ -237,10 +253,19 @@ poetry run flake8 app/
 - 更新相關文件
 - 使用有意義的 commit 訊息
 
-## 📄 授權
+## 授權
 
 本專案採用 MIT 授權條款
 
-## 👨‍💻 開發者
+## 開發者
 
 **Oscar Chung** - [GitHub](https://github.com/ewsailor)
+
+## 更新日誌
+
+### v1.0.0 (2024-01-XX)
+
+- 初始版本發布
+- 實現時間媒合系統核心功能
+- 添加開發者工具和伺服器監控
+- 完善文件和使用說明

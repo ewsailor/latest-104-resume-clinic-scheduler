@@ -18,7 +18,7 @@
 
 ## 配置測試腳本
 
-### `test_config.py`
+### `config_validator.py`
 
 用於驗證所有環境變數和配置是否正確載入的測試腳本。
 
@@ -34,16 +34,16 @@
 
 ```bash
 # 完整測試（推薦）
-python scripts/test_config.py
+python scripts/config_validator.py
 
 # 快速測試（只檢查關鍵配置）
-python scripts/test_config.py --quick
+python scripts/config_validator.py --quick
 
 # 只測試資料庫配置
-python scripts/test_config.py --db
+python scripts/config_validator.py --db
 
 # 只測試 API 配置
-python scripts/test_config.py --api
+python scripts/config_validator.py --api
 ```
 
 #### 測試項目
@@ -136,13 +136,13 @@ python scripts/test_config.py --api
 
 #### 與 `tests/` 的區別
 
-| 項目         | `scripts/test_config.py`        | `tests/test_config.py`        |
-| ------------ | ------------------------------- | ----------------------------- |
-| **用途**     | 驗證實際配置是否正確            | 測試配置類別的功能            |
-| **執行環境** | 真實環境變數                    | 模擬環境變數                  |
-| **測試對象** | 配置值是否正確                  | 程式碼邏輯是否正確            |
-| **執行方式** | `python scripts/test_config.py` | `pytest tests/test_config.py` |
-| **輸出**     | 彩色終端機輸出                  | 測試報告                      |
+| 項目         | `scripts/config_validator.py`        | `tests/test_config.py`        |
+| ------------ | ------------------------------------ | ----------------------------- |
+| **用途**     | 驗證實際配置是否正確                 | 測試配置類別的功能            |
+| **執行環境** | 真實環境變數                         | 模擬環境變數                  |
+| **測試對象** | 配置值是否正確                       | 程式碼邏輯是否正確            |
+| **執行方式** | `python scripts/config_validator.py` | `pytest tests/test_config.py` |
+| **輸出**     | 彩色終端機輸出                       | 測試報告                      |
 
 #### 自訂測試
 
