@@ -9,6 +9,9 @@ from fastapi import FastAPI  # Web 框架核心
 from fastapi.staticfiles import StaticFiles  # 靜態檔案服務
 from fastapi.templating import Jinja2Templates  # HTML 模板引擎
 
+# ===== 本地模組 =====
+from app.middleware.cors import setup_cors_middleware  # CORS 中間件設定
+
 
 def create_static_files(settings) -> StaticFiles:
     """
@@ -59,6 +62,9 @@ def create_app(settings) -> FastAPI:
         docs_url=docs_url,     # 生產環境隱藏 API 文件
         redoc_url=redoc_url,   # 生產環境隱藏 API 文件
     )
+    
+    # ===== CORS 中間件設定 =====
+    setup_cors_middleware(app, settings)
     
     # 掛載靜態檔案服務
     app.mount(settings.static_url, create_static_files(settings), name=settings.static_name)

@@ -2,171 +2,216 @@
 
 這個目錄包含各種實用腳本，用於開發、測試和維護專案。
 
-## 📁 目錄結構說明
+## 📁 目錄結構
 
-### `tests/` vs `scripts/` 的區別
+```
+scripts/
+├── cors/                    # CORS 檢查工具套件
+│   ├── __init__.py         # 套件初始化
+│   ├── security_checker.py # 安全性檢查器
+│   ├── config_checker.py   # 配置檢查器
+│   └── validator.py        # 驗證器
+├── cors_check.py           # 統一 CORS 檢查工具
+├── cors_config_checker.py  # 舊版配置檢查器（已棄用）
+├── cors_security_check.py  # 舊版安全性檢查器（已棄用）
+├── config_validator.py     # 配置驗證器
+└── README.md              # 本文件
+```
 
-| 目錄       | 用途           | 內容                           | 執行方式                   |
-| ---------- | -------------- | ------------------------------ | -------------------------- |
-| `tests/`   | **測試程式碼** | 單元測試、整合測試、端到端測試 | `pytest tests/`            |
-| `scripts/` | **開發工具**   | 配置檢查、資料庫遷移、部署腳本 | `python scripts/script.py` |
+## 🚀 CORS 檢查工具
 
-### 為什麼分開？
+### 統一工具：`cors_check.py`
 
-- **`tests/`**：測試應用程式的**功能邏輯**
-- **`scripts/`**：輔助開發的**實用工具**
+這是推薦使用的統一 CORS 檢查工具，提供多種檢查模式：
 
-## 配置測試腳本
+```bash
+# 檢查專案 CORS 配置
+python scripts/cors_check.py config
+
+# 檢查專案 CORS 配置（簡潔模式）
+python scripts/cors_check.py config --simple
+
+# 驗證特定的 CORS 來源字串
+python scripts/cors_check.py validate "http://localhost,https://api.example.com"
+
+# 安全性檢查（模擬資料）
+python scripts/cors_check.py security
+
+# 匯出報告為 JSON
+python scripts/cors_check.py config --export json
+```
+
+### 模組化架構
+
+#### 1. `CORSecurityChecker` - 安全性檢查器
+
+通用的 CORS 安全性檢查功能：
+
+```python
+from scripts.cors import CORSecurityChecker
+
+checker = CORSecurityChecker()
+
+# 檢查來源
+result = checker.check_origins(["http://localhost:3000", "https://api.example.com"])
+
+# 檢查方法
+result = checker.check_methods(["GET", "POST", "DELETE"])
+
+# 全面檢查
+result = checker.comprehensive_check(origins, methods, headers, environment)
+```
+
+#### 2. `CORSConfigChecker` - 配置檢查器
+
+專門用於檢查專案中的 CORS 配置：
+
+```python
+from scripts.cors import CORSConfigChecker
+
+checker = CORSConfigChecker()
+
+# 取得目前配置
+config = checker.get_current_config()
+
+# 執行全面檢查
+result = checker.comprehensive_check()
+
+# 印出報告
+checker.print_config_report(detailed=True)
+
+# 匯出報告
+json_report = checker.export_report("json")
+```
+
+#### 3. `CORSValidator` - 驗證器
+
+用於驗證特定的 CORS 設定：
+
+```python
+from scripts.cors import CORSValidator
+
+validator = CORSValidator()
+
+# 驗證來源字串
+result = validator.validate_origin_string("http://localhost,https://api.example.com")
+
+# 驗證完整配置
+result = validator.validate_cors_config(origins, methods, headers, environment)
+```
+
+## 🔧 其他工具
 
 ### `config_validator.py`
 
-用於驗證所有環境變數和配置是否正確載入的測試腳本。
-
-#### 功能特點
-
-- ✅ **完整配置驗證**：檢查所有關鍵配置項目
-- 🎨 **彩色輸出**：使用顏色區分成功、警告和錯誤
-- 📊 **詳細摘要**：提供測試結果統計
-- 🔧 **多種測試模式**：支援完整測試、快速測試、特定服務測試
-- 🛡️ **錯誤處理**：優雅的錯誤處理和退出碼
-
-#### 使用方法
+用於驗證應用程式配置檔案：
 
 ```bash
-# 完整測試（推薦）
 python scripts/config_validator.py
-
-# 快速測試（只檢查關鍵配置）
-python scripts/config_validator.py --quick
-
-# 只測試資料庫配置
-python scripts/config_validator.py --db
-
-# 只測試 API 配置
-python scripts/config_validator.py --api
 ```
 
-#### 測試項目
+## 📊 功能對比
 
-1. **基本配置**
+| 功能             | 統一工具      | 舊版工具                    | 模組化                  |
+| ---------------- | ------------- | --------------------------- | ----------------------- |
+| **專案配置檢查** | ✅ `config`   | ✅ `cors_config_checker.py` | ✅ `CORSConfigChecker`  |
+| **來源字串驗證** | ✅ `validate` | ❌                          | ✅ `CORSValidator`      |
+| **安全性檢查**   | ✅ `security` | ✅ `cors_security_check.py` | ✅ `CORSecurityChecker` |
+| **報告匯出**     | ✅ JSON/YAML  | ❌                          | ✅ 多種格式             |
+| **命令列介面**   | ✅ 統一       | ❌ 分散                     | ✅ 可程式化             |
+| **模組重用**     | ✅ 完整       | ❌ 有限                     | ✅ 高度可重用           |
 
-   - 應用程式名稱、版本、環境
-   - 除錯模式設定
+## 🎯 最佳實踐建議
 
-2. **安全配置**
+### 1. **使用統一工具**
 
-   - SECRET_KEY 和 SESSION_SECRET
-   - 密鑰長度驗證
+推薦使用 `cors_check.py` 作為主要的 CORS 檢查工具：
 
-3. **資料庫配置**
+```bash
+# 日常檢查
+python scripts/cors_check.py config
 
-   - MySQL 連接設定
-   - 使用者帳號驗證
-   - 連接字串生成
+# 驗證新設定
+python scripts/cors_check.py validate "https://new-domain.com"
 
-4. **快取配置**
-
-   - Redis 連接設定
-   - 連接字串生成
-
-5. **API 配置**
-
-   - 超時設定驗證
-   - 104 API 配置檢查
-
-6. **CORS 配置**
-
-   - 來源設定驗證
-   - 列表解析檢查
-
-7. **可選服務**
-
-   - SMTP 配置完整性
-   - AWS 配置完整性
-   - 104 API 配置完整性
-
-8. **路徑配置**
-   - 專案目錄存在性檢查
-   - 靜態檔案和模板目錄檢查
-
-#### 輸出範例
-
-```
-🚀 完整配置驗證測試
-==================================================
-🔧 基本配置測試
-ℹ️  應用程式名稱: 104 Resume Clinic Scheduler
-ℹ️  應用程式版本: 0.1.0
-ℹ️  應用程式環境: development
-ℹ️  除錯模式: True
-✅ 應用程式環境設定正確: development
-✅ 開發環境除錯模式已啟用
-
-🔒 安全配置測試
-✅ SECRET_KEY 已設定且長度足夠 (64 字元)
-ℹ️  SECRET_KEY 預覽: OzCm8K7x...
-✅ SESSION_SECRET 已設定且長度足夠 (64 字元)
-ℹ️  SESSION_SECRET 預覽: OzCm88L9...
-
-📊 測試摘要
-==================================================
-總測試項目: 25
-成功: 23
-警告: 2
-錯誤: 0
-
-⚠️ 警告項目:
-  - Redis 密碼未設定（開發環境可接受）
-  - 104 API 密鑰未設定
-
-✅ 所有關鍵配置都正確！
+# 安全性評估
+python scripts/cors_check.py security --environment production
 ```
 
-#### 退出碼
+### 2. **程式化使用**
 
-- `0`：所有測試通過或只有警告
-- `1`：有錯誤項目需要修正
-
-#### 最佳實踐
-
-1. **開發時使用**：每次修改配置後執行測試
-2. **部署前檢查**：確保生產環境配置正確
-3. **CI/CD 整合**：在自動化流程中加入配置檢查
-4. **定期執行**：定期檢查配置完整性
-
-#### 與 `tests/` 的區別
-
-| 項目         | `scripts/config_validator.py`        | `tests/test_config.py`        |
-| ------------ | ------------------------------------ | ----------------------------- |
-| **用途**     | 驗證實際配置是否正確                 | 測試配置類別的功能            |
-| **執行環境** | 真實環境變數                         | 模擬環境變數                  |
-| **測試對象** | 配置值是否正確                       | 程式碼邏輯是否正確            |
-| **執行方式** | `python scripts/config_validator.py` | `pytest tests/test_config.py` |
-| **輸出**     | 彩色終端機輸出                       | 測試報告                      |
-
-#### 自訂測試
-
-如需新增測試項目，可以修改 `ConfigTester` 類別：
+在 CI/CD 或自動化腳本中使用模組化組件：
 
 ```python
-def test_custom_config(self):
-    """自訂配置測試"""
-    print(f"{Colors.HEADER}🔧 自訂配置測試{Colors.ENDC}")
+from scripts.cors import CORSConfigChecker
 
-    # 您的測試邏輯
-    if some_condition:
-        self.log_success("自訂配置正確")
-    else:
-        self.log_error("自訂配置錯誤")
+checker = CORSConfigChecker()
+result = checker.comprehensive_check()
 
-    print()
+if result['overall_score'] < 70:
+    print("CORS 安全性評分過低，需要改進")
+    exit(1)
 ```
 
-然後在 `run_full_test()` 方法中呼叫：
+### 3. **定期檢查**
 
-```python
-def run_full_test(self):
-    # ... 其他測試
-    self.test_custom_config()
-    # ... 其他測試
+建議在以下時機執行 CORS 檢查：
+
+- 部署前
+- 修改 CORS 設定後
+- 定期安全審查
+- CI/CD 流程中
+
+### 4. **環境分離**
+
+根據不同環境使用不同的檢查策略：
+
+```bash
+# 開發環境
+python scripts/cors_check.py config --simple
+
+# 生產環境
+python scripts/cors_check.py config --export json
 ```
+
+## 🔄 遷移指南
+
+### 從舊版工具遷移
+
+如果您目前使用舊版工具，建議遷移到統一工具：
+
+```bash
+# 舊版
+python scripts/cors_config_checker.py
+python scripts/cors_security_check.py
+
+# 新版
+python scripts/cors_check.py config
+python scripts/cors_check.py security
+```
+
+### 保留舊版工具
+
+舊版工具仍然可用，但建議逐步遷移到新工具：
+
+- `cors_config_checker.py` - 將在未來版本中移除
+- `cors_security_check.py` - 將在未來版本中移除
+
+## 📈 未來規劃
+
+1. **整合測試**：添加自動化測試
+2. **更多格式**：支援更多報告格式
+3. **CI/CD 整合**：提供 GitHub Actions 範例
+4. **Web 介面**：開發 Web 版本的檢查工具
+5. **即時監控**：提供即時 CORS 監控功能
+
+## 🤝 貢獻
+
+歡迎提交 Issue 和 Pull Request 來改進這些工具！
+
+### 開發指南
+
+1. 遵循現有的程式碼風格
+2. 添加適當的測試
+3. 更新文件
+4. 確保向後相容性

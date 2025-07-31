@@ -11,8 +11,8 @@ from pathlib import Path  # 現代化的路徑處理
 from typing import List, Optional  # 型別註解支援
 
 # ===== 第三方套件 =====
-from pydantic import Field, field_validator, SecretStr  # Pydantic 驗證和欄位定義
-from pydantic_settings import BaseSettings, SettingsConfigDict  # Pydantic 設定管理
+from pydantic import Field, field_validator, SecretStr  # Pydantic v2 驗證和欄位定義
+from pydantic_settings import BaseSettings, SettingsConfigDict  # Pydantic v2 設定管理
 
 
 def get_project_version() -> str:
@@ -23,7 +23,7 @@ def get_project_version() -> str:
         str: 專案版本號，如果讀取失敗則返回預設版本。
     """
     try:
-        # 現在 settings.py 在 app/core/ 目錄中，需要往上三層才能到達專案根目錄
+        # settings.py 在 app/core/ 目錄中，需要往上三層才能到達專案根目錄
         project_root = Path(__file__).parent.parent.parent
         pyproject_path = project_root / "pyproject.toml"
         
@@ -54,7 +54,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",  # 檔案編碼
         case_sensitive=False,  # 環境變數名稱不區分大小寫
         extra="ignore",  # 忽略未定義的環境變數
-        env_parse_none_str=None,  # 禁用複雜值解析
+        env_parse_none_str=None,  # 禁用複雜值解析：環境變數的值是字串 "None" 時，不自動轉換成 Python 的 None 物件
     )
     
     # ===== 基礎路徑配置 =====
@@ -317,6 +317,79 @@ class Settings(BaseSettings):
             raise ValueError("API 超時時間必須大於 0 秒")
         if v > 300:  # 最大 5 分鐘
             raise ValueError("API 超時時間不能超過 300 秒")
+        return v
+    
+    @field_validator("cors_origins")
+    @classmethod
+    def validate_cors_origins(cls, v):
+        """驗證 CORS 來源設定"""
+        if not v or not v.strip():
+            raise ValueError("CORS 來源不能為空")
+        
+        # 檢查基本格式
+        origins = [origin.strip() for origin in v.split(",") if origin.strip()]
+        if not origins:
+            raise ValueError("至少需要一個有效的 CORS 來源")
+        
+        # 檢查每個來源的格式
+        import re
+        for origin in origins:
+            if not re.match(r'^https?://[a-zA-Z0-9.-]+(:\d+)?$', origin):
+                raise ValueError(f"無效的 CORS 來源格式：{origin}")
+        
+        return v
+    
+    @field_validator("mongodb_uri")
+    @classmethod
+    def validate_mongodb_uri(cls, v):
+        """驗證 MongoDB URI 格式"""
+        if not v or not v.strip():
+            raise ValueError("MongoDB URI 不能為空")
+        
+        # 檢查基本格式
+        if not v.startswith(("mongodb://", "mongodb+srv://")):
+            raise ValueError("MongoDB URI 必須以 mongodb:// 或 mongodb+srv:// 開頭")
+        
+        return v
+    
+    @field_validator("aws_region")
+    @classmethod
+    def validate_aws_region(cls, v):
+        """驗證 AWS 區域格式"""
+        if not v or not v.strip():
+            raise ValueError("AWS 區域不能為空")
+        
+        # 檢查 AWS 區域格式 (例如: us-east-1, ap-northeast-1)
+        import re
+        if not re.match(r'^[a-z]{2}-[a-z]+-\d+$', v):
+            raise ValueError(f"無效的 AWS 區域格式：{v}")
+        
+        return v
+    
+    @field_validator("redis_db")
+    @classmethod
+    def validate_redis_db(cls, v):
+        """驗證 Redis 資料庫編號"""
+        if not isinstance(v, int) or v < 0 or v > 15:
+            raise ValueError("Redis 資料庫編號必須在 0-15 範圍內")
+        return v
+    
+    @field_validator("mysql_charset")
+    @classmethod
+    def validate_mysql_charset(cls, v):
+        """驗證 MySQL 字符集"""
+        if not v or not v.strip():
+            raise ValueError("MySQL 字符集不能為空")
+        
+        # 檢查常見的 MySQL 字符集
+        valid_charsets = [
+            "utf8", "utf8mb4", "utf8mb3", "utf8mb4_unicode_ci",
+            "latin1", "ascii", "binary", "utf8_general_ci"
+        ]
+        
+        if v.lower() not in [charset.lower() for charset in valid_charsets]:
+            raise ValueError(f"不支援的 MySQL 字符集：{v}")
+        
         return v
     
     @property
