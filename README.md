@@ -40,7 +40,8 @@
 
 ### 後端技術棧
 
-- **框架**: FastAPI (現代、高效能的 Python Web 框架)
+- **框架**: FastAPI (現代、快速、基於 Python 3.7+ 的 Web 框架)
+- **ASGI 伺服器**: Uvicorn (輕量級 ASGI 伺服器)
 - **配置管理**: Pydantic Settings (型別安全的配置管理)
 - **資料庫**:
   - **MySQL/MariaDB**: 核心業務資料儲存
@@ -115,7 +116,7 @@
 │   ├── script.js                 # JavaScript
 │   └── images/                   # 圖片資源
 ├── tests/                        # 測試檔案
-│   ├── test_config.py            # 配置類別測試
+│   ├── test_config.py            # 配置測試
 │   └── test_main.py              # 主要功能測試
 ├── logs/                         # 日誌檔案
 ├── .env                          # 環境變數（本地開發）
@@ -170,6 +171,7 @@
    mysql -u root -p
    # 連接到 MySQL：以使用者 root 的身份，登入 MySQL，並提示輸入密碼
    ```
+
 ### 3. 啟動方式
 
 1. **啟動伺服器**
@@ -201,19 +203,45 @@
 - **Pytest**: 測試框架
 - **Pytest-asyncio**: 異步測試支援
 - **HTTPX**: FastAPI 測試客戶端
+- **測試常數管理**: 集中化管理測試常數，確保一致性
 
 ### 執行測試
 
 ```bash
-# 執行所有測試
-poetry run pytest
+# 執行所有測試（推薦使用測試腳本，自動抑制警告）
+python scripts/run_tests.py
+
+# 執行特定測試檔案
+python scripts/run_tests.py tests/test_health.py
 
 # 執行測試並顯示覆蓋率
-poetry run pytest --cov=app
+python scripts/run_tests.py --cov=app
+
+# 直接使用 pytest（可能顯示棄用警告）
+poetry run pytest
 
 # 執行特定測試檔案
 poetry run pytest tests/test_main.py
 ```
+
+### 測試腳本說明
+
+專案提供了 `scripts/run_tests.py` 腳本來運行測試，該腳本會：
+
+- 自動設置環境變數來抑制棄用警告
+- 確保測試環境的一致性
+- 提供更好的測試體驗
+
+### 測試常數管理
+
+專案使用 `tests/constants.py` 集中管理所有測試常數：
+
+- **避免硬編碼**：所有測試值都使用常數
+- **一致性保證**：確保所有測試使用相同的值
+- **易於維護**：修改常數值時只需更新一個地方
+- **可重用性**：常數可以在多個測試檔案中共享
+
+詳細使用方式請參考：[測試常數使用指南](docs/test_constants_guide.md)
 
 ### 程式碼品質檢查
 

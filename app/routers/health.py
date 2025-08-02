@@ -5,49 +5,97 @@
 """
 
 # ===== 標準函式庫 =====
-from typing import Dict, Any  # 型別註解支援
+import logging  # 日誌記錄
 import time  # 時間處理
+from typing import Dict, Any  # 型別註解支援
 
 # ===== 第三方套件 =====
-from fastapi import APIRouter  # 路由物件
+from fastapi import APIRouter, Depends, HTTPException, status  # 路由物件
+from sqlalchemy import text  # 資料庫查詢
+from sqlalchemy.orm import Session  # 資料庫會話
+from sqlalchemy.exc import SQLAlchemyError  # 資料庫錯誤處理
 
 # ===== 本地模組 =====
 from app.core import settings, get_project_version  # 應用程式配置
+from app.models.database import SessionLocal, check_db_connection, get_healthy_db  # 資料庫引擎
 
+# 設定 logger
+logger = logging.getLogger(__name__)
 
 # 建立路由器
 router = APIRouter()
 
 
 @router.get("/healthz", response_model=Dict[str, Any], tags=["Health"])
-async def health_check() -> Dict[str, Any]:
+async def liveness_probe() -> Dict[str, Any]:
     """
-    健康檢查端點。
+    存活探測：檢查應用程式是否正在運行。
     
-    提供應用程式狀態、版本、環境等資訊，用於監控和診斷。
+    這個端點用於 Kubernetes 的 liveness probe，檢查應用程式是否存活。
+    不應該包含外部依賴檢查，只檢查應用程式本身狀態。
     
     Returns:
-        Dict[str, Any]: 應用程式狀態資訊。
+        Dict[str, Any]: 應用程式狀態資訊，包含狀態、時間戳、版本等資訊。
     """
-    return {
+    logger.info("liveness_probe() called: 執行存活探測檢查")
+    
+    try:
+        response_data = {
+            "status": "healthy",
+            "app_name": settings.app_name,
+            "version": get_project_version(), 
+            "uptime": "running",  # 可以進一步實作實際的運行時間計算  
+            "timestamp": int(time.time())
+        }
+        
+        logger.info(f"liveness_probe() success: 應用程式狀態健康")
+        return response_data
+        
+    except Exception as e:
+        logger.error(f"liveness_probe() error: 存活探測檢查失敗 - {str(e)}")
+        # 存活探測失敗時，返回 500 錯誤
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "status": "unhealthy",
+                "error": "Application health check failed",
+                "timestamp": int(time.time())
+            }
+        )
+
+
+@router.get("/readyz", response_model=Dict[str, Any], tags=["Health"])
+async def readiness_probe(db_healthy: bool = Depends(get_healthy_db)) -> Dict[str, Any]:
+    """
+    準備就緒探測：檢查應用程式所有外部依賴（資料庫、快取等），是否已經準備好處理請求。
+    
+    這個端點用於 Kubernetes 的 readiness probe，檢查所有依賴是否就緒。
+    使用依賴注入方式檢查資料庫連線，如果連線失敗會自動拋出 503 錯誤。
+    
+    Args:
+        db_healthy: 資料庫連線狀態依賴，由 get_healthy_db() 提供
+        
+    Returns:
+        Dict[str, Any]: 應用程式就緒狀態資訊。
+    """
+    logger.info("readiness_probe() called: 執行準備就緒探測檢查")
+    
+    # 可以在此加入其他依賴檢查，例如：
+    # - Redis 連線檢查
+    # - 外部 API 連線檢查
+    # - 檔案系統權限檢查
+    
+    response_data = {
         "status": "healthy",
+        "database": "connected",
+        "message": "Application and database are ready to serve traffic.",
         "timestamp": int(time.time()),
-        "app_name": settings.app_name,
-        "version": get_project_version(),
-        "environment": settings.app_env,
-        "debug": settings.debug,
-        "uptime": "running",  # 可以進一步實作實際的運行時間計算
+        "checks": {
+            "database": "healthy",
+            # "redis": "healthy",  # 未來可加入
+            # "external_api": "healthy"  # 未來可加入
+        }
     }
-
-
-@router.get("/ping", response_model=Dict[str, str], tags=["Health"])
-async def ping() -> Dict[str, str]:
-    """
-    簡易連線測試端點。
     
-    提供最基本的連線測試，回應速度快，適合負載平衡器健康檢查。
-    
-    Returns:
-        Dict[str, str]: 簡易回應。
-    """
-    return {"message": "pong"} 
+    logger.info("readiness_probe() success: 應用程式準備就緒，所有依賴檢查通過")
+    return response_data

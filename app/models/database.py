@@ -1,272 +1,197 @@
-# """
-# 資料庫管理模組。
+"""
+資料庫管理模組。
 
-# 包含資料庫連線、會話管理、軟刪除查詢等功能。
-# """
+包含資料庫連線、會話管理等功能。
+"""
 
-# # ===== 標準函式庫 =====
-# import logging  # 日誌記錄
-# from typing import Optional, Any, Dict, List  # 型別註解
+# ===== 標準函式庫 =====
+import logging  # 日誌記錄
+from typing import Optional, Any, Dict, List  # 型別註解
 
-# # ===== 第三方套件 =====
-# from sqlalchemy import create_engine, text  # 資料庫引擎
-# from sqlalchemy.orm import sessionmaker, Session  # 會話管理
-# from sqlalchemy.pool import QueuePool  # 連線池
-# from sqlalchemy.exc import SQLAlchemyError  # 資料庫錯誤
+# ===== 第三方套件 =====
+from sqlalchemy import create_engine, text  # 資料庫引擎：引入 create_engine 函式，用於建立資料庫連線引擎；引入 text 函式，用於執行 SQL 查詢
+from sqlalchemy.orm import sessionmaker, Session, declarative_base  # 會話管理：引入 sessionmaker 函式，用於建立會話實例；引入 Session 類別，用於資料庫會話；引入 declarative_base 函式，用於建立基礎類別
+from sqlalchemy.pool import QueuePool  # 連線池：引入 QueuePool 類別，用於管理資料庫連線池
+from sqlalchemy.exc import SQLAlchemyError  # 資料庫錯誤：引入 SQLAlchemyError 類別，用於處理資料庫操作錯誤
+from sqlalchemy.exc import OperationalError  # 資料庫錯誤：引入 OperationalError 類別，用於處理資料庫操作錯誤
+from fastapi import HTTPException, status  # FastAPI 錯誤處理
+import time  # 時間處理
 
-# # ===== 本地模組 =====
-# from app.core import settings  # 應用程式配置
+# ===== 本地模組 =====
+from app.core import settings  # 應用程式配置
 
-# # 設定日誌
-# logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)  # 設定日誌級別為 INFO：INFO 級別以上的訊息就會顯示
+logger = logging.getLogger(__name__)  # 取得 logger 實例，用於記錄日誌，讓 logger 根據不同模組來源分辨訊息來源
 
-# # ===== 資料庫引擎設定 =====
-# def create_database_engine() -> Any:
-#     """
-#     建立資料庫引擎。
+logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)  # 設定 SQLAlchemy 的日誌級別為 WARNING：只顯示 WARNING 級別以上的訊息，避免太多日誌訊息，因為預設 SQLAlchemy 執行時會印出很多 SQL log
+
+def create_database_engine():
+    """
+    建立並初始化資料庫引擎和相關組件。
     
-#     Returns:
-#         Engine: SQLAlchemy 引擎實例。
-#     """
-#     try:
-#         # 建立 MySQL 連線字串
-#         database_url = (
-#             f"mysql+pymysql://{config.mysql_user}:{config.mysql_password}"
-#             f"@{config.mysql_host}:{config.mysql_port}/{config.mysql_database}"
-#             f"?charset={config.mysql_charset}"
-#         )
-        
-#         # 建立引擎
-#         engine = create_engine(
-#             database_url,
-#             poolclass=QueuePool,
-#             pool_size=10,  # 連線池大小
-#             max_overflow=20,  # 最大溢出連線數
-#             pool_pre_ping=True,  # 連線前檢查
-#             pool_recycle=3600,  # 連線回收時間（秒）
-#             echo=config.debug,  # 開發模式顯示 SQL
-#         )
-        
-#         logger.info(f"資料庫引擎建立成功：{config.mysql_host}:{config.mysql_port}/{config.mysql_database}")
-#         return engine
-        
-#     except Exception as e:
-#         logger.error(f"資料庫引擎建立失敗：{e}")
-#         raise
-
-
-# # 建立引擎實例
-# engine = create_database_engine()
-
-# # 建立會話工廠
-# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-# # ===== 資料庫會話管理 =====
-# def get_db() -> Session:
-#     """
-#     取得資料庫會話。
+    包含：
+    - 建立 SQLAlchemy 引擎
+    - 測試資料庫連線
+    - 建立 session 工廠
+    - 建立基礎類別
     
-#     Yields:
-#         Session: 資料庫會話實例。
-#     """
-#     db = SessionLocal()
-#     try:
-#         yield db
-#     except SQLAlchemyError as e:
-#         logger.error(f"資料庫操作錯誤：{e}")
-#         db.rollback()
-#         raise
-#     finally:
-#         db.close()
-
-
-# # ===== 基礎模型類別 =====
-# from sqlalchemy.ext.declarative import declarative_base
-
-# Base = declarative_base()
-
-
-# # ===== 軟刪除查詢混入 =====
-# class SoftDeleteQueryMixin:
-#     """
-#     軟刪除查詢混入類別。
-    
-#     提供軟刪除相關的查詢方法。
-#     """
-    
-#     def filter_active(self, query):
-#         """
-#         過濾未刪除的記錄。
+    Returns:
+        tuple: (engine, SessionLocal, Base) 資料庫引擎、會話工廠、基礎類別
         
-#         Args:
-#             query: SQLAlchemy 查詢物件。
-            
-#         Returns:
-#             Query: 過濾後的查詢物件。
-#         """
-#         return query.filter(self.deleted_at.is_(None))
+    Raises:
+        Exception: 當資料庫連線失敗時拋出異常
+    """
+    logger.info("create_database_engine() called: 開始建立資料庫引擎")
     
-#     def filter_deleted(self, query):
-#         """
-#         過濾已刪除的記錄。
-        
-#         Args:
-#             query: SQLAlchemy 查詢物件。
-            
-#         Returns:
-#             Query: 過濾後的查詢物件。
-#         """
-#         return query.filter(self.deleted_at.isnot(None))
+    DATABASE_URL = settings.mysql_connection_string
     
-#     def include_deleted(self, query):
-#         """
-#         包含已刪除的記錄。
+    try:
+        # 創建資料庫引擎
+        engine = create_engine(
+            DATABASE_URL,
+            echo=False,  # 關閉 SQL 查詢日誌
+            pool_pre_ping=True,  # 啟用連線檢查，確保連線有效性
+            pool_recycle=3600,  # 連線池回收時間（1小時）
+            pool_size=10,  # 連線池大小
+            max_overflow=20,  # 最大溢出連線數
+            pool_timeout=30,  # 連線超時時間（30秒）
+            # pymysql 特定參數
+            connect_args={
+                "charset": "utf8mb4",  # 使用 utf8mb4 字符集
+                "autocommit": False,  # 手動提交事務
+                "sql_mode": "STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO",  # 嚴格模式
+            }
+        )
         
-#         Args:
-#             query: SQLAlchemy 查詢物件。
-            
-#         Returns:
-#             Query: 查詢物件（不過濾刪除狀態）。
-#         """
-#         return query
+        # 測試連線
+        with engine.connect() as connection:
+            logger.info(f"✅ 成功建立資料庫引擎，並連結到資料庫：{settings.mysql_database}")
+            logger.info(f"📍 資料庫主機：{settings.mysql_host}:{settings.mysql_port}")
+            logger.info(f"👤 使用者：{settings.mysql_user}")
+            logger.info(f"🔧 驅動程式：pymysql")
+        
+        # 建立 session（會話）類別工廠
+        SessionLocal = sessionmaker( 
+            bind=engine,  # 指定 Session 連線的資料庫引擎（engine）
+            autocommit=False,  # 不自動提交，手動呼叫 .commit() 才會儲存資料
+            autoflush=False  # 不自動刷新、不自動將未提交的改動同步到資料庫，需手動呼叫 flush()
+        )  
+
+        # 建立基礎類別：所有資料表模型，都會繼承這個類別，避免重複的程式碼
+        Base = declarative_base()
+        
+        logger.info("create_database_engine() success: 資料庫引擎建立成功")
+        return engine, SessionLocal, Base
+        
+    except Exception as e:
+        logger.error(f"❌ 連結到資料庫失敗：{str(e)}")
+        logger.error(f"🔍 請檢查以下項目：")
+        logger.error(f"   1. MySQL 服務是否正在運行")
+        logger.error(f"   2. 資料庫連線設定是否正確")
+        logger.error(f"   3. 使用者權限是否足夠")
+        logger.error(f"   4. 防火牆設定是否允許連線")
+        raise
 
 
-# # ===== 歷史記錄管理 =====
-# class HistoryManager:
-#     """
-#     歷史記錄管理器。
-    
-#     負責記錄資料變更歷史。
-#     """
-    
-#     def __init__(self, db: Session):
-#         """
-#         初始化歷史記錄管理器。
-        
-#         Args:
-#             db: 資料庫會話。
-#         """
-#         self.db = db
-    
-#     def log_change(
-#         self,
-#         schedule_id: int,
-#         user_id: Optional[int],
-#         action: str,
-#         old_status: Optional[str] = None,
-#         new_status: Optional[str] = None,
-#         changes: Optional[Dict[str, Any]] = None,
-#         ip_address: Optional[str] = None,
-#         user_agent: Optional[str] = None
-#     ) -> None:
-#         """
-#         記錄變更歷史。
-        
-#         Args:
-#             schedule_id: 行程 ID。
-#             user_id: 操作使用者 ID。
-#             action: 操作類型。
-#             old_status: 舊狀態。
-#             new_status: 新狀態。
-#             changes: 變更內容。
-#             ip_address: IP 位址。
-#             user_agent: 使用者代理字串。
-#         """
-#         try:
-#             from app.models.schedule import ScheduleHistory
-            
-#             history = ScheduleHistory(
-#                 schedule_id=schedule_id,
-#                 user_id=user_id,
-#                 action=action,
-#                 old_status=old_status,
-#                 new_status=new_status,
-#                 changes=changes,
-#                 ip_address=ip_address,
-#                 user_agent=user_agent
-#             )
-            
-#             self.db.add(history)
-#             self.db.commit()
-            
-#             logger.info(f"歷史記錄已建立：schedule_id={schedule_id}, action={action}")
-            
-#         except Exception as e:
-#             logger.error(f"歷史記錄建立失敗：{e}")
-#             self.db.rollback()
-#             raise
+# 初始化資料庫組件
+try:
+    engine, SessionLocal, Base = create_database_engine()
+except Exception as e:
+    logger.error(f"資料庫初始化失敗：{str(e)}")
+    raise
 
 
-# # ===== 資料庫健康檢查 =====
-# def check_database_health() -> Dict[str, Any]:
-#     """
-#     檢查資料庫健康狀態。
+# ===== 資料庫依賴和工具函式 =====
+
+def get_db():
+    """
+    資料庫會話依賴注入函式。
     
-#     Returns:
-#         Dict[str, Any]: 健康狀態資訊。
-#     """
-#     try:
-#         with engine.connect() as connection:
-#             # 執行簡單查詢
-#             result = connection.execute(text("SELECT 1"))
-#             result.fetchone()
-            
-#             # 檢查連線池狀態
-#             pool_status = {
-#                 "pool_size": engine.pool.size(),
-#                 "checked_in": engine.pool.checkedin(),
-#                 "checked_out": engine.pool.checkedout(),
-#                 "overflow": engine.pool.overflow(),
-#             }
-            
-#             return {
-#                 "status": "healthy",
-#                 "message": "資料庫連線正常",
-#                 "pool_status": pool_status
-#             }
-            
-#     except Exception as e:
-#         logger.error(f"資料庫健康檢查失敗：{e}")
-#         return {
-#             "status": "unhealthy",
-#             "message": f"資料庫連線異常：{str(e)}",
-#             "pool_status": {}
-#         }
-
-
-# # ===== 資料庫初始化 =====
-# def init_database() -> None:
-#     """
-#     初始化資料庫。
+    用於 FastAPI 的依賴注入系統，為每個請求提供獨立的資料庫會話。
+    使用 yield 確保會話在請求結束後自動關閉，避免資源洩漏。
     
-#     建立所有資料表。
-#     """
-#     try:
-#         # 匯入所有模型以確保它們被註冊
-#         from app.models.schedule import User, Schedule, ScheduleHistory, NotificationSetting
+    Yields:
+        Session: SQLAlchemy 資料庫會話實例
         
-#         # 建立所有資料表
-#         Base.metadata.create_all(bind=engine)
-        
-#         logger.info("資料庫初始化完成")
-        
-#     except Exception as e:
-#         logger.error(f"資料庫初始化失敗：{e}")
-#         raise
+    Example:
+        @app.get("/users")
+        def get_users(db: Session = Depends(get_db)):
+            return db.query(User).all()
+    """
+    logger.info("get_db() called: 建立資料庫連線")
+    db = SessionLocal()  # 建立資料庫連線：每次操作資料庫，會透過 SessionLocal() 建立一個 session 實例（db）來操作
+    try:
+        # 驗證連線是否有效（輕量級檢查）
+        db.execute(text("SELECT 1"))
+        logger.info("get_db() yield: 傳遞資料庫連線給處理函式")
+        yield db  # 傳給處理請求的函式使用，執行查詢/新增/修改操作，每次請求建立一個 session，避免多個使用者共享同一個連線
+    except Exception as e:
+        logger.error(f"get_db() error: 資料庫操作發生錯誤 - {str(e)}")
+        db.rollback()  # 發生錯誤時回滾事務
+        raise
+    finally:
+        logger.info("get_db() cleanup: 關閉資料庫連線")
+        db.close()  # 每次請求結束後，無論有沒有錯誤發生，都自動關閉 session 連線，避免資源浪費、外洩
 
-
-# # ===== 資料庫清理 =====
-# def cleanup_database() -> None:
-#     """
-#     清理資料庫。
+def check_db_connection() -> bool:
+    """
+    檢查資料庫連線狀態。
     
-#     刪除所有資料表（謹慎使用）。
-#     """
-#     try:
-#         Base.metadata.drop_all(bind=engine)
-#         logger.warning("資料庫已清理")
+    執行簡單的 SQL 查詢來驗證資料庫連線是否正常。
+    用於健康檢查和監控系統。
+    
+    Returns:
+        bool: True 表示連線正常，False 表示連線失敗
         
-#     except Exception as e:
-#         logger.error(f"資料庫清理失敗：{e}")
-#         raise 
+    Example:
+        if check_db_connection():
+            print("資料庫連線正常")
+        else:
+            print("資料庫連線失敗")
+    """
+    logger.info("check_db_connection() called: 檢查資料庫連線狀態")
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))  # 執行簡單的查詢來測試連線
+            logger.info("check_db_connection() success: 資料庫連線正常")
+            return True
+    except OperationalError as e:
+        logger.error(f"check_db_connection() error: 資料庫連線失敗 - {str(e)}")
+        return False
+    except Exception as e:
+        logger.error(f"check_db_connection() error: 檢查連線時發生未預期錯誤 - {str(e)}")
+        return False
+
+
+def get_healthy_db():
+    """
+    健康檢查專用的資料庫依賴。
+    
+    用於 readiness probe，如果資料庫連線失敗會拋出 HTTPException。
+    這讓健康檢查端點可以專注於業務邏輯，而不需要處理連線錯誤。
+    
+    Raises:
+        HTTPException: 當資料庫連線失敗時拋出 503 錯誤
+        
+    Example:
+        @router.get("/readyz")
+        async def readiness_probe(db_healthy: bool = Depends(get_healthy_db)):
+            return {"status": "healthy"}
+    """
+    logger.info("get_healthy_db() called: 健康檢查資料庫連線")
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+            logger.info("get_healthy_db() success: 資料庫連線正常")
+            return True
+    except Exception as e:
+        logger.error(f"get_healthy_db() error: 資料庫連線失敗 - {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "status": "error",
+                "database": "disconnected",
+                "message": "Database connection failed. Application is not ready.",
+                "timestamp": int(time.time())
+            }
+        )
