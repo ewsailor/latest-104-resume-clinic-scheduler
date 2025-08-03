@@ -2,7 +2,6 @@ import re
 from datetime import datetime, timezone
 
 import pytest
-from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from app.core import get_project_version, settings
@@ -14,7 +13,6 @@ from tests.constants import (
     EXPECTED_DATABASE_DISCONNECTED,
     EXPECTED_DATABASE_HEALTHY,
     EXPECTED_ERROR_MESSAGE,
-    EXPECTED_MESSAGE_NOT_READY,
     EXPECTED_MESSAGE_READY,
     EXPECTED_STATUS_HEALTHY,
     EXPECTED_STATUS_UNHEALTHY,
@@ -22,7 +20,6 @@ from tests.constants import (
     HTTP_200_OK,
     HTTP_500_INTERNAL_SERVER_ERROR,
     HTTP_503_SERVICE_UNAVAILABLE,
-    SIMULATED_DATABASE_CONNECTION_ERROR,
     SIMULATED_VERSION_CHECK_ERROR,
 )
 
@@ -139,11 +136,14 @@ def test_readiness_probe_failure(mocker):
     """
     測試就緒探測失敗的情況（資料庫連線中斷）。
     """
-    # 模擬資料庫連線失敗，讓 get_healthy_db 拋出 HTTPException
+    # 模擬資料庫連線失敗
+    from sqlalchemy.exc import OperationalError
+
     mocker.patch(
         "app.models.database.engine.connect",
-        side_effect=Exception(SIMULATED_DATABASE_CONNECTION_ERROR),
+        side_effect=OperationalError("Connection failed", None, None),
     )
+
     response = client.get("/readyz")
     assert response.status_code == HTTP_503_SERVICE_UNAVAILABLE
     response_data = response.json()

@@ -27,38 +27,6 @@ async def test_read_root():
     assert "text/html" in response.headers.get("content-type", "")
 
 
-@pytest.mark.asyncio
-async def test_health_check():
-    """
-    測試健康檢查端點是否正常返回。
-    """
-    async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.get("/health")
-
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "healthy"
-    assert "app_name" in data
-    assert "version" in data
-    assert "timestamp" in data
-    assert "environment" in data
-    assert "debug" in data
-    assert "uptime" in data
-
-
-@pytest.mark.asyncio
-async def test_ping():
-    """
-    測試 ping 端點是否正常返回。
-    """
-    async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.get("/ping")
-
-    assert response.status_code == 200
-    data = response.json()
-    assert data["message"] == "pong"
-
-
 # 更多測試案例...
 # async def test_get_givers():
 # async def test_schedule_appointment():

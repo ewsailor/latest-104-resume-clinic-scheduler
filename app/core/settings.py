@@ -382,7 +382,9 @@ class Settings(BaseSettings):
             "host": self.smtp_host,
             "port": self.smtp_port,
             "username": self.smtp_user,
-            "password": self.smtp_password.get_secret_value(),
+            "password": (
+                self.smtp_password.get_secret_value() if self.smtp_password else ""
+            ),
             "use_tls": True,
         }
 
@@ -408,11 +410,11 @@ class Settings(BaseSettings):
     # ===== 安全相關的便利方法 =====
     def get_secret_key(self) -> str:
         """安全地取得應用程式密鑰"""
-        return self.secret_key.get_secret_value()
+        return self.secret_key.get_secret_value() if self.secret_key else ""
 
     def get_session_secret(self) -> str:
         """安全地取得會話密鑰"""
-        return self.session_secret.get_secret_value()
+        return self.session_secret.get_secret_value() if self.session_secret else ""
 
     def get_aws_secret_key(self) -> str:
         """安全地取得 AWS 秘密金鑰"""

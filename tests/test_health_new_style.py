@@ -4,8 +4,8 @@
 展示如何使用重構後的物件結構常數。
 """
 
-import pytest
-from fastapi import HTTPException
+import re
+
 from fastapi.testclient import TestClient
 
 from app.core import get_project_version, settings
@@ -16,6 +16,23 @@ from tests.constants import EXPECTED, HTTP, SIMULATED, TEST
 
 # 使用 FastAPI 的 TestClient 來模擬 HTTP 請求
 client = TestClient(app)
+
+
+def assert_timestamp_format(timestamp: str, context: str = ""):
+    """
+    驗證時間戳格式是否正確。
+
+    Args:
+        timestamp: 要驗證的時間戳字串
+        context: 錯誤訊息上下文
+    """
+    assert isinstance(timestamp, str), f"{context}時間戳必須是字串類型"
+
+    # 驗證時間戳格式：YYYY-MM-DDTHH:MM:SSZ
+    timestamp_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
+    assert re.match(
+        timestamp_pattern, timestamp
+    ), f"{context}時間戳格式不正確: {timestamp}"
 
 
 def test_liveness_probe_success_new_style():
@@ -43,9 +60,8 @@ def test_liveness_probe_success_new_style():
     assert response_data["app_name"] == settings.app_name
     assert response_data["version"] == get_project_version()
 
-    # 檢查時間戳是有效的整數
-    assert isinstance(response_data["timestamp"], int)
-    assert response_data["timestamp"] > 0
+    # 檢查時間戳格式
+    assert_timestamp_format(response_data["timestamp"], "存活探測 ")
 
 
 def test_liveness_probe_failure_new_style(mocker):
@@ -92,9 +108,8 @@ def test_readiness_probe_success_new_style(mocker):
     assert response_data["message"] == EXPECTED.MESSAGE.READY
     assert response_data["checks"]["database"] == EXPECTED.DATABASE.HEALTHY
 
-    # 檢查時間戳是有效的整數
-    assert isinstance(response_data["timestamp"], int)
-    assert response_data["timestamp"] > 0
+    # 檢查時間戳格式
+    assert_timestamp_format(response_data["timestamp"], "就緒探測 ")
 
 
 def test_readiness_probe_failure_new_style(mocker):
