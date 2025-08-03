@@ -7,22 +7,22 @@
 # ===== 標準函式庫 =====
 import logging  # 日誌記錄
 import time  # 時間處理
-from typing import Dict, Any  # 型別註解支援
 from datetime import datetime, timezone  # 時間處理
+from typing import Any, Dict  # 型別註解支援
 
 # ===== 第三方套件 =====
 from fastapi import APIRouter, Depends, HTTPException, status  # 路由物件
 from sqlalchemy import text  # 資料庫查詢
-from sqlalchemy.orm import Session  # 資料庫會話
 from sqlalchemy.exc import SQLAlchemyError  # 資料庫錯誤處理
+from sqlalchemy.orm import Session  # 資料庫會話
 
 # ===== 本地模組 =====
-from app.core import settings, get_project_version  # 應用程式配置
-from app.models.database import (
+from app.core import get_project_version, settings  # 應用程式配置
+from app.models.database import (  # 資料庫引擎
     SessionLocal,
     check_db_connection,
     get_healthy_db,
-)  # 資料庫引擎
+)
 
 # 設定 logger
 logger = logging.getLogger(__name__)

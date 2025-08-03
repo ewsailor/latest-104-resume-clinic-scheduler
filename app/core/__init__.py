@@ -10,7 +10,7 @@
 """
 
 # 使用相對匯入，保持模組獨立性和重構友好性
-from .settings import Settings, settings, get_project_version
+from .settings import Settings, get_project_version, settings
 
 __all__ = [
     "Settings",  # 設定類別，用於建立自訂設定實例

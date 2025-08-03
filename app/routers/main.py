@@ -4,17 +4,17 @@
 包含首頁、健康檢查等基礎路由。
 """
 
-# ===== 標準函式庫 =====
-from typing import Dict, Any  # 型別註解支援
 import time  # 時間處理
+
+# ===== 標準函式庫 =====
+from typing import Any, Dict  # 型別註解支援
 
 # ===== 第三方套件 =====
 from fastapi import APIRouter, Request  # 路由和請求物件
 from fastapi.responses import HTMLResponse  # HTML 回應類型
 
 # ===== 本地模組 =====
-from app.core import settings, get_project_version  # 應用程式配置
-
+from app.core import get_project_version, settings  # 應用程式配置
 
 # 建立路由器
 router = APIRouter()

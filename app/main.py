@@ -5,28 +5,28 @@ FastAPI 應用程式主入口。
 """
 
 # ===== 標準函式庫 =====
-from typing import Dict, Any  # 型別註解支援
+from typing import Any, Dict  # 型別註解支援
 
 # ===== 第三方套件 =====
 from fastapi import FastAPI, Request  # Web 框架核心
 from fastapi.responses import HTMLResponse  # HTML 回應類型
 
 # ===== 本地模組 =====
-from app.core import settings, get_project_version  # 應用程式配置
-from app.factory import (
+from app.core import get_project_version, settings  # 應用程式配置
+from app.factory import (  # 應用程式工廠
     create_app,
-    create_templates,
     create_static_files,
-)  # 應用程式工廠
-from app.routers.main import router as main_router  # 主要路由
-from app.routers.health import router as health_router  # 健康檢查路由
-from app.models.database import (
-    engine,
-    SessionLocal,
+    create_templates,
+)
+from app.models.database import (  # 資料庫引擎
     Base,
-    get_db,
+    SessionLocal,
     check_db_connection,
-)  # 資料庫引擎
+    engine,
+    get_db,
+)
+from app.routers.health import router as health_router  # 健康檢查路由
+from app.routers.main import router as main_router  # 主要路由
 
 # ===== 應用程式初始化 =====
 # 建立應用程式實例

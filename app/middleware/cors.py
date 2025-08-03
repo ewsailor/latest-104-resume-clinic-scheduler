@@ -16,7 +16,6 @@ from fastapi.middleware.cors import CORSMiddleware  # CORS 中間件
 # ===== 本地模組 =====
 from app.core.settings import Settings  # 應用程式設定
 
-
 # 設定日誌
 logger = logging.getLogger(__name__)
 

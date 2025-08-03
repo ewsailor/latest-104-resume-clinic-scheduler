@@ -6,30 +6,28 @@
 
 # ===== 標準函式庫 =====
 import logging  # 日誌記錄
-from typing import Optional, Any, Dict, List  # 型別註解
+import time  # 時間處理
 from datetime import datetime, timezone  # 時間處理
+from typing import Any, Dict, List, Optional  # 型別註解
+from fastapi import HTTPException, status  # FastAPI 錯誤處理
 
 # ===== 第三方套件 =====
-from sqlalchemy import (
+from sqlalchemy import (  # 資料庫引擎：引入 create_engine 函式，用於建立資料庫連線引擎；引入 text 函式，用於執行 SQL 查詢
     create_engine,
     text,
-)  # 資料庫引擎：引入 create_engine 函式，用於建立資料庫連線引擎；引入 text 函式，用於執行 SQL 查詢
-from sqlalchemy.orm import (
-    sessionmaker,
+)
+from sqlalchemy.exc import (  # 資料庫錯誤：引入 SQLAlchemyError 類別，用於處理資料庫操作錯誤; 資料庫錯誤：引入 OperationalError 類別，用於處理資料庫操作錯誤
+    OperationalError,
+    SQLAlchemyError,
+)
+from sqlalchemy.orm import (  # 會話管理：引入 sessionmaker 函式，用於建立會話實例；引入 Session 類別，用於資料庫會話；引入 declarative_base 函式，用於建立基礎類別
     Session,
     declarative_base,
-)  # 會話管理：引入 sessionmaker 函式，用於建立會話實例；引入 Session 類別，用於資料庫會話；引入 declarative_base 函式，用於建立基礎類別
-from sqlalchemy.pool import (
+    sessionmaker,
+)
+from sqlalchemy.pool import (  # 連線池：引入 QueuePool 類別，用於管理資料庫連線池
     QueuePool,
-)  # 連線池：引入 QueuePool 類別，用於管理資料庫連線池
-from sqlalchemy.exc import (
-    SQLAlchemyError,
-)  # 資料庫錯誤：引入 SQLAlchemyError 類別，用於處理資料庫操作錯誤
-from sqlalchemy.exc import (
-    OperationalError,
-)  # 資料庫錯誤：引入 OperationalError 類別，用於處理資料庫操作錯誤
-from fastapi import HTTPException, status  # FastAPI 錯誤處理
-import time  # 時間處理
+)
 
 # ===== 本地模組 =====
 from app.core import settings  # 應用程式配置

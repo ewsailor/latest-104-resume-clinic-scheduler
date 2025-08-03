@@ -11,7 +11,7 @@ from pathlib import Path  # 現代化的路徑處理
 from typing import List, Optional  # 型別註解支援
 
 # ===== 第三方套件 =====
-from pydantic import Field, field_validator, SecretStr  # Pydantic v2 驗證和欄位定義
+from pydantic import Field, SecretStr, field_validator  # Pydantic v2 驗證和欄位定義
 from pydantic_settings import BaseSettings, SettingsConfigDict  # Pydantic v2 設定管理
 
 
