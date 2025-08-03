@@ -249,8 +249,8 @@ const CONFIG = {
     DEFAULT_OFFSET_DAYS: 7,  // 預設日期偏移天數（一週後）
     MAX_MONTHS_AHEAD: 3,  // 最多可選擇幾個月後的日期
     BUSINESS_HOURS: {
-      START: '09:00', // 營業時間開始時間
-      END: '22:00' // 營業時間結束時間
+      START: '08:00', // 多數人休息時間開始時間
+      END: '24:00' // 多數人休息時間結束時間
     },
     CALENDAR: {
       WEEKS_TO_DISPLAY: 6,     // 顯示的週數
@@ -2346,7 +2346,7 @@ const FormValidator = {
       END_TIME_REQUIRED: '請輸入結束時間',
       TIME_INVALID: '目前輸入內容非 4 位數字，請輸入 4 位數字，無需輸入":"',
       TIME_LOGIC: '結束時間必須晚於開始時間',
-      TIME_BUSINESS_HOURS: `輸入時間必須在營業時間內（${CONFIG.DATE_PICKER.BUSINESS_HOURS.START}-${CONFIG.DATE_PICKER.BUSINESS_HOURS.END}）`,
+      TIME_BUSINESS_HOURS: `您輸入的時間是多數人的休息時間（${CONFIG.DATE_PICKER.BUSINESS_HOURS.END}-${CONFIG.DATE_PICKER.BUSINESS_HOURS.START}），請重新輸入`,
       NOTES_TOO_LONG: '備註不能超過 500 個字符',
       NOTES_INVALID: '備註包含無效字符',
       DUPLICATE_SCHEDULE: '您正輸入的時段，和您之前曾輸入的「{{EXISTING_SCHEDULE}}」時段重複或重疊，請重新輸入'
@@ -2554,18 +2554,18 @@ const FormValidator = {
         errors.push(timeLogicError);
       }
       
-      // 檢查營業時間
+      // 檢查多數人休息時間
       const businessStart = rules.TIME.BUSINESS_HOURS.START;
       const businessEnd = rules.TIME.BUSINESS_HOURS.END;
       
       if (DateUtils.compareTimes(formData.startTime, businessStart) < 0 ||
           DateUtils.compareTimes(formData.endTime, businessEnd) > 0) {
-        // 檢查是否已經有營業時間相關的錯誤訊息
+        // 檢查是否已經有多數人休息時間相關的錯誤訊息
         const startTimeInput = document.getElementById('schedule-start-time');
         const endTimeInput = document.getElementById('schedule-end-time');
         const hasExistingBusinessHoursError = (
-          ErrorElementUtils.hasInputError(startTimeInput, '營業時間') ||
-          ErrorElementUtils.hasInputError(endTimeInput, '營業時間')
+          ErrorElementUtils.hasInputError(startTimeInput, '多數人休息時間') ||
+          ErrorElementUtils.hasInputError(endTimeInput, '多數人休息時間')
         );
         
         if (!hasExistingBusinessHoursError) {
@@ -2891,8 +2891,8 @@ const FormValidator = {
     // 顯示錯誤
     if (!validationResult.isValid) {
       validationResult.errors.forEach(error => {
-        // 時間邏輯錯誤顯示在表單下方，營業時間錯誤使用彈出顯示
-        if (error && error.includes('時間必須在營業時間內')) {
+        // 時間邏輯錯誤顯示在表單下方，多數人休息時間錯誤使用彈出顯示
+        if (error && error.includes('多數人休息時間')) {
           FormValidator.showValidationError(error);
         } else {
           FormValidator.showValidationError(error, formElement);
@@ -5443,9 +5443,9 @@ const DOM = {
       }
     },
     
-    // 檢查營業時間並顯示錯誤訊息
+    // 檢查多數人休息時間並顯示錯誤訊息
     checkBusinessHours: (input, formattedTime) => {
-      console.log('DOM.chat.checkBusinessHours called：檢查營業時間', { formattedTime });
+      console.log('DOM.chat.checkBusinessHours called：檢查多數人休息時間', { formattedTime });
       
       const businessStart = CONFIG.DATE_PICKER.BUSINESS_HOURS.START;
       const businessEnd = CONFIG.DATE_PICKER.BUSINESS_HOURS.END;
@@ -7648,9 +7648,9 @@ const EventManager = {
       const visibleErrors = validationResult.errors.filter(error => error !== '__HIDDEN_ERROR__');
       
       if (visibleErrors.length > 0) {
-        // 時間邏輯錯誤顯示在表單下方，營業時間錯誤使用彈出顯示
+        // 時間邏輯錯誤顯示在表單下方，多數人休息時間錯誤使用彈出顯示
         if (validationResult.message && validationResult.message !== '__HIDDEN_ERROR__' && 
-            validationResult.message.includes('時間必須在營業時間內')) {
+            validationResult.message.includes('多數人休息時間')) {
           FormValidator.showValidationError(validationResult.message);
         } else if (visibleErrors.length > 0) {
           // 根據錯誤訊息類型，顯示在對應的欄位下方
