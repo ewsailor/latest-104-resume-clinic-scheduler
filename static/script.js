@@ -4936,7 +4936,7 @@ const DOM = {
     // 處理單筆時段選項
     handleSingleTime: async (editIndex = null, editData = null) => {
       console.log('DOM.chat.handleSingleTime called：處理單筆時段選項', { editIndex, editData });
-      
+
       // 處理參數格式：如果 editIndex 是數字，editData 是物件，則調整參數順序
       if (typeof editIndex === 'number' && editData && typeof editData === 'object' && editData.date) {
         // 這是新的呼叫格式：handleSingleTime(idx, editData)
@@ -4983,6 +4983,7 @@ const DOM = {
           scheduleForm.classList.remove('schedule-form-hidden');
           scheduleForm.classList.add('schedule-form-visible');
           console.log('DOM.chat.handleSingleTime: 表單樣式已設定');
+               
           // 帶入編輯資料
           const inputs = DOM_CACHE.getFormInputs();
           if (editData) {
@@ -5021,6 +5022,7 @@ const DOM = {
           // 設定表單事件
           console.log('DOM.chat.handleSingleTime: 設定表單事件');
           DOM.chat.setupScheduleForm(editIndex, editData);
+                    
           // 滾動到底部
           if (chatMessages) {
             chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -7527,6 +7529,11 @@ const EventManager = {
         UIComponents.confirmDialog({
           ...dialogConfig,
           onConfirm: () => {
+            console.log('EventManager: 刪除按鈕被點擊', { index, isProvideTable, isScheduleTable });
+      
+            // 強制重設快取
+            if (DOM_CACHE) DOM_CACHE.resetScheduleForm();
+
             // 獲取當前顯示的所有時段（包含正式提供和草稿）
             const providedSchedules = ChatStateManager.getProvidedSchedules();
             const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
