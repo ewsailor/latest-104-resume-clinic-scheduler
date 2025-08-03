@@ -24,10 +24,10 @@ router = APIRouter()
 async def read_index(request: Request) -> HTMLResponse:
     """
     首頁路由 - 顯示履歷診療室主頁面。
-    
+
     Args:
         request: FastAPI 請求物件。
-        
+
     Returns:
         HTMLResponse: 渲染後的 HTML 頁面。
     """

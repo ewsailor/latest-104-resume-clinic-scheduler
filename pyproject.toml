@@ -47,6 +47,7 @@ pytest-mock = "^3.14.1"
 [tool.black]
 line-length = 88  # 每行最大字元數，超過此長度會自動換行
 target-version = ["py312"]
+skip-string-normalization = true  # 跳過字串正規化，保持原始格式
 
 # isort 匯入排序工具配置
 [tool.isort]

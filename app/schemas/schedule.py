@@ -22,7 +22,7 @@
 #     taker_id: Optional[int] = Field(None, description="Taker ID")
 #     status: str = Field("AVAILABLE", description="狀態")
 #     note: Optional[str] = Field(None, description="備註")
-    
+
 #     @field_validator('end_time')
 #     @classmethod
 #     def validate_end_time(cls, v, info):
@@ -30,7 +30,7 @@
 #         if 'start_time' in info.data and v <= info.data['start_time']:
 #             raise ValueError('結束時間必須晚於開始時間')
 #         return v
-    
+
 #     @field_validator('date')
 #     @classmethod
 #     def validate_date(cls, v):
@@ -55,7 +55,7 @@
 #     end_time: time_type = Field(..., description="結束時間")
 #     note: Optional[str] = Field(None, description="備註")
 #     created_at: str = Field(..., description="建立時間")
-    
+
 #     model_config = {
 #         "from_attributes": True  # 允許從 ORM 物件建立
 #     }
@@ -66,4 +66,4 @@
 #     行程列表回應資料模型。
 #     """
 #     schedules: List[ScheduleResponse] = Field(..., description="行程列表")
-#     total: int = Field(..., description="總數量") 
+#     total: int = Field(..., description="總數量")

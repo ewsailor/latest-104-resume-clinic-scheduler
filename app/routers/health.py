@@ -18,7 +18,11 @@ from sqlalchemy.exc import SQLAlchemyError  # 資料庫錯誤處理
 
 # ===== 本地模組 =====
 from app.core import settings, get_project_version  # 應用程式配置
-from app.models.database import SessionLocal, check_db_connection, get_healthy_db  # 資料庫引擎
+from app.models.database import (
+    SessionLocal,
+    check_db_connection,
+    get_healthy_db,
+)  # 資料庫引擎
 
 # 設定 logger
 logger = logging.getLogger(__name__)
@@ -31,27 +35,30 @@ router = APIRouter()
 async def liveness_probe() -> Dict[str, Any]:
     """
     存活探測：檢查應用程式是否正在運行。
-    
+
     這個端點用於 Kubernetes 的 liveness probe，檢查應用程式是否存活。
     不應該包含外部依賴檢查，只檢查應用程式本身狀態。
-    
+
     Returns:
         Dict[str, Any]: 應用程式狀態資訊，包含狀態、時間戳、版本等資訊。
     """
     logger.info("liveness_probe() called: 執行存活探測檢查")
-    
+
     try:
         response_data = {
             "status": "healthy",
             "app_name": settings.app_name,
-            "version": get_project_version(), 
-            "uptime": "running",  # 可以進一步實作實際的運行時間計算  
-            "timestamp": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+            "version": get_project_version(),
+            "uptime": "running",  # 可以進一步實作實際的運行時間計算
+            "timestamp": datetime.now(timezone.utc)
+            .replace(microsecond=0)
+            .isoformat()
+            .replace("+00:00", "Z"),
         }
-        
+
         logger.info(f"liveness_probe() success: 應用程式狀態健康")
         return response_data
-        
+
     except Exception as e:
         logger.error(f"liveness_probe() error: 存活探測檢查失敗 - {str(e)}")
         # 存活探測失敗時，返回 500 錯誤
@@ -60,8 +67,11 @@ async def liveness_probe() -> Dict[str, Any]:
             detail={
                 "status": "unhealthy",
                 "error": "Application health check failed",
-                "timestamp": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-            }
+                "timestamp": datetime.now(timezone.utc)
+                .replace(microsecond=0)
+                .isoformat()
+                .replace("+00:00", "Z"),
+            },
         )
 
 
@@ -69,34 +79,37 @@ async def liveness_probe() -> Dict[str, Any]:
 async def readiness_probe(db_healthy: bool = Depends(get_healthy_db)) -> Dict[str, Any]:
     """
     準備就緒探測：檢查應用程式所有外部依賴（資料庫、快取等），是否已經準備好處理請求。
-    
+
     這個端點用於 Kubernetes 的 readiness probe，檢查所有依賴是否就緒。
     使用依賴注入方式檢查資料庫連線，如果連線失敗會自動拋出 503 錯誤。
-    
+
     Args:
         db_healthy: 資料庫連線狀態依賴，由 get_healthy_db() 提供
-        
+
     Returns:
         Dict[str, Any]: 應用程式就緒狀態資訊。
     """
     logger.info("readiness_probe() called: 執行準備就緒探測檢查")
-    
+
     # 可以在此加入其他依賴檢查，例如：
     # - Redis 連線檢查
     # - 外部 API 連線檢查
     # - 檔案系統權限檢查
-    
+
     response_data = {
         "status": "healthy",
         "database": "connected",
         "message": "Application and database are ready to serve traffic.",
-        "timestamp": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "timestamp": datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z"),
         "checks": {
             "database": "healthy",
             # "redis": "healthy",  # 未來可加入
             # "external_api": "healthy"  # 未來可加入
-        }
+        },
     }
-    
+
     logger.info("readiness_probe() success: 應用程式準備就緒，所有依賴檢查通過")
     return response_data

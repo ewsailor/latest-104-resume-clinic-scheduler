@@ -13,7 +13,7 @@
 from .settings import Settings, settings, get_project_version
 
 __all__ = [
-    "Settings",      # 設定類別，用於建立自訂設定實例
-    "settings",      # 全域設定實例，用於應用程式配置
-    "get_project_version"  # 版本號取得函數
-] 
+    "Settings",  # 設定類別，用於建立自訂設定實例
+    "settings",  # 全域設定實例，用於應用程式配置
+    "get_project_version",  # 版本號取得函數
+]

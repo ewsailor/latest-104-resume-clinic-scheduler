@@ -27,16 +27,16 @@
 # ):
 #     """
 #     建立新的行程。
-    
+
 #     Args:
 #         schedule: 行程資料。
 #         db: 資料庫會話。
-        
+
 #     Returns:
 #         ScheduleResponse: 建立的行程資料。
 #     """
 #     print(f"建立行程：{schedule}")
-    
+
 #     # 檢查時段是否重疊
 #     existing_schedule = db.query(Schedule).filter(
 #         Schedule.date == schedule.date,
@@ -44,13 +44,13 @@
 #         Schedule.end_time > schedule.start_time,
 #         Schedule.giver_id == schedule.giver_id
 #     ).first()
-    
+
 #     if existing_schedule:
 #         raise HTTPException(
 #             status_code=status.HTTP_400_BAD_REQUEST,
 #             detail=f"時段重疊：{existing_schedule.start_time} - {existing_schedule.end_time}"
 #         )
-    
+
 #     # 建立新的行程
 #     db_schedule = Schedule(
 #         date=schedule.date,
@@ -62,14 +62,14 @@
 #         status=schedule.status,
 #         note=schedule.note
 #     )
-    
+
 #     # 儲存到資料庫
 #     db.add(db_schedule)
 #     db.commit()
 #     db.refresh(db_schedule)
-    
+
 #     print(f"行程建立成功：ID {db_schedule.id}")
-    
+
 #     return ScheduleResponse(
 #         id=db_schedule.id,
 #         role=db_schedule.role,
@@ -94,22 +94,22 @@
 # ):
 #     """
 #     取得行程列表。
-    
+
 #     Args:
 #         date_from: 開始日期。
 #         date_to: 結束日期。
 #         giver_id: Giver ID。
 #         role: 角色 (GIVER/TAKER)。
 #         db: 資料庫會話。
-        
+
 #     Returns:
 #         ScheduleListResponse: 行程列表。
 #     """
 #     print(f"查詢行程：date_from={date_from}, date_to={date_to}, giver_id={giver_id}, role={role}")
-    
+
 #     # 建立查詢
 #     query = db.query(Schedule)
-    
+
 #     # 套用篩選條件
 #     if date_from:
 #         query = query.filter(Schedule.date >= date_from)
@@ -119,15 +119,15 @@
 #         query = query.filter(Schedule.giver_id == giver_id)
 #     if role:
 #         query = query.filter(Schedule.role == role)
-    
+
 #     # 排序
 #     query = query.order_by(Schedule.date, Schedule.start_time)
-    
+
 #     # 執行查詢
 #     schedules = query.all()
-    
+
 #     print(f"查詢到 {len(schedules)} 個行程")
-    
+
 #     return ScheduleListResponse(
 #         schedules=[
 #             ScheduleResponse(
@@ -155,24 +155,24 @@
 # ):
 #     """
 #     取得特定行程。
-    
+
 #     Args:
 #         schedule_id: 行程 ID。
 #         db: 資料庫會話。
-        
+
 #     Returns:
 #         ScheduleResponse: 行程資料。
 #     """
 #     print(f"查詢行程 ID：{schedule_id}")
-    
+
 #     schedule = db.query(Schedule).filter(Schedule.id == schedule_id).first()
-    
+
 #     if not schedule:
 #         raise HTTPException(
 #             status_code=status.HTTP_404_NOT_FOUND,
 #             detail=f"行程 ID {schedule_id} 不存在"
 #         )
-    
+
 #     return ScheduleResponse(
 #         id=schedule.id,
 #         role=schedule.role,
@@ -194,22 +194,22 @@
 # ):
 #     """
 #     刪除行程。
-    
+
 #     Args:
 #         schedule_id: 行程 ID。
 #         db: 資料庫會話。
 #     """
 #     print(f"刪除行程 ID：{schedule_id}")
-    
+
 #     schedule = db.query(Schedule).filter(Schedule.id == schedule_id).first()
-    
+
 #     if not schedule:
 #         raise HTTPException(
 #             status_code=status.HTTP_404_NOT_FOUND,
 #             detail=f"行程 ID {schedule_id} 不存在"
 #         )
-    
+
 #     db.delete(schedule)
 #     db.commit()
-    
-#     print(f"行程 ID {schedule_id} 刪除成功") 
+
+#     print(f"行程 ID {schedule_id} 刪除成功")
