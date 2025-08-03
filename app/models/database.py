@@ -7,6 +7,7 @@
 # ===== 標準函式庫 =====
 import logging  # 日誌記錄
 from typing import Optional, Any, Dict, List  # 型別註解
+from datetime import datetime, timezone  # 時間處理
 
 # ===== 第三方套件 =====
 from sqlalchemy import create_engine, text  # 資料庫引擎：引入 create_engine 函式，用於建立資料庫連線引擎；引入 text 函式，用於執行 SQL 查詢
@@ -192,6 +193,6 @@ def get_healthy_db():
                 "status": "error",
                 "database": "disconnected",
                 "message": "Database connection failed. Application is not ready.",
-                "timestamp": int(time.time())
+                "timestamp": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
             }
         )

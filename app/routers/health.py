@@ -8,6 +8,7 @@
 import logging  # 日誌記錄
 import time  # 時間處理
 from typing import Dict, Any  # 型別註解支援
+from datetime import datetime, timezone  # 時間處理
 
 # ===== 第三方套件 =====
 from fastapi import APIRouter, Depends, HTTPException, status  # 路由物件
@@ -45,7 +46,7 @@ async def liveness_probe() -> Dict[str, Any]:
             "app_name": settings.app_name,
             "version": get_project_version(), 
             "uptime": "running",  # 可以進一步實作實際的運行時間計算  
-            "timestamp": int(time.time())
+            "timestamp": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
         }
         
         logger.info(f"liveness_probe() success: 應用程式狀態健康")
@@ -59,7 +60,7 @@ async def liveness_probe() -> Dict[str, Any]:
             detail={
                 "status": "unhealthy",
                 "error": "Application health check failed",
-                "timestamp": int(time.time())
+                "timestamp": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
             }
         )
 
@@ -89,7 +90,7 @@ async def readiness_probe(db_healthy: bool = Depends(get_healthy_db)) -> Dict[st
         "status": "healthy",
         "database": "connected",
         "message": "Application and database are ready to serve traffic.",
-        "timestamp": int(time.time()),
+        "timestamp": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "checks": {
             "database": "healthy",
             # "redis": "healthy",  # 未來可加入

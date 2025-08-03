@@ -3,6 +3,8 @@ from fastapi.testclient import TestClient
 from fastapi import HTTPException
 from app.main import app
 from app.core import settings, get_project_version
+import re
+from datetime import datetime, timezone
 
 # 導入測試常數
 from tests.constants import (
@@ -49,9 +51,21 @@ def test_liveness_probe_success():
     assert response_data["app_name"] == settings.app_name
     assert response_data["version"] == get_project_version()
     
-    # 檢查時間戳是有效的整數
-    assert isinstance(response_data["timestamp"], int)
-    assert response_data["timestamp"] > 0
+    # 檢查時間戳是有效的 ISO 格式字串
+    assert isinstance(response_data["timestamp"], str)
+    # 驗證時間戳格式：YYYY-MM-DDTHH:MM:SSZ
+    timestamp_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
+    assert re.match(timestamp_pattern, response_data["timestamp"]), f"時間戳格式不正確: {response_data['timestamp']}"
+    
+    # 驗證時間戳是合理的（不超過當前時間太多）
+    try:
+        timestamp_dt = datetime.strptime(response_data["timestamp"], "%Y-%m-%dT%H:%M:%SZ")
+        timestamp_dt = timestamp_dt.replace(tzinfo=timezone.utc)  # 添加 UTC 時區資訊
+        current_dt = datetime.now(timezone.utc)
+        time_diff = abs((timestamp_dt - current_dt).total_seconds())
+        assert time_diff < 60, f"時間戳與當前時間差異過大: {time_diff}秒"
+    except ValueError as e:
+        pytest.fail(f"無法解析時間戳: {e}")
 
 def test_liveness_probe_failure(mocker):
     """
@@ -65,10 +79,17 @@ def test_liveness_probe_failure(mocker):
     
     response = client.get("/healthz")
     assert response.status_code == HTTP_500_INTERNAL_SERVER_ERROR
-    assert "detail" in response.json()
-    assert response.json()["detail"]["status"] == EXPECTED_STATUS_UNHEALTHY
-    assert response.json()["detail"]["error"] == EXPECTED_ERROR_MESSAGE
-    assert "timestamp" in response.json()["detail"]
+    response_data = response.json()
+    assert "detail" in response_data
+    assert response_data["detail"]["status"] == EXPECTED_STATUS_UNHEALTHY
+    assert response_data["detail"]["error"] == EXPECTED_ERROR_MESSAGE
+    assert "timestamp" in response_data["detail"]
+    
+    # 檢查時間戳是有效的 ISO 格式字串
+    assert isinstance(response_data["detail"]["timestamp"], str)
+    # 驗證時間戳格式：YYYY-MM-DDTHH:MM:SSZ
+    timestamp_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
+    assert re.match(timestamp_pattern, response_data["detail"]["timestamp"]), f"時間戳格式不正確: {response_data['detail']['timestamp']}"
 
 def test_readiness_probe_success(mocker):
     """
@@ -94,9 +115,11 @@ def test_readiness_probe_success(mocker):
     assert response_data["message"] == EXPECTED_MESSAGE_READY
     assert response_data["checks"]["database"] == EXPECTED_DATABASE_HEALTHY
     
-    # 檢查時間戳是有效的整數
-    assert isinstance(response_data["timestamp"], int)
-    assert response_data["timestamp"] > 0
+    # 檢查時間戳是有效的 ISO 格式字串
+    assert isinstance(response_data["timestamp"], str)
+    # 驗證時間戳格式：YYYY-MM-DDTHH:MM:SSZ
+    timestamp_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
+    assert re.match(timestamp_pattern, response_data["timestamp"]), f"時間戳格式不正確: {response_data['timestamp']}"
 
 def test_readiness_probe_failure(mocker):
     """
@@ -109,7 +132,14 @@ def test_readiness_probe_failure(mocker):
     )
     response = client.get("/readyz")
     assert response.status_code == HTTP_503_SERVICE_UNAVAILABLE
-    assert "detail" in response.json()
-    assert response.json()["detail"]["status"] == "error"
-    assert response.json()["detail"]["database"] == EXPECTED_DATABASE_DISCONNECTED
-    assert "timestamp" in response.json()["detail"]
+    response_data = response.json()
+    assert "detail" in response_data
+    assert response_data["detail"]["status"] == "error"
+    assert response_data["detail"]["database"] == EXPECTED_DATABASE_DISCONNECTED
+    assert "timestamp" in response_data["detail"]
+    
+    # 檢查時間戳是有效的 ISO 格式字串
+    assert isinstance(response_data["detail"]["timestamp"], str)
+    # 驗證時間戳格式：YYYY-MM-DDTHH:MM:SSZ
+    timestamp_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
+    assert re.match(timestamp_pattern, response_data["detail"]["timestamp"]), f"時間戳格式不正確: {response_data['detail']['timestamp']}"
