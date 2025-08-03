@@ -21,7 +21,7 @@ async def test_read_root():
     """
     async with AsyncClient(app=app, base_url="http://test") as ac:
         response = await ac.get("/")
-    
+
     assert response.status_code == 200
     # 根路徑返回 HTML 頁面，不是 JSON
     assert "text/html" in response.headers.get("content-type", "")
@@ -34,7 +34,7 @@ async def test_health_check():
     """
     async with AsyncClient(app=app, base_url="http://test") as ac:
         response = await ac.get("/health")
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
@@ -53,10 +53,11 @@ async def test_ping():
     """
     async with AsyncClient(app=app, base_url="http://test") as ac:
         response = await ac.get("/ping")
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["message"] == "pong"
+
 
 # 更多測試案例...
 # async def test_get_givers():

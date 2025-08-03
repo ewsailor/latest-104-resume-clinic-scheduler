@@ -6,28 +6,14 @@
 
 # ===== 標準函式庫 =====
 import logging  # 日誌記錄
-import time  # 時間處理
 from datetime import datetime, timezone  # 時間處理
-from typing import Any, Dict, List, Optional  # 型別註解
+
 from fastapi import HTTPException, status  # FastAPI 錯誤處理
 
 # ===== 第三方套件 =====
-from sqlalchemy import (  # 資料庫引擎：引入 create_engine 函式，用於建立資料庫連線引擎；引入 text 函式，用於執行 SQL 查詢
-    create_engine,
-    text,
-)
-from sqlalchemy.exc import (  # 資料庫錯誤：引入 SQLAlchemyError 類別，用於處理資料庫操作錯誤; 資料庫錯誤：引入 OperationalError 類別，用於處理資料庫操作錯誤
-    OperationalError,
-    SQLAlchemyError,
-)
-from sqlalchemy.orm import (  # 會話管理：引入 sessionmaker 函式，用於建立會話實例；引入 Session 類別，用於資料庫會話；引入 declarative_base 函式，用於建立基礎類別
-    Session,
-    declarative_base,
-    sessionmaker,
-)
-from sqlalchemy.pool import (  # 連線池：引入 QueuePool 類別，用於管理資料庫連線池
-    QueuePool,
-)
+from sqlalchemy import create_engine, text  # 資料庫引擎
+from sqlalchemy.exc import OperationalError  # 資料庫錯誤
+from sqlalchemy.orm import declarative_base, sessionmaker  # 會話管理
 
 # ===== 本地模組 =====
 from app.core import settings  # 應用程式配置
@@ -39,9 +25,8 @@ logger = logging.getLogger(
     __name__
 )  # 取得 logger 實例，用於記錄日誌，讓 logger 根據不同模組來源分辨訊息來源
 
-logging.getLogger("sqlalchemy.engine").setLevel(
-    logging.WARNING
-)  # 設定 SQLAlchemy 的日誌級別為 WARNING：只顯示 WARNING 級別以上的訊息，避免太多日誌訊息，因為預設 SQLAlchemy 執行時會印出很多 SQL log
+# 設定 SQLAlchemy 的日誌級別為 WARNING：只顯示 WARNING 級別以上的訊息
+logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
 
 def create_database_engine():
@@ -78,18 +63,22 @@ def create_database_engine():
             connect_args={
                 "charset": "utf8mb4",  # 使用 utf8mb4 字符集
                 "autocommit": False,  # 手動提交事務
-                "sql_mode": "STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO",  # 嚴格模式
+                # 嚴格模式
+                "sql_mode": (
+                    "STRICT_TRANS_TABLES,NO_ZERO_DATE,"
+                    "NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO"
+                ),
             },
         )
 
         # 測試連線
-        with engine.connect() as connection:
+        with engine.connect():
             logger.info(
                 f"成功建立資料庫引擎，並連結到資料庫：{settings.mysql_database}"
             )
             logger.info(f"資料庫主機：{settings.mysql_host}:{settings.mysql_port}")
             logger.info(f"使用者：{settings.mysql_user}")
-            logger.info(f"驅動程式：pymysql")
+            logger.info("驅動程式：pymysql")
 
         # 建立 session（會話）類別工廠
         SessionLocal = sessionmaker(
@@ -106,11 +95,11 @@ def create_database_engine():
 
     except Exception as e:
         logger.error(f"連結到資料庫失敗：{str(e)}")
-        logger.error(f"請檢查以下項目：")
-        logger.error(f"   1. MySQL 服務是否正在運行")
-        logger.error(f"   2. 資料庫連線設定是否正確")
-        logger.error(f"   3. 使用者權限是否足夠")
-        logger.error(f"   4. 防火牆設定是否允許連線")
+        logger.error("請檢查以下項目：")
+        logger.error("   1. MySQL 服務是否正在運行")
+        logger.error("   2. 資料庫連線設定是否正確")
+        logger.error("   3. 使用者權限是否足夠")
+        logger.error("   4. 防火牆設定是否允許連線")
         raise
 
 

@@ -5,16 +5,18 @@
 """
 
 import pytest
-from fastapi.testclient import TestClient
 from fastapi import HTTPException
+from fastapi.testclient import TestClient
+
+from app.core import get_project_version, settings
 from app.main import app
-from app.core import settings, get_project_version
 
 # 導入新式物件結構常數
-from tests.constants import EXPECTED, HTTP, TEST, SIMULATED
+from tests.constants import EXPECTED, HTTP, SIMULATED, TEST
 
 # 使用 FastAPI 的 TestClient 來模擬 HTTP 請求
 client = TestClient(app)
+
 
 def test_liveness_probe_success_new_style():
     """
@@ -23,45 +25,47 @@ def test_liveness_probe_success_new_style():
     """
     response = client.get("/healthz")
     assert response.status_code == HTTP.OK
-    
+
     response_data = response.json()
-    
+
     # 檢查必要欄位存在
     assert "status" in response_data
     assert "app_name" in response_data
     assert "version" in response_data
     assert "uptime" in response_data
     assert "timestamp" in response_data
-    
+
     # 檢查欄位值（使用新式物件結構）
     assert response_data["status"] == EXPECTED.STATUS.HEALTHY
     assert response_data["uptime"] == EXPECTED.UPTIME.RUNNING
-    
+
     # 檢查應用程式名稱和版本（使用實際設定值）
     assert response_data["app_name"] == settings.app_name
     assert response_data["version"] == get_project_version()
-    
+
     # 檢查時間戳是有效的整數
     assert isinstance(response_data["timestamp"], int)
     assert response_data["timestamp"] > 0
+
 
 def test_liveness_probe_failure_new_style(mocker):
     """
     存活探測失敗時，應返回 500 狀態碼和錯誤詳情。
     使用新式物件結構常數。
-    """ 
+    """
     # 模擬 get_project_version 函式拋出異常
     mocker.patch(
         "app.routers.health.get_project_version",
-        side_effect=Exception(SIMULATED.VERSION_CHECK_ERROR)
+        side_effect=Exception(SIMULATED.VERSION_CHECK_ERROR),
     )
-    
+
     response = client.get("/healthz")
     assert response.status_code == HTTP.INTERNAL_SERVER_ERROR
     assert "detail" in response.json()
     assert response.json()["detail"]["status"] == EXPECTED.STATUS.UNHEALTHY
     assert response.json()["detail"]["error"] == EXPECTED.MESSAGE.ERROR
     assert "timestamp" in response.json()["detail"]
+
 
 def test_readiness_probe_success_new_style(mocker):
     """
@@ -72,25 +76,26 @@ def test_readiness_probe_success_new_style(mocker):
     mocker.patch("app.models.database.get_healthy_db", return_value=True)
     response = client.get("/readyz")
     assert response.status_code == HTTP.OK
-    
+
     response_data = response.json()
-    
+
     # 檢查必要欄位存在
     assert "status" in response_data
     assert "database" in response_data
     assert "message" in response_data
     assert "timestamp" in response_data
     assert "checks" in response_data
-    
+
     # 檢查欄位值（使用新式物件結構）
     assert response_data["status"] == EXPECTED.STATUS.HEALTHY
     assert response_data["database"] == EXPECTED.DATABASE.CONNECTED
     assert response_data["message"] == EXPECTED.MESSAGE.READY
     assert response_data["checks"]["database"] == EXPECTED.DATABASE.HEALTHY
-    
+
     # 檢查時間戳是有效的整數
     assert isinstance(response_data["timestamp"], int)
     assert response_data["timestamp"] > 0
+
 
 def test_readiness_probe_failure_new_style(mocker):
     """
@@ -100,7 +105,7 @@ def test_readiness_probe_failure_new_style(mocker):
     # 模擬資料庫連線失敗，讓 get_healthy_db 拋出 HTTPException
     mocker.patch(
         "app.models.database.engine.connect",
-        side_effect=Exception(SIMULATED.DATABASE_CONNECTION_ERROR)
+        side_effect=Exception(SIMULATED.DATABASE_CONNECTION_ERROR),
     )
     response = client.get("/readyz")
     assert response.status_code == HTTP.SERVICE_UNAVAILABLE
@@ -108,6 +113,7 @@ def test_readiness_probe_failure_new_style(mocker):
     assert response.json()["detail"]["status"] == "error"
     assert response.json()["detail"]["database"] == EXPECTED.DATABASE.DISCONNECTED
     assert "timestamp" in response.json()["detail"]
+
 
 def test_constants_structure():
     """
@@ -120,22 +126,27 @@ def test_constants_structure():
     assert EXPECTED.DATABASE.CONNECTED == "connected"
     assert EXPECTED.DATABASE.DISCONNECTED == "disconnected"
     assert EXPECTED.DATABASE.HEALTHY == "healthy"
-    assert EXPECTED.MESSAGE.READY == "Application and database are ready to serve traffic."
-    assert EXPECTED.MESSAGE.NOT_READY == "Database connection failed. Application is not ready."
+    assert (
+        EXPECTED.MESSAGE.READY == "Application and database are ready to serve traffic."
+    )
+    assert (
+        EXPECTED.MESSAGE.NOT_READY
+        == "Database connection failed. Application is not ready."
+    )
     assert EXPECTED.MESSAGE.ERROR == "Application health check failed"
-    
+
     # 測試 HTTP 結構
     assert HTTP.OK == 200
     assert HTTP.INTERNAL_SERVER_ERROR == 500
     assert HTTP.SERVICE_UNAVAILABLE == 503
-    
+
     # 測試 TEST 結構
     assert TEST.APP_NAME == "104 Resume Clinic Scheduler"
     assert TEST.VERSION == "0.1.0"
     assert TEST.TIMESTAMP == 1717334400
     assert TEST.CONFIG.TIMEOUT == 30
     assert TEST.CONFIG.RETRY_COUNT == 3
-    
+
     # 測試 SIMULATED 結構
     assert SIMULATED.VERSION_CHECK_ERROR == "Simulated version check error"
-    assert SIMULATED.DATABASE_CONNECTION_ERROR == "Database connection failed" 
+    assert SIMULATED.DATABASE_CONNECTION_ERROR == "Database connection failed"

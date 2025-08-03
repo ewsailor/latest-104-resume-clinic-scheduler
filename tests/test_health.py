@@ -1,31 +1,34 @@
-import pytest
-from fastapi.testclient import TestClient
-from fastapi import HTTPException
-from app.main import app
-from app.core import settings, get_project_version
 import re
 from datetime import datetime, timezone
 
+import pytest
+from fastapi import HTTPException
+from fastapi.testclient import TestClient
+
+from app.core import get_project_version, settings
+from app.main import app
+
 # 導入測試常數
 from tests.constants import (
-    EXPECTED_STATUS_HEALTHY,
-    EXPECTED_STATUS_UNHEALTHY,
-    EXPECTED_UPTIME_RUNNING,
     EXPECTED_DATABASE_CONNECTED,
     EXPECTED_DATABASE_DISCONNECTED,
     EXPECTED_DATABASE_HEALTHY,
-    EXPECTED_MESSAGE_READY,
-    EXPECTED_MESSAGE_NOT_READY,
     EXPECTED_ERROR_MESSAGE,
+    EXPECTED_MESSAGE_NOT_READY,
+    EXPECTED_MESSAGE_READY,
+    EXPECTED_STATUS_HEALTHY,
+    EXPECTED_STATUS_UNHEALTHY,
+    EXPECTED_UPTIME_RUNNING,
     HTTP_200_OK,
     HTTP_500_INTERNAL_SERVER_ERROR,
     HTTP_503_SERVICE_UNAVAILABLE,
+    SIMULATED_DATABASE_CONNECTION_ERROR,
     SIMULATED_VERSION_CHECK_ERROR,
-    SIMULATED_DATABASE_CONNECTION_ERROR
 )
 
 # 使用 FastAPI 的 TestClient 來模擬 HTTP 請求
 client = TestClient(app)
+
 
 def test_liveness_probe_success():
     """
@@ -33,33 +36,37 @@ def test_liveness_probe_success():
     """
     response = client.get("/healthz")
     assert response.status_code == HTTP_200_OK
-    
+
     response_data = response.json()
-    
+
     # 檢查必要欄位存在
     assert "status" in response_data
     assert "app_name" in response_data
     assert "version" in response_data
     assert "uptime" in response_data
     assert "timestamp" in response_data
-    
+
     # 檢查欄位值
     assert response_data["status"] == EXPECTED_STATUS_HEALTHY
     assert response_data["uptime"] == EXPECTED_UPTIME_RUNNING
-    
+
     # 檢查應用程式名稱和版本（使用實際設定值）
     assert response_data["app_name"] == settings.app_name
     assert response_data["version"] == get_project_version()
-    
+
     # 檢查時間戳是有效的 ISO 格式字串
     assert isinstance(response_data["timestamp"], str)
     # 驗證時間戳格式：YYYY-MM-DDTHH:MM:SSZ
     timestamp_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
-    assert re.match(timestamp_pattern, response_data["timestamp"]), f"時間戳格式不正確: {response_data['timestamp']}"
-    
+    assert re.match(
+        timestamp_pattern, response_data["timestamp"]
+    ), f"時間戳格式不正確: {response_data['timestamp']}"
+
     # 驗證時間戳是合理的（不超過當前時間太多）
     try:
-        timestamp_dt = datetime.strptime(response_data["timestamp"], "%Y-%m-%dT%H:%M:%SZ")
+        timestamp_dt = datetime.strptime(
+            response_data["timestamp"], "%Y-%m-%dT%H:%M:%SZ"
+        )
         timestamp_dt = timestamp_dt.replace(tzinfo=timezone.utc)  # 添加 UTC 時區資訊
         current_dt = datetime.now(timezone.utc)
         time_diff = abs((timestamp_dt - current_dt).total_seconds())
@@ -67,16 +74,17 @@ def test_liveness_probe_success():
     except ValueError as e:
         pytest.fail(f"無法解析時間戳: {e}")
 
+
 def test_liveness_probe_failure(mocker):
     """
     存活探測失敗時，應返回 500 狀態碼和錯誤詳情。
-    """ 
+    """
     # 模擬 get_project_version 函式拋出異常
     mocker.patch(
         "app.routers.health.get_project_version",
-        side_effect=Exception(SIMULATED_VERSION_CHECK_ERROR)
+        side_effect=Exception(SIMULATED_VERSION_CHECK_ERROR),
     )
-    
+
     response = client.get("/healthz")
     assert response.status_code == HTTP_500_INTERNAL_SERVER_ERROR
     response_data = response.json()
@@ -84,12 +92,15 @@ def test_liveness_probe_failure(mocker):
     assert response_data["detail"]["status"] == EXPECTED_STATUS_UNHEALTHY
     assert response_data["detail"]["error"] == EXPECTED_ERROR_MESSAGE
     assert "timestamp" in response_data["detail"]
-    
+
     # 檢查時間戳是有效的 ISO 格式字串
     assert isinstance(response_data["detail"]["timestamp"], str)
     # 驗證時間戳格式：YYYY-MM-DDTHH:MM:SSZ
     timestamp_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
-    assert re.match(timestamp_pattern, response_data["detail"]["timestamp"]), f"時間戳格式不正確: {response_data['detail']['timestamp']}"
+    assert re.match(
+        timestamp_pattern, response_data["detail"]["timestamp"]
+    ), f"時間戳格式不正確: {response_data['detail']['timestamp']}"
+
 
 def test_readiness_probe_success(mocker):
     """
@@ -99,27 +110,30 @@ def test_readiness_probe_success(mocker):
     mocker.patch("app.models.database.get_healthy_db", return_value=True)
     response = client.get("/readyz")
     assert response.status_code == HTTP_200_OK
-    
+
     response_data = response.json()
-    
+
     # 檢查必要欄位存在
     assert "status" in response_data
     assert "database" in response_data
     assert "message" in response_data
     assert "timestamp" in response_data
     assert "checks" in response_data
-    
+
     # 檢查欄位值
     assert response_data["status"] == EXPECTED_STATUS_HEALTHY
     assert response_data["database"] == EXPECTED_DATABASE_CONNECTED
     assert response_data["message"] == EXPECTED_MESSAGE_READY
     assert response_data["checks"]["database"] == EXPECTED_DATABASE_HEALTHY
-    
+
     # 檢查時間戳是有效的 ISO 格式字串
     assert isinstance(response_data["timestamp"], str)
     # 驗證時間戳格式：YYYY-MM-DDTHH:MM:SSZ
     timestamp_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
-    assert re.match(timestamp_pattern, response_data["timestamp"]), f"時間戳格式不正確: {response_data['timestamp']}"
+    assert re.match(
+        timestamp_pattern, response_data["timestamp"]
+    ), f"時間戳格式不正確: {response_data['timestamp']}"
+
 
 def test_readiness_probe_failure(mocker):
     """
@@ -128,7 +142,7 @@ def test_readiness_probe_failure(mocker):
     # 模擬資料庫連線失敗，讓 get_healthy_db 拋出 HTTPException
     mocker.patch(
         "app.models.database.engine.connect",
-        side_effect=Exception(SIMULATED_DATABASE_CONNECTION_ERROR)
+        side_effect=Exception(SIMULATED_DATABASE_CONNECTION_ERROR),
     )
     response = client.get("/readyz")
     assert response.status_code == HTTP_503_SERVICE_UNAVAILABLE
@@ -137,9 +151,11 @@ def test_readiness_probe_failure(mocker):
     assert response_data["detail"]["status"] == "error"
     assert response_data["detail"]["database"] == EXPECTED_DATABASE_DISCONNECTED
     assert "timestamp" in response_data["detail"]
-    
+
     # 檢查時間戳是有效的 ISO 格式字串
     assert isinstance(response_data["detail"]["timestamp"], str)
     # 驗證時間戳格式：YYYY-MM-DDTHH:MM:SSZ
     timestamp_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
-    assert re.match(timestamp_pattern, response_data["detail"]["timestamp"]), f"時間戳格式不正確: {response_data['detail']['timestamp']}"
+    assert re.match(
+        timestamp_pattern, response_data["detail"]["timestamp"]
+    ), f"時間戳格式不正確: {response_data['detail']['timestamp']}"

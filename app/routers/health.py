@@ -6,23 +6,15 @@
 
 # ===== 標準函式庫 =====
 import logging  # 日誌記錄
-import time  # 時間處理
 from datetime import datetime, timezone  # 時間處理
 from typing import Any, Dict  # 型別註解支援
 
 # ===== 第三方套件 =====
 from fastapi import APIRouter, Depends, HTTPException, status  # 路由物件
-from sqlalchemy import text  # 資料庫查詢
-from sqlalchemy.exc import SQLAlchemyError  # 資料庫錯誤處理
-from sqlalchemy.orm import Session  # 資料庫會話
 
 # ===== 本地模組 =====
 from app.core import get_project_version, settings  # 應用程式配置
-from app.models.database import (  # 資料庫引擎
-    SessionLocal,
-    check_db_connection,
-    get_healthy_db,
-)
+from app.models.database import get_healthy_db  # 資料庫引擎
 
 # 設定 logger
 logger = logging.getLogger(__name__)
@@ -56,7 +48,7 @@ async def liveness_probe() -> Dict[str, Any]:
             .replace("+00:00", "Z"),
         }
 
-        logger.info(f"liveness_probe() success: 應用程式狀態健康")
+        logger.info("liveness_probe() success: 應用程式狀態健康")
         return response_data
 
     except Exception as e:

@@ -13,22 +13,23 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+
 def test_database_config():
     """測試資料庫配置"""
     print("🔍 測試資料庫配置...")
     print("=" * 60)
-    
+
     # 檢查環境變數
     print("📋 環境變數檢查：")
     mysql_vars = [
         "MYSQL_HOST",
-        "MYSQL_PORT", 
+        "MYSQL_PORT",
         "MYSQL_USER",
         "MYSQL_PASSWORD",
         "MYSQL_DATABASE",
-        "MYSQL_CHARSET"
+        "MYSQL_CHARSET",
     ]
-    
+
     for var in mysql_vars:
         value = os.getenv(var)
         if value:
@@ -38,21 +39,21 @@ def test_database_config():
                 print(f"   {var}: {value}")
         else:
             print(f"   {var}: ❌ 未設定")
-    
+
     print()
-    
+
     # 測試 settings 配置
     print("⚙️  Settings 配置檢查：")
     try:
         from app.core import settings
-        
+
         print(f"   mysql_host: {settings.mysql_host}")
         print(f"   mysql_port: {settings.mysql_port}")
         print(f"   mysql_user: {settings.mysql_user}")
         print(f"   mysql_password: {'*' * 8 if settings.mysql_password else 'None'}")
         print(f"   mysql_database: {settings.mysql_database}")
         print(f"   mysql_charset: {settings.mysql_charset}")
-        
+
         print()
         print("🔗 連線字串：")
         connection_string = settings.mysql_connection_string
@@ -63,10 +64,10 @@ def test_database_config():
             print(f"   {masked_string}")
         else:
             print(f"   {connection_string}")
-            
+
     except Exception as e:
         print(f"   ❌ Settings 載入失敗：{e}")
-    
+
     print()
     print("🎯 建議：")
     print("   1. 建立 .env 檔案並設定以下環境變數：")
@@ -79,5 +80,6 @@ def test_database_config():
     print("   2. 確保 MySQL 服務正在運行")
     print("   3. 確保使用者存在且有適當權限")
 
+
 if __name__ == "__main__":
-    test_database_config() 
+    test_database_config()

@@ -88,37 +88,21 @@ class Settings(BaseSettings):
     # ⚠️ 正式環境記得將 .env 設定成 DEBUG=false
     # 如果 .env 或系統中結果是小寫字串 "true"，就回傳 True，開啟「除錯模式（debug mode）」
     # 如果 .env 或系統中沒有 DEBUG，預設回傳 False（布林值）
-    debug: bool = Field(
-        default=False, description="是否啟用除錯模式"
-    )
-    secret_key: Optional[SecretStr] = Field(
-        default=None, description="應用程式密鑰"
-    )
+    debug: bool = Field(default=False, description="是否啟用除錯模式")
+    secret_key: Optional[SecretStr] = Field(default=None, description="應用程式密鑰")
 
     # ===== API 文件配置 =====
-    docs_url: str = Field(
-        default="/docs", description="API 文件 URL"
-    )
-    redoc_url: str = Field(
-        default="/redoc", description="ReDoc 文件 URL"
-    )
+    docs_url: str = Field(default="/docs", description="API 文件 URL")
+    redoc_url: str = Field(default="/redoc", description="ReDoc 文件 URL")
 
     # ===== 靜態檔案配置 =====
-    static_url: str = Field(
-        default="/static", description="靜態檔案 URL 路徑"
-    )
-    static_name: str = Field(
-        default="static", description="靜態檔案掛載名稱"
-    )
+    static_url: str = Field(default="/static", description="靜態檔案 URL 路徑")
+    static_name: str = Field(default="static", description="靜態檔案掛載名稱")
 
     # ===== 資料庫配置 =====
     # MySQL 配置
-    mysql_host: str = Field(
-        default="localhost", description="MySQL 主機地址"
-    )
-    mysql_port: int = Field(
-        default=3306, description="MySQL 連接埠"
-    )
+    mysql_host: str = Field(default="localhost", description="MySQL 主機地址")
+    mysql_port: int = Field(default=3306, description="MySQL 連接埠")
     mysql_user: Optional[str] = Field(
         default=None,
         description="MySQL 使用者名稱（建議使用專用應用程式帳號，不要使用 root）",
@@ -127,12 +111,8 @@ class Settings(BaseSettings):
         default=None,  # 使用 None 作為預設值，強制從環境變數設定
         description="MySQL 密碼",
     )
-    mysql_database: str = Field(
-        default="scheduler_db", description="MySQL 資料庫名稱"
-    )
-    mysql_charset: str = Field(
-        default="utf8mb4", description="MySQL 字符集"
-    )
+    mysql_database: str = Field(default="scheduler_db", description="MySQL 資料庫名稱")
+    mysql_charset: str = Field(default="utf8mb4", description="MySQL 字符集")
 
     # MongoDB 配置
     mongodb_uri: str = Field(
@@ -143,18 +123,10 @@ class Settings(BaseSettings):
     )
 
     # Redis 配置
-    redis_host: str = Field(
-        default="localhost", description="Redis 主機地址"
-    )
-    redis_port: int = Field(
-        default=6379, description="Redis 連接埠"
-    )
-    redis_db: int = Field(
-        default=0, description="Redis 資料庫編號"
-    )
-    redis_password: Optional[SecretStr] = Field(
-        default=None, description="Redis 密碼"
-    )
+    redis_host: str = Field(default="localhost", description="Redis 主機地址")
+    redis_port: int = Field(default=6379, description="Redis 連接埠")
+    redis_db: int = Field(default=0, description="Redis 資料庫編號")
+    redis_password: Optional[SecretStr] = Field(default=None, description="Redis 密碼")
 
     # ===== AWS 配置 =====
     aws_access_key_id: Optional[str] = Field(
@@ -163,12 +135,8 @@ class Settings(BaseSettings):
     aws_secret_access_key: Optional[SecretStr] = Field(
         default=None, description="AWS 秘密存取金鑰"
     )
-    aws_region: str = Field(
-        default="ap-northeast-1", description="AWS 區域"
-    )
-    aws_s3_bucket: Optional[str] = Field(
-        default=None, description="AWS S3 儲存桶名稱"
-    )
+    aws_region: str = Field(default="ap-northeast-1", description="AWS 區域")
+    aws_s3_bucket: Optional[str] = Field(default=None, description="AWS S3 儲存桶名稱")
 
     # ===== 104 API 配置 =====
     api_104_base_url: Optional[str] = Field(
@@ -182,52 +150,34 @@ class Settings(BaseSettings):
     )
 
     # ===== API 超時配置 =====
-    api_timeout: int = Field(
-        default=10, description="API 請求總超時時間（秒）"
-    )
-    api_connect_timeout: int = Field(
-        default=5, description="API 連接超時時間（秒）"
-    )
-    api_read_timeout: int = Field(
-        default=10, description="API 讀取超時時間（秒）"
-    )
+    api_timeout: int = Field(default=10, description="API 請求總超時時間（秒）")
+    api_connect_timeout: int = Field(default=5, description="API 連接超時時間（秒）")
+    api_read_timeout: int = Field(default=10, description="API 讀取超時時間（秒）")
 
     # ===== 日誌配置 =====
     log_level: str = Field(
         default="INFO", description="日誌等級 (DEBUG, INFO, WARNING, ERROR, CRITICAL)"
     )
-    log_file: str = Field(
-        default="logs/app.log", description="日誌檔案路徑"
-    )
+    log_file: str = Field(default="logs/app.log", description="日誌檔案路徑")
 
     # ===== 安全配置 =====
     cors_origins: str = Field(
         default="http://localhost:8000", description="CORS 允許的來源（逗號分隔）"
     )
-    session_secret: Optional[SecretStr] = Field(
-        default=None, description="會話密鑰"
-    )
+    session_secret: Optional[SecretStr] = Field(default=None, description="會話密鑰")
 
     # ===== 郵件配置 =====
-    smtp_host: Optional[str] = Field(
-        default=None, description="SMTP 主機地址"
-    )
-    smtp_port: int = Field(
-        default=587, description="SMTP 連接埠"
-    )
-    smtp_user: Optional[str] = Field(
-        default=None, description="SMTP 使用者名稱"
-    )
-    smtp_password: Optional[SecretStr] = Field(
-        default=None, description="SMTP 密碼"
-    )
+    smtp_host: Optional[str] = Field(default=None, description="SMTP 主機地址")
+    smtp_port: int = Field(default=587, description="SMTP 連接埠")
+    smtp_user: Optional[str] = Field(default=None, description="SMTP 使用者名稱")
+    smtp_password: Optional[SecretStr] = Field(default=None, description="SMTP 密碼")
 
     # ===== 驗證器 =====
     @field_validator("app_env")
     @classmethod
     def validate_app_env(cls, v):
         """驗證應用程式環境設定"""
-        # allowed_envs = ["development", "staging", "production"]
+        allowed_envs = ["development", "staging", "production"]
         if v not in allowed_envs:
             raise ValueError(f"app_env 必須是以下其中之一: {allowed_envs}")
         return v
@@ -417,7 +367,10 @@ class Settings(BaseSettings):
         """Redis 連接字串"""
         if self.redis_password:
             password = self.redis_password.get_secret_value()
-            return f"redis://:{password}@{self.redis_host}:{self.redis_port}/{self.redis_db}"
+            return (
+                f"redis://:{password}@{self.redis_host}:"
+                f"{self.redis_port}/{self.redis_db}"
+            )
         return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
     def get_smtp_config(self) -> dict:

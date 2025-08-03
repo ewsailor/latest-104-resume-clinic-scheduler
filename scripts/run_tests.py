@@ -6,23 +6,24 @@
 """
 
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
+
 
 def main():
     """主函數"""
     # 設置環境變數來抑制警告
     os.environ["PYTHONWARNINGS"] = "ignore::PendingDeprecationWarning"
-    
+
     # 獲取專案根目錄
     project_root = Path(__file__).parent.parent
-    
+
     # 構建 pytest 命令
-    cmd = [
-        sys.executable, "-m", "poetry", "run", "pytest"
-    ] + sys.argv[1:]  # 傳遞所有命令行參數
-    
+    cmd = [sys.executable, "-m", "poetry", "run", "pytest"] + sys.argv[
+        1:
+    ]  # 傳遞所有命令行參數
+
     # 運行測試
     try:
         subprocess.run(cmd, cwd=project_root, check=True)
@@ -30,5 +31,6 @@ def main():
         print(f"測試執行失敗，退出碼: {e.returncode}")
         sys.exit(e.returncode)
 
+
 if __name__ == "__main__":
-    main() 
+    main()

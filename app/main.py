@@ -4,27 +4,9 @@ FastAPI 應用程式主入口。
 【MVP】104 履歷診療室 - 站內諮詢時間媒合系統：讓 Giver、Taker 在平台內，方便地設定可面談時間，並完成配對媒合。
 """
 
-# ===== 標準函式庫 =====
-from typing import Any, Dict  # 型別註解支援
-
-# ===== 第三方套件 =====
-from fastapi import FastAPI, Request  # Web 框架核心
-from fastapi.responses import HTMLResponse  # HTML 回應類型
-
 # ===== 本地模組 =====
-from app.core import get_project_version, settings  # 應用程式配置
-from app.factory import (  # 應用程式工廠
-    create_app,
-    create_static_files,
-    create_templates,
-)
-from app.models.database import (  # 資料庫引擎
-    Base,
-    SessionLocal,
-    check_db_connection,
-    engine,
-    get_db,
-)
+from app.core import settings  # 應用程式配置
+from app.factory import create_app, create_templates  # 應用程式工廠
 from app.routers.health import router as health_router  # 健康檢查路由
 from app.routers.main import router as main_router  # 主要路由
 

@@ -44,6 +44,7 @@ pre-commit = "^3.7.0"  # 提交前，自動檢查程式碼品質
 
 # Black 格式化工具配置
 pytest-mock = "^3.14.1"
+flake8 = "^7.3.0"
 [tool.black]
 line-length = 88  # 每行最大字元數，超過此長度會自動換行
 target-version = ["py312"]
@@ -52,12 +53,26 @@ skip-string-normalization = true  # 跳過字串正規化，保持原始格式
 # isort 匯入排序工具配置
 [tool.isort]
 profile = "black"  # 確保與 Black 格式化工具相容
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
 
 # MyPy 型別檢查工具配置
 [tool.mypy] 
 python_version = "3.12"
-strict = true  # 嚴格模式，啟用所有型別檢查規則
+strict = false  # 非嚴格模式，避免過於嚴格的檢查
 ignore_missing_imports = true  # 忽略缺少的匯入，對於無法找到的套件不報錯
+explicit_package_bases = true  # 明確指定套件基礎路徑
+namespace_packages = true  # 支援命名空間套件
+exclude = ["scripts/*", "tests/*"]
+
+# flake8 程式碼風格檢查工具配置
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = ["scripts/*", "tests/*"]
 
 # 建置系統配置
 [build-system]

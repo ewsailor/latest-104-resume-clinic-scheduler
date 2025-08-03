@@ -7,7 +7,7 @@ CORS 中間件模組。
 
 # ===== 標準函式庫 =====
 import logging
-from typing import List, Optional  # 型別註解支援
+from typing import List  # 型別註解支援
 
 # ===== 第三方套件 =====
 from fastapi import FastAPI  # Web 框架核心
@@ -191,7 +191,7 @@ def setup_cors_middleware(app: FastAPI, settings: Settings) -> None:
             max_age=3600,  # 1 小時
         )
 
-        logger.info(f"CORS 中間件設定成功")
+        logger.info("CORS 中間件設定成功")
         logger.info(f"允許的來源：{validated_origins}")
         logger.info(f"允許的方法：{cors_methods}")
         logger.info(f"允許的標頭：{cors_headers}")
