@@ -4540,7 +4540,7 @@ const DOM = {
           console.log('DOM.chat.handleCancelReservationTime: 已從 ChatStateManager 移除預約時段', { option, remainingCount: updatedBookedSchedules.length });
           
           // 添加使用者訊息
-          DOM.chat.addUserMessage(`我要取消：${timeSlot}`);
+          DOM.chat.addUserMessage(`您選擇取消：${timeSlot}`);
                     
           // 從 DOM 移除該行：只移除被取消的那一列，不會影響到其他列
           const tableRow = button.closest('tr'); // 獲取該按鈕所在的行：從當前元素（在這裡是 button 元素）開始，向上遍歷它的父元素，直到找到第一個 class 為 'tr' 的元素
