@@ -45,8 +45,6 @@
 - **配置管理**: Pydantic Settings (型別安全的配置管理)
 - **資料庫**:
   - **MySQL/MariaDB**: 核心業務資料儲存
-  - **MongoDB**: 彈性資料儲存（日誌、使用者偏好等）
-  - **Redis**: 快取和即時資料
 - **ORM**: SQLAlchemy (Python 最強大的 ORM)
 - **驗證**: Pydantic (資料驗證和序列化)
 - **模板引擎**: Jinja2 (HTML 模板渲染)
@@ -69,12 +67,16 @@
 - **程式碼風格檢查**: Flake8
 - **提交前自動檢查**: Pre-commit
 
-### 部署和 DevOps
+### 後續擴充
 
-- **容器化**: Docker 支援
-- **CI/CD**: GitHub Actions
-- **監控**: 整合日誌系統
-- **AWS 整合**: Boto3 SDK 支援
+- **資料庫**:
+  - **MongoDB**: 彈性資料儲存（日誌、使用者偏好等）
+  - **Redis**: 快取和即時資料
+- 部署和 DevOps
+  - **容器化**: Docker 支援
+  - **CI/CD**: GitHub Actions
+  - **監控**: 整合日誌系統
+  - **AWS 整合**: Boto3 SDK 支援
 
 - 開發環境：[Visual Studio Code](https://visualstudio.microsoft.com/zh-hant/)
 - 執行環境(1)：[Node.js v18.15.0](https://github.com/coreybutler/nvm-windows)
