@@ -1469,3 +1469,67 @@ th {
     }
 }
 
+/* ======================================================
+   Toast 訊息樣式 (Toast Message Styles)
+   ====================================================== */
+
+.ui-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    padding: 12px 20px;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: toastSlideIn 0.3s ease-out;
+    max-width: 300px;
+    word-wrap: break-word;
+}
+
+.ui-toast-success {
+    background-color: #28a745;
+    border-left: 4px solid #1e7e34;
+}
+
+.ui-toast-error {
+    background-color: #dc3545;
+    border-left: 4px solid #c82333;
+}
+
+.ui-toast-info {
+    background-color: #17a2b8;
+    border-left: 4px solid #138496;
+}
+
+.ui-toast-warning {
+    background-color: #ffc107;
+    border-left: 4px solid #e0a800;
+    color: #212529;
+}
+
+@keyframes toastSlideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .ui-toast {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        font-size: 13px;
+        padding: 10px 16px;
+    }
+}
+

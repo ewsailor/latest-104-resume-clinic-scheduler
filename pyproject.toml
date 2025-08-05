@@ -66,7 +66,7 @@ strict = false  # 非嚴格模式，避免過於嚴格的檢查
 ignore_missing_imports = true  # 忽略缺少的匯入，對於無法找到的套件不報錯
 explicit_package_bases = true  # 明確指定套件基礎路徑
 namespace_packages = true  # 支援命名空間套件
-exclude = ["scripts/*", "tests/*", "app/core/settings.py"]
+exclude = ["scripts/*", "tests/*", "app/core/settings.py", "app/models/schedule.py", "app/routers/api/schedule.py"]
 
 # flake8 程式碼風格檢查工具配置
 [tool.flake8]

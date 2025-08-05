@@ -7374,31 +7374,66 @@ const EventManager = {
         case 'submit-schedules':
           console.log('EventManager: 進入 submit-schedules case');
           DOM.chat.addUserMessage(`${CONFIG.UI_TEXT.BUTTONS.SUBMIT_SCHEDULES}`);
-          // 將草稿時段轉為正式提供時段
-          const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-          console.log('EventManager: 檢查草稿時段', { draftSchedulesCount: draftSchedules.length, draftSchedules });
-          if (draftSchedules.length > 0) {
-            // 將草稿時段轉為正式提供時段（移除 isDraft 標記）
-            const formalSchedules = draftSchedules.map(schedule => {
-              const { isDraft, ...formalSchedule } = schedule;
-              return formalSchedule;
-            });
-            console.log('EventManager: 草稿時段已轉換為正式時段', { formalSchedules });
+          
+          try {
+            // 將草稿時段轉為正式提供時段
+            const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
+            console.log('EventManager: 檢查草稿時段', { draftSchedulesCount: draftSchedules.length, draftSchedules });
             
-            // 添加到正式提供時段列表
-            const existingSchedules = ChatStateManager.getProvidedSchedules();
-            const allSchedules = [...existingSchedules, ...formalSchedules];
-            console.log('EventManager: 合併時段列表', { existingSchedulesCount: existingSchedules.length, formalSchedulesCount: formalSchedules.length, allSchedulesCount: allSchedules.length });
-            ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, allSchedules);
+            if (draftSchedules.length > 0) {
+              // 將草稿時段轉為正式提供時段（移除 isDraft 標記）
+              const formalSchedules = draftSchedules.map(schedule => {
+                const { isDraft, ...formalSchedule } = schedule;
+                return formalSchedule;
+              });
+              console.log('EventManager: 草稿時段已轉換為正式時段', { formalSchedules });
+              
+              // 準備發送到後端的資料格式
+              const currentGiver = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER);
+              const giverId = currentGiver ? currentGiver.id : 1; // 預設值為 1
+              
+              const schedulesToSubmit = formalSchedules.map(schedule => ({
+                giver_id: giverId,
+                date: schedule.date.replace(/\//g, '-'), // 將日期格式從 YYYY/MM/DD 轉換為 YYYY-MM-DD
+                start_time: schedule.startTime,
+                end_time: schedule.endTime,
+                note: schedule.notes || null,
+                status: 'AVAILABLE', // 設定為可預約狀態
+                role: 'GIVER' // 設定為 Giver 角色
+              }));
+              
+              console.log('EventManager: 準備發送到後端的時段資料', { schedulesToSubmit });
+              
+              // 發送 axios POST 請求到後端
+              const response = await APIClient.post('/api/schedules', schedulesToSubmit);
+              console.log('EventManager: 後端回應', { response });
+              
+              // 添加到正式提供時段列表
+              const existingSchedules = ChatStateManager.getProvidedSchedules();
+              const allSchedules = [...existingSchedules, ...formalSchedules];
+              console.log('EventManager: 合併時段列表', { existingSchedulesCount: existingSchedules.length, formalSchedulesCount: formalSchedules.length, allSchedulesCount: allSchedules.length });
+              ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, allSchedules);
+              
+              // 清空草稿列表
+              ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, []);
+              console.log('EventManager: 草稿列表已清空');
+              
+              console.log('EventManager: 草稿時段已轉為正式提供時段並成功發送到後端', { 
+                draftCount: draftSchedules.length, 
+                totalFormalCount: allSchedules.length,
+                backendResponse: response
+              });
+              
+              // 顯示成功訊息
+              UIComponents.toast({ message: '時段已成功送出給 Giver！', type: 'success' });
+            } else {
+              console.log('EventManager: 沒有草稿時段需要提交');
+              UIComponents.toast({ message: '沒有新的時段需要提交', type: 'info' });
+            }
             
-            // 清空草稿列表
-            ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, []);
-            console.log('EventManager: 草稿列表已清空');
-            
-            console.log('EventManager: 草稿時段已轉為正式提供時段', { 
-              draftCount: draftSchedules.length, 
-              totalFormalCount: allSchedules.length 
-            });
+          } catch (error) {
+            console.error('EventManager: 提交時段到後端失敗', { error });
+            UIComponents.toast({ message: '提交時段失敗，請稍後再試', type: 'error' });
           }
           
           // 先更新現有表格，確保編輯功能正常
@@ -8236,7 +8271,7 @@ const APIClient = {
   get: async (url, options = {}) => {
     console.log('APIClient.get called: GET 請求', { url, options });
     try {
-      const res = await fetch(url, { ...options, method: 'GET' });
+      const res = await axios.get(url, options);
       return await APIClient._handleResponse(res);
     } catch (err) {
       APIClient._handleError(err);
@@ -8248,11 +8283,9 @@ const APIClient = {
   post: async (url, data = {}, options = {}) => {
     console.log('APIClient.post called: POST 請求', { url, data, options });
     try {
-      const res = await fetch(url, {
+      const res = await axios.post(url, data, {
         ...options,
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-        body: JSON.stringify(data)
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
       });
       return await APIClient._handleResponse(res);
     } catch (err) {
@@ -8265,11 +8298,9 @@ const APIClient = {
   put: async (url, data = {}, options = {}) => {
     console.log('APIClient.put called: PUT 請求', { url, data, options });
     try {
-      const res = await fetch(url, {
+      const res = await axios.put(url, data, {
         ...options,
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-        body: JSON.stringify(data)
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
       });
       return await APIClient._handleResponse(res);
     } catch (err) {
@@ -8282,7 +8313,7 @@ const APIClient = {
   delete: async (url, options = {}) => {
     console.log('APIClient.delete called: DELETE 請求', { url, options });
     try {
-      const res = await fetch(url, { ...options, method: 'DELETE' });
+      const res = await axios.delete(url, options);
       return await APIClient._handleResponse(res);
     } catch (err) {
       APIClient._handleError(err);
@@ -8293,16 +8324,8 @@ const APIClient = {
   // 統一處理回應
   _handleResponse: async (res) => {
     console.log('APIClient._handleResponse called: 處理 API 回應', { status: res.status, statusText: res.statusText });
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`API 錯誤: ${res.status} ${res.statusText} - ${errorText}`);
-    }
-    // 嘗試解析 JSON，若失敗則回傳原始文字
-    try {
-      return await res.json();
-    } catch {
-      return await res.text();
-    }
+    // axios 會自動處理 HTTP 錯誤狀態，所以這裡只需要回傳資料
+    return res.data;
   },
 
   // 統一錯誤處理
