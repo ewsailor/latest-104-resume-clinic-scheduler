@@ -95,7 +95,42 @@
     --transition-fast: all 0.15s ease; /* 優化過渡時間 */
     --transition-default: all 0.3s ease;
     --backdrop-filter: blur(2px);
+        
+    /* Toast 通知系統 */
+    --toast-z-index: 9999;
+    --toast-padding: 12px 20px;
+    --toast-padding-mobile: 10px 16px;
+    --toast-border-radius: 8px;
+    --toast-font-size: 14px;
+    --toast-font-size-mobile: 13px;
+    --toast-font-weight: 500;
+    --toast-max-width: 300px;
+    --toast-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --toast-animation-duration: 0.3s;
+    --toast-animation-timing: ease-out;
     
+    /* Toast 位置系統 */
+    --toast-position-top: 20px;
+    --toast-position-top-mobile: 10px;
+    --toast-position-right: 20px;
+    --toast-position-right-mobile: 10px;
+    --toast-position-left-mobile: 10px;
+    
+    /* Toast 顏色系統 */
+    --toast-success-bg: #28a745;
+    --toast-success-border: #1e7e34;
+    --toast-error-bg: #dc3545;
+    --toast-error-border: #c82333;
+    --toast-info-bg: #17a2b8;
+    --toast-info-border: #138496;
+    --toast-warning-bg: #ffc107;
+    --toast-warning-border: #e0a800;
+    --toast-warning-text: #212529;
+    --toast-text-color: white;
+    
+    /* Toast 邊框系統 */
+    --toast-border-left-width: 4px;
+
     /* 顯示系統 */
     --display-hidden: none;
     --display-visible: block;
@@ -1475,39 +1510,39 @@ th {
 
 .ui-toast {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-    padding: 12px 20px;
-    border-radius: 8px;
-    color: white; 
-    font-size: 14px;
-    font-weight: 500;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    animation: toastSlideIn 0.3s ease-out;
-    max-width: 300px;
+    top: var(--toast-position-top);
+    right: var(--toast-position-right);
+    z-index: var(--toast-z-index);
+    padding: var(--toast-padding);
+    border-radius: var(--toast-border-radius);
+    color: var(--toast-text-color); 
+    font-size: var(--toast-font-size);
+    font-weight: var(--toast-font-weight);
+    box-shadow: var(--toast-shadow);
+    animation: toastSlideIn var(--toast-animation-duration) var(--toast-animation-timing);
+    max-width: var(--toast-max-width);
     word-wrap: break-word;
 }
 
 .ui-toast-success {
-    background-color: #28a745;
-    border-left: 4px solid #1e7e34;
+    background-color: var(--toast-success-bg);
+    border-left: var(--toast-border-left-width) solid var(--toast-success-border);
 }
 
 .ui-toast-error {
-    background-color: #dc3545;
-    border-left: 4px solid #c82333;
+    background-color: var(--toast-error-bg);
+    border-left: var(--toast-border-left-width) solid var(--toast-error-border);
 }
 
 .ui-toast-info {
-    background-color: #17a2b8;
-    border-left: 4px solid #138496;
+    background-color: var(--toast-info-bg);
+    border-left: var(--toast-border-left-width) solid var(--toast-info-border);
 }
 
 .ui-toast-warning {
-    background-color: #ffc107;
-    border-left: 4px solid #e0a800;
-    color: #212529;
+    background-color: var(--toast-warning-bg);
+    border-left: var(--toast-border-left-width) solid var(--toast-warning-border);
+    color: var(--toast-warning-text);
 }
 
 @keyframes toastSlideIn {
@@ -1524,12 +1559,12 @@ th {
 /* 響應式設計 */
 @media (max-width: 768px) {
     .ui-toast {
-        top: 10px;
-        right: 10px;
-        left: 10px;
+        top: var(--toast-position-top-mobile);
+        right: var(--toast-position-right-mobile);
+        left: var(--toast-position-left-mobile);
         max-width: none;
-        font-size: 13px;
-        padding: 10px 16px;
+        font-size: var(--toast-font-size-mobile);
+        padding: var(--toast-padding-mobile);
     }
 }
 
