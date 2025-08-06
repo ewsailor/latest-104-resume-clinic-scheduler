@@ -134,6 +134,8 @@ def get_db():
         SessionLocal()
     )  # 建立資料庫連線：每次操作資料庫，會透過 SessionLocal() 建立一個 session 實例（db）來操作
     try:
+        # 設定時區為台灣時間
+        db.execute(text("SET time_zone = '+08:00'"))
         # 驗證連線是否有效（輕量級檢查）
         db.execute(text("SELECT 1"))
         logger.info("get_db() yield: 傳遞資料庫連線給處理函式")

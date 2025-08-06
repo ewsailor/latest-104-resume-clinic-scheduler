@@ -4,13 +4,12 @@
 定義時段相關的資料庫模型和結構。
 """
 
-from datetime import datetime  # 日期時間處理
-
 # ===== 第三方套件 =====
 from sqlalchemy import Column, Date, DateTime, Integer, String, Time  # 資料庫欄位類型
 
 # ===== 本地模組 =====
 from app.models.database import Base  # 資料庫基類
+from app.utils.timezone import get_local_now_naive  # 本地時間函數
 
 
 class Schedule(Base):
@@ -49,9 +48,12 @@ class Schedule(Base):
     )
 
     # 時間戳記
-    created_at = Column(DateTime, default=datetime.utcnow, comment="建立時間")
+    created_at = Column(DateTime, default=get_local_now_naive, comment="建立時間")
     updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, comment="更新時間"
+        DateTime,
+        default=get_local_now_naive,
+        onupdate=get_local_now_naive,
+        comment="更新時間",
     )
     deleted_at = Column(DateTime, nullable=True, comment="軟刪除標記")
 

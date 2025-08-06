@@ -41,8 +41,8 @@ class ScheduleResponse(BaseModel):
     end_time: time
     note: Optional[str]
     status: str
-    created_at: Optional[datetime]
-    updated_at: Optional[datetime]
+    created_at: Optional[datetime]  # 改回 datetime 類型，因為資料庫現在儲存本地時間
+    updated_at: Optional[datetime]  # 改回 datetime 類型，因為資料庫現在儲存本地時間
 
     class Config:
         from_attributes = True
