@@ -66,6 +66,9 @@ python_version = "3.12"
 strict = false  # 非嚴格模式，避免過於嚴格的檢查
 ignore_missing_imports = true  # 忽略缺少的匯入，對於無法找到的套件不報錯
 exclude = ["scripts", "tests", ".mypy_cache", "__pycache__"]
+namespace_packages = true
+explicit_package_bases = true
+files = ["app"]
 
 # flake8 程式碼風格檢查工具配置
 [tool.flake8]

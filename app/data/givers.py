@@ -256,7 +256,9 @@ def get_givers_by_topic(topic: str):
         list: 符合條件的 Giver 列表
     """
     return [
-        giver for giver in MOCK_GIVERS if topic in giver.get("giverCard__topic", [])
+        giver
+        for giver in MOCK_GIVERS
+        if topic in giver.get("giverCard__topic", [])  # type: ignore
     ]
 
 

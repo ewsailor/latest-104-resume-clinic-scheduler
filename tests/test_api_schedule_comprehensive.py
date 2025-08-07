@@ -16,7 +16,8 @@ from fastapi.testclient import TestClient
 
 # ===== 本地模組 =====
 from app.main import app
-from app.routers.api.schedule import create_schedules, create_user, get_schedules
+from app.routers.api.schedule import create_schedules, get_schedules
+from app.routers.api.users import create_user
 
 
 class TestAPIScheduleComprehensive:
