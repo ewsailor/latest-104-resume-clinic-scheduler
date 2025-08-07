@@ -9,11 +9,9 @@ from typing import List, Optional  # 型別提示
 # ===== 第三方套件 =====
 from fastapi import APIRouter, Depends, HTTPException, status  # 路由和錯誤處理
 
-from app.models.database import get_db  # 資料庫連接
-
 # ===== 本地模組 =====
-from app.models.schedule import Schedule  # 時段模型
-from app.models.user import User  # 使用者模型
+from app.crud import schedule_crud  # CRUD 操作
+from app.models.database import get_db  # 資料庫連接
 from app.schemas import ScheduleCreate, ScheduleResponse, UserCreate  # 資料模型
 
 # 建立路由器
@@ -34,24 +32,12 @@ async def create_user(user: UserCreate, db=Depends(get_db)):
         dict: 建立成功的使用者資訊
     """
     try:
-        # 檢查 email 是否已存在
-        existing_user = db.query(User).filter(User.email == user.email).first()
-        if existing_user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="此電子信箱已被使用"
-            )
-
-        # 建立新使用者
-        new_user = User(name=user.name, email=user.email)
-
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-
+        # 使用 CRUD 層建立使用者
+        new_user = schedule_crud.create_user(db, user)
         return {"message": "使用者建立成功", "user": new_user.to_dict()}
 
-    except HTTPException:
-        raise
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         db.rollback()
         raise HTTPException(
@@ -81,33 +67,13 @@ async def create_schedules(schedules: List[ScheduleCreate], db=Depends(get_db)):
         HTTPException: 當建立失敗時拋出 400 錯誤
     """
     try:
-        # 建立時段物件列表
-        schedule_objects = []
-        for schedule_data in schedules:
-            schedule = Schedule(
-                giver_id=schedule_data.giver_id,
-                date=schedule_data.schedule_date,
-                start_time=schedule_data.start_time,
-                end_time=schedule_data.end_time,
-                note=schedule_data.note,
-                status=schedule_data.status,
-                role=schedule_data.role,
-            )
-            schedule_objects.append(schedule)
+        # 使用 CRUD 層建立時段
+        schedule_objects = schedule_crud.create_schedules(db, schedules)
 
-        # 批量新增到資料庫
-        db.add_all(schedule_objects)
-        db.commit()
-
-        # 重新整理物件以取得 ID
-        for schedule in schedule_objects:
-            db.refresh(schedule)
-
-        # 回傳建立的時段
-        return schedule_objects
+        # 轉換為回應格式
+        return [ScheduleResponse.from_orm(schedule) for schedule in schedule_objects]
 
     except Exception as e:
-        # 回滾資料庫交易
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=f"建立時段失敗: {str(e)}"
@@ -127,27 +93,16 @@ async def get_schedules(
 
     Args:
         giver_id: 可選的 Giver ID 篩選條件
-        status: 可選的狀態篩選條件
+        status_filter: 可選的狀態篩選條件
         db: 資料庫會話依賴注入
 
     Returns:
         List[ScheduleResponse]: 符合條件的時段列表
     """
     try:
-        # 建立查詢
-        query = db.query(Schedule)
-
-        # 套用篩選條件
-        if giver_id is not None:
-            query = query.filter(Schedule.giver_id == giver_id)
-
-        if status_filter is not None:
-            query = query.filter(Schedule.status == status_filter)
-
-        # 執行查詢
-        schedules = query.all()
-
-        return schedules
+        # 使用 CRUD 層查詢時段
+        schedules = schedule_crud.get_schedules(db, giver_id, status_filter)
+        return [ScheduleResponse.from_orm(schedule) for schedule in schedules]
 
     except Exception as e:
         raise HTTPException(
