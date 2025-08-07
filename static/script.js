@@ -6133,8 +6133,14 @@ const DOM = {
         DOM_CACHE.resetDatePicker();
       }
       
-      // 清理聊天狀態
-      ChatStateManager.endChatSession();
+      // 清理聊天狀態（但保留 currentGiver 資訊，避免時段提交時無法確定目標 Giver）
+      const currentGiver = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER);
+      ChatStateManager.setMultiple({
+        [ChatStateManager.CONFIG.STATE_KEYS.IS_ACTIVE]: false,
+        [ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE]: false,
+        [ChatStateManager.CONFIG.STATE_KEYS.SELECTED_DATE]: null
+      });
+      console.log('DOM.chat.cleanup: 保留 currentGiver 資訊', { currentGiver });
       
       // 清理所有聊天相關的事件監聽器
       const chatInput = DOM.chatElements.input();
@@ -7429,14 +7435,23 @@ const EventManager = {
               
               // 準備發送到後端的資料格式
               const currentGiver = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER);
-              const giverId = currentGiver ? currentGiver.id : 1; // 根據點擊的 Giver 設定 giver_id
+              
+              // 檢查 currentGiver 是否存在
+              if (!currentGiver) {
+                console.error('EventManager: currentGiver 為 null，無法確定要發送給哪個 Giver');
+                UIComponents.toast({ message: '無法確定要發送給哪個 Giver，請重新開始諮詢流程', type: 'error' });
+                return;
+              }
+              
+              const giverId = currentGiver.id; // 使用當前 Giver 的 ID
+              console.log('EventManager: 使用 Giver ID', { giverId, giverName: currentGiver.name });
               
               const schedulesToSubmit = formalSchedules.map(schedule => ({
                 giver_id: giverId,
                 taker_id: 1, // 預設 taker_id 為 1
                 date: schedule.date.replace(/\//g, '-'), // 將日期格式從 YYYY/MM/DD 轉換為 YYYY-MM-DD
-                start_time: schedule.startTime,
-                end_time: schedule.endTime,
+                start_time: schedule.startTime + ':00', // 添加秒數以符合 time 格式
+                end_time: schedule.endTime + ':00', // 添加秒數以符合 time 格式
                 note: schedule.notes || null,
                 status: 'AVAILABLE', // 設定為可預約狀態
                 role: 'TAKER' // 設定為 Taker 角色

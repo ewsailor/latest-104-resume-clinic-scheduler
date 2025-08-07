@@ -7,6 +7,8 @@ API 路由模組集中匯入點。
 # ===== 第三方套件 =====
 from fastapi import APIRouter  # 路由物件
 
+from app.routers.api.givers import router as givers_router  # Giver API 路由
+
 # ===== 本地模組 =====
 from app.routers.api.schedule import router as schedule_router  # 時段 API 路由
 
@@ -15,6 +17,7 @@ api_router = APIRouter()
 
 # 註冊所有 API 路由
 api_router.include_router(schedule_router)
+api_router.include_router(givers_router)
 
 # 未來可以輕鬆新增其他 API 路由
 # from app.routers.api.users import router as users_router

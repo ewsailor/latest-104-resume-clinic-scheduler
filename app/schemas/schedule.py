@@ -7,7 +7,7 @@
 from datetime import date, datetime, time
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class UserCreate(BaseModel):
@@ -28,6 +28,15 @@ class ScheduleCreate(BaseModel):
     note: Optional[str] = Field(None, description="備註")
     status: str = Field(default="AVAILABLE", description="時段狀態")
     role: str = Field(default="GIVER", description="角色")
+
+    @field_validator('role')
+    @classmethod
+    def validate_role(cls, v):
+        """驗證角色欄位"""
+        allowed_roles = ['GIVER', 'TAKER']
+        if v not in allowed_roles:
+            raise ValueError(f'role 必須是以下其中之一: {allowed_roles}')
+        return v
 
 
 class ScheduleResponse(BaseModel):
