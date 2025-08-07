@@ -7,7 +7,7 @@ FastAPI 應用程式主入口。
 # ===== 本地模組 =====
 from app.core import settings  # 應用程式配置
 from app.factory import create_app, create_templates  # 應用程式工廠
-from app.routers.api.schedule import router as schedule_router  # 時段 API 路由
+from app.routers.api import api_router  # API 路由集中匯入
 from app.routers.health import router as health_router  # 健康檢查路由
 from app.routers.main import router as main_router  # 主要路由
 
@@ -24,4 +24,4 @@ app.state.templates = templates
 # 註冊路由
 app.include_router(main_router)
 app.include_router(health_router)
-app.include_router(schedule_router)
+app.include_router(api_router)
