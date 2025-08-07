@@ -48,6 +48,7 @@
 - **ORM**: SQLAlchemy (Python 最強大的 ORM)
 - **驗證**: Pydantic (資料驗證和序列化)
 - **模板引擎**: Jinja2 (HTML 模板渲染)
+- **中間件**: CORS 支援、自定義中間件
 
 ### 前端技術棧
 
@@ -72,21 +73,12 @@
 - **資料庫**:
   - **MongoDB**: 彈性資料儲存（日誌、使用者偏好等）
   - **Redis**: 快取和即時資料
-- 部署和 DevOps
+- **部署和 DevOps**:
 
   - **容器化**: Docker 支援
   - **CI/CD**: GitHub Actions
   - **監控**: 整合日誌系統
   - **AWS 整合**: Boto3 SDK 支援
-
-- 開發環境：[Visual Studio Code](https://visualstudio.microsoft.com/zh-hant/)
-- 執行環境(1)：[Node.js v18.15.0](https://github.com/coreybutler/nvm-windows)
-- 執行環境(2)：[MySQL v8.0.15](https://downloads.mysql.com/archives/installer/)
-- 自動重啟伺服器套件：[nodemon @3.1.7](https://nodemon.io/)
-- 應用程式框架：[express ^4.21.1](https://www.npmjs.com/package/express)
-- HTTP method 套件：[method-override ^3.0.0](https://www.npmjs.com/package/method-override)
-- 資料庫套件：[mysql2 v3.2.0](https://www.npmjs.com/package/mysql2)
-- 資料庫管理工具：[MySQL Workbench 8.0.15](https://downloads.mysql.com/archives/installer/)
 
 ## 專案結構
 
@@ -109,29 +101,66 @@
 │   │   └── crud_schedule.py      # 時段 CRUD 操作
 │   ├── schemas/                  # 資料驗證模式
 │   │   └── schedule.py           # 時段資料模式
+│   ├── middleware/               # 中間件
+│   │   └── cors.py               # CORS 中間件
+│   ├── utils/                    # 工具模組
+│   │   └── timezone.py           # 時區處理工具
+│   ├── services/                 # 業務邏輯服務層
 │   ├── templates/                # HTML 模板
 │   │   └── index.html            # 首頁模板
 │   ├── factory.py                # 應用程式工廠
 │   └── main.py                   # 應用程式入口點
 ├── tests/                        # 測試檔案
-│   ├── test_database.py          # 資料庫模組測試
+│   ├── conftest.py               # Pytest 配置
+│   ├── constants.py              # 測試常數
+│   ├── test_api_schedule_comprehensive.py  # 完整 API 測試
+│   ├── test_api_schedule_simple.py         # 簡單 API 測試
+│   ├── test_config.py            # 配置測試
+│   ├── test_cors_middleware.py   # CORS 中間件測試
 │   ├── test_crud_schedule.py     # 時段 CRUD 測試
-│   └── constants.py              # 測試常數
+│   ├── test_database.py          # 資料庫模組測試
+│   ├── test_health.py            # 健康檢查測試
+│   ├── test_main.py              # 主應用程式測試
+│   └── test_timezone.py          # 時區工具測試
 ├── scripts/                      # 開發工具腳本
 │   ├── config_validator.py       # 配置驗證腳本
+│   ├── cors/                     # CORS 相關腳本
+│   ├── create_test_data.py       # 測試資料建立
+│   ├── diagnose_timestamp.py     # 時間戳診斷
+│   ├── fix_timezone.py           # 時區修復
+│   ├── health_check.py           # 健康檢查
+│   ├── migrate_to_local_time.py  # 本地時間遷移
+│   ├── migrate_to_utc.py         # UTC 遷移
+│   ├── run_tests.py              # 測試執行腳本
+│   ├── test_database_config.py   # 資料庫配置測試
+│   ├── test_database_connection.py # 資料庫連線測試
+│   ├── test_local_time.py        # 本地時間測試
+│   ├── test_settings_validators.py # 設定驗證測試
 │   └── README.md                 # 腳本說明文件
 ├── static/                       # 靜態檔案
 │   ├── style.css                 # 樣式表
 │   ├── script.js                 # JavaScript
-│   └── images/                   # 圖片資源
+│   ├── chat-avatar.svg           # 聊天頭像
+│   ├── favicon.png               # 網站圖標
+│   └── logo-header.svg           # 標題 Logo
 ├── database/                     # 資料庫檔案
-│   └── schema.sql                # 資料庫結構
+│   ├── schema.sql                # 資料庫結構
+│   └── schema_utc.sql            # UTC 時區資料庫結構
+├── docs/                         # 文件目錄
+│   ├── database_connection_best_practices.md # 資料庫連線最佳實踐
+│   ├── import_guidelines.md      # 匯入指南
+│   ├── python_multipart_migration.md # Python multipart 遷移
+│   ├── python_multipart_usage.md # Python multipart 使用
+│   ├── test_constants_guide.md   # 測試常數指南
+│   ├── test_constants_restructure.md # 測試常數重構
+│   └── timezone_solution.md      # 時區解決方案
 ├── logs/                         # 日誌檔案
 ├── .env                          # 環境變數（本地開發）
 ├── .env.example                  # 環境變數範例
 ├── .gitignore                    # Git 忽略檔案
 ├── pyproject.toml                # Poetry 專案配置
 ├── poetry.lock                   # Poetry 依賴鎖定
+├── pytest.ini                    # Pytest 配置
 └── README.md                     # 專案說明文件
 ```
 
@@ -212,6 +241,15 @@
 - **Pytest-asyncio**: 異步測試支援
 - **HTTPX**: FastAPI 測試客戶端
 - **測試常數管理**: 集中化管理測試常數，確保一致性
+- **測試覆蓋率**: 使用 pytest-cov 進行覆蓋率分析
+
+### 測試策略
+
+- **單元測試**: 測試個別函數和類別
+- **整合測試**: 測試 API 端點和資料庫操作
+- **端到端測試**: 測試完整的業務流程
+- **配置測試**: 確保設定和環境變數正確
+- **中間件測試**: 測試 CORS 和其他中間件功能
 
 ### 執行測試
 
@@ -236,6 +274,9 @@ poetry run pytest
 
 # 執行特定測試檔案
 poetry run pytest tests/test_main.py
+
+# 執行測試並生成覆蓋率報告
+poetry run pytest --cov=app --cov-report=html
 ```
 
 ### 測試腳本說明
