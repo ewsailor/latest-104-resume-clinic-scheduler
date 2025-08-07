@@ -45,6 +45,7 @@ pre-commit = "^3.7.0"  # 提交前，自動檢查程式碼品質
 # Black 格式化工具配置
 pytest-mock = "^3.14.1"
 flake8 = "^7.3.0"
+pytest-cov = "^6.2.1"
 [tool.black]
 line-length = 88  # 每行最大字元數，超過此長度會自動換行
 target-version = ["py312"]
