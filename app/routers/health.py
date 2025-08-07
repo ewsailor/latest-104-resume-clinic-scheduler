@@ -6,7 +6,6 @@
 
 # ===== 標準函式庫 =====
 import logging  # 日誌記錄
-from datetime import datetime, timezone  # 時間處理
 from typing import Any, Dict  # 型別註解支援
 
 # ===== 第三方套件 =====
@@ -15,15 +14,16 @@ from fastapi import APIRouter, Depends, HTTPException, status  # 路由物件
 # ===== 本地模組 =====
 from app.core import get_project_version, settings  # 應用程式配置
 from app.models.database import get_healthy_db  # 資料庫引擎
+from app.utils.timezone import get_utc_timestamp  # 時間戳記工具
 
 # 設定 logger
 logger = logging.getLogger(__name__)
 
 # 建立路由器
-router = APIRouter()
+router = APIRouter(tags=["health"])
 
 
-@router.get("/healthz", response_model=Dict[str, Any], tags=["Health"])
+@router.get("/healthz", response_model=Dict[str, Any])
 async def liveness_probe() -> Dict[str, Any]:
     """
     存活探測：檢查應用程式是否正在運行。
@@ -42,10 +42,7 @@ async def liveness_probe() -> Dict[str, Any]:
             "app_name": settings.app_name,
             "version": get_project_version(),
             "uptime": "running",  # 可以進一步實作實際的運行時間計算
-            "timestamp": datetime.now(timezone.utc)
-            .replace(microsecond=0)
-            .isoformat()
-            .replace("+00:00", "Z"),
+            "timestamp": get_utc_timestamp(),
         }
 
         logger.info("liveness_probe() success: 應用程式狀態健康")
@@ -59,15 +56,12 @@ async def liveness_probe() -> Dict[str, Any]:
             detail={
                 "status": "unhealthy",
                 "error": "Application health check failed",
-                "timestamp": datetime.now(timezone.utc)
-                .replace(microsecond=0)
-                .isoformat()
-                .replace("+00:00", "Z"),
+                "timestamp": get_utc_timestamp(),
             },
         )
 
 
-@router.get("/readyz", response_model=Dict[str, Any], tags=["Health"])
+@router.get("/readyz", response_model=Dict[str, Any])
 async def readiness_probe(db_healthy: bool = Depends(get_healthy_db)) -> Dict[str, Any]:
     """
     準備就緒探測：檢查應用程式所有外部依賴（資料庫、快取等），是否已經準備好處理請求。
@@ -92,16 +86,12 @@ async def readiness_probe(db_healthy: bool = Depends(get_healthy_db)) -> Dict[st
         "status": "healthy",
         "database": "connected",
         "message": "Application and database are ready to serve traffic.",
-        "timestamp": datetime.now(timezone.utc)
-        .replace(microsecond=0)
-        .isoformat()
-        .replace("+00:00", "Z"),
+        "timestamp": get_utc_timestamp(),
         "checks": {
             "database": "healthy",
             # "redis": "healthy",  # 未來可加入
             # "external_api": "healthy"  # 未來可加入
         },
     }
-
     logger.info("readiness_probe() success: 應用程式準備就緒，所有依賴檢查通過")
     return response_data

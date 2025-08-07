@@ -73,6 +73,7 @@
   - **MongoDB**: 彈性資料儲存（日誌、使用者偏好等）
   - **Redis**: 快取和即時資料
 - 部署和 DevOps
+
   - **容器化**: Docker 支援
   - **CI/CD**: GitHub Actions
   - **監控**: 整合日誌系統
@@ -96,20 +97,26 @@
 │   │   ├── __init__.py           # 核心模組初始化
 │   │   └── settings.py           # 應用程式設定管理
 │   ├── models/                   # 資料模型
-│   │   ├── database.py           # 資料庫模型
-│   │   └── schedule.py           # 排程模型
+│   │   ├── database.py           # 資料庫連線和會話管理
+│   │   ├── schedule.py           # 排程模型
+│   │   └── user.py               # 使用者模型
 │   ├── routers/                  # 路由模組
-│   │   ├── __init__.py           # 核心模組初始化
-│   │   ├── main.py               # 主要路由
-│   │   └── schedule.py           # 排程路由
-│   ├── schemas/                  # Pydantic 模式
-│   │   └── schedule.py           # 排程相關模式
+│   │   ├── api/                  # API 路由
+│   │   │   └── schedule.py       # 時段管理 API
+│   │   ├── health.py             # 健康檢查端點
+│   │   └── main.py               # 主要路由
+│   ├── crud/                     # 資料庫操作
+│   │   └── crud_schedule.py      # 時段 CRUD 操作
+│   ├── schemas/                  # 資料驗證模式
+│   │   └── schedule.py           # 時段資料模式
 │   ├── templates/                # HTML 模板
 │   │   └── index.html            # 首頁模板
 │   ├── factory.py                # 應用程式工廠
 │   └── main.py                   # 應用程式入口點
-├── database/                     # 資料庫相關
-│   └── schema.sql                # 資料庫結構
+├── tests/                        # 測試檔案
+│   ├── test_database.py          # 資料庫模組測試
+│   ├── test_crud_schedule.py     # 時段 CRUD 測試
+│   └── constants.py              # 測試常數
 ├── scripts/                      # 開發工具腳本
 │   ├── config_validator.py       # 配置驗證腳本
 │   └── README.md                 # 腳本說明文件
@@ -117,9 +124,8 @@
 │   ├── style.css                 # 樣式表
 │   ├── script.js                 # JavaScript
 │   └── images/                   # 圖片資源
-├── tests/                        # 測試檔案
-│   ├── test_config.py            # 配置測試
-│   └── test_main.py              # 主要功能測試
+├── database/                     # 資料庫檔案
+│   └── schema.sql                # 資料庫結構
 ├── logs/                         # 日誌檔案
 ├── .env                          # 環境變數（本地開發）
 ├── .env.example                  # 環境變數範例
@@ -210,8 +216,14 @@
 ### 執行測試
 
 ```bash
-# 執行所有測試（推薦使用測試腳本，自動抑制警告）
+# 方法 1：使用測試腳本（推薦，自動抑制警告）
 python scripts/run_tests.py
+
+# 方法 2：使用 Windows 批處理檔案
+scripts/run_tests.bat
+
+# 方法 3：使用環境變數抑制警告
+PYTHONWARNINGS="ignore::PendingDeprecationWarning" poetry run pytest --cov=app.models.database --cov-report=term-missing
 
 # 執行特定測試檔案
 python scripts/run_tests.py tests/test_health.py
@@ -228,11 +240,30 @@ poetry run pytest tests/test_main.py
 
 ### 測試腳本說明
 
-專案提供了 `scripts/run_tests.py` 腳本來運行測試，該腳本會：
+專案提供了多種測試執行方式來解決 `multipart` 棄用警告：
+
+#### 1. Python 測試腳本 (`scripts/run_tests.py`)
 
 - 自動設置環境變數來抑制棄用警告
 - 確保測試環境的一致性
 - 提供更好的測試體驗
+- 支援傳遞額外參數
+
+#### 2. Windows 批處理檔案 (`scripts/run_tests.bat`)
+
+- 專為 Windows 環境設計
+- 自動設置環境變數
+- 執行完成後暫停，方便查看結果
+
+#### 3. 環境變數方法
+
+- 直接在命令列設置 `PYTHONWARNINGS` 環境變數
+- 適用於所有作業系統
+- 可以與任何 pytest 命令組合使用
+
+#### 警告說明
+
+由於 Starlette 框架內部使用已棄用的 `multipart` 模組，會產生 `PendingDeprecationWarning` 警告。這不影響功能，但建議使用上述方法之一來抑制警告。
 
 ### 測試常數管理
 
@@ -261,7 +292,14 @@ poetry run mypy app/
 poetry run flake8 app/
 ```
 
-## API 文件
+## API 端點
+
+### 健康檢查端點
+
+- **基本健康檢查**: `GET /healthz` - 檢查應用程式是否正在運行
+- **就緒檢查**: `GET /readyz` - 檢查應用程式和資料庫是否準備好接收流量
+
+### API 文件
 
 啟動伺服器後，可以訪問以下文件：
 
@@ -299,3 +337,7 @@ poetry run flake8 app/
 - 實現時間媒合系統核心功能
 - 添加開發者工具和伺服器監控
 - 完善文件和使用說明
+
+```
+
+```

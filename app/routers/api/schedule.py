@@ -70,8 +70,10 @@ async def create_schedules(schedules: List[ScheduleCreate], db=Depends(get_db)):
         # 使用 CRUD 層建立時段
         schedule_objects = schedule_crud.create_schedules(db, schedules)
 
-        # 轉換為回應格式
-        return [ScheduleResponse.from_orm(schedule) for schedule in schedule_objects]
+        # 轉換為回應格式 - 使用 model_validate 替代 from_orm
+        return [
+            ScheduleResponse.model_validate(schedule) for schedule in schedule_objects
+        ]
 
     except Exception as e:
         db.rollback()
@@ -102,7 +104,8 @@ async def get_schedules(
     try:
         # 使用 CRUD 層查詢時段
         schedules = schedule_crud.get_schedules(db, giver_id, status_filter)
-        return [ScheduleResponse.from_orm(schedule) for schedule in schedules]
+        # 轉換為回應格式 - 使用 model_validate 替代 from_orm
+        return [ScheduleResponse.model_validate(schedule) for schedule in schedules]
 
     except Exception as e:
         raise HTTPException(

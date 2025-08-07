@@ -25,4 +25,4 @@ async def read_index(request: Request) -> HTMLResponse:
     """
     # 從請求狀態中取得 templates
     templates = request.app.state.templates
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html")

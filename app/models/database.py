@@ -6,17 +6,16 @@
 
 # ===== 標準函式庫 =====
 import logging  # 日誌記錄
-from datetime import datetime, timezone  # 時間處理
-
-from fastapi import HTTPException, status  # FastAPI 錯誤處理
 
 # ===== 第三方套件 =====
+from fastapi import HTTPException, status  # FastAPI 錯誤處理
 from sqlalchemy import create_engine, text  # 資料庫引擎
 from sqlalchemy.exc import OperationalError  # 資料庫錯誤
 from sqlalchemy.orm import declarative_base, sessionmaker  # 會話管理
 
 # ===== 本地模組 =====
 from app.core import settings  # 應用程式配置
+from app.utils.timezone import get_utc_timestamp  # 時間戳記工具
 
 logging.basicConfig(
     level=logging.INFO
@@ -210,9 +209,6 @@ def get_healthy_db():
                 "status": "error",
                 "database": "disconnected",
                 "message": "Database connection failed. Application is not ready.",
-                "timestamp": datetime.now(timezone.utc)
-                .replace(microsecond=0)
-                .isoformat()
-                .replace("+00:00", "Z"),
+                "timestamp": get_utc_timestamp(),
             },
         )

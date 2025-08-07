@@ -7,7 +7,7 @@
 from datetime import date, datetime, time
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class UserCreate(BaseModel):
@@ -44,5 +44,4 @@ class ScheduleResponse(BaseModel):
     created_at: Optional[datetime]  # 改回 datetime 類型，因為資料庫現在儲存本地時間
     updated_at: Optional[datetime]  # 改回 datetime 類型，因為資料庫現在儲存本地時間
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

@@ -33,7 +33,7 @@ def test_database_connection():
             test_value = result.scalar()
             connection_time = time.time() - start_time
 
-            print(f"   ✅ 連線成功")
+            print("   ✅ 連線成功")
             print(f"   📊 測試值: {test_value}")
             print(f"   ⏱️  連線時間: {connection_time:.3f}秒")
 
@@ -75,6 +75,9 @@ def test_database_connection():
         print("✅ 連線池配置正確")
         print("✅ Session 管理正常")
 
+        # 使用 assert 替代 return
+        assert True, "資料庫連線測試成功"
+
     except Exception as e:
         print(f"❌ 資料庫連線測試失敗：{e}")
         print("\n🔍 請檢查以下項目：")
@@ -83,9 +86,7 @@ def test_database_connection():
         print("   3. 使用者權限是否足夠")
         print("   4. 防火牆設定是否允許連線")
         print("   5. .env 檔案是否正確設定")
-        return False
-
-    return True
+        assert False, f"資料庫連線測試失敗: {e}"
 
 
 def test_connection_performance():
@@ -122,14 +123,21 @@ def test_connection_performance():
         else:
             print("   ❌ 連線效能較差")
 
+        # 使用 assert 替代 return
+        assert True, "連線效能測試成功"
+
     except Exception as e:
         print(f"   ❌ 效能測試失敗：{e}")
+        assert False, f"連線效能測試失敗: {e}"
 
 
 if __name__ == "__main__":
-    success = test_database_connection()
-    if success:
+    success = True
+    try:
+        test_database_connection()
         test_connection_performance()
+    except AssertionError:
+        success = False
 
     print("\n🎯 總結：")
     if success:

@@ -8,7 +8,7 @@
 import pytest  # 測試框架
 
 # ===== 第三方套件 =====
-from httpx import AsyncClient  # 非同步 HTTP 客戶端
+from httpx import ASGITransport, AsyncClient  # 非同步 HTTP 客戶端
 
 # ===== 本地模組 =====
 from app.main import app  # FastAPI 應用程式
@@ -19,7 +19,9 @@ async def test_read_root():
     """
     測試首頁路由是否正常返回 HTML 頁面。
     """
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
         response = await ac.get("/")
 
     assert response.status_code == 200
