@@ -204,7 +204,7 @@ const CONFIG = {
   
   // API 配置
   API: {
-    BASE_URL: 'https://gist.githubusercontent.com/ewsailor/ddb890d50f572c10842c3f731a6eeb06/raw/bd8ffb58a836cd7f0ecea4f4b52c1bc1bbc7fd00/gistfile1.txt',
+    BASE_URL: '/api/givers',
     POSTER_URL: 'https://randomuser.me/api/portraits/',
     TIMEOUT: 10000,
     RETRY_DELAY: 1000,
@@ -4181,8 +4181,8 @@ const DOM = {
     // 設定聊天功能
     setup: () => {
       console.log('DOM.chat.setup called');
-      // 清理舊的事件監聽器
-      DOM.chat.cleanup();
+      // 清理舊的事件監聽器，但不結束聊天會話
+      DOM.chat.cleanupEventListeners();
       
       // 重新獲取元素引用
       const chatInput = DOM.chatElements.input();
@@ -6064,6 +6064,27 @@ const DOM = {
       return BusinessLogic.chat.generateResponse(userMessage);
     },
     
+    // 清理事件監聽器（不結束聊天會話）
+    cleanupEventListeners: () => {
+      console.log('DOM.chat.cleanupEventListeners called：清理事件監聽器');
+      
+      // 清理所有聊天相關的事件監聽器
+      const chatInput = DOM.chatElements.input();
+      const sendBtn = DOM.chatElements.sendBtn();
+      
+      if (chatInput) {
+        // 使用 DOM.events.removeAll 移除所有事件監聽器
+        DOM.events.removeAll(chatInput);
+      }
+      
+      if (sendBtn) {
+        // 使用 DOM.events.removeAll 移除所有事件監聽器
+        DOM.events.removeAll(sendBtn);
+      }
+      
+      console.log('DOM.chat.cleanupEventListeners: 事件監聽器清理完成');
+    },
+    
     // 清理聊天功能
     cleanup: () => {
       console.log('DOM.chat.cleanup called：清理聊天功能');
@@ -6750,6 +6771,12 @@ const DOM = {
         const promises = dataTypes.map(type => {
           switch (type) {
             case 'givers':
+              // 確保在載入 Giver 資料之前先清空靜態卡片
+              const giverPanel = DOM.getElement(CONFIG.SELECTORS.GIVER_PANEL);
+              if (giverPanel) {
+                console.log('DOM.dataLoader.utils.preloadData: 清空靜態 Giver 卡片');
+                giverPanel.innerHTML = '';
+              }
               return DOM.dataLoader.loadGivers({ showLoading: false });
             default:
               return Promise.resolve();
@@ -6847,12 +6874,24 @@ const DOM = {
           e.preventDefault();
           e.stopPropagation(); // 防止事件冒泡
           
-          const giverId = button.dataset.id;
-          const giver = appState.givers.find(g => g.id == giverId);
+          const giverId = parseInt(button.dataset.id, 10); // 確保轉換為整數
+          console.log('DOM.giver.setupCardEvents: 按鈕點擊', { 
+            buttonDataId: button.dataset.id, 
+            parsedGiverId: giverId,
+            appStateGivers: appState.givers 
+          });
+          
+          const giver = appState.givers.find(g => g.id === giverId); // 使用嚴格比較
           
           if (giver) {
+            console.log('DOM.giver.setupCardEvents: 找到 Giver', { giver });
             // 呼叫 UIInteraction 開啟聊天對話框
             UIInteraction.openChatDialog(giver);
+          } else {
+            console.error('DOM.giver.setupCardEvents: 未找到對應的 Giver', { 
+              giverId, 
+              availableGivers: appState.givers.map(g => ({ id: g.id, name: g.name }))
+            });
           }
         });
       });
@@ -7390,16 +7429,17 @@ const EventManager = {
               
               // 準備發送到後端的資料格式
               const currentGiver = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER);
-              const giverId = currentGiver ? currentGiver.id : 1; // 預設值為 1
+              const giverId = currentGiver ? currentGiver.id : 1; // 根據點擊的 Giver 設定 giver_id
               
               const schedulesToSubmit = formalSchedules.map(schedule => ({
                 giver_id: giverId,
+                taker_id: 1, // 預設 taker_id 為 1
                 date: schedule.date.replace(/\//g, '-'), // 將日期格式從 YYYY/MM/DD 轉換為 YYYY-MM-DD
                 start_time: schedule.startTime,
                 end_time: schedule.endTime,
                 note: schedule.notes || null,
                 status: 'AVAILABLE', // 設定為可預約狀態
-                role: 'GIVER' // 設定為 Giver 角色
+                role: 'TAKER' // 設定為 Taker 角色
               }));
               
               console.log('EventManager: 準備發送到後端的時段資料', { schedulesToSubmit });
@@ -8706,6 +8746,13 @@ const Initializer = {
     try {
       // 初始化效能監控
       PerformanceMonitor.init();
+      
+      // 清空靜態的 Giver 卡片，確保動態載入的卡片能正確顯示
+      const giverPanel = DOM.getElement(CONFIG.SELECTORS.GIVER_PANEL);
+      if (giverPanel) {
+        console.log('DOM.Initializer.init: 清空靜態 Giver 卡片');
+        giverPanel.innerHTML = '';
+      }
       
       // 初始化資料載入器
       DOM.dataLoader.utils.preloadData(['givers']);

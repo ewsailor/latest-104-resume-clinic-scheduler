@@ -21,6 +21,7 @@ class ScheduleCreate(BaseModel):
     """建立時段的請求模型"""
 
     giver_id: int = Field(..., description="Giver ID")
+    taker_id: Optional[int] = Field(None, description="Taker ID")
     schedule_date: date = Field(..., description="時段日期", alias="date")
     start_time: time = Field(..., description="開始時間")
     end_time: time = Field(..., description="結束時間")

@@ -66,6 +66,7 @@ class ScheduleCRUD:
         for schedule_data in schedules:
             schedule = Schedule(
                 giver_id=schedule_data.giver_id,
+                taker_id=schedule_data.taker_id,
                 date=schedule_data.schedule_date,
                 start_time=schedule_data.start_time,
                 end_time=schedule_data.end_time,
