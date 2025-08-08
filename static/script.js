@@ -6479,9 +6479,12 @@ const DOM = {
         // 快取資料
         DOM.dataLoader.cacheData('givers', giversData);
         
-        // 渲染 UI
-        renderGiverList(getGiversByPage(1));
-        renderPaginator(giversData.length);
+            // 渲染 UI
+    console.log('DOM.dataLoader.loadGivers: 開始渲染 UI', { giversDataLength: giversData.length });
+    renderGiverList(getGiversByPage(1));
+    console.log('DOM.dataLoader.loadGivers: Giver 列表渲染完成，開始渲染分頁器');
+    renderPaginator(giversData.length);
+    console.log('DOM.dataLoader.loadGivers: 分頁器渲染完成');
         
         // 重置重試計數
         DOM.dataLoader.state.retryCount = 0;
@@ -6983,14 +6986,19 @@ const DOM = {
     },
     
     // 渲染分頁器
-    renderPaginator: (totalCount) => {
-      console.log('DOM.pagination.renderPaginator called：渲染分頁器，總數:', totalCount);
-      
-      const paginator = DOM.getElement(CONFIG.SELECTORS.PAGINATOR);
-      if (!paginator) {
-        console.error('DOM.pagination.renderPaginator: 分頁器元素未找到:', CONFIG.SELECTORS.PAGINATOR);
-        return;
-      }
+      renderPaginator: (totalCount) => {
+    console.log('DOM.pagination.renderPaginator called：渲染分頁器，總數:', totalCount);
+    
+    const paginator = DOM.getElement(CONFIG.SELECTORS.PAGINATOR);
+    console.log('DOM.pagination.renderPaginator: 分頁器元素:', paginator);
+    
+    if (!paginator) {
+      console.error('DOM.pagination.renderPaginator: 分頁器元素未找到:', CONFIG.SELECTORS.PAGINATOR);
+      console.error('DOM.pagination.renderPaginator: 嘗試手動查找元素');
+      const manualPaginator = document.getElementById('paginator');
+      console.error('DOM.pagination.renderPaginator: 手動查找結果:', manualPaginator);
+      return;
+    }
       
       const totalPages = Math.ceil(totalCount / CONFIG.PAGINATION.GIVERS_PER_PAGE);
       
@@ -8755,7 +8763,7 @@ const PerformanceMonitor = {
 // ======================================================
 
 const Initializer = {  
-  init: () => {
+  init: async () => {
     console.log('DOM.Initializer.init called：開始初始化應用程式');
     
     try {
@@ -8769,8 +8777,8 @@ const Initializer = {
         giverPanel.innerHTML = '';
       }
       
-      // 初始化資料載入器
-      DOM.dataLoader.utils.preloadData(['givers']);
+      // 初始化資料載入器 - 等待資料載入完成
+      await DOM.dataLoader.utils.preloadData(['givers']);
       
       // 設定定期清理
       setInterval(() => {
@@ -8803,14 +8811,14 @@ const showConfirmDialog = UIInteraction.showConfirmDialog;
 //   7-3. 頁面載入時設定全域事件監聽器 (Setting Global Event Listeners on Page Load)
 // ======================================================
 
-DOM.events.add(document, 'DOMContentLoaded', function() {
+DOM.events.add(document, 'DOMContentLoaded', async function() {
   Logger.info('DOM.events.add called：頁面載入時設定全域事件監聽器');
   
   // 初始化事件委派管理器
   EventManager.init();
   
-  // 使用初始化模組進行完整初始化
-  Initializer.init();
+  // 使用初始化模組進行完整初始化 - 等待完成
+  await Initializer.init();
 
   // 設定 resize 事件監聽器，用於處理服務項目溢出
   let resizeTimeout;
