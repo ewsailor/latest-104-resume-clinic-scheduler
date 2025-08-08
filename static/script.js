@@ -211,9 +211,9 @@ const CONFIG = {
     MAX_RETRIES: 3
   },
   
-  // 分頁配置：每頁顯示 6 筆資料（測試用，可以改回 12）
+  // 分頁配置：每頁顯示 12 筆資料
   PAGINATION: {
-    GIVERS_PER_PAGE: 6,
+    GIVERS_PER_PAGE: 12,
     MAX_PAGES_DISPLAY: 10
   },
   
@@ -6448,9 +6448,19 @@ const DOM = {
     loadGivers: async ({ onSuccess, onError, onComplete, showLoading = true } = {}) => {
       console.log('DOM.dataLoader.loadGivers called：載入 Giver 資料');
       // 檢查快取
-      if (DOM.dataLoader.isCached('givers')) {
+      if (DOM.dataLoader.isCached('givers') && DOM.dataLoader.isCached('givers_total')) {
         const cachedData = DOM.dataLoader.getCached('givers');
-        console.log('DOM.dataLoader.loadGivers: 使用快取的 Giver 資料');
+        const cachedTotal = DOM.dataLoader.getCached('givers_total');
+        console.log('DOM.dataLoader.loadGivers: 使用快取的 Giver 資料，總數:', cachedTotal);
+        
+        // 更新應用狀態
+        appState.givers = cachedData;
+        appState.totalGivers = cachedTotal;
+        
+        // 渲染 UI
+        renderGiverList(getGiversByPage(1));
+        renderPaginator(cachedTotal);
+        
         onSuccess?.(cachedData);
         onComplete?.();
         return cachedData;
@@ -6471,19 +6481,22 @@ const DOM = {
         
         // 處理成功回應
         const giversData = response.data.results || [];
-        console.log('DOM.dataLoader.loadGivers: Giver 資料載入成功:', giversData.length, '筆資料');
+        const totalCount = response.data.total || giversData.length;
+        console.log('DOM.dataLoader.loadGivers: Giver 資料載入成功:', giversData.length, '筆資料，總數:', totalCount);
         
         // 更新應用狀態
         appState.givers = giversData;
+        appState.totalGivers = totalCount; // 儲存總數
         
         // 快取資料
         DOM.dataLoader.cacheData('givers', giversData);
+        DOM.dataLoader.cacheData('givers_total', totalCount); // 快取總數
         
-            // 渲染 UI
-        console.log('DOM.dataLoader.loadGivers: 開始渲染 UI', { giversDataLength: giversData.length });
+        // 渲染 UI
+        console.log('DOM.dataLoader.loadGivers: 開始渲染 UI', { giversDataLength: giversData.length, totalCount });
         renderGiverList(getGiversByPage(1));
         console.log('DOM.dataLoader.loadGivers: Giver 列表渲染完成，開始渲染分頁器');
-        renderPaginator(giversData.length);
+        renderPaginator(totalCount); // 使用總數而不是當前載入的資料數量
         console.log('DOM.dataLoader.loadGivers: 分頁器渲染完成');
         
         // 重置重試計數
