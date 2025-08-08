@@ -148,7 +148,7 @@ async def update_schedule(
     try:
         # 轉換為字典格式
         update_data = schedule_update.model_dump()
-        # 移除 date 欄位的別名
+        # 處理 date 欄位的別名 - 將 date 轉換為 schedule_date
         if "date" in update_data:
             update_data["schedule_date"] = update_data.pop("date")
 

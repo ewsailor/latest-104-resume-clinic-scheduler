@@ -50,7 +50,13 @@ async def get_givers(
             givers = get_givers_by_topic(topic)
 
         if industry:
-            givers = get_givers_by_industry(industry)
+            # 如果已經有 topic 篩選，則在結果中再篩選 industry
+            if topic:
+                givers = [
+                    giver for giver in givers if giver.get("industry") == industry
+                ]
+            else:
+                givers = get_givers_by_industry(industry)
 
         # 計算分頁
         total = len(givers)

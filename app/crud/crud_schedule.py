@@ -150,7 +150,10 @@ class ScheduleCRUD:
 
         # 更新欄位
         for field, value in kwargs.items():
-            if hasattr(schedule, field):
+            if field == "schedule_date":
+                # 處理 schedule_date 別名，對應到模型的 date 欄位
+                setattr(schedule, "date", value)
+            elif hasattr(schedule, field):
                 setattr(schedule, field, value)
 
         db.commit()
