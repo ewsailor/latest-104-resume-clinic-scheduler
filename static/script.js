@@ -7092,7 +7092,7 @@ const DOM = {
           
           const page = link.dataset.page;
           const currentPage = appState.currentPage || 1;
-          const totalPages = Math.ceil((appState.givers || []).length / CONFIG.PAGINATION.GIVERS_PER_PAGE);
+          const totalPages = Math.ceil((appState.totalGivers || appState.givers.length) / CONFIG.PAGINATION.GIVERS_PER_PAGE);
           
           let targetPage = currentPage;
           
@@ -7113,23 +7113,37 @@ const DOM = {
     },
     
     // 切換到指定頁面
-    goToPage: (page) => {
+    goToPage: async (page) => {
       console.log('DOM.pagination.goToPage called：切換到第', page, '頁');
       
       // 更新當前頁面
       appState.currentPage = page;
       
-      // 取得該頁資料
-      const pageGivers = DOM.pagination.getGiversByPage(page);
-      
-      // 重新渲染列表
-      DOM.giver.renderGiverList(pageGivers);
-      
-      // 重新渲染分頁器
-      DOM.pagination.renderPaginator(appState.givers.length);
-      
-      // 滾動到頂部
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      try {
+        // 從後端載入指定頁面的資料
+        const response = await axios.get(`${DOM.dataLoader.config.baseURL}?page=${page}&per_page=${CONFIG.PAGINATION.GIVERS_PER_PAGE}`);
+        const pageGivers = response.data.results || [];
+        
+        console.log('DOM.pagination.goToPage: 載入第', page, '頁資料，共', pageGivers.length, '筆');
+        
+        // 更新應用狀態
+        appState.givers = pageGivers;
+        
+        // 重新渲染列表
+        DOM.giver.renderGiverList(pageGivers);
+        
+        // 重新渲染分頁器
+        DOM.pagination.renderPaginator(appState.totalGivers || appState.givers.length);
+        
+        // 滾動到頂部
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+      } catch (error) {
+        console.error('DOM.pagination.goToPage: 載入頁面資料失敗:', error);
+        // 如果載入失敗，回退到本地分頁
+        const pageGivers = DOM.pagination.getGiversByPage(page);
+        DOM.giver.renderGiverList(pageGivers);
+      }
     }
   },
 
