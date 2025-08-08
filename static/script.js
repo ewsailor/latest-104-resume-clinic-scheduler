@@ -879,8 +879,9 @@ const generateScheduleTableRow = (schedule, index, options = {}) => {
   const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
   const weekday = weekdays[dateObj.getDay()];
   const formattedDate = schedule.date;
-  const startTime = schedule.startTime || '';
-  const endTime = schedule.endTime || '';
+  
+  const startTime = DateUtils.formatTimeWithoutSeconds(schedule.startTime || '');
+  const endTime = DateUtils.formatTimeWithoutSeconds(schedule.endTime || '');
   const notes = schedule.notes || '';
   const period = `${formattedDate}（週${weekday}）${startTime}~${endTime}`;
   
@@ -2030,7 +2031,7 @@ const DateUtils = {
     return formatted;
   },
   
-  // 格式化時間為 HH:MM
+  // 格式化時間為 HH:MM:SS
   formatTime: (date) => {
     Logger.debug('DateUtils.formatTime called', { date });
     if (!date) return '';
@@ -2040,10 +2041,32 @@ const DateUtils = {
     
     const hours = String(d.getHours()).padStart(CONFIG.DATE_PICKER.FORMAT.PADDING_LENGTH, CONFIG.DATE_PICKER.FORMAT.PADDING_CHAR);
     const minutes = String(d.getMinutes()).padStart(CONFIG.DATE_PICKER.FORMAT.PADDING_LENGTH, CONFIG.DATE_PICKER.FORMAT.PADDING_CHAR);
+    const seconds = String(d.getSeconds()).padStart(CONFIG.DATE_PICKER.FORMAT.PADDING_LENGTH, CONFIG.DATE_PICKER.FORMAT.PADDING_CHAR);
     
-    const formatted = `${hours}${CONFIG.DATE_PICKER.SEPARATORS.TIME}${minutes}`;
+    const formatted = `${hours}${CONFIG.DATE_PICKER.SEPARATORS.TIME}${minutes}${CONFIG.DATE_PICKER.SEPARATORS.TIME}${seconds}`;
     Logger.debug('DateUtils.formatTime: 格式化結果', { original: date, formatted });
     return formatted;
+  },
+  
+  // 將時間格式化為 HH:MM 格式（移除秒數）
+  formatTimeWithoutSeconds: (timeStr) => {
+    Logger.debug('DateUtils.formatTimeWithoutSeconds called', { timeStr });
+    
+    // 如果是 HH:MM:SS 格式，移除秒數
+    if (timeStr.includes(':') && timeStr.split(':').length === 3) {
+      const [hours, minutes] = timeStr.split(':');
+      const formatted = `${hours}:${minutes}`;
+      Logger.debug('DateUtils.formatTimeWithoutSeconds: 移除秒數', { original: timeStr, formatted });
+      return formatted;
+    }
+    // 如果已經是 HH:MM 格式，直接返回
+    if (timeStr.includes(':') && timeStr.split(':').length === 2) {
+      Logger.debug('DateUtils.formatTimeWithoutSeconds: 已是 HH:MM 格式', { timeStr });
+      return timeStr;
+    }
+    // 如果是其他格式，嘗試解析並格式化
+    Logger.debug('DateUtils.formatTimeWithoutSeconds: 其他格式', { timeStr });
+    return timeStr;
   },
   
   // 格式化為本地時間字串
@@ -5961,8 +5984,11 @@ const DOM = {
       const weekdays = CONFIG.DATE_PICKER.WEEKDAYS;
       const weekday = weekdays[dateObj.getDay()];
       
+      const formattedStartTime = DateUtils.formatTimeWithoutSeconds(startTime);
+      const formattedEndTime = DateUtils.formatTimeWithoutSeconds(endTime);
+      
       // 格式化輸出
-      const formattedSchedule = `${date}（週${weekday}）${startTime}${CONFIG.DATE_PICKER.SEPARATORS.PERIOD}${endTime}`;
+      const formattedSchedule = `${date}（週${weekday}）${formattedStartTime}${CONFIG.DATE_PICKER.SEPARATORS.PERIOD}${formattedEndTime}`;
       console.log('DOM.chat.formatScheduleWithWeekday: 格式化結果', { formattedSchedule });
       
       return formattedSchedule;
