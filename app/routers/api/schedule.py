@@ -64,16 +64,18 @@ async def create_schedules(
 @router.get("/schedules", response_model=List[ScheduleResponse])
 async def get_schedules(
     giver_id: Optional[int] = None,
+    taker_id: Optional[int] = None,
     status_filter: Optional[str] = None,
     db: Session = Depends(get_db),
 ) -> List[ScheduleResponse]:
     """
     取得時段列表。
 
-    可選擇性地根據 giver_id 和 status 進行篩選。
+    可選擇性地根據 giver_id、taker_id 和 status 進行篩選。
 
     Args:
         giver_id: 可選的 Giver ID 篩選條件
+        taker_id: 可選的 Taker ID 篩選條件
         status_filter: 可選的狀態篩選條件
         db: 資料庫會話依賴注入
 
@@ -82,7 +84,7 @@ async def get_schedules(
     """
     try:
         # 使用 CRUD 層查詢時段
-        schedules = schedule_crud.get_schedules(db, giver_id, status_filter)
+        schedules = schedule_crud.get_schedules(db, giver_id, taker_id, status_filter)
         # 轉換為回應格式 - 使用 model_validate 替代 from_orm
         return [ScheduleResponse.model_validate(schedule) for schedule in schedules]
 

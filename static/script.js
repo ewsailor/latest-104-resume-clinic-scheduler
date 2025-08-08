@@ -1227,6 +1227,7 @@ const ChatStateManager = {
     // 狀態鍵值
     STATE_KEYS: {
       CURRENT_GIVER: 'currentGiver',
+      CURRENT_USER_ID: 'currentUserId',
       IS_ACTIVE: 'isActive',
       MESSAGE_HISTORY: 'messageHistory',
       LAST_MESSAGE_TIME: 'lastMessageTime',
@@ -1240,6 +1241,7 @@ const ChatStateManager = {
     // 預設狀態
     DEFAULT_STATE: {
       currentGiver: null,
+      currentUserId: null,
       isActive: false,
       messageHistory: [],
       lastMessageTime: null,
@@ -1261,6 +1263,7 @@ const ChatStateManager = {
   // 內部狀態存儲
   _state: {
     currentGiver: null,
+    currentUserId: null,
     isActive: false,
     messageHistory: [],
     lastMessageTime: null,
@@ -1350,11 +1353,12 @@ const ChatStateManager = {
   },
   
   // 初始化聊天會話
-  initChatSession: (giver) => {
-    console.log('ChatStateManager.initChatSession called', { giver });
+  initChatSession: (giver, userId = 1) => {
+    console.log('ChatStateManager.initChatSession called', { giver, userId });
     
     const updates = {
       [ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER]: giver,
+      [ChatStateManager.CONFIG.STATE_KEYS.CURRENT_USER_ID]: userId,
       [ChatStateManager.CONFIG.STATE_KEYS.IS_ACTIVE]: true,
       [ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY]: [],
       [ChatStateManager.CONFIG.STATE_KEYS.LAST_MESSAGE_TIME]: new Date(),
@@ -1796,6 +1800,18 @@ const ChatStateManager = {
     return ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER);
   },
   
+  // 獲取當前使用者 ID
+  getCurrentUserId: () => {
+    console.log('ChatStateManager.getCurrentUserId called');
+    return ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.CURRENT_USER_ID);
+  },
+  
+  // 設定當前使用者 ID
+  setCurrentUserId: (userId) => {
+    console.log('ChatStateManager.setCurrentUserId called', { userId });
+    ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.CURRENT_USER_ID, userId);
+  },
+  
   // 檢查是否為多筆時段模式
   isMultipleTimesMode: () => {
     console.log('ChatStateManager.isMultipleTimesMode called');
@@ -1853,6 +1869,9 @@ const ChatStateManager = {
     switch (key) {
       case ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER:
         return value === null || typeof value === 'object';
+        
+      case ChatStateManager.CONFIG.STATE_KEYS.CURRENT_USER_ID:
+        return value === null || typeof value === 'number';
         
       case ChatStateManager.CONFIG.STATE_KEYS.IS_ACTIVE:
       case ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE:
@@ -1937,6 +1956,46 @@ const ChatStateManager = {
     } catch (error) {
       console.error('ChatStateManager.import: 狀態匯入失敗', error);
       return false;
+    }
+  },
+  
+  // 從資料庫載入使用者提供給特定 Giver 的時段
+  loadUserSchedulesFromDatabase: async (giverId, userId) => {
+    console.log('ChatStateManager.loadUserSchedulesFromDatabase called', { giverId, userId });
+    
+    try {
+      // 呼叫 API 獲取使用者提供給該 Giver 的時段
+      const response = await fetch(`/api/schedules?giver_id=${giverId}&taker_id=${userId}`);
+      
+      if (!response.ok) {
+        console.error('ChatStateManager.loadUserSchedulesFromDatabase: API 請求失敗', response.status);
+        return [];
+      }
+      
+      const schedules = await response.json();
+      console.log('ChatStateManager.loadUserSchedulesFromDatabase: 從資料庫載入的時段', schedules);
+      
+      // 將資料庫中的時段轉換為前端格式
+      const convertedSchedules = schedules.map(schedule => ({
+        id: schedule.id,
+        date: schedule.date,
+        startTime: schedule.start_time,
+        endTime: schedule.end_time,
+        note: schedule.note,
+        status: schedule.status,
+        role: schedule.role,
+        giverId: schedule.giver_id,
+        takerId: schedule.taker_id,
+        createdAt: schedule.created_at,
+        updatedAt: schedule.updated_at
+      }));
+      
+      console.log('ChatStateManager.loadUserSchedulesFromDatabase: 轉換後的時段', convertedSchedules);
+      return convertedSchedules;
+      
+    } catch (error) {
+      console.error('ChatStateManager.loadUserSchedulesFromDatabase: 載入時段失敗', error);
+      return [];
     }
   }
 };
@@ -5712,9 +5771,39 @@ const DOM = {
     handleViewAllSchedules: async () => {
       console.log('DOM.chat.handleViewAllSchedules called：處理查看所有已提供時段選項');
       
+      // 獲取當前 Giver 和使用者 ID
+      const currentGiver = ChatStateManager.getCurrentGiver();
+      const currentUserId = ChatStateManager.getCurrentUserId();
+      
+      if (!currentGiver || !currentUserId) {
+        console.warn('DOM.chat.handleViewAllSchedules: 缺少 Giver 或使用者 ID', { currentGiver, currentUserId });
+        return;
+      }
+      
+      console.log('DOM.chat.handleViewAllSchedules: 開始從資料庫載入時段', { giverId: currentGiver.id, userId: currentUserId });
+      
+      // 從資料庫載入使用者提供給該 Giver 的時段
+      const databaseSchedules = await ChatStateManager.loadUserSchedulesFromDatabase(currentGiver.id, currentUserId);
+      console.log('DOM.chat.handleViewAllSchedules: 從資料庫載入的時段', databaseSchedules);
+      
+      // 將資料庫中的時段合併到已提供的時段中（避免重複）
+      const existingProvidedSchedules = ChatStateManager.getProvidedSchedules();
+      const existingIds = new Set(existingProvidedSchedules.map(s => s.id));
+      
+      // 只添加資料庫中不存在於當前已提供時段中的時段
+      const newSchedules = databaseSchedules.filter(schedule => !existingIds.has(schedule.id));
+      
+      if (newSchedules.length > 0) {
+        console.log('DOM.chat.handleViewAllSchedules: 新增資料庫中的時段到已提供時段', newSchedules);
+        // 將新的時段添加到已提供時段列表中
+        newSchedules.forEach(schedule => {
+          ChatStateManager.addSchedule(schedule);
+        });
+      }
+      
       const providedSchedules = ChatStateManager.getProvidedSchedules();
       const draftSchedules = ChatStateManager.get(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES) || [];
-      console.log('DOM.chat.handleViewAllSchedules: 已提供的時段資料', providedSchedules);
+      console.log('DOM.chat.handleViewAllSchedules: 合併後的已提供時段資料', providedSchedules);
       console.log('DOM.chat.handleViewAllSchedules: 草稿時段資料', draftSchedules);
       
       // 檢查是否有草稿時段

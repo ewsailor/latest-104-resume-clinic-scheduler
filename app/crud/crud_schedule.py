@@ -90,6 +90,7 @@ class ScheduleCRUD:
         self,
         db: Session,
         giver_id: Optional[int] = None,
+        taker_id: Optional[int] = None,
         status_filter: Optional[str] = None,
     ) -> List[Schedule]:
         """
@@ -98,6 +99,7 @@ class ScheduleCRUD:
         Args:
             db: 資料庫會話
             giver_id: 可選的 Giver ID 篩選條件
+            taker_id: 可選的 Taker ID 篩選條件
             status_filter: 可選的狀態篩選條件
 
         Returns:
@@ -109,6 +111,8 @@ class ScheduleCRUD:
         filters = []
         if giver_id is not None:
             filters.append(Schedule.giver_id == giver_id)
+        if taker_id is not None:
+            filters.append(Schedule.taker_id == taker_id)
         if status_filter is not None:
             filters.append(Schedule.status == status_filter)
 
