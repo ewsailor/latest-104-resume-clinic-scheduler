@@ -123,8 +123,8 @@ class TestAPIScheduleSimple:
                 "start_time": "14:00:00",
                 "end_time": "15:00:00",
                 "note": "測試時段1",
-                "status": "available",
-                "role": "giver",
+                "status": "AVAILABLE",
+                "role": "GIVER",
             },
             {
                 "giver_id": 1,
@@ -132,8 +132,8 @@ class TestAPIScheduleSimple:
                 "start_time": "16:00:00",
                 "end_time": "17:00:00",
                 "note": "測試時段2",
-                "status": "available",
-                "role": "giver",
+                "status": "AVAILABLE",
+                "role": "GIVER",
             },
         ]
 

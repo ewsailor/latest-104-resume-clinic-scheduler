@@ -147,8 +147,8 @@ class TestAPIScheduleComprehensive:
                 start_time="09:00:00",
                 end_time="10:00:00",
                 note="測試時段",
-                status="available",
-                role="giver",
+                status="AVAILABLE",
+                role="GIVER",
             )
         ]
 
@@ -177,8 +177,8 @@ class TestAPIScheduleComprehensive:
                 start_time="09:00:00",
                 end_time="10:00:00",
                 note="測試時段",
-                status="available",
-                role="giver",
+                status="AVAILABLE",
+                role="GIVER",
             )
         ]
 
@@ -309,8 +309,8 @@ class TestAPIScheduleComprehensive:
                 start_time="09:00:00",
                 end_time="10:00:00",
                 note="測試時段",
-                status="available",
-                role="giver",
+                status="AVAILABLE",
+                role="GIVER",
             )
         ]
 
@@ -362,8 +362,8 @@ class TestAPIScheduleComprehensive:
                 start_time="09:00:00",
                 end_time="10:00:00",
                 note="測試時段",
-                status="available",
-                role="giver",
+                status="AVAILABLE",
+                role="GIVER",
             )
         ]
 
@@ -423,7 +423,7 @@ class TestAPIScheduleComprehensive:
     def test_api_error_responses(self, client):
         """測試 API 錯誤回應格式。"""
         # 測試無效的 JSON 資料
-        response = client.post("/api/users", data="invalid json")
+        response = client.post("/api/users", content="invalid json")
         assert response.status_code == 422  # Unprocessable Entity
 
         # 測試缺少必要欄位
@@ -449,8 +449,8 @@ class TestAPIScheduleComprehensive:
                 start_time="09:00:00",
                 end_time="10:00:00",
                 note=f"測試時段 {i}",
-                status="available",
-                role="giver",
+                status="AVAILABLE",
+                role="GIVER",
             )
             for i in range(100)
         ]

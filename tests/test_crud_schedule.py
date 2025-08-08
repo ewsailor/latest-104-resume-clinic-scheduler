@@ -89,8 +89,8 @@ class TestScheduleCRUD:
                 start_time=time(9, 0),
                 end_time=time(10, 0),
                 note="測試時段1",
-                status="available",
-                role="giver",
+                status="AVAILABLE",
+                role="GIVER",
             ),
             ScheduleCreate(
                 giver_id=1,
@@ -98,8 +98,8 @@ class TestScheduleCRUD:
                 start_time=time(14, 0),
                 end_time=time(15, 0),
                 note="測試時段2",
-                status="available",
-                role="giver",
+                status="AVAILABLE",
+                role="GIVER",
             ),
         ]
 
@@ -113,16 +113,16 @@ class TestScheduleCRUD:
         assert result[0].start_time == time(9, 0)
         assert result[0].end_time == time(10, 0)
         assert result[0].note == "測試時段1"
-        assert result[0].status == "available"
-        assert result[0].role == "giver"
+        assert result[0].status == "AVAILABLE"
+        assert result[0].role == "GIVER"
 
         assert result[1].giver_id == 1
         assert result[1].date == date(2024, 1, 16)
         assert result[1].start_time == time(14, 0)
         assert result[1].end_time == time(15, 0)
         assert result[1].note == "測試時段2"
-        assert result[1].status == "available"
-        assert result[1].role == "giver"
+        assert result[1].status == "AVAILABLE"
+        assert result[1].role == "GIVER"
 
         # 驗證所有時段都有 ID
         assert result[0].id is not None
@@ -138,8 +138,8 @@ class TestScheduleCRUD:
                 start_time=time(9, 0),
                 end_time=time(10, 0),
                 note="測試時段1",
-                status="available",
-                role="giver",
+                status="AVAILABLE",
+                role="GIVER",
             ),
             ScheduleCreate(
                 giver_id=2,
@@ -147,8 +147,8 @@ class TestScheduleCRUD:
                 start_time=time(14, 0),
                 end_time=time(15, 0),
                 note="測試時段2",
-                status="booked",
-                role="giver",
+                status="BOOKED",
+                role="GIVER",
             ),
         ]
 
@@ -171,8 +171,8 @@ class TestScheduleCRUD:
                 start_time=time(9, 0),
                 end_time=time(10, 0),
                 note="測試時段1",
-                status="available",
-                role="giver",
+                status="AVAILABLE",
+                role="GIVER",
             ),
             ScheduleCreate(
                 giver_id=2,
@@ -180,8 +180,8 @@ class TestScheduleCRUD:
                 start_time=time(14, 0),
                 end_time=time(15, 0),
                 note="測試時段2",
-                status="available",
-                role="giver",
+                status="AVAILABLE",
+                role="GIVER",
             ),
         ]
 
@@ -205,8 +205,8 @@ class TestScheduleCRUD:
                 start_time=time(9, 0),
                 end_time=time(10, 0),
                 note="測試時段1",
-                status="available",
-                role="giver",
+                status="AVAILABLE",
+                role="GIVER",
             ),
             ScheduleCreate(
                 giver_id=2,
@@ -214,20 +214,20 @@ class TestScheduleCRUD:
                 start_time=time(14, 0),
                 end_time=time(15, 0),
                 note="測試時段2",
-                status="booked",
-                role="giver",
+                status="BOOKED",
+                role="GIVER",
             ),
         ]
 
         # 建立時段
         self.crud.create_schedules(self.db, schedules_data)
 
-        # 執行測試 - 篩選 status = "booked"
-        result = self.crud.get_schedules(self.db, status_filter="booked")
+        # 執行測試 - 篩選 status = "BOOKED"
+        result = self.crud.get_schedules(self.db, status_filter="BOOKED")
 
         # 驗證結果
         assert len(result) == 1
-        assert result[0].status == "booked"
+        assert result[0].status == "BOOKED"
 
     def test_get_schedules_filter_by_both(self):
         """測試同時根據 giver_id 和狀態篩選時段。"""
@@ -239,8 +239,8 @@ class TestScheduleCRUD:
                 start_time=time(9, 0),
                 end_time=time(10, 0),
                 note="測試時段1",
-                status="available",
-                role="giver",
+                status="AVAILABLE",
+                role="GIVER",
             ),
             ScheduleCreate(
                 giver_id=1,
@@ -248,8 +248,8 @@ class TestScheduleCRUD:
                 start_time=time(14, 0),
                 end_time=time(15, 0),
                 note="測試時段2",
-                status="booked",
-                role="giver",
+                status="BOOKED",
+                role="GIVER",
             ),
             ScheduleCreate(
                 giver_id=2,
@@ -257,21 +257,21 @@ class TestScheduleCRUD:
                 start_time=time(16, 0),
                 end_time=time(17, 0),
                 note="測試時段3",
-                status="available",
-                role="giver",
+                status="AVAILABLE",
+                role="GIVER",
             ),
         ]
 
         # 建立時段
         self.crud.create_schedules(self.db, schedules_data)
 
-        # 執行測試 - 篩選 giver_id = 1 且 status = "available"
-        result = self.crud.get_schedules(self.db, giver_id=1, status_filter="available")
+        # 執行測試 - 篩選 giver_id = 1 且 status = "AVAILABLE"
+        result = self.crud.get_schedules(self.db, giver_id=1, status_filter="AVAILABLE")
 
         # 驗證結果
         assert len(result) == 1
         assert result[0].giver_id == 1
-        assert result[0].status == "available"
+        assert result[0].status == "AVAILABLE"
 
     def test_get_schedule_by_id_success(self):
         """測試成功根據 ID 查詢時段。"""
@@ -282,8 +282,8 @@ class TestScheduleCRUD:
             start_time=time(9, 0),
             end_time=time(10, 0),
             note="測試時段",
-            status="available",
-            role="giver",
+            status="AVAILABLE",
+            role="GIVER",
         )
 
         # 建立時段
@@ -316,8 +316,8 @@ class TestScheduleCRUD:
             start_time=time(9, 0),
             end_time=time(10, 0),
             note="原始備註",
-            status="available",
-            role="giver",
+            status="AVAILABLE",
+            role="GIVER",
         )
 
         # 建立時段
@@ -326,14 +326,14 @@ class TestScheduleCRUD:
 
         # 執行測試 - 更新備註和狀態
         result = self.crud.update_schedule(
-            self.db, schedule_id, note="更新後的備註", status="booked"
+            self.db, schedule_id, note="更新後的備註", status="BOOKED"
         )
 
         # 驗證結果
         assert result is not None
         assert result.id == schedule_id
         assert result.note == "更新後的備註"
-        assert result.status == "booked"
+        assert result.status == "BOOKED"
         assert result.giver_id == 1  # 其他欄位保持不變
 
     def test_update_schedule_not_found(self):
@@ -353,8 +353,8 @@ class TestScheduleCRUD:
             start_time=time(9, 0),
             end_time=time(10, 0),
             note="測試時段",
-            status="available",
-            role="giver",
+            status="AVAILABLE",
+            role="GIVER",
         )
 
         # 建立時段
