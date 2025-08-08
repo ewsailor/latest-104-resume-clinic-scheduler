@@ -40,55 +40,54 @@ def create_giver_users():
         giver_count = result.scalar()
         logger.info(f"目前 Giver 使用者數量: {giver_count}")
 
-        if giver_count == 0:
-            # 為每個 Giver 建立對應的使用者
-            for giver in MOCK_GIVERS:
-                # 檢查使用者是否已存在
-                result = conn.execute(
-                    text("SELECT id FROM users WHERE id = :giver_id"),
-                    {"giver_id": giver["id"]},
-                )
-                existing_user = result.fetchone()
+        # 為每個 Giver 建立對應的使用者（如果不存在）
+        created_count = 0
+        for giver in MOCK_GIVERS:
+            # 檢查使用者是否已存在
+            result = conn.execute(
+                text("SELECT id FROM users WHERE id = :giver_id"),
+                {"giver_id": giver["id"]},
+            )
+            existing_user = result.fetchone()
 
-                if not existing_user:
-                    # 建立新使用者
-                    conn.execute(
-                        text(
-                            """
-                        INSERT INTO users (id, name, email)
-                        VALUES (:id, :name, :email)
-                    """
+            if not existing_user:
+                # 建立新使用者
+                conn.execute(
+                    text(
+                        """
+                    INSERT INTO users (id, name, email)
+                    VALUES (:id, :name, :email)
+                """
+                    ),
+                    {
+                        "id": giver["id"],
+                        "name": giver["name"],
+                        "email": (
+                            f"{giver['name'].lower().replace('王', 'wang')}"
+                            "@example.com"
                         ),
-                        {
-                            "id": giver["id"],
-                            "name": giver["name"],
-                            "email": (
-                                f"{giver['name'].lower().replace('王', 'wang')}"
-                                "@example.com"
-                            ),
-                        },
-                    )
-                    logger.info(
-                        f"建立 Giver 使用者: {giver['name']} "
-                        f"(ID: {giver['id']})"
-                    )
-                else:
-                    logger.info(
-                        f"Giver 使用者已存在: {giver['name']} (ID: {giver['id']})"
-                    )
+                    },
+                )
+                logger.info(
+                    f"建立 Giver 使用者: {giver['name']} " f"(ID: {giver['id']})"
+                )
+                created_count += 1
+            else:
+                logger.info(f"Giver 使用者已存在: {giver['name']} (ID: {giver['id']})")
 
-            # 提交變更
+        # 提交變更
+        if created_count > 0:
             conn.commit()
-            logger.info("Giver 使用者資料建立完成")
+            logger.info(f"Giver 使用者資料建立完成，新增了 {created_count} 個使用者")
         else:
-            logger.info("Giver 使用者資料已存在，跳過建立")
+            logger.info("所有 Giver 使用者資料都已存在")
 
         # 顯示所有 Giver 使用者
         result = conn.execute(
             text(
                 """
-            SELECT id, name, email, created_at 
-            FROM users 
+            SELECT id, name, email, created_at
+            FROM users
             WHERE name LIKE '王%'
             ORDER BY id
         """
@@ -98,8 +97,7 @@ def create_giver_users():
         logger.info("=== 目前 Giver 使用者列表 ===")
         for row in result:
             logger.info(
-                f"ID: {row[0]}, 姓名: {row[1]}, 信箱: {row[2]}, "
-                f"建立時間: {row[3]}"
+                f"ID: {row[0]}, 姓名: {row[1]}, 信箱: {row[2]}, " f"建立時間: {row[3]}"
             )
 
     except Exception as e:

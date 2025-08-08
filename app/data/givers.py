@@ -218,6 +218,21 @@ MOCK_GIVERS = [
         "tag": ["產品規劃", "人工智能", "軟體開發"],
         "introduction": "持續學習，樂於分享，期待與您共同成長。",
     },
+    {
+        "id": 14,
+        "image": "https://randomuser.me/api/portraits/men/14.jpg",
+        "name": "王拾四",
+        "title": "資料分析師",
+        "company": "王拾四-資訊科技公司",
+        "consulted": "24",
+        "average_responding_time": "3",
+        "experience": "5",
+        "giverCard__topic": ["模擬面試", "職涯諮詢", "履歷健診", "英文履歷健診"],
+        "industry": "住宿／餐飲服務業",
+        "school": "東吳大學",
+        "tag": ["數據分析", "區塊鏈", "人工智能"],
+        "introduction": "持續學習，樂於分享，期待與您共同成長。",
+    },
 ]
 
 
