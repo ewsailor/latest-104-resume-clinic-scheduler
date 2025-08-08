@@ -211,9 +211,9 @@ const CONFIG = {
     MAX_RETRIES: 3
   },
   
-  // 分頁配置：每頁顯示 12 筆資料
+  // 分頁配置：每頁顯示 6 筆資料（測試用，可以改回 12）
   PAGINATION: {
-    GIVERS_PER_PAGE: 12,
+    GIVERS_PER_PAGE: 6,
     MAX_PAGES_DISPLAY: 10
   },
   
@@ -6480,11 +6480,11 @@ const DOM = {
         DOM.dataLoader.cacheData('givers', giversData);
         
             // 渲染 UI
-    console.log('DOM.dataLoader.loadGivers: 開始渲染 UI', { giversDataLength: giversData.length });
-    renderGiverList(getGiversByPage(1));
-    console.log('DOM.dataLoader.loadGivers: Giver 列表渲染完成，開始渲染分頁器');
-    renderPaginator(giversData.length);
-    console.log('DOM.dataLoader.loadGivers: 分頁器渲染完成');
+        console.log('DOM.dataLoader.loadGivers: 開始渲染 UI', { giversDataLength: giversData.length });
+        renderGiverList(getGiversByPage(1));
+        console.log('DOM.dataLoader.loadGivers: Giver 列表渲染完成，開始渲染分頁器');
+        renderPaginator(giversData.length);
+        console.log('DOM.dataLoader.loadGivers: 分頁器渲染完成');
         
         // 重置重試計數
         DOM.dataLoader.state.retryCount = 0;
@@ -6986,24 +6986,30 @@ const DOM = {
     },
     
     // 渲染分頁器
-      renderPaginator: (totalCount) => {
-    console.log('DOM.pagination.renderPaginator called：渲染分頁器，總數:', totalCount);
-    
-    const paginator = DOM.getElement(CONFIG.SELECTORS.PAGINATOR);
-    console.log('DOM.pagination.renderPaginator: 分頁器元素:', paginator);
-    
-    if (!paginator) {
-      console.error('DOM.pagination.renderPaginator: 分頁器元素未找到:', CONFIG.SELECTORS.PAGINATOR);
-      console.error('DOM.pagination.renderPaginator: 嘗試手動查找元素');
-      const manualPaginator = document.getElementById('paginator');
-      console.error('DOM.pagination.renderPaginator: 手動查找結果:', manualPaginator);
-      return;
-    }
+    renderPaginator: (totalCount) => {
+      console.log('DOM.pagination.renderPaginator called：渲染分頁器，總數:', totalCount);
+      
+      const paginator = DOM.getElement(CONFIG.SELECTORS.PAGINATOR);
+      console.log('DOM.pagination.renderPaginator: 分頁器元素:', paginator);
+      
+      if (!paginator) {
+        console.error('DOM.pagination.renderPaginator: 分頁器元素未找到:', CONFIG.SELECTORS.PAGINATOR);
+        console.error('DOM.pagination.renderPaginator: 嘗試手動查找元素');
+        const manualPaginator = document.getElementById('paginator');
+        console.error('DOM.pagination.renderPaginator: 手動查找結果:', manualPaginator);
+        return;
+      }
       
       const totalPages = Math.ceil(totalCount / CONFIG.PAGINATION.GIVERS_PER_PAGE);
       
+      // 即使只有一頁也顯示分頁器，讓使用者知道這是第一頁
       if (totalPages <= 1) {
-        paginator.innerHTML = '';
+        // 顯示簡單的分頁器，只顯示當前頁碼
+        let simplePaginatorHTML = TEMPLATES.paginator.container();
+        simplePaginatorHTML += TEMPLATES.paginator.pageNumber(1, true); // 顯示第一頁為當前頁
+        simplePaginatorHTML += '</ul>';
+        paginator.innerHTML = simplePaginatorHTML;
+        console.log('DOM.pagination.renderPaginator: 只有一頁，顯示簡單分頁器');
         return;
       }
       
