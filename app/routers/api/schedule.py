@@ -4,10 +4,11 @@
 提供時段相關的 API 端點，包括建立、查詢、更新和刪除時段。
 """
 
-from typing import List, Optional  # 型別提示
+from typing import Dict, List, Optional
 
 # ===== 第三方套件 =====
 from fastapi import APIRouter, Depends, HTTPException, status  # 路由和錯誤處理
+from sqlalchemy.orm import Session
 
 # ===== 本地模組 =====
 from app.crud import schedule_crud  # CRUD 操作
@@ -26,7 +27,9 @@ router = APIRouter(prefix="/api", tags=["Schedules"])
     response_model=List[ScheduleResponse],
     status_code=status.HTTP_201_CREATED,
 )
-async def create_schedules(schedules: List[ScheduleCreate], db=Depends(get_db)):
+async def create_schedules(
+    schedules: List[ScheduleCreate], db: Session = Depends(get_db)
+) -> List[ScheduleResponse]:
     """
     建立多個時段。
 
@@ -62,8 +65,8 @@ async def create_schedules(schedules: List[ScheduleCreate], db=Depends(get_db)):
 async def get_schedules(
     giver_id: Optional[int] = None,
     status_filter: Optional[str] = None,
-    db=Depends(get_db),
-):
+    db: Session = Depends(get_db),
+) -> List[ScheduleResponse]:
     """
     取得時段列表。
 
@@ -91,7 +94,9 @@ async def get_schedules(
 
 
 @router.get("/schedules/{schedule_id}", response_model=ScheduleResponse)
-async def get_schedule(schedule_id: int, db=Depends(get_db)):
+async def get_schedule(
+    schedule_id: int, db: Session = Depends(get_db)
+) -> ScheduleResponse:
     """
     根據 ID 取得單一時段。
 
@@ -124,8 +129,8 @@ async def get_schedule(schedule_id: int, db=Depends(get_db)):
 
 @router.put("/schedules/{schedule_id}", response_model=ScheduleResponse)
 async def update_schedule(
-    schedule_id: int, schedule_update: ScheduleCreate, db=Depends(get_db)
-):
+    schedule_id: int, schedule_update: ScheduleCreate, db: Session = Depends(get_db)
+) -> ScheduleResponse:
     """
     更新時段。
 
@@ -164,7 +169,9 @@ async def update_schedule(
 
 
 @router.delete("/schedules/{schedule_id}")
-async def delete_schedule(schedule_id: int, db=Depends(get_db)):
+async def delete_schedule(
+    schedule_id: int, db: Session = Depends(get_db)
+) -> Dict[str, str]:
     """
     刪除時段。
 

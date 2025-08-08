@@ -4,6 +4,8 @@ Giver 資料模組。
 提供 Giver 相關的資料和常數定義。
 """
 
+from typing import Any, Dict, List, Optional
+
 # ===== 測試用 Giver 資料 =====
 MOCK_GIVERS = [
     {
@@ -219,7 +221,7 @@ MOCK_GIVERS = [
 ]
 
 
-def get_all_givers():
+def get_all_givers() -> List[Dict[str, Any]]:
     """
     取得所有 Giver 資料。
 
@@ -229,7 +231,7 @@ def get_all_givers():
     return MOCK_GIVERS
 
 
-def get_giver_by_id(giver_id: int):
+def get_giver_by_id(giver_id: int) -> Optional[Dict[str, Any]]:
     """
     根據 ID 取得特定 Giver 資料。
 
@@ -245,7 +247,7 @@ def get_giver_by_id(giver_id: int):
     return None
 
 
-def get_givers_by_topic(topic: str):
+def get_givers_by_topic(topic: str) -> List[Dict[str, Any]]:
     """
     根據服務項目篩選 Giver。
 
@@ -262,7 +264,7 @@ def get_givers_by_topic(topic: str):
     ]
 
 
-def get_givers_by_industry(industry: str):
+def get_givers_by_industry(industry: str) -> List[Dict[str, Any]]:
     """
     根據產業篩選 Giver。
 
@@ -275,7 +277,7 @@ def get_givers_by_industry(industry: str):
     return [giver for giver in MOCK_GIVERS if giver.get("industry") == industry]
 
 
-def get_givers_count():
+def get_givers_count() -> int:
     """
     取得 Giver 總數。
 

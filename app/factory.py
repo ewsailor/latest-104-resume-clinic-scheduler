@@ -10,10 +10,11 @@ from fastapi.staticfiles import StaticFiles  # 靜態檔案服務
 from fastapi.templating import Jinja2Templates  # HTML 模板引擎
 
 # ===== 本地模組 =====
+from app.core.settings import Settings  # 應用程式設定
 from app.middleware.cors import setup_cors_middleware  # CORS 中間件設定
 
 
-def create_static_files(settings) -> StaticFiles:
+def create_static_files(settings: Settings) -> StaticFiles:
     """
     建立並配置靜態檔案服務。
 
@@ -26,7 +27,7 @@ def create_static_files(settings) -> StaticFiles:
     return StaticFiles(directory=str(settings.static_dir))
 
 
-def create_templates(settings) -> Jinja2Templates:
+def create_templates(settings: Settings) -> Jinja2Templates:
     """
     建立並配置 Jinja2 模板引擎。
 
@@ -39,7 +40,7 @@ def create_templates(settings) -> Jinja2Templates:
     return Jinja2Templates(directory=str(settings.templates_dir))
 
 
-def create_app(settings) -> FastAPI:
+def create_app(settings: Settings) -> FastAPI:
     """
     建立並配置 FastAPI 應用程式。
 

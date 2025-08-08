@@ -31,7 +31,7 @@ class ScheduleCreate(BaseModel):
 
     @field_validator('role')
     @classmethod
-    def validate_role(cls, v):
+    def validate_role(cls, v: str) -> str:
         """驗證角色欄位"""
         allowed_roles = ['GIVER', 'TAKER']
         if v not in allowed_roles:

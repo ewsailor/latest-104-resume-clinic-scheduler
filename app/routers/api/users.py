@@ -4,8 +4,11 @@
 提供使用者相關的 API 端點，包括建立、查詢、更新和刪除使用者。
 """
 
+from typing import Any, Dict
+
 # ===== 第三方套件 =====
 from fastapi import APIRouter, Depends, HTTPException, status  # 路由和錯誤處理
+from sqlalchemy.orm import Session
 
 # ===== 本地模組 =====
 from app.crud import schedule_crud  # CRUD 操作
@@ -20,7 +23,9 @@ router = APIRouter(prefix="/api", tags=["Users"])
 
 
 @router.post("/users", status_code=status.HTTP_201_CREATED)
-async def create_user(user: UserCreate, db=Depends(get_db)):
+async def create_user(
+    user: UserCreate, db: Session = Depends(get_db)
+) -> Dict[str, Any]:
     """
     建立使用者。
 

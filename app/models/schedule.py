@@ -4,6 +4,8 @@
 定義時段相關的資料庫模型和結構。
 """
 
+from typing import Any, Dict
+
 # ===== 第三方套件 =====
 from sqlalchemy import Column, Date, DateTime, Integer, String, Time  # 資料庫欄位類型
 
@@ -12,7 +14,7 @@ from app.models.database import Base  # 資料庫基類
 from app.utils.timezone import get_local_now_naive  # 本地時間函數
 
 
-class Schedule(Base):
+class Schedule(Base):  # type: ignore[misc]
     """
     時段資料模型。
 
@@ -57,14 +59,14 @@ class Schedule(Base):
     )
     deleted_at = Column(DateTime, nullable=True, comment="軟刪除標記")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """字串表示"""
         return (
             f"<Schedule(id={self.id}, giver_id={self.giver_id}, "
             f"date={self.date}, status={self.status})>"
         )
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         """轉換為字典格式"""
         return {
             "id": self.id,

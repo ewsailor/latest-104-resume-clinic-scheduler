@@ -6,12 +6,13 @@
 
 # ===== 標準函式庫 =====
 import logging  # 日誌記錄
+from typing import Any, Generator, Tuple
 
 # ===== 第三方套件 =====
 from fastapi import HTTPException, status  # FastAPI 錯誤處理
 from sqlalchemy import create_engine, text  # 資料庫引擎
 from sqlalchemy.exc import OperationalError  # 資料庫錯誤
-from sqlalchemy.orm import declarative_base, sessionmaker  # 會話管理
+from sqlalchemy.orm import Session, declarative_base, sessionmaker  # 會話管理
 
 # ===== 本地模組 =====
 from app.core import settings  # 應用程式配置
@@ -28,7 +29,7 @@ logger = logging.getLogger(
 logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
 
-def create_database_engine():
+def create_database_engine() -> Tuple[Any, Any, Any]:
     """
     建立並初始化資料庫引擎和相關組件。
 
@@ -113,7 +114,7 @@ except Exception as e:
 # ===== 資料庫依賴和工具函式 =====
 
 
-def get_db():
+def get_db() -> Generator[Session, None, None]:
     """
     資料庫會話依賴注入函式。
 
@@ -180,12 +181,15 @@ def check_db_connection() -> bool:
         return False
 
 
-def get_healthy_db():
+def get_healthy_db() -> bool:
     """
     健康檢查專用的資料庫依賴。
 
     用於 readiness probe，如果資料庫連線失敗會拋出 HTTPException。
     這讓健康檢查端點可以專注於業務邏輯，而不需要處理連線錯誤。
+
+    Returns:
+        bool: True 表示資料庫連線正常
 
     Raises:
         HTTPException: 當資料庫連線失敗時拋出 503 錯誤

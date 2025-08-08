@@ -4,6 +4,8 @@
 定義使用者資料表對應的 SQLAlchemy 模型。
 """
 
+from typing import Any, Dict
+
 # ===== 第三方套件 =====
 from sqlalchemy import Column, DateTime, Integer, String
 
@@ -12,7 +14,7 @@ from app.models.database import Base
 from app.utils.timezone import get_local_now_naive  # 本地時間函數
 
 
-class User(Base):
+class User(Base):  # type: ignore[misc]
     """使用者資料表模型"""
 
     __tablename__ = "users"
@@ -29,10 +31,10 @@ class User(Base):
     )
     deleted_at = Column(DateTime, nullable=True, comment="軟刪除標記")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<User(id={self.id}, name='{self.name}', email='{self.email}')>"
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
             "name": self.name,

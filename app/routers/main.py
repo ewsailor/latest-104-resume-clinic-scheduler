@@ -7,6 +7,7 @@
 # ===== 第三方套件 =====
 from fastapi import APIRouter, Request  # 路由和請求物件
 from fastapi.responses import HTMLResponse  # HTML 回應類型
+from fastapi.templating import Jinja2Templates  # 模板引擎
 
 # 建立路由器
 router = APIRouter()
@@ -24,5 +25,5 @@ async def read_index(request: Request) -> HTMLResponse:
         HTMLResponse: 渲染後的 HTML 頁面。
     """
     # 從請求狀態中取得 templates
-    templates = request.app.state.templates
+    templates: Jinja2Templates = request.app.state.templates
     return templates.TemplateResponse(request, "index.html")

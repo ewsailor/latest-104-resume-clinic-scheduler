@@ -6,7 +6,7 @@
 import requests
 
 
-def test_wang_shi_yi_schedule():
+def test_wang_shi_yi_schedule() -> None:
     """測試王拾壹的時段提交"""
 
     # 測試資料

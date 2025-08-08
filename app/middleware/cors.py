@@ -7,7 +7,7 @@ CORS 中間件模組。
 
 # ===== 標準函式庫 =====
 import logging
-from typing import List  # 型別註解支援
+from typing import Any, Dict, List  # 型別註解支援
 
 # ===== 第三方套件 =====
 from fastapi import FastAPI  # Web 框架核心
@@ -201,7 +201,7 @@ def setup_cors_middleware(app: FastAPI, settings: Settings) -> None:
         raise
 
 
-def get_cors_config_summary(settings: Settings) -> dict:
+def get_cors_config_summary(settings: Settings) -> Dict[str, Any]:
     """
     取得 CORS 配置摘要，用於除錯和監控。
 

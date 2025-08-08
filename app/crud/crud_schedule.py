@@ -5,7 +5,7 @@
 """
 
 # ===== 標準函式庫 =====
-from typing import List, Optional  # 型別提示
+from typing import Any, List, Optional  # 型別提示
 
 from sqlalchemy import and_  # SQL 條件組合
 
@@ -131,7 +131,7 @@ class ScheduleCRUD:
         return db.query(Schedule).filter(Schedule.id == schedule_id).first()
 
     def update_schedule(
-        self, db: Session, schedule_id: int, **kwargs
+        self, db: Session, schedule_id: int, **kwargs: Any
     ) -> Optional[Schedule]:
         """
         更新時段。

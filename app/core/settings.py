@@ -8,7 +8,7 @@
 # ===== 標準函式庫 =====
 import tomllib  # Python 3.11+ 內建，解析 TOML 格式檔案
 from pathlib import Path  # 現代化的路徑處理
-from typing import List, Optional  # 型別註解支援
+from typing import Any, Dict, List, Optional  # 型別註解支援
 
 # ===== 第三方套件 =====
 from pydantic import Field, SecretStr, field_validator  # Pydantic v2 驗證和欄位定義
@@ -17,19 +17,16 @@ from pydantic_settings import BaseSettings, SettingsConfigDict  # Pydantic v2 �
 
 def get_project_version() -> str:
     """
-    從 pyproject.toml 動態讀取專案版本號。
+    從 pyproject.toml 檔案中讀取專案版本號。
 
     Returns:
-        str: 專案版本號，如果讀取失敗則返回預設版本。
+        str: 專案版本號，如果讀取失敗則返回預設版本號
     """
     try:
-        # settings.py 在 app/core/ 目錄中，需要往上三層才能到達專案根目錄
-        project_root = Path(__file__).parent.parent.parent
-        pyproject_path = project_root / "pyproject.toml"
-
+        pyproject_path = Path(__file__).parent.parent.parent / "pyproject.toml"
         with open(pyproject_path, "rb") as f:
             pyproject_data = tomllib.load(f)
-            return pyproject_data["tool"]["poetry"]["version"]
+            return str(pyproject_data["tool"]["poetry"]["version"])
     except (FileNotFoundError, KeyError, tomllib.TOMLDecodeError) as e:
         # 使用 logging 而不是 print，避免在生產環境中輸出
         import logging
@@ -175,7 +172,7 @@ class Settings(BaseSettings):
     # ===== 驗證器 =====
     @field_validator("app_env")
     @classmethod
-    def validate_app_env(cls, v):
+    def validate_app_env(cls, v: str) -> str:
         """驗證應用程式環境設定"""
         allowed_envs = ["development", "staging", "production"]
         if v not in allowed_envs:
@@ -184,7 +181,7 @@ class Settings(BaseSettings):
 
     @field_validator("log_level")
     @classmethod
-    def validate_log_level(cls, v):
+    def validate_log_level(cls, v: str) -> str:
         """驗證日誌等級設定"""
         allowed_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         if v.upper() not in allowed_levels:
@@ -193,7 +190,7 @@ class Settings(BaseSettings):
 
     @field_validator("mysql_port", "redis_port", "smtp_port")
     @classmethod
-    def validate_port(cls, v):
+    def validate_port(cls, v: int) -> int:
         """驗證連接埠設定"""
         if not (1 <= v <= 65535):
             raise ValueError("連接埠必須在 1-65535 範圍內")
@@ -201,14 +198,16 @@ class Settings(BaseSettings):
 
     @field_validator("secret_key", "session_secret")
     @classmethod
-    def validate_secret_key(cls, v, info):
+    def validate_secret_key(
+        cls, v: Optional[SecretStr], info: Any
+    ) -> Optional[SecretStr]:
         if v is None or len(v.get_secret_value()) < 32:
             raise ValueError(f"{info.field_name} 必須設定且長度至少 32 個字元")
         return v
 
     @field_validator("mysql_user")
     @classmethod
-    def validate_mysql_user(cls, v):
+    def validate_mysql_user(cls, v: Optional[str]) -> Optional[str]:
         """驗證 MySQL 使用者設定"""
         if v is None or not v:  # 檢查 None 或空字串
             raise ValueError("❌ MYSQL_USER 未設定，請檢查 .env 檔案")
@@ -218,7 +217,7 @@ class Settings(BaseSettings):
 
     @field_validator("mysql_password")
     @classmethod
-    def validate_mysql_password(cls, v):
+    def validate_mysql_password(cls, v: Optional[SecretStr]) -> Optional[SecretStr]:
         """驗證 MySQL 密碼設定"""
         if v is None or not v.get_secret_value():
             raise ValueError("❌ MYSQL_PASSWORD 未設定，請檢查 .env 檔案")
@@ -226,7 +225,7 @@ class Settings(BaseSettings):
 
     @field_validator("api_timeout", "api_connect_timeout", "api_read_timeout")
     @classmethod
-    def validate_api_timeout(cls, v):
+    def validate_api_timeout(cls, v: int) -> int:
         """驗證 API 超時設定"""
         if v <= 0:
             raise ValueError("API 超時時間必須大於 0 秒")
@@ -236,7 +235,7 @@ class Settings(BaseSettings):
 
     @field_validator("cors_origins")
     @classmethod
-    def validate_cors_origins(cls, v):
+    def validate_cors_origins(cls, v: str) -> str:
         """驗證 CORS 來源設定"""
         if not v or not v.strip():
             raise ValueError("CORS 來源不能為空")
@@ -257,7 +256,7 @@ class Settings(BaseSettings):
 
     @field_validator("mongodb_uri")
     @classmethod
-    def validate_mongodb_uri(cls, v):
+    def validate_mongodb_uri(cls, v: str) -> str:
         """驗證 MongoDB URI 格式"""
         if not v or not v.strip():
             raise ValueError("MongoDB URI 不能為空")
@@ -270,7 +269,7 @@ class Settings(BaseSettings):
 
     @field_validator("aws_region")
     @classmethod
-    def validate_aws_region(cls, v):
+    def validate_aws_region(cls, v: str) -> str:
         """驗證 AWS 區域格式"""
         if not v or not v.strip():
             raise ValueError("AWS 區域不能為空")
@@ -285,7 +284,7 @@ class Settings(BaseSettings):
 
     @field_validator("redis_db")
     @classmethod
-    def validate_redis_db(cls, v):
+    def validate_redis_db(cls, v: int) -> int:
         """驗證 Redis 資料庫編號"""
         if not isinstance(v, int) or v < 0 or v > 15:
             raise ValueError("Redis 資料庫編號必須在 0-15 範圍內")
@@ -293,7 +292,7 @@ class Settings(BaseSettings):
 
     @field_validator("mysql_charset")
     @classmethod
-    def validate_mysql_charset(cls, v):
+    def validate_mysql_charset(cls, v: str) -> str:
         """驗證 MySQL 字符集"""
         if not v or not v.strip():
             raise ValueError("MySQL 字符集不能為空")
@@ -303,14 +302,13 @@ class Settings(BaseSettings):
             "utf8",
             "utf8mb4",
             "utf8mb3",
-            "utf8mb4_unicode_ci",
             "latin1",
             "ascii",
             "binary",
-            "utf8_general_ci",
+            "gbk",
+            "big5",
         ]
-
-        if v.lower() not in [charset.lower() for charset in valid_charsets]:
+        if v.lower() not in valid_charsets:
             raise ValueError(f"不支援的 MySQL 字符集：{v}")
 
         return v
@@ -373,7 +371,7 @@ class Settings(BaseSettings):
             )
         return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
-    def get_smtp_config(self) -> dict:
+    def get_smtp_config(self) -> Dict[str, Any]:
         """取得 SMTP 配置"""
         if not all([self.smtp_host, self.smtp_user, self.smtp_password]):
             return {}
