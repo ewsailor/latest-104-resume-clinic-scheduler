@@ -7,7 +7,9 @@
 from typing import Any, Dict
 
 # ===== 第三方套件 =====
-from sqlalchemy import Column, DateTime, Integer, String
+from sqlalchemy import Column, DateTime, ForeignKey, String
+from sqlalchemy.dialects.mysql import INTEGER
+from sqlalchemy.orm import relationship
 
 # ===== 本地模組 =====
 from app.models.database import Base
@@ -19,7 +21,9 @@ class User(Base):  # type: ignore[misc]
 
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True, comment="使用者 ID")
+    id = Column(
+        INTEGER(unsigned=True), primary_key=True, index=True, comment="使用者 ID"
+    )
     name = Column(String(100), nullable=False, comment="使用者姓名")
     email = Column(String(191), nullable=False, unique=True, comment="電子信箱（唯一）")
     created_at = Column(DateTime, default=get_local_now_naive, comment="建立時間")
@@ -29,7 +33,26 @@ class User(Base):  # type: ignore[misc]
         onupdate=get_local_now_naive,
         comment="更新時間",
     )
+    updated_by = Column(
+        INTEGER(unsigned=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        comment="最後更新者的使用者 ID，可為 NULL（表示系統自動更新）",
+    )
     deleted_at = Column(DateTime, nullable=True, comment="軟刪除標記")
+
+    # 關聯關係 - 指向最後更新此使用者的使用者
+    updated_by_user = relationship("User", remote_side=[id])
+    # 反向關聯 - 此使用者最後更新過的使用者列表
+    updated_users = relationship("User", remote_side=[updated_by])
+
+    # 與 Schedule 的關聯關係
+    given_schedules = relationship(
+        "Schedule", foreign_keys="Schedule.giver_id", back_populates="giver"
+    )
+    taken_schedules = relationship(
+        "Schedule", foreign_keys="Schedule.taker_id", back_populates="taker"
+    )
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, name='{self.name}', email='{self.email}')>"
@@ -41,5 +64,9 @@ class User(Base):  # type: ignore[misc]
             "email": self.email,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "updated_by": self.updated_by,
+            "updated_by_user": (
+                self.updated_by_user.name if self.updated_by_user else None
+            ),
             "deleted_at": self.deleted_at.isoformat() if self.deleted_at else None,
         }

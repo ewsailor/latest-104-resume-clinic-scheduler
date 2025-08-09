@@ -7,7 +7,9 @@
 from typing import Any, Dict
 
 # ===== 第三方套件 =====
-from sqlalchemy import Column, Date, DateTime, Integer, String, Time  # 資料庫欄位類型
+from sqlalchemy import Column, Date, DateTime, ForeignKey, String, Time  # 資料庫欄位類型
+from sqlalchemy.dialects.mysql import INTEGER
+from sqlalchemy.orm import relationship
 
 # ===== 本地模組 =====
 from app.models.database import Base  # 資料庫基類
@@ -24,7 +26,7 @@ class Schedule(Base):  # type: ignore[misc]
     __tablename__ = "schedules"
 
     # 主鍵
-    id = Column(Integer, primary_key=True, index=True, comment="時段 ID")
+    id = Column(INTEGER(unsigned=True), primary_key=True, index=True, comment="時段 ID")
 
     # 角色和關聯
     role = Column(
@@ -33,8 +35,18 @@ class Schedule(Base):  # type: ignore[misc]
         default="GIVER",
         comment="角色：GIVER=提供者、TAKER=預約者",
     )
-    giver_id = Column(Integer, nullable=False, comment="Giver ID")
-    taker_id = Column(Integer, nullable=True, comment="Taker ID，可為 NULL")
+    giver_id = Column(
+        INTEGER(unsigned=True),
+        ForeignKey("users.id"),
+        nullable=False,
+        comment="Giver ID",
+    )
+    taker_id = Column(
+        INTEGER(unsigned=True),
+        ForeignKey("users.id"),
+        nullable=True,
+        comment="Taker ID，可為 NULL",
+    )
 
     # 時段資訊
     date = Column(Date, nullable=False, comment="時段日期")
@@ -57,7 +69,22 @@ class Schedule(Base):  # type: ignore[misc]
         onupdate=get_local_now_naive,
         comment="更新時間",
     )
+    updated_by = Column(
+        INTEGER(unsigned=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        comment="最後更新者的使用者 ID，可為 NULL（表示系統自動更新）",
+    )
     deleted_at = Column(DateTime, nullable=True, comment="軟刪除標記")
+
+    # 關聯關係
+    giver = relationship(
+        "User", foreign_keys=[giver_id], back_populates="given_schedules"
+    )
+    taker = relationship(
+        "User", foreign_keys=[taker_id], back_populates="taken_schedules"
+    )
+    updated_by_user = relationship("User", foreign_keys=[updated_by])
 
     def __repr__(self) -> str:
         """字串表示"""
@@ -80,5 +107,9 @@ class Schedule(Base):  # type: ignore[misc]
             "status": self.status,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "updated_by": self.updated_by,
+            "updated_by_user": (
+                self.updated_by_user.name if self.updated_by_user else None
+            ),
             "deleted_at": self.deleted_at.isoformat() if self.deleted_at else None,
         }
