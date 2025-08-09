@@ -7585,8 +7585,8 @@ const EventManager = {
               
               console.log('EventManager: 準備發送到後端的時段資料', { requestBody });
               
-              // 發送 axios POST 請求到後端（使用帶操作者資訊的端點）
-              const response = await APIClient.post('/api/schedules/with-operator', requestBody);
+              // 發送 axios POST 請求到後端（統一後的端點，包含操作者資訊）
+              const response = await APIClient.post('/api/schedules', requestBody);
               console.log('EventManager: 後端回應', { response });
               
               // 添加到正式提供時段列表

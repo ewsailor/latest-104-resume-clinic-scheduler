@@ -49,6 +49,13 @@ class ScheduleUpdateWithOperator(BaseModel):
     operator_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
 
 
+class ScheduleDeleteWithOperator(BaseModel):
+    """帶有操作者資訊的刪除時段請求模型"""
+
+    operator_user_id: int = Field(..., description="操作者的使用者 ID（必填）")
+    operator_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
+
+
 class ScheduleResponse(BaseModel):
     """時段回應模型"""
 

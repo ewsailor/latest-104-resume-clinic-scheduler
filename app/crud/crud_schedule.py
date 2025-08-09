@@ -286,23 +286,41 @@ class ScheduleCRUD:
         db.refresh(schedule)
         return schedule
 
-    def delete_schedule(self, db: Session, schedule_id: int) -> bool:
+    def delete_schedule(
+        self,
+        db: Session,
+        schedule_id: int,
+        operator_user_id: Optional[int] = None,
+        operator_role: Optional[UserRoleEnum] = None,
+    ) -> bool:
         """
         刪除時段。
 
         Args:
             db: 資料庫會話
             schedule_id: 時段 ID
+            operator_user_id: 操作者的使用者 ID（可選，用於審計記錄）
+            operator_role: 操作者的角色（可選，用於審計記錄）
 
         Returns:
             bool: 刪除成功返回 True，否則返回 False
         """
+        print(f"刪除時段 ID: {schedule_id}，操作者: {operator_user_id}")  # 除錯用
+
         schedule = self.get_schedule_by_id(db, schedule_id)
         if not schedule:
+            print(f"時段 {schedule_id} 不存在")  # 除錯用
             return False
+
+        # 記錄操作者資訊（如果有提供的話）
+        if operator_user_id and operator_role:
+            print(
+                f"時段 {schedule_id} 由使用者 {operator_user_id} (角色: {operator_role}) 刪除"
+            )  # 除錯用
 
         db.delete(schedule)
         db.commit()
+        print(f"時段 {schedule_id} 已成功刪除")  # 除錯用
         return True
 
 

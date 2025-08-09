@@ -141,19 +141,24 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_success_direct(self, mock_db, mock_schedule):
         """直接測試成功建立時段函數。"""
-        from app.schemas import ScheduleCreate
+        from app.models.enums import UserRoleEnum
+        from app.schemas import ScheduleCreate, ScheduleCreateWithOperator
 
-        # 準備測試資料
-        schedule_data = [
-            ScheduleCreate(
-                giver_id=1,
-                date="2024-01-15",
-                start_time="09:00:00",
-                end_time="10:00:00",
-                note="測試時段",
-                status="AVAILABLE",
-            )
-        ]
+        # 準備測試資料（新格式：包含操作者資訊）
+        schedule_data = ScheduleCreateWithOperator(
+            schedules=[
+                ScheduleCreate(
+                    giver_id=1,
+                    date="2024-01-15",
+                    start_time="09:00:00",
+                    end_time="10:00:00",
+                    note="測試時段",
+                    status="AVAILABLE",
+                )
+            ],
+            operator_user_id=1,
+            operator_role=UserRoleEnum.GIVER,
+        )
 
         # 模擬 CRUD 操作
         with patch(
@@ -170,19 +175,24 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_exception_direct(self, mock_db):
         """直接測試建立時段時拋出異常。"""
-        from app.schemas import ScheduleCreate
+        from app.models.enums import UserRoleEnum
+        from app.schemas import ScheduleCreate, ScheduleCreateWithOperator
 
-        # 準備測試資料
-        schedule_data = [
-            ScheduleCreate(
-                giver_id=1,
-                date="2024-01-15",
-                start_time="09:00:00",
-                end_time="10:00:00",
-                note="測試時段",
-                status="AVAILABLE",
-            )
-        ]
+        # 準備測試資料（新格式：包含操作者資訊）
+        schedule_data = ScheduleCreateWithOperator(
+            schedules=[
+                ScheduleCreate(
+                    giver_id=1,
+                    date="2024-01-15",
+                    start_time="09:00:00",
+                    end_time="10:00:00",
+                    note="測試時段",
+                    status="AVAILABLE",
+                )
+            ],
+            operator_user_id=1,
+            operator_role=UserRoleEnum.GIVER,
+        )
 
         # 模擬 CRUD 操作拋出異常
         with patch(
@@ -254,8 +264,15 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_empty_list_direct(self, mock_db):
         """直接測試建立空時段列表。"""
-        # 準備測試資料 - 空列表
-        schedule_data = []
+        from app.models.enums import UserRoleEnum
+        from app.schemas import ScheduleCreateWithOperator
+
+        # 準備測試資料 - 空列表（新格式：包含操作者資訊）
+        schedule_data = ScheduleCreateWithOperator(
+            schedules=[],
+            operator_user_id=1,
+            operator_role=UserRoleEnum.GIVER,
+        )
 
         # 模擬 CRUD 操作
         with patch('app.crud.schedule_crud.create_schedules', return_value=[]):
@@ -301,19 +318,24 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_db_rollback_on_exception(self, mock_db):
         """測試建立時段時資料庫回滾。"""
-        from app.schemas import ScheduleCreate
+        from app.models.enums import UserRoleEnum
+        from app.schemas import ScheduleCreate, ScheduleCreateWithOperator
 
-        # 準備測試資料
-        schedule_data = [
-            ScheduleCreate(
-                giver_id=1,
-                date="2024-01-15",
-                start_time="09:00:00",
-                end_time="10:00:00",
-                note="測試時段",
-                status="AVAILABLE",
-            )
-        ]
+        # 準備測試資料（新格式：包含操作者資訊）
+        schedule_data = ScheduleCreateWithOperator(
+            schedules=[
+                ScheduleCreate(
+                    giver_id=1,
+                    date="2024-01-15",
+                    start_time="09:00:00",
+                    end_time="10:00:00",
+                    note="測試時段",
+                    status="AVAILABLE",
+                )
+            ],
+            operator_user_id=1,
+            operator_role=UserRoleEnum.GIVER,
+        )
 
         # 模擬 CRUD 操作拋出異常
         with patch(
@@ -353,19 +375,24 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_with_invalid_data(self, mock_db):
         """測試建立時段時無效資料處理。"""
-        from app.schemas import ScheduleCreate
+        from app.models.enums import UserRoleEnum
+        from app.schemas import ScheduleCreate, ScheduleCreateWithOperator
 
-        # 準備測試資料 - 使用有效的時間格式，但模擬 CRUD 層的驗證錯誤
-        schedule_data = [
-            ScheduleCreate(
-                giver_id=1,
-                date="2024-01-15",
-                start_time="09:00:00",
-                end_time="10:00:00",
-                note="測試時段",
-                status="AVAILABLE",
-            )
-        ]
+        # 準備測試資料 - 使用有效的時間格式，但模擬 CRUD 層的驗證錯誤（新格式：包含操作者資訊）
+        schedule_data = ScheduleCreateWithOperator(
+            schedules=[
+                ScheduleCreate(
+                    giver_id=1,
+                    date="2024-01-15",
+                    start_time="09:00:00",
+                    end_time="10:00:00",
+                    note="測試時段",
+                    status="AVAILABLE",
+                )
+            ],
+            operator_user_id=1,
+            operator_role=UserRoleEnum.GIVER,
+        )
 
         # 模擬 CRUD 操作拋出異常（例如：時間衝突）
         with patch(
@@ -430,8 +457,13 @@ class TestAPIScheduleComprehensive:
         response = client.post("/api/users", json={})
         assert response.status_code == 422
 
-        # 測試無效的時段資料
-        response = client.post("/api/schedules", json=[{"invalid": "data"}])
+        # 測試無效的時段資料（新格式：包含操作者資訊）
+        invalid_request_data = {
+            "schedules": [{"invalid": "data"}],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
+        response = client.post("/api/schedules", json=invalid_request_data)
         assert response.status_code == 422
 
     # ===== 效能和穩定性測試 =====
@@ -439,20 +471,25 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_large_list(self, mock_db, mock_schedule):
         """測試建立大量時段。"""
-        from app.schemas import ScheduleCreate
+        from app.models.enums import UserRoleEnum
+        from app.schemas import ScheduleCreate, ScheduleCreateWithOperator
 
-        # 準備測試資料 - 大量時段
-        schedule_data = [
-            ScheduleCreate(
-                giver_id=1,
-                date="2024-01-15",
-                start_time="09:00:00",
-                end_time="10:00:00",
-                note=f"測試時段 {i}",
-                status="AVAILABLE",
-            )
-            for i in range(100)
-        ]
+        # 準備測試資料 - 大量時段（新格式：包含操作者資訊）
+        schedule_data = ScheduleCreateWithOperator(
+            schedules=[
+                ScheduleCreate(
+                    giver_id=1,
+                    date="2024-01-15",
+                    start_time="09:00:00",
+                    end_time="10:00:00",
+                    note=f"測試時段 {i}",
+                    status="AVAILABLE",
+                )
+                for i in range(100)
+            ],
+            operator_user_id=1,
+            operator_role=UserRoleEnum.GIVER,
+        )
 
         # 模擬 CRUD 操作
         with patch(

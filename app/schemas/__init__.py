@@ -7,6 +7,7 @@ Schemas 模組。
 from .schedule import (
     ScheduleCreate,
     ScheduleCreateWithOperator,
+    ScheduleDeleteWithOperator,
     ScheduleResponse,
     ScheduleUpdateWithOperator,
     UserCreate,
@@ -17,5 +18,6 @@ __all__ = [
     "ScheduleCreate",
     "ScheduleResponse",
     "ScheduleCreateWithOperator",
+    "ScheduleDeleteWithOperator",
     "ScheduleUpdateWithOperator",
 ]

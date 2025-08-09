@@ -7,15 +7,7 @@
 from typing import Any, Dict
 
 # ===== 第三方套件 =====
-from sqlalchemy import (
-    Column,
-    Date,
-    DateTime,
-    Enum,
-    ForeignKey,
-    String,
-    Time,
-)  # 資料庫欄位類型
+from sqlalchemy import Column, Date, DateTime, Enum, ForeignKey, String, Time  # 資料庫欄位類型
 from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import relationship
 

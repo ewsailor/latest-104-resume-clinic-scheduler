@@ -119,25 +119,29 @@ class TestAPIScheduleSimple:
 
     def test_create_schedules_success(self, client, mock_db, mock_schedule):
         """測試成功建立多個時段。"""
-        # 準備測試資料
-        schedules_data = [
-            {
-                "giver_id": 1,
-                "date": "2024-01-20",
-                "start_time": "14:00:00",
-                "end_time": "15:00:00",
-                "note": "測試時段1",
-                "status": "AVAILABLE",
-            },
-            {
-                "giver_id": 1,
-                "date": "2024-01-21",
-                "start_time": "16:00:00",
-                "end_time": "17:00:00",
-                "note": "測試時段2",
-                "status": "AVAILABLE",
-            },
-        ]
+        # 準備測試資料（新格式：包含操作者資訊）
+        request_data = {
+            "schedules": [
+                {
+                    "giver_id": 1,
+                    "date": "2024-01-20",
+                    "start_time": "14:00:00",
+                    "end_time": "15:00:00",
+                    "note": "測試時段1",
+                    "status": "AVAILABLE",
+                },
+                {
+                    "giver_id": 1,
+                    "date": "2024-01-21",
+                    "start_time": "16:00:00",
+                    "end_time": "17:00:00",
+                    "note": "測試時段2",
+                    "status": "AVAILABLE",
+                },
+            ],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
 
         # 模擬 CRUD 操作
         with patch(
@@ -145,7 +149,7 @@ class TestAPIScheduleSimple:
             return_value=[mock_schedule, mock_schedule],
         ):
             # 執行測試
-            response = client.post("/api/schedules", json=schedules_data)
+            response = client.post("/api/schedules", json=request_data)
 
         # 驗證結果
         assert response.status_code == 201
@@ -154,21 +158,24 @@ class TestAPIScheduleSimple:
 
     def test_create_schedules_invalid_data(self, client):
         """測試建立時段時提供無效資料。"""
-        # 準備無效的測試資料
-        invalid_schedules_data = [
-            {
-                "giver_id": 999,  # 不存在的使用者 ID
-                "date": "invalid-date",
-                "start_time": "invalid-time",
-                "end_time": "invalid-time",
-                "note": "無效時段",
-                "status": "invalid-status",
-                "role": "invalid-role",
-            }
-        ]
+        # 準備無效的測試資料（新格式：包含操作者資訊）
+        invalid_request_data = {
+            "schedules": [
+                {
+                    "giver_id": 999,  # 不存在的使用者 ID
+                    "date": "invalid-date",
+                    "start_time": "invalid-time",
+                    "end_time": "invalid-time",
+                    "note": "無效時段",
+                    "status": "invalid-status",
+                }
+            ],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
 
         # 執行測試
-        response = client.post("/api/schedules", json=invalid_schedules_data)
+        response = client.post("/api/schedules", json=invalid_request_data)
 
         # 驗證結果
         assert response.status_code == 422  # Validation Error
@@ -274,10 +281,17 @@ class TestAPIScheduleSimple:
 
     def test_create_schedules_empty_list(self, client, mock_db):
         """測試建立空時段列表。"""
+        # 準備空時段列表的請求資料（新格式：包含操作者資訊）
+        empty_request_data = {
+            "schedules": [],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
+
         # 模擬 CRUD 操作
         with patch('app.crud.schedule_crud.create_schedules', return_value=[]):
             # 執行測試
-            response = client.post("/api/schedules", json=[])
+            response = client.post("/api/schedules", json=empty_request_data)
 
         # 驗證結果
         assert response.status_code == 201
@@ -286,15 +300,21 @@ class TestAPIScheduleSimple:
 
     def test_create_schedules_missing_required_fields(self, client):
         """測試建立時段時缺少必要欄位。"""
-        # 準備缺少必要欄位的測試資料
-        incomplete_schedule = {
-            "giver_id": 1,
-            # 缺少 date, start_time, end_time 等必要欄位
-            "note": "不完整的時段",
+        # 準備缺少必要欄位的測試資料（新格式：包含操作者資訊）
+        incomplete_request_data = {
+            "schedules": [
+                {
+                    "giver_id": 1,
+                    # 缺少 date, start_time, end_time 等必要欄位
+                    "note": "不完整的時段",
+                }
+            ],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
         }
 
         # 執行測試
-        response = client.post("/api/schedules", json=[incomplete_schedule])
+        response = client.post("/api/schedules", json=incomplete_request_data)
 
         # 驗證結果
         assert response.status_code == 422  # Validation Error
@@ -321,25 +341,29 @@ class TestAPIScheduleSimple:
 
     def test_create_schedules_with_overlap(self, client, mock_db, mock_schedule):
         """測試建立重疊時段時的回應。"""
-        # 準備測試資料 - 先建立一個時段，然後嘗試建立重疊的時段
-        schedules_data = [
-            {
-                "giver_id": 1,
-                "date": "2024-01-20",
-                "start_time": "14:00:00",
-                "end_time": "15:00:00",
-                "note": "現有時段",
-                "status": "AVAILABLE",
-            },
-            {
-                "giver_id": 1,
-                "date": "2024-01-20",
-                "start_time": "14:30:00",
-                "end_time": "15:30:00",
-                "note": "重疊時段",
-                "status": "AVAILABLE",
-            },
-        ]
+        # 準備測試資料 - 先建立一個時段，然後嘗試建立重疊的時段（新格式：包含操作者資訊）
+        overlapping_request_data = {
+            "schedules": [
+                {
+                    "giver_id": 1,
+                    "date": "2024-01-20",
+                    "start_time": "14:00:00",
+                    "end_time": "15:00:00",
+                    "note": "現有時段",
+                    "status": "AVAILABLE",
+                },
+                {
+                    "giver_id": 1,
+                    "date": "2024-01-20",
+                    "start_time": "14:30:00",
+                    "end_time": "15:30:00",
+                    "note": "重疊時段",
+                    "status": "AVAILABLE",
+                },
+            ],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
 
         # 模擬 CRUD 操作拋出重疊錯誤
         with patch(
@@ -349,7 +373,7 @@ class TestAPIScheduleSimple:
             ),
         ):
             # 執行測試
-            response = client.post("/api/schedules", json=schedules_data)
+            response = client.post("/api/schedules", json=overlapping_request_data)
 
         # 驗證結果
         assert response.status_code == 400
