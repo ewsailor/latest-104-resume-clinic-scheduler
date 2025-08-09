@@ -61,7 +61,6 @@ class TestScheduleCRUD:
                 end_time=time(10, 0),
                 note="測試時段1",
                 status="AVAILABLE",
-                role="GIVER",
             ),
             ScheduleCreate(
                 giver_id=user.id,
@@ -70,7 +69,6 @@ class TestScheduleCRUD:
                 end_time=time(15, 0),
                 note="測試時段2",
                 status="AVAILABLE",
-                role="GIVER",
             ),
         ]
 
@@ -98,7 +96,6 @@ class TestScheduleCRUD:
             start_time=time(9, 0),
             end_time=time(10, 0),
             status="AVAILABLE",
-            role="GIVER",
         )
         db_session.add(existing_schedule)
         db_session.commit()
@@ -126,7 +123,6 @@ class TestScheduleCRUD:
             start_time=time(9, 0),
             end_time=time(10, 0),
             status="AVAILABLE",
-            role="GIVER",
         )
         db_session.add(existing_schedule)
         db_session.commit()
@@ -155,7 +151,6 @@ class TestScheduleCRUD:
             start_time=time(9, 0),
             end_time=time(10, 0),
             status="AVAILABLE",
-            role="GIVER",
         )
         db_session.add(existing_schedule)
         db_session.commit()
@@ -169,7 +164,6 @@ class TestScheduleCRUD:
                 end_time=time(10, 30),
                 note="重疊時段",
                 status="AVAILABLE",
-                role="GIVER",
             )
         ]
 
@@ -192,7 +186,6 @@ class TestScheduleCRUD:
             start_time=time(9, 0),
             end_time=time(10, 0),
             status="AVAILABLE",
-            role="GIVER",
         )
         schedule2 = Schedule(
             giver_id=user.id,
@@ -200,7 +193,6 @@ class TestScheduleCRUD:
             start_time=time(14, 0),
             end_time=time(15, 0),
             status="BOOKED",
-            role="GIVER",
         )
         db_session.add_all([schedule1, schedule2])
         db_session.commit()
@@ -226,7 +218,6 @@ class TestScheduleCRUD:
             start_time=time(9, 0),
             end_time=time(10, 0),
             status="AVAILABLE",
-            role="GIVER",
         )
         schedule2 = Schedule(
             giver_id=user2.id,
@@ -234,7 +225,6 @@ class TestScheduleCRUD:
             start_time=time(14, 0),
             end_time=time(15, 0),
             status="AVAILABLE",
-            role="GIVER",
         )
         db_session.add_all([schedule1, schedule2])
         db_session.commit()
@@ -260,7 +250,6 @@ class TestScheduleCRUD:
             start_time=time(9, 0),
             end_time=time(10, 0),
             status="AVAILABLE",
-            role="GIVER",
         )
         schedule2 = Schedule(
             giver_id=user.id,
@@ -268,7 +257,6 @@ class TestScheduleCRUD:
             start_time=time(14, 0),
             end_time=time(15, 0),
             status="BOOKED",
-            role="GIVER",
         )
         db_session.add_all([schedule1, schedule2])
         db_session.commit()
@@ -295,7 +283,6 @@ class TestScheduleCRUD:
             start_time=time(9, 0),
             end_time=time(10, 0),
             status="AVAILABLE",
-            role="GIVER",
         )
         schedule2 = Schedule(
             giver_id=user1.id,
@@ -303,7 +290,6 @@ class TestScheduleCRUD:
             start_time=time(14, 0),
             end_time=time(15, 0),
             status="BOOKED",
-            role="GIVER",
         )
         schedule3 = Schedule(
             giver_id=user2.id,
@@ -311,7 +297,6 @@ class TestScheduleCRUD:
             start_time=time(16, 0),
             end_time=time(17, 0),
             status="AVAILABLE",
-            role="GIVER",
         )
         db_session.add_all([schedule1, schedule2, schedule3])
         db_session.commit()
@@ -340,7 +325,6 @@ class TestScheduleCRUD:
             start_time=time(9, 0),
             end_time=time(10, 0),
             status="AVAILABLE",
-            role="GIVER",
         )
         db_session.add(schedule)
         db_session.commit()
@@ -375,7 +359,6 @@ class TestScheduleCRUD:
             start_time=time(9, 0),
             end_time=time(10, 0),
             status="AVAILABLE",
-            role="GIVER",
         )
         db_session.add(schedule)
         db_session.commit()
@@ -420,7 +403,6 @@ class TestScheduleCRUD:
             start_time=time(9, 0),
             end_time=time(10, 0),
             status="AVAILABLE",
-            role="GIVER",
         )
         db_session.add(schedule)
         db_session.commit()

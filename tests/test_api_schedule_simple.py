@@ -57,7 +57,11 @@ class TestAPIScheduleSimple:
         schedule.end_time = "10:00:00"
         schedule.note = "測試時段"
         schedule.status = "available"
-        schedule.role = "giver"
+        # role 欄位已移除 - 改用計算屬性
+        schedule.creator_role = "TAKER"
+        schedule.role = "TAKER"  # 為了向後相容，mock 對象仍需要這個屬性
+        schedule.updated_by = 1
+        schedule.updated_by_role = "TAKER"
         schedule.created_at = datetime.now()
         schedule.updated_at = datetime.now()
         schedule.deleted_at = None
@@ -124,7 +128,6 @@ class TestAPIScheduleSimple:
                 "end_time": "15:00:00",
                 "note": "測試時段1",
                 "status": "AVAILABLE",
-                "role": "GIVER",
             },
             {
                 "giver_id": 1,
@@ -133,7 +136,6 @@ class TestAPIScheduleSimple:
                 "end_time": "17:00:00",
                 "note": "測試時段2",
                 "status": "AVAILABLE",
-                "role": "GIVER",
             },
         ]
 
@@ -328,7 +330,6 @@ class TestAPIScheduleSimple:
                 "end_time": "15:00:00",
                 "note": "現有時段",
                 "status": "AVAILABLE",
-                "role": "GIVER",
             },
             {
                 "giver_id": 1,
@@ -337,7 +338,6 @@ class TestAPIScheduleSimple:
                 "end_time": "15:30:00",
                 "note": "重疊時段",
                 "status": "AVAILABLE",
-                "role": "GIVER",
             },
         ]
 

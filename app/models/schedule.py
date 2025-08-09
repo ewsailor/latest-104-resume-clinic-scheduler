@@ -36,13 +36,7 @@ class Schedule(Base):  # type: ignore[misc]
     # 主鍵
     id = Column(INTEGER(unsigned=True), primary_key=True, index=True, comment="時段 ID")
 
-    # 角色和關聯
-    role = Column(
-        String(10),
-        nullable=False,
-        default="GIVER",
-        comment="角色：GIVER=提供者、TAKER=預約者",
-    )
+    # 關聯
     giver_id = Column(
         INTEGER(unsigned=True),
         ForeignKey("users.id"),
@@ -102,11 +96,24 @@ class Schedule(Base):  # type: ignore[misc]
             f"date={self.date}, status={self.status})>"
         )
 
+    @property
+    def creator_role(self) -> str:
+        """
+        計算建立者角色。
+
+        根據業務邏輯，時段通常由 GIVER 建立，
+        但目前尚未導入 JWT，故變成由 TAKER 提供時間，看 Giver 是否方便，
+        所以預設回傳 TAKER。
+        這個屬性取代了原本的 role 欄位。
+        """
+        # 如果有特殊需要，可以根據 updated_by_role 或其他邏輯來判斷
+        return "TAKER"
+
     def to_dict(self) -> Dict[str, Any]:
         """轉換為字典格式"""
         return {
             "id": self.id,
-            "role": self.role,
+            "role": self.creator_role,  # 使用計算屬性取代資料庫欄位
             "giver_id": self.giver_id,
             "taker_id": self.taker_id,
             "date": self.date.isoformat() if self.date else None,

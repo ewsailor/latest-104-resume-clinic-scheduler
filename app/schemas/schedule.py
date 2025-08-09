@@ -7,7 +7,7 @@
 from datetime import date, datetime, time
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.enums import UserRoleEnum
 
@@ -29,16 +29,6 @@ class ScheduleCreate(BaseModel):
     end_time: time = Field(..., description="結束時間")
     note: Optional[str] = Field(None, description="備註")
     status: str = Field(default="AVAILABLE", description="時段狀態")
-    role: str = Field(default="GIVER", description="角色")
-
-    @field_validator('role')
-    @classmethod
-    def validate_role(cls, v: str) -> str:
-        """驗證角色欄位"""
-        allowed_roles = ['GIVER', 'TAKER']
-        if v not in allowed_roles:
-            raise ValueError(f'role 必須是以下其中之一: {allowed_roles}')
-        return v
 
 
 class ScheduleCreateWithOperator(BaseModel):
@@ -61,7 +51,9 @@ class ScheduleResponse(BaseModel):
     """時段回應模型"""
 
     id: int
-    role: str
+    role: str = Field(
+        description="建立者角色 (由 creator_role 屬性計算)", alias="creator_role"
+    )
     giver_id: int
     taker_id: Optional[int]
     date: date
@@ -76,4 +68,4 @@ class ScheduleResponse(BaseModel):
         None, description="最後更新者的角色"
     )
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

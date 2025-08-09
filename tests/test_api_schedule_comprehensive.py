@@ -61,7 +61,11 @@ class TestAPIScheduleComprehensive:
         schedule.end_time = "10:00:00"
         schedule.note = "測試時段"
         schedule.status = "available"
-        schedule.role = "giver"
+        # role 欄位已移除 - 改用計算屬性
+        schedule.creator_role = "TAKER"
+        schedule.role = "TAKER"  # 為了向後相容，mock 對象仍需要這個屬性
+        schedule.updated_by = 1
+        schedule.updated_by_role = "TAKER"
         schedule.created_at = datetime.now()
         schedule.updated_at = datetime.now()
         schedule.deleted_at = None
@@ -148,7 +152,6 @@ class TestAPIScheduleComprehensive:
                 end_time="10:00:00",
                 note="測試時段",
                 status="AVAILABLE",
-                role="GIVER",
             )
         ]
 
@@ -178,7 +181,6 @@ class TestAPIScheduleComprehensive:
                 end_time="10:00:00",
                 note="測試時段",
                 status="AVAILABLE",
-                role="GIVER",
             )
         ]
 
@@ -310,7 +312,6 @@ class TestAPIScheduleComprehensive:
                 end_time="10:00:00",
                 note="測試時段",
                 status="AVAILABLE",
-                role="GIVER",
             )
         ]
 
@@ -363,7 +364,6 @@ class TestAPIScheduleComprehensive:
                 end_time="10:00:00",
                 note="測試時段",
                 status="AVAILABLE",
-                role="GIVER",
             )
         ]
 
@@ -450,7 +450,6 @@ class TestAPIScheduleComprehensive:
                 end_time="10:00:00",
                 note=f"測試時段 {i}",
                 status="AVAILABLE",
-                role="GIVER",
             )
             for i in range(100)
         ]

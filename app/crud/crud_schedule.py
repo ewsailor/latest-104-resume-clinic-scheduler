@@ -171,7 +171,7 @@ class ScheduleCRUD:
                 end_time=schedule_data.end_time,
                 note=schedule_data.note,
                 status=schedule_data.status,
-                role=schedule_data.role,
+                # role 欄位已移除 - 改用 updated_by_role 追蹤
                 updated_by=operator_user_id,
                 updated_by_role=operator_role or UserRoleEnum.SYSTEM,
             )
