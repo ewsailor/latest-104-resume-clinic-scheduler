@@ -163,6 +163,17 @@ class ScheduleCRUD:
         # 建立時段物件列表
         schedule_objects = []
         for schedule_data in schedules:
+            # 根據操作者角色決定時段狀態
+            # GIVER 建立時段 -> AVAILABLE (可預約)
+            # TAKER 建立時段 -> PENDING (等待 Giver 確認)
+            if operator_role == UserRoleEnum.TAKER:
+                status = "PENDING"
+            elif operator_role == UserRoleEnum.GIVER:
+                status = "AVAILABLE"
+            else:
+                # 使用傳入的狀態或預設為 DRAFT
+                status = schedule_data.status or "DRAFT"
+
             schedule = Schedule(
                 giver_id=schedule_data.giver_id,
                 taker_id=schedule_data.taker_id,
@@ -170,8 +181,7 @@ class ScheduleCRUD:
                 start_time=schedule_data.start_time,
                 end_time=schedule_data.end_time,
                 note=schedule_data.note,
-                status=schedule_data.status,
-                # role 欄位已移除 - 改用 updated_by_role 追蹤
+                status=status,  # 使用計算的狀態
                 updated_by=operator_user_id,
                 updated_by_role=operator_role or UserRoleEnum.SYSTEM,
             )

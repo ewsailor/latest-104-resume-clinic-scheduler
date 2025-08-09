@@ -7570,9 +7570,10 @@ const EventManager = {
                 date: schedule.date.replace(/\//g, '-'), // 將日期格式從 YYYY/MM/DD 轉換為 YYYY-MM-DD
                 start_time: schedule.startTime + ':00', // 添加秒數以符合 time 格式
                 end_time: schedule.endTime + ':00', // 添加秒數以符合 time 格式
-                note: schedule.notes || null,
-                status: 'AVAILABLE', // 設定為可預約狀態
-                role: 'TAKER' // 設定為 Taker 角色
+                note: schedule.notes || null
+                // status 由後端根據 operator_role 自動決定
+                // TAKER 建立 -> PENDING (等待 Giver 確認)
+                // GIVER 建立 -> AVAILABLE (可預約)
               }));
               
               // 構建包含操作者資訊的請求體

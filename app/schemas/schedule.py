@@ -28,7 +28,9 @@ class ScheduleCreate(BaseModel):
     start_time: time = Field(..., description="開始時間")
     end_time: time = Field(..., description="結束時間")
     note: Optional[str] = Field(None, description="備註")
-    status: str = Field(default="AVAILABLE", description="時段狀態")
+    status: Optional[str] = Field(
+        default=None, description="時段狀態（由後端根據操作者角色自動決定）"
+    )
 
 
 class ScheduleCreateWithOperator(BaseModel):
