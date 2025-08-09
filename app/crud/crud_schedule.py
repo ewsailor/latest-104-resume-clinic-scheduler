@@ -4,6 +4,7 @@
 提供時段相關的資料庫操作，包括建立、查詢、更新和刪除時段。
 """
 
+import logging  # 日誌記錄
 from datetime import date, time  # 日期和時間處理
 
 # ===== 標準函式庫 =====
@@ -25,6 +26,10 @@ from app.schemas import ScheduleCreate, UserCreate  # 資料模型
 class ScheduleCRUD:
     """時段 CRUD 操作類別。"""
 
+    def __init__(self):
+        """初始化 CRUD 實例，設定日誌器。"""
+        self.logger = logging.getLogger(__name__)
+
     def create_user(self, db: Session, user: UserCreate) -> User:
         """
         建立使用者。
@@ -39,18 +44,29 @@ class ScheduleCRUD:
         Raises:
             ValueError: 當 email 已存在時
         """
+        self.logger.info(f"正在建立使用者: {user.name} ({user.email})")
+
         # 檢查 email 是否已存在
         existing_user = db.query(User).filter(User.email == user.email).first()
         if existing_user:
+            error_msg = f"電子信箱已被使用: {user.email}"
+            self.logger.warning(error_msg)
             raise ValueError("此電子信箱已被使用")
 
-        # 建立新使用者
-        new_user = User(name=user.name, email=user.email)
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
+        try:
+            # 建立新使用者
+            new_user = User(name=user.name, email=user.email)
+            db.add(new_user)
+            db.commit()
+            db.refresh(new_user)
 
-        return new_user
+            self.logger.info(f"成功建立使用者: ID={new_user.id}, 名稱={new_user.name}")
+            return new_user
+        except Exception as e:
+            db.rollback()
+            error_msg = f"建立使用者失敗: {str(e)}"
+            self.logger.error(error_msg)
+            raise
 
     def check_schedule_overlap(
         self,
@@ -117,8 +133,20 @@ class ScheduleCRUD:
             List[Schedule]: 建立成功的時段列表
 
         Raises:
-            ValueError: 當檢測到時段重疊時
+            ValueError: 當檢測到時段重疊時或操作者不存在時
         """
+        # 驗證操作者是否存在
+        operator = db.query(User).filter(User.id == operator_user_id).first()
+        if not operator:
+            error_msg = f"操作者不存在: user_id={operator_user_id}"
+            self.logger.error(error_msg)
+            raise ValueError(error_msg)
+
+        # 記錄建立操作
+        self.logger.info(
+            f"使用者 {operator_user_id} (角色: {operator_role.value}) "
+            f"正在建立 {len(schedules)} 個時段"
+        )
         # 檢查重疊時段
         for schedule_data in schedules:
             overlapping_schedules = self.check_schedule_overlap(
@@ -187,15 +215,36 @@ class ScheduleCRUD:
             )
             schedule_objects.append(schedule)
 
-        # 批量新增到資料庫
-        db.add_all(schedule_objects)
-        db.commit()
+        # 記錄即將建立的時段詳情
+        schedule_details = []
+        for i, schedule_data in enumerate(schedules):
+            detail = (
+                f"時段{i+1}: {schedule_data.schedule_date} "
+                f"{schedule_data.start_time}-{schedule_data.end_time}"
+            )
+            schedule_details.append(detail)
+        self.logger.info(f"建立時段詳情: {', '.join(schedule_details)}")
 
-        # 重新整理物件以取得 ID
-        for schedule in schedule_objects:
-            db.refresh(schedule)
+        try:
+            # 批量新增到資料庫
+            db.add_all(schedule_objects)
+            db.commit()
 
-        return schedule_objects
+            # 重新整理物件以取得 ID
+            for schedule in schedule_objects:
+                db.refresh(schedule)
+
+            self.logger.info(
+                f"成功建立 {len(schedule_objects)} 個時段，"
+                f"ID範圍: {[s.id for s in schedule_objects]}"
+            )
+            return schedule_objects
+
+        except Exception as e:
+            db.rollback()
+            error_msg = f"建立時段失敗: {str(e)}"
+            self.logger.error(error_msg)
+            raise
 
     def get_schedules(
         self,
@@ -259,32 +308,70 @@ class ScheduleCRUD:
         Args:
             db: 資料庫會話
             schedule_id: 時段 ID
-            operator_user_id: 操作者的使用者 ID（更新者）
+            updated_by_user_id: 操作者的使用者 ID（更新者）
             operator_role: 操作者的角色 (UserRoleEnum)
             **kwargs: 要更新的欄位
 
         Returns:
             Optional[Schedule]: 更新後的時段物件，如果不存在則返回 None
+
+        Raises:
+            ValueError: 當更新者不存在時
         """
+        # 驗證更新者是否存在
+        updater = db.query(User).filter(User.id == updated_by_user_id).first()
+        if not updater:
+            error_msg = f"更新者不存在: user_id={updated_by_user_id}"
+            self.logger.error(error_msg)
+            raise ValueError(error_msg)
+
+        # 驗證時段是否存在
         schedule = self.get_schedule_by_id(db, schedule_id)
         if not schedule:
+            self.logger.warning(f"嘗試更新不存在的時段: schedule_id={schedule_id}")
             return None
+
+        # 記錄更新操作
+        self.logger.info(
+            f"時段 {schedule_id} 正在被使用者 {updated_by_user_id} "
+            f"(角色: {operator_role.value}) 更新"
+        )
 
         # 設定更新者資訊
         schedule.updated_by = updated_by_user_id
         schedule.updated_by_role = operator_role
 
         # 更新欄位
+        updated_fields = []
         for field, value in kwargs.items():
             if field == "schedule_date":
                 # 處理 schedule_date 別名，對應到模型的 date 欄位
+                old_value = getattr(schedule, "date", None)
                 setattr(schedule, "date", value)
+                updated_fields.append(f"date: {old_value} -> {value}")
             elif hasattr(schedule, field):
+                old_value = getattr(schedule, field, None)
                 setattr(schedule, field, value)
+                updated_fields.append(f"{field}: {old_value} -> {value}")
+            else:
+                self.logger.warning(f"忽略無效的欄位: {field}")
 
-        db.commit()
-        db.refresh(schedule)
-        return schedule
+        # 記錄具體的更新欄位
+        if updated_fields:
+            self.logger.info(
+                f"時段 {schedule_id} 更新欄位: {', '.join(updated_fields)}"
+            )
+
+        try:
+            db.commit()
+            db.refresh(schedule)
+            self.logger.info(f"時段 {schedule_id} 更新成功")
+            return schedule
+        except Exception as e:
+            db.rollback()
+            error_msg = f"更新時段 {schedule_id} 失敗: {str(e)}"
+            self.logger.error(error_msg)
+            raise
 
     def delete_schedule(
         self,
@@ -304,24 +391,48 @@ class ScheduleCRUD:
 
         Returns:
             bool: 刪除成功返回 True，否則返回 False
+
+        Raises:
+            ValueError: 當操作者不存在時（如果提供了操作者 ID）
         """
-        print(f"刪除時段 ID: {schedule_id}，操作者: {operator_user_id}")  # 除錯用
+        # 如果提供了操作者ID，驗證操作者是否存在
+        if operator_user_id:
+            operator = db.query(User).filter(User.id == operator_user_id).first()
+            if not operator:
+                error_msg = f"操作者不存在: user_id={operator_user_id}"
+                self.logger.error(error_msg)
+                raise ValueError(error_msg)
+
+        self.logger.info(f"正在刪除時段 ID: {schedule_id}，操作者: {operator_user_id}")
 
         schedule = self.get_schedule_by_id(db, schedule_id)
         if not schedule:
-            print(f"時段 {schedule_id} 不存在")  # 除錯用
+            self.logger.warning(f"嘗試刪除不存在的時段: schedule_id={schedule_id}")
             return False
 
-        # 記錄操作者資訊（如果有提供的話）
-        if operator_user_id and operator_role:
-            print(
-                f"時段 {schedule_id} 由使用者 {operator_user_id} (角色: {operator_role}) 刪除"
-            )  # 除錯用
+        # 記錄時段詳情
+        schedule_info = (
+            f"{schedule.date} {schedule.start_time}-{schedule.end_time} "
+            f"(Giver ID: {schedule.giver_id})"
+        )
 
-        db.delete(schedule)
-        db.commit()
-        print(f"時段 {schedule_id} 已成功刪除")  # 除錯用
-        return True
+        # 記錄操作者資訊
+        if operator_user_id and operator_role:
+            self.logger.info(
+                f"時段 {schedule_id} ({schedule_info}) "
+                f"正在被使用者 {operator_user_id} (角色: {operator_role.value}) 刪除"
+            )
+
+        try:
+            db.delete(schedule)
+            db.commit()
+            self.logger.info(f"時段 {schedule_id} ({schedule_info}) 已成功刪除")
+            return True
+        except Exception as e:
+            db.rollback()
+            error_msg = f"刪除時段 {schedule_id} 失敗: {str(e)}"
+            self.logger.error(error_msg)
+            raise
 
 
 # 建立 CRUD 實例

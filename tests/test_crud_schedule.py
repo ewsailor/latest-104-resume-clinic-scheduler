@@ -442,3 +442,93 @@ class TestScheduleCRUD:
         result = crud.delete_schedule(db_session, 999)
 
         assert result is False
+
+    def test_create_schedules_with_invalid_operator(self, db_session: Session):
+        """測試使用不存在的操作者建立時段。"""
+        crud = ScheduleCRUD()
+        schedule_data = [
+            ScheduleCreate(
+                giver_id=1,
+                date="2024-01-15",
+                start_time="09:00:00",
+                end_time="10:00:00",
+                note="測試時段",
+                status="AVAILABLE",
+            )
+        ]
+
+        # 嘗試使用不存在的操作者ID
+        with pytest.raises(ValueError, match="操作者不存在: user_id=999"):
+            crud.create_schedules(
+                db_session,
+                schedule_data,
+                operator_user_id=999,
+                operator_role=UserRoleEnum.GIVER,
+            )
+
+    def test_update_schedule_with_invalid_operator(self, db_session: Session):
+        """測試使用不存在的操作者更新時段。"""
+        crud = ScheduleCRUD()
+
+        # 先建立一個使用者和時段
+        user_data = UserCreate(name="測試 Giver", email="giver@example.com")
+        user = crud.create_user(db_session, user_data)
+
+        schedule_data = [
+            ScheduleCreate(
+                giver_id=user.id,
+                date="2024-01-15",
+                start_time="09:00:00",
+                end_time="10:00:00",
+                note="原始時段",
+                status="AVAILABLE",
+            )
+        ]
+
+        schedules = crud.create_schedules(
+            db_session, schedule_data, user.id, UserRoleEnum.GIVER
+        )
+        schedule = schedules[0]
+
+        # 嘗試使用不存在的操作者ID更新時段
+        with pytest.raises(ValueError, match="更新者不存在: user_id=999"):
+            crud.update_schedule(
+                db_session,
+                schedule.id,
+                updated_by_user_id=999,
+                operator_role=UserRoleEnum.GIVER,
+                note="更新的時段",
+            )
+
+    def test_delete_schedule_with_invalid_operator(self, db_session: Session):
+        """測試使用不存在的操作者刪除時段。"""
+        crud = ScheduleCRUD()
+
+        # 先建立一個使用者和時段
+        user_data = UserCreate(name="測試 Giver", email="giver@example.com")
+        user = crud.create_user(db_session, user_data)
+
+        schedule_data = [
+            ScheduleCreate(
+                giver_id=user.id,
+                date="2024-01-15",
+                start_time="09:00:00",
+                end_time="10:00:00",
+                note="要刪除的時段",
+                status="AVAILABLE",
+            )
+        ]
+
+        schedules = crud.create_schedules(
+            db_session, schedule_data, user.id, UserRoleEnum.GIVER
+        )
+        schedule = schedules[0]
+
+        # 嘗試使用不存在的操作者ID刪除時段
+        with pytest.raises(ValueError, match="操作者不存在: user_id=999"):
+            crud.delete_schedule(
+                db_session,
+                schedule.id,
+                operator_user_id=999,
+                operator_role=UserRoleEnum.GIVER,
+            )
