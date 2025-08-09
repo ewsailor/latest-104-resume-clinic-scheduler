@@ -37,16 +37,16 @@ class ScheduleCreateWithOperator(BaseModel):
     """帶有操作者資訊的建立時段請求模型"""
 
     schedules: List[ScheduleCreate] = Field(..., description="要建立的時段列表")
-    operator_user_id: Optional[int] = Field(None, description="操作者的使用者 ID")
-    operator_role: Optional[UserRoleEnum] = Field(None, description="操作者的角色")
+    operator_user_id: int = Field(..., description="操作者的使用者 ID（必填）")
+    operator_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
 
 
 class ScheduleUpdateWithOperator(BaseModel):
     """帶有操作者資訊的更新時段請求模型"""
 
     schedule_data: ScheduleCreate = Field(..., description="更新的時段資料")
-    operator_user_id: Optional[int] = Field(None, description="操作者的使用者 ID")
-    operator_role: Optional[UserRoleEnum] = Field(None, description="操作者的角色")
+    operator_user_id: int = Field(..., description="操作者的使用者 ID（必填）")
+    operator_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
 
 
 class ScheduleResponse(BaseModel):

@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session  # 資料庫會話
 
 # ===== 本地模組 =====
 from app.crud.crud_schedule import ScheduleCRUD  # CRUD 操作
+from app.models.enums import UserRoleEnum  # 角色枚舉
 from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型
 from app.schemas import ScheduleCreate, UserCreate  # 資料模型
@@ -72,7 +73,12 @@ class TestScheduleCRUD:
             ),
         ]
 
-        schedules = crud.create_schedules(db_session, schedules_data)
+        schedules = crud.create_schedules(
+            db_session,
+            schedules_data,
+            operator_user_id=user.id,
+            operator_role=UserRoleEnum.GIVER,
+        )
 
         assert len(schedules) == 2
         assert schedules[0].giver_id == user.id
@@ -168,7 +174,12 @@ class TestScheduleCRUD:
         ]
 
         with pytest.raises(ValueError, match="時段重複或重疊"):
-            crud.create_schedules(db_session, schedules_data)
+            crud.create_schedules(
+                db_session,
+                schedules_data,
+                operator_user_id=user.id,
+                operator_role=UserRoleEnum.GIVER,
+            )
 
     def test_get_schedules_all(self, db_session: Session):
         """測試查詢所有時段。"""
@@ -367,6 +378,8 @@ class TestScheduleCRUD:
         updated_schedule = crud.update_schedule(
             db_session,
             schedule.id,
+            updated_by_user_id=user.id,
+            operator_role=UserRoleEnum.GIVER,
             schedule_date=date(2024, 1, 16),
             start_time=time(14, 0),
             end_time=time(15, 0),
@@ -383,7 +396,13 @@ class TestScheduleCRUD:
         """測試更新不存在的時段。"""
         crud = ScheduleCRUD()
 
-        updated_schedule = crud.update_schedule(db_session, 999, note="測試備註")
+        updated_schedule = crud.update_schedule(
+            db_session,
+            999,
+            updated_by_user_id=1,
+            operator_role=UserRoleEnum.SYSTEM,
+            note="測試備註",
+        )
 
         assert updated_schedule is None
 

@@ -101,8 +101,8 @@ class ScheduleCRUD:
         self,
         db: Session,
         schedules: List[ScheduleCreate],
-        operator_user_id: Optional[int] = None,
-        operator_role: Optional[UserRoleEnum] = None,
+        operator_user_id: int,
+        operator_role: UserRoleEnum,
     ) -> List[Schedule]:
         """
         建立多個時段。
@@ -183,7 +183,7 @@ class ScheduleCRUD:
                 note=schedule_data.note,
                 status=status,  # 使用計算的狀態
                 updated_by=operator_user_id,
-                updated_by_role=operator_role or UserRoleEnum.SYSTEM,
+                updated_by_role=operator_role,
             )
             schedule_objects.append(schedule)
 
@@ -249,8 +249,8 @@ class ScheduleCRUD:
         self,
         db: Session,
         schedule_id: int,
-        operator_user_id: Optional[int] = None,
-        operator_role: Optional[UserRoleEnum] = None,
+        updated_by_user_id: int,
+        operator_role: UserRoleEnum,
         **kwargs: Any,
     ) -> Optional[Schedule]:
         """
@@ -271,10 +271,8 @@ class ScheduleCRUD:
             return None
 
         # 設定更新者資訊
-        if operator_user_id is not None:
-            schedule.updated_by = operator_user_id
-        if operator_role is not None:
-            schedule.updated_by_role = operator_role
+        schedule.updated_by = updated_by_user_id
+        schedule.updated_by_role = operator_role
 
         # 更新欄位
         for field, value in kwargs.items():

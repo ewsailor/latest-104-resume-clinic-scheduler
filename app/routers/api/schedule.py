@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 # ===== 本地模組 =====
 from app.crud import schedule_crud  # CRUD 操作
 from app.models.database import get_db  # 資料庫連接
+from app.models.enums import UserRoleEnum  # 角色枚舉
 from app.schemas import (  # 資料模型
     ScheduleCreate,
     ScheduleCreateWithOperator,
@@ -31,14 +32,18 @@ router = APIRouter(prefix="/api", tags=["Schedules"])
     "/schedules",
     response_model=List[ScheduleResponse],
     status_code=status.HTTP_201_CREATED,
+    deprecated=True,
 )
 async def create_schedules(
     schedules: List[ScheduleCreate], db: Session = Depends(get_db)
 ) -> List[ScheduleResponse]:
     """
-    建立多個時段。
+    建立多個時段（已棄用）。
+
+    ⚠️ 此端點已棄用，請使用 POST /schedules/with-operator
 
     接收時段列表並批量建立到資料庫中。
+    為了向後相容性，此端點會使用 SYSTEM 作為預設操作者。
 
     Args:
         schedules: 要建立的時段列表
@@ -51,8 +56,14 @@ async def create_schedules(
         HTTPException: 當建立失敗時拋出 400 錯誤
     """
     try:
-        # 使用 CRUD 層建立時段
-        schedule_objects = schedule_crud.create_schedules(db, schedules)
+        # 注意：此端點已棄用，建議使用 /schedules/with-operator
+        # 為了向後相容性，使用 SYSTEM 作為預設操作者
+        schedule_objects = schedule_crud.create_schedules(
+            db,
+            schedules,
+            operator_user_id=1,  # 預設系統使用者 ID
+            operator_role=UserRoleEnum.SYSTEM,
+        )
 
         # 轉換為回應格式 - 使用 model_validate 替代 from_orm
         return [
@@ -186,12 +197,16 @@ async def get_schedule(
         )
 
 
-@router.put("/schedules/{schedule_id}", response_model=ScheduleResponse)
+@router.put(
+    "/schedules/{schedule_id}", response_model=ScheduleResponse, deprecated=True
+)
 async def update_schedule(
     schedule_id: int, schedule_update: ScheduleCreate, db: Session = Depends(get_db)
 ) -> ScheduleResponse:
     """
-    更新時段。
+    更新時段（已棄用）。
+
+    ⚠️ 此端點已棄用，請使用 PUT /schedules/{schedule_id}/with-operator
 
     Args:
         schedule_id: 時段 ID
@@ -211,7 +226,15 @@ async def update_schedule(
         if "date" in update_data:
             update_data["schedule_date"] = update_data.pop("date")
 
-        updated_schedule = schedule_crud.update_schedule(db, schedule_id, **update_data)
+        # 注意：此端點已棄用，建議使用 /schedules/{schedule_id}/with-operator
+        # 為了向後相容性，使用 SYSTEM 作為預設操作者
+        updated_schedule = schedule_crud.update_schedule(
+            db,
+            schedule_id,
+            updated_by_user_id=1,  # 預設系統使用者 ID
+            operator_role=UserRoleEnum.SYSTEM,
+            **update_data,
+        )
         if not updated_schedule:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="時段不存在"
@@ -255,7 +278,7 @@ async def update_schedule_with_operator(
         updated_schedule = schedule_crud.update_schedule(
             db,
             schedule_id,
-            operator_user_id=request.operator_user_id,
+            updated_by_user_id=request.operator_user_id,
             operator_role=request.operator_role,
             **update_data,
         )
