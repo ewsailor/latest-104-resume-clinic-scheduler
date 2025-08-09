@@ -75,16 +75,16 @@ def diagnose_timestamp_issue():
             result = conn.execute(
                 text(
                     """
-                SELECT 
-                    id, 
-                    created_at, 
+                SELECT
+                    id,
+                    created_at,
                     updated_at,
                     UNIX_TIMESTAMP(created_at) as created_unix,
                     UNIX_TIMESTAMP(updated_at) as updated_unix,
                     CONVERT_TZ(created_at, '+08:00', '+00:00') as created_utc,
                     CONVERT_TZ(updated_at, '+08:00', '+00:00') as updated_utc
-                FROM schedules 
-                ORDER BY created_at DESC 
+                FROM schedules
+                ORDER BY created_at DESC
                 LIMIT 10
             """
                 )
@@ -105,7 +105,7 @@ def diagnose_timestamp_issue():
             result = conn.execute(
                 text(
                     f"""
-                SELECT 
+                SELECT
                     '{test_time}' as original_time,
                     CONVERT_TZ('{test_time}', '+08:00', '+00:00') as to_utc,
                     CONVERT_TZ('{test_time}', '+00:00', '+08:00') as from_utc

@@ -111,7 +111,7 @@ def update_schema_comments():
         conn.execute(
             text(
                 """
-            ALTER TABLE users 
+            ALTER TABLE users
             MODIFY created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '建立時間 (本地時間)',
             MODIFY updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新時間 (本地時間)'
         """
@@ -122,7 +122,7 @@ def update_schema_comments():
         conn.execute(
             text(
                 """
-            ALTER TABLE schedules 
+            ALTER TABLE schedules
             MODIFY created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '建立時間 (本地時間)',
             MODIFY updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新時間 (本地時間)'
         """

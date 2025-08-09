@@ -25,16 +25,16 @@ def main():
 使用範例：
   # 檢查專案 CORS 配置
   python scripts/cors_check.py config
-  
+
   # 檢查專案 CORS 配置（簡潔模式）
   python scripts/cors_check.py config --simple
-  
+
   # 驗證特定的 CORS 來源字串
   python scripts/cors_check.py validate "http://localhost,https://api.example.com"
-  
+
   # 安全性檢查（模擬資料）
   python scripts/cors_check.py security
-  
+
   # 匯出報告為 JSON
   python scripts/cors_check.py config --export json
         """,

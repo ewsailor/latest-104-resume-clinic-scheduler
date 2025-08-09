@@ -80,9 +80,9 @@ def check_timezone_settings():
             result = conn.execute(
                 text(
                     """
-                SELECT id, created_at, updated_at 
-                FROM schedules 
-                ORDER BY created_at DESC 
+                SELECT id, created_at, updated_at
+                FROM schedules
+                ORDER BY created_at DESC
                 LIMIT 5
             """
                 )

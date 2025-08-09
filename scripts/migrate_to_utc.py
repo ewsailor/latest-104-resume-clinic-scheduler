@@ -49,7 +49,7 @@ def backup_existing_data():
             conn.execute(
                 text(
                     """
-                CREATE TABLE IF NOT EXISTS users_backup AS 
+                CREATE TABLE IF NOT EXISTS users_backup AS
                 SELECT * FROM users
             """
                 )
@@ -57,7 +57,7 @@ def backup_existing_data():
             conn.execute(
                 text(
                     """
-                CREATE TABLE IF NOT EXISTS schedules_backup AS 
+                CREATE TABLE IF NOT EXISTS schedules_backup AS
                 SELECT * FROM schedules
             """
                 )
@@ -107,8 +107,8 @@ def migrate_to_utc():
             conn.execute(
                 text(
                     """
-                UPDATE users 
-                SET 
+                UPDATE users
+                SET
                     created_at = CONVERT_TZ(created_at, '+08:00', '+00:00'),
                     updated_at = CONVERT_TZ(updated_at, '+08:00', '+00:00')
                 WHERE created_at IS NOT NULL
@@ -121,8 +121,8 @@ def migrate_to_utc():
             conn.execute(
                 text(
                     """
-                UPDATE schedules 
-                SET 
+                UPDATE schedules
+                SET
                     created_at = CONVERT_TZ(created_at, '+08:00', '+00:00'),
                     updated_at = CONVERT_TZ(updated_at, '+08:00', '+00:00')
                 WHERE created_at IS NOT NULL
@@ -137,9 +137,9 @@ def migrate_to_utc():
             result = conn.execute(
                 text(
                     """
-                SELECT id, created_at, updated_at 
-                FROM schedules 
-                ORDER BY created_at DESC 
+                SELECT id, created_at, updated_at
+                FROM schedules
+                ORDER BY created_at DESC
                 LIMIT 5
             """
                 )
@@ -189,7 +189,7 @@ def update_schema_to_utc():
             conn.execute(
                 text(
                     """
-                ALTER TABLE users 
+                ALTER TABLE users
                 MODIFY created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '建立時間 (UTC)',
                 MODIFY updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新時間 (UTC)'
             """
@@ -201,7 +201,7 @@ def update_schema_to_utc():
             conn.execute(
                 text(
                     """
-                ALTER TABLE schedules 
+                ALTER TABLE schedules
                 MODIFY created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '建立時間 (UTC)',
                 MODIFY updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新時間 (UTC)'
             """
@@ -253,14 +253,14 @@ def verify_migration():
             result = conn.execute(
                 text(
                     """
-                SELECT 
-                    id, 
-                    created_at, 
+                SELECT
+                    id,
+                    created_at,
                     updated_at,
                     CONVERT_TZ(created_at, '+00:00', '+08:00') as created_local,
                     CONVERT_TZ(updated_at, '+00:00', '+08:00') as updated_local
-                FROM schedules 
-                ORDER BY created_at DESC 
+                FROM schedules
+                ORDER BY created_at DESC
                 LIMIT 5
             """
                 )

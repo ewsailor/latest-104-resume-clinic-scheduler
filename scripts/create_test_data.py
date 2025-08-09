@@ -70,8 +70,8 @@ def create_test_users():
         result = conn.execute(
             text(
                 """
-            SELECT id, name, email, created_at 
-            FROM users 
+            SELECT id, name, email, created_at
+            FROM users
             ORDER BY id
         """
             )
@@ -80,8 +80,7 @@ def create_test_users():
         logger.info("=== 目前使用者列表 ===")
         for row in result:
             logger.info(
-                f"ID: {row[0]}, 姓名: {row[1]}, 信箱: {row[2]}, "
-                f"建立時間: {row[3]}"
+                f"ID: {row[0]}, 姓名: {row[1]}, 信箱: {row[2]}, " f"建立時間: {row[3]}"
             )
 
     except Exception as e:
