@@ -43,8 +43,10 @@ class User(Base):  # type: ignore[misc]
 
     # 關聯關係 - 指向最後更新此使用者的使用者
     updated_by_user = relationship("User", remote_side=[id])
-    # 反向關聯 - 此使用者最後更新過的使用者列表
-    updated_users = relationship("User", remote_side=[updated_by])
+    # 反向關聯 - 此使用者最後更新過的使用者列表 (只讀，避免衝突)
+    updated_users = relationship(
+        "User", remote_side=[updated_by], viewonly=True, overlaps="updated_by_user"
+    )
 
     # 與 Schedule 的關聯關係
     given_schedules = relationship(
