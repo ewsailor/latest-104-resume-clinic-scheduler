@@ -4,6 +4,8 @@
 提供時段相關的資料庫操作，包括建立、查詢、更新和刪除時段。
 """
 
+from datetime import date, time  # 日期和時間處理
+
 # ===== 標準函式庫 =====
 from typing import Any, List, Optional  # 型別提示
 
@@ -48,6 +50,51 @@ class ScheduleCRUD:
 
         return new_user
 
+    def check_schedule_overlap(
+        self,
+        db: Session,
+        giver_id: int,
+        schedule_date: date,
+        start_time: time,
+        end_time: time,
+        exclude_schedule_id: Optional[int] = None,
+    ) -> List[Schedule]:
+        """
+        檢查時段重疊。
+
+        Args:
+            db: 資料庫會話
+            giver_id: Giver ID
+            schedule_date: 時段日期
+            start_time: 開始時間
+            end_time: 結束時間
+            exclude_schedule_id: 要排除的時段 ID（用於更新時排除自己）
+
+        Returns:
+            List[Schedule]: 重疊的時段列表
+        """
+        # 查詢同一天同一 giver 的所有時段
+        query = db.query(Schedule).filter(
+            and_(Schedule.giver_id == giver_id, Schedule.date == schedule_date)
+        )
+
+        # 排除指定時段（用於更新時排除自己）
+        if exclude_schedule_id is not None:
+            query = query.filter(Schedule.id != exclude_schedule_id)
+
+        existing_schedules = query.all()
+        overlapping_schedules = []
+
+        for existing_schedule in existing_schedules:
+            # 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
+            if (
+                start_time < existing_schedule.end_time
+                and end_time > existing_schedule.start_time
+            ):
+                overlapping_schedules.append(existing_schedule)
+
+        return overlapping_schedules
+
     def create_schedules(
         self, db: Session, schedules: List[ScheduleCreate]
     ) -> List[Schedule]:
@@ -60,7 +107,51 @@ class ScheduleCRUD:
 
         Returns:
             List[Schedule]: 建立成功的時段列表
+
+        Raises:
+            ValueError: 當檢測到時段重疊時
         """
+        # 檢查重疊時段
+        for schedule_data in schedules:
+            overlapping_schedules = self.check_schedule_overlap(
+                db=db,
+                giver_id=schedule_data.giver_id,
+                schedule_date=schedule_data.schedule_date,
+                start_time=schedule_data.start_time,
+                end_time=schedule_data.end_time,
+            )
+
+            if overlapping_schedules:
+                # 格式化重疊時段的錯誤訊息
+                overlapping_info = []
+                for overlap_schedule in overlapping_schedules:
+                    # 格式化日期為 YYYY/MM/DD（週X）格式
+                    weekday_names = [
+                        '週一',
+                        '週二',
+                        '週三',
+                        '週四',
+                        '週五',
+                        '週六',
+                        '週日',
+                    ]
+                    weekday = weekday_names[overlap_schedule.date.weekday()]
+                    formatted_date = (
+                        f"{overlap_schedule.date.strftime('%Y/%m/%d')}（{weekday}）"
+                    )
+
+                    # 格式化時間
+                    start_time_str = overlap_schedule.start_time.strftime('%H:%M')
+                    end_time_str = overlap_schedule.end_time.strftime('%H:%M')
+
+                    overlapping_info.append(
+                        f"{formatted_date} {start_time_str}~{end_time_str}"
+                    )
+
+                raise ValueError(
+                    f"您正輸入的時段，和您之前曾輸入的「{', '.join(overlapping_info)}」時段重複或重疊，請重新輸入"
+                )
+
         # 建立時段物件列表
         schedule_objects = []
         for schedule_data in schedules:

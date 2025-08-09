@@ -1,90 +1,61 @@
 """
-CRUD 時段模組測試。
+時段 CRUD 操作測試模組。
 
 測試時段相關的資料庫操作，包括建立、查詢、更新和刪除時段。
 """
 
 # ===== 標準函式庫 =====
-from datetime import date, time
-
-import pytest
+from datetime import date, time  # 日期和時間處理
 
 # ===== 第三方套件 =====
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+import pytest  # 測試框架
+from sqlalchemy.orm import Session  # 資料庫會話
 
 # ===== 本地模組 =====
-from app.crud.crud_schedule import ScheduleCRUD
-from app.models.user import User
-from app.schemas import ScheduleCreate, UserCreate
+from app.crud.crud_schedule import ScheduleCRUD  # CRUD 操作
+from app.models.schedule import Schedule  # 時段模型
+from app.models.user import User  # 使用者模型
+from app.schemas import ScheduleCreate, UserCreate  # 資料模型
 
 
-# ===== 測試設定 =====
 class TestScheduleCRUD:
-    """時段 CRUD 測試類別。"""
+    """時段 CRUD 操作測試類別。"""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        """設定測試環境。"""
-        # 使用記憶體資料庫進行測試
-        self.engine = create_engine("sqlite:///:memory:")
-        self.TestingSessionLocal = sessionmaker(
-            autocommit=False, autoflush=False, bind=self.engine
-        )
-
-        # 建立資料表
-        from app.models.database import Base
-
-        Base.metadata.create_all(bind=self.engine)
-
-        # 建立 CRUD 實例
-        self.crud = ScheduleCRUD()
-
-        # 建立測試會話
-        self.db = self.TestingSessionLocal()
-
-        yield
-
-        # 清理測試資料
-        self.db.close()
-
-    def test_create_user_success(self):
+    def test_create_user_success(self, db_session: Session):
         """測試成功建立使用者。"""
-        # 準備測試資料
+        crud = ScheduleCRUD()
         user_data = UserCreate(name="測試使用者", email="test@example.com")
 
-        # 執行測試
-        result = self.crud.create_user(self.db, user_data)
+        user = crud.create_user(db_session, user_data)
 
-        # 驗證結果
-        assert result is not None
-        assert result.name == "測試使用者"
-        assert result.email == "test@example.com"
-        assert result.id is not None
+        assert user.name == "測試使用者"
+        assert user.email == "test@example.com"
+        assert user.id is not None
 
-        # 驗證資料庫中確實存在
-        db_user = self.db.query(User).filter(User.email == "test@example.com").first()
-        assert db_user is not None
-        assert db_user.name == "測試使用者"
-
-    def test_create_user_duplicate_email(self):
+    def test_create_user_duplicate_email(self, db_session: Session):
         """測試建立重複 email 的使用者。"""
-        # 準備測試資料
+        crud = ScheduleCRUD()
         user_data = UserCreate(name="測試使用者", email="test@example.com")
 
-        # 先建立一個使用者
-        self.crud.create_user(self.db, user_data)
+        # 建立第一個使用者
+        crud.create_user(db_session, user_data)
 
-        # 嘗試建立相同 email 的使用者
+        # 嘗試建立第二個相同 email 的使用者
         with pytest.raises(ValueError, match="此電子信箱已被使用"):
-            self.crud.create_user(self.db, user_data)
+            crud.create_user(db_session, user_data)
 
-    def test_create_schedules_success(self):
+    def test_create_schedules_success(self, db_session: Session):
         """測試成功建立多個時段。"""
-        # 準備測試資料
+        crud = ScheduleCRUD()
+
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
+
         schedules_data = [
             ScheduleCreate(
-                giver_id=1,
+                giver_id=user.id,
                 date=date(2024, 1, 15),
                 start_time=time(9, 0),
                 end_time=time(10, 0),
@@ -93,7 +64,7 @@ class TestScheduleCRUD:
                 role="GIVER",
             ),
             ScheduleCreate(
-                giver_id=1,
+                giver_id=user.id,
                 date=date(2024, 1, 16),
                 start_time=time(14, 0),
                 end_time=time(15, 0),
@@ -103,278 +74,370 @@ class TestScheduleCRUD:
             ),
         ]
 
-        # 執行測試
-        result = self.crud.create_schedules(self.db, schedules_data)
+        schedules = crud.create_schedules(db_session, schedules_data)
 
-        # 驗證結果
-        assert len(result) == 2
-        assert result[0].giver_id == 1
-        assert result[0].date == date(2024, 1, 15)
-        assert result[0].start_time == time(9, 0)
-        assert result[0].end_time == time(10, 0)
-        assert result[0].note == "測試時段1"
-        assert result[0].status == "AVAILABLE"
-        assert result[0].role == "GIVER"
+        assert len(schedules) == 2
+        assert schedules[0].giver_id == user.id
+        assert schedules[0].date == date(2024, 1, 15)
+        assert schedules[1].giver_id == user.id
+        assert schedules[1].date == date(2024, 1, 16)
 
-        assert result[1].giver_id == 1
-        assert result[1].date == date(2024, 1, 16)
-        assert result[1].start_time == time(14, 0)
-        assert result[1].end_time == time(15, 0)
-        assert result[1].note == "測試時段2"
-        assert result[1].status == "AVAILABLE"
-        assert result[1].role == "GIVER"
+    def test_check_schedule_overlap_no_overlap(self, db_session: Session):
+        """測試檢查時段重疊 - 無重疊。"""
+        crud = ScheduleCRUD()
 
-        # 驗證所有時段都有 ID
-        assert result[0].id is not None
-        assert result[1].id is not None
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
 
-    def test_get_schedules_all(self):
+        # 建立現有時段
+        existing_schedule = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status="AVAILABLE",
+            role="GIVER",
+        )
+        db_session.add(existing_schedule)
+        db_session.commit()
+
+        # 檢查新時段（不重疊）
+        overlapping = crud.check_schedule_overlap(
+            db_session, user.id, date(2024, 1, 15), time(10, 0), time(11, 0)
+        )
+
+        assert len(overlapping) == 0
+
+    def test_check_schedule_overlap_with_overlap(self, db_session: Session):
+        """測試檢查時段重疊 - 有重疊。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
+
+        # 建立現有時段
+        existing_schedule = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status="AVAILABLE",
+            role="GIVER",
+        )
+        db_session.add(existing_schedule)
+        db_session.commit()
+
+        # 檢查新時段（重疊）
+        overlapping = crud.check_schedule_overlap(
+            db_session, user.id, date(2024, 1, 15), time(9, 30), time(10, 30)
+        )
+
+        assert len(overlapping) == 1
+        assert overlapping[0].id == existing_schedule.id
+
+    def test_create_schedules_with_overlap(self, db_session: Session):
+        """測試建立重疊時段。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
+
+        # 建立現有時段
+        existing_schedule = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status="AVAILABLE",
+            role="GIVER",
+        )
+        db_session.add(existing_schedule)
+        db_session.commit()
+
+        # 嘗試建立重疊時段
+        schedules_data = [
+            ScheduleCreate(
+                giver_id=user.id,
+                date=date(2024, 1, 15),
+                start_time=time(9, 30),
+                end_time=time(10, 30),
+                note="重疊時段",
+                status="AVAILABLE",
+                role="GIVER",
+            )
+        ]
+
+        with pytest.raises(ValueError, match="時段重複或重疊"):
+            crud.create_schedules(db_session, schedules_data)
+
+    def test_get_schedules_all(self, db_session: Session):
         """測試查詢所有時段。"""
-        # 準備測試資料
-        schedules_data = [
-            ScheduleCreate(
-                giver_id=1,
-                date=date(2024, 1, 15),
-                start_time=time(9, 0),
-                end_time=time(10, 0),
-                note="測試時段1",
-                status="AVAILABLE",
-                role="GIVER",
-            ),
-            ScheduleCreate(
-                giver_id=2,
-                date=date(2024, 1, 16),
-                start_time=time(14, 0),
-                end_time=time(15, 0),
-                note="測試時段2",
-                status="BOOKED",
-                role="GIVER",
-            ),
-        ]
+        crud = ScheduleCRUD()
 
-        # 建立時段
-        self.crud.create_schedules(self.db, schedules_data)
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
 
-        # 執行測試 - 查詢所有時段
-        result = self.crud.get_schedules(self.db)
+        # 建立測試時段
+        schedule1 = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status="AVAILABLE",
+            role="GIVER",
+        )
+        schedule2 = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 16),
+            start_time=time(14, 0),
+            end_time=time(15, 0),
+            status="BOOKED",
+            role="GIVER",
+        )
+        db_session.add_all([schedule1, schedule2])
+        db_session.commit()
 
-        # 驗證結果
-        assert len(result) == 2
+        schedules = crud.get_schedules(db_session)
 
-    def test_get_schedules_filter_by_giver_id(self):
+        assert len(schedules) == 2
+
+    def test_get_schedules_filter_by_giver_id(self, db_session: Session):
         """測試根據 giver_id 篩選時段。"""
-        # 準備測試資料
-        schedules_data = [
-            ScheduleCreate(
-                giver_id=1,
-                date=date(2024, 1, 15),
-                start_time=time(9, 0),
-                end_time=time(10, 0),
-                note="測試時段1",
-                status="AVAILABLE",
-                role="GIVER",
-            ),
-            ScheduleCreate(
-                giver_id=2,
-                date=date(2024, 1, 16),
-                start_time=time(14, 0),
-                end_time=time(15, 0),
-                note="測試時段2",
-                status="AVAILABLE",
-                role="GIVER",
-            ),
-        ]
+        crud = ScheduleCRUD()
 
-        # 建立時段
-        self.crud.create_schedules(self.db, schedules_data)
+        # 建立測試使用者
+        user1 = User(name="測試 Giver 1", email="giver1@example.com")
+        user2 = User(name="測試 Giver 2", email="giver2@example.com")
+        db_session.add_all([user1, user2])
+        db_session.commit()
 
-        # 執行測試 - 篩選 giver_id = 1
-        result = self.crud.get_schedules(self.db, giver_id=1)
+        # 建立測試時段
+        schedule1 = Schedule(
+            giver_id=user1.id,
+            date=date(2024, 1, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status="AVAILABLE",
+            role="GIVER",
+        )
+        schedule2 = Schedule(
+            giver_id=user2.id,
+            date=date(2024, 1, 16),
+            start_time=time(14, 0),
+            end_time=time(15, 0),
+            status="AVAILABLE",
+            role="GIVER",
+        )
+        db_session.add_all([schedule1, schedule2])
+        db_session.commit()
 
-        # 驗證結果
-        assert len(result) == 1
-        assert result[0].giver_id == 1
+        schedules = crud.get_schedules(db_session, giver_id=user1.id)
 
-    def test_get_schedules_filter_by_status(self):
+        assert len(schedules) == 1
+        assert schedules[0].giver_id == user1.id
+
+    def test_get_schedules_filter_by_status(self, db_session: Session):
         """測試根據狀態篩選時段。"""
-        # 準備測試資料
-        schedules_data = [
-            ScheduleCreate(
-                giver_id=1,
-                date=date(2024, 1, 15),
-                start_time=time(9, 0),
-                end_time=time(10, 0),
-                note="測試時段1",
-                status="AVAILABLE",
-                role="GIVER",
-            ),
-            ScheduleCreate(
-                giver_id=2,
-                date=date(2024, 1, 16),
-                start_time=time(14, 0),
-                end_time=time(15, 0),
-                note="測試時段2",
-                status="BOOKED",
-                role="GIVER",
-            ),
-        ]
+        crud = ScheduleCRUD()
 
-        # 建立時段
-        self.crud.create_schedules(self.db, schedules_data)
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
 
-        # 執行測試 - 篩選 status = "BOOKED"
-        result = self.crud.get_schedules(self.db, status_filter="BOOKED")
+        # 建立測試時段
+        schedule1 = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status="AVAILABLE",
+            role="GIVER",
+        )
+        schedule2 = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 16),
+            start_time=time(14, 0),
+            end_time=time(15, 0),
+            status="BOOKED",
+            role="GIVER",
+        )
+        db_session.add_all([schedule1, schedule2])
+        db_session.commit()
 
-        # 驗證結果
-        assert len(result) == 1
-        assert result[0].status == "BOOKED"
+        schedules = crud.get_schedules(db_session, status_filter="AVAILABLE")
 
-    def test_get_schedules_filter_by_both(self):
+        assert len(schedules) == 1
+        assert schedules[0].status == "AVAILABLE"
+
+    def test_get_schedules_filter_by_both(self, db_session: Session):
         """測試同時根據 giver_id 和狀態篩選時段。"""
-        # 準備測試資料
-        schedules_data = [
-            ScheduleCreate(
-                giver_id=1,
-                date=date(2024, 1, 15),
-                start_time=time(9, 0),
-                end_time=time(10, 0),
-                note="測試時段1",
-                status="AVAILABLE",
-                role="GIVER",
-            ),
-            ScheduleCreate(
-                giver_id=1,
-                date=date(2024, 1, 16),
-                start_time=time(14, 0),
-                end_time=time(15, 0),
-                note="測試時段2",
-                status="BOOKED",
-                role="GIVER",
-            ),
-            ScheduleCreate(
-                giver_id=2,
-                date=date(2024, 1, 17),
-                start_time=time(16, 0),
-                end_time=time(17, 0),
-                note="測試時段3",
-                status="AVAILABLE",
-                role="GIVER",
-            ),
-        ]
+        crud = ScheduleCRUD()
 
-        # 建立時段
-        self.crud.create_schedules(self.db, schedules_data)
+        # 建立測試使用者
+        user1 = User(name="測試 Giver 1", email="giver1@example.com")
+        user2 = User(name="測試 Giver 2", email="giver2@example.com")
+        db_session.add_all([user1, user2])
+        db_session.commit()
 
-        # 執行測試 - 篩選 giver_id = 1 且 status = "AVAILABLE"
-        result = self.crud.get_schedules(self.db, giver_id=1, status_filter="AVAILABLE")
+        # 建立測試時段
+        schedule1 = Schedule(
+            giver_id=user1.id,
+            date=date(2024, 1, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status="AVAILABLE",
+            role="GIVER",
+        )
+        schedule2 = Schedule(
+            giver_id=user1.id,
+            date=date(2024, 1, 16),
+            start_time=time(14, 0),
+            end_time=time(15, 0),
+            status="BOOKED",
+            role="GIVER",
+        )
+        schedule3 = Schedule(
+            giver_id=user2.id,
+            date=date(2024, 1, 17),
+            start_time=time(16, 0),
+            end_time=time(17, 0),
+            status="AVAILABLE",
+            role="GIVER",
+        )
+        db_session.add_all([schedule1, schedule2, schedule3])
+        db_session.commit()
 
-        # 驗證結果
-        assert len(result) == 1
-        assert result[0].giver_id == 1
-        assert result[0].status == "AVAILABLE"
+        schedules = crud.get_schedules(
+            db_session, giver_id=user1.id, status_filter="AVAILABLE"
+        )
 
-    def test_get_schedule_by_id_success(self):
+        assert len(schedules) == 1
+        assert schedules[0].giver_id == user1.id
+        assert schedules[0].status == "AVAILABLE"
+
+    def test_get_schedule_by_id_success(self, db_session: Session):
         """測試成功根據 ID 查詢時段。"""
-        # 準備測試資料
-        schedule_data = ScheduleCreate(
-            giver_id=1,
+        crud = ScheduleCRUD()
+
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
+
+        # 建立測試時段
+        schedule = Schedule(
+            giver_id=user.id,
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            note="測試時段",
             status="AVAILABLE",
             role="GIVER",
         )
+        db_session.add(schedule)
+        db_session.commit()
 
-        # 建立時段
-        created_schedules = self.crud.create_schedules(self.db, [schedule_data])
-        schedule_id = created_schedules[0].id
+        found_schedule = crud.get_schedule_by_id(db_session, schedule.id)
 
-        # 執行測試
-        result = self.crud.get_schedule_by_id(self.db, schedule_id)
+        assert found_schedule is not None
+        assert found_schedule.id == schedule.id
+        assert found_schedule.giver_id == user.id
 
-        # 驗證結果
-        assert result is not None
-        assert result.id == schedule_id
-        assert result.giver_id == 1
-        assert result.note == "測試時段"
+    def test_get_schedule_by_id_not_found(self, db_session: Session):
+        """測試根據不存在的 ID 查詢時段。"""
+        crud = ScheduleCRUD()
 
-    def test_get_schedule_by_id_not_found(self):
-        """測試查詢不存在的時段 ID。"""
-        # 執行測試
-        result = self.crud.get_schedule_by_id(self.db, 999)
+        found_schedule = crud.get_schedule_by_id(db_session, 999)
 
-        # 驗證結果
-        assert result is None
+        assert found_schedule is None
 
-    def test_update_schedule_success(self):
+    def test_update_schedule_success(self, db_session: Session):
         """測試成功更新時段。"""
-        # 準備測試資料
-        schedule_data = ScheduleCreate(
-            giver_id=1,
+        crud = ScheduleCRUD()
+
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
+
+        # 建立測試時段
+        schedule = Schedule(
+            giver_id=user.id,
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            note="原始備註",
             status="AVAILABLE",
             role="GIVER",
         )
+        db_session.add(schedule)
+        db_session.commit()
 
-        # 建立時段
-        created_schedules = self.crud.create_schedules(self.db, [schedule_data])
-        schedule_id = created_schedules[0].id
-
-        # 執行測試 - 更新備註和狀態
-        result = self.crud.update_schedule(
-            self.db, schedule_id, note="更新後的備註", status="BOOKED"
+        # 更新時段
+        updated_schedule = crud.update_schedule(
+            db_session,
+            schedule.id,
+            schedule_date=date(2024, 1, 16),
+            start_time=time(14, 0),
+            end_time=time(15, 0),
+            note="更新後的備註",
         )
 
-        # 驗證結果
-        assert result is not None
-        assert result.id == schedule_id
-        assert result.note == "更新後的備註"
-        assert result.status == "BOOKED"
-        assert result.giver_id == 1  # 其他欄位保持不變
+        assert updated_schedule is not None
+        assert updated_schedule.date == date(2024, 1, 16)
+        assert updated_schedule.start_time == time(14, 0)
+        assert updated_schedule.end_time == time(15, 0)
+        assert updated_schedule.note == "更新後的備註"
 
-    def test_update_schedule_not_found(self):
+    def test_update_schedule_not_found(self, db_session: Session):
         """測試更新不存在的時段。"""
-        # 執行測試
-        result = self.crud.update_schedule(self.db, 999, note="新備註")
+        crud = ScheduleCRUD()
 
-        # 驗證結果
-        assert result is None
+        updated_schedule = crud.update_schedule(db_session, 999, note="測試備註")
 
-    def test_delete_schedule_success(self):
+        assert updated_schedule is None
+
+    def test_delete_schedule_success(self, db_session: Session):
         """測試成功刪除時段。"""
-        # 準備測試資料
-        schedule_data = ScheduleCreate(
-            giver_id=1,
+        crud = ScheduleCRUD()
+
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
+
+        # 建立測試時段
+        schedule = Schedule(
+            giver_id=user.id,
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            note="測試時段",
             status="AVAILABLE",
             role="GIVER",
         )
+        db_session.add(schedule)
+        db_session.commit()
 
-        # 建立時段
-        created_schedules = self.crud.create_schedules(self.db, [schedule_data])
-        schedule_id = created_schedules[0].id
+        # 刪除時段
+        result = crud.delete_schedule(db_session, schedule.id)
 
-        # 執行測試
-        result = self.crud.delete_schedule(self.db, schedule_id)
-
-        # 驗證結果
         assert result is True
 
-        # 驗證時段確實被刪除
-        deleted_schedule = self.crud.get_schedule_by_id(self.db, schedule_id)
-        assert deleted_schedule is None
+        # 確認時段已被刪除
+        found_schedule = crud.get_schedule_by_id(db_session, schedule.id)
+        assert found_schedule is None
 
-    def test_delete_schedule_not_found(self):
+    def test_delete_schedule_not_found(self, db_session: Session):
         """測試刪除不存在的時段。"""
-        # 執行測試
-        result = self.crud.delete_schedule(self.db, 999)
+        crud = ScheduleCRUD()
 
-        # 驗證結果
+        result = crud.delete_schedule(db_session, 999)
+
         assert result is False

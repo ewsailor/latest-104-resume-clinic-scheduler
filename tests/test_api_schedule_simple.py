@@ -316,3 +316,42 @@ class TestAPIScheduleSimple:
         # 測試準備就緒檢查
         response = client.get("/readyz")
         assert response.status_code == 200
+
+    def test_create_schedules_with_overlap(self, client, mock_db, mock_schedule):
+        """測試建立重疊時段時的回應。"""
+        # 準備測試資料 - 先建立一個時段，然後嘗試建立重疊的時段
+        schedules_data = [
+            {
+                "giver_id": 1,
+                "date": "2024-01-20",
+                "start_time": "14:00:00",
+                "end_time": "15:00:00",
+                "note": "現有時段",
+                "status": "AVAILABLE",
+                "role": "GIVER",
+            },
+            {
+                "giver_id": 1,
+                "date": "2024-01-20",
+                "start_time": "14:30:00",
+                "end_time": "15:30:00",
+                "note": "重疊時段",
+                "status": "AVAILABLE",
+                "role": "GIVER",
+            },
+        ]
+
+        # 模擬 CRUD 操作拋出重疊錯誤
+        with patch(
+            'app.crud.schedule_crud.create_schedules',
+            side_effect=ValueError(
+                "您正輸入的時段，和您之前曾輸入的「2024/01/20（週六）14:00~15:00」時段重複或重疊，請重新輸入"
+            ),
+        ):
+            # 執行測試
+            response = client.post("/api/schedules", json=schedules_data)
+
+        # 驗證結果
+        assert response.status_code == 400
+        result = response.json()
+        assert "時段重複或重疊" in result["detail"]

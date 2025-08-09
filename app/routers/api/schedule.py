@@ -54,6 +54,10 @@ async def create_schedules(
             ScheduleResponse.model_validate(schedule) for schedule in schedule_objects
         ]
 
+    except ValueError as e:
+        # 處理時段重疊等業務邏輯錯誤
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         db.rollback()
         raise HTTPException(
