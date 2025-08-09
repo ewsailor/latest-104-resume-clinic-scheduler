@@ -1,4 +1,4 @@
-"""建立基準線：現有資料庫結構
+"""初始資料庫結構
 
 Revision ID: c6dd3264fae3
 Revises:
