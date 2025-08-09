@@ -14,6 +14,8 @@ from sqlalchemy import and_  # SQL 條件組合
 # ===== 第三方套件 =====
 from sqlalchemy.orm import Session  # 資料庫會話
 
+from app.models.enums import UserRoleEnum  # ENUM 定義
+
 # ===== 本地模組 =====
 from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型
@@ -96,7 +98,11 @@ class ScheduleCRUD:
         return overlapping_schedules
 
     def create_schedules(
-        self, db: Session, schedules: List[ScheduleCreate]
+        self,
+        db: Session,
+        schedules: List[ScheduleCreate],
+        operator_user_id: Optional[int] = None,
+        operator_role: Optional[UserRoleEnum] = None,
     ) -> List[Schedule]:
         """
         建立多個時段。
@@ -104,6 +110,8 @@ class ScheduleCRUD:
         Args:
             db: 資料庫會話
             schedules: 要建立的時段列表
+            operator_user_id: 操作者的使用者 ID（建立者）
+            operator_role: 操作者的角色 (UserRoleEnum)
 
         Returns:
             List[Schedule]: 建立成功的時段列表
@@ -164,6 +172,8 @@ class ScheduleCRUD:
                 note=schedule_data.note,
                 status=schedule_data.status,
                 role=schedule_data.role,
+                updated_by=operator_user_id,
+                updated_by_role=operator_role or UserRoleEnum.SYSTEM,
             )
             schedule_objects.append(schedule)
 
@@ -226,7 +236,12 @@ class ScheduleCRUD:
         return db.query(Schedule).filter(Schedule.id == schedule_id).first()
 
     def update_schedule(
-        self, db: Session, schedule_id: int, **kwargs: Any
+        self,
+        db: Session,
+        schedule_id: int,
+        operator_user_id: Optional[int] = None,
+        operator_role: Optional[UserRoleEnum] = None,
+        **kwargs: Any,
     ) -> Optional[Schedule]:
         """
         更新時段。
@@ -234,6 +249,8 @@ class ScheduleCRUD:
         Args:
             db: 資料庫會話
             schedule_id: 時段 ID
+            operator_user_id: 操作者的使用者 ID（更新者）
+            operator_role: 操作者的角色 (UserRoleEnum)
             **kwargs: 要更新的欄位
 
         Returns:
@@ -242,6 +259,12 @@ class ScheduleCRUD:
         schedule = self.get_schedule_by_id(db, schedule_id)
         if not schedule:
             return None
+
+        # 設定更新者資訊
+        if operator_user_id is not None:
+            schedule.updated_by = operator_user_id
+        if operator_role is not None:
+            schedule.updated_by_role = operator_role
 
         # 更新欄位
         for field, value in kwargs.items():

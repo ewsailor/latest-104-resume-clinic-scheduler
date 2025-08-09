@@ -1965,7 +1965,9 @@ const ChatStateManager = {
         giverId: schedule.giver_id,
         takerId: schedule.taker_id,
         createdAt: schedule.created_at,
-        updatedAt: schedule.updated_at
+        updatedAt: schedule.updated_at,
+        updatedBy: schedule.updated_by,
+        updatedByRole: schedule.updated_by_role
       }));
       
       console.log('ChatStateManager.loadUserSchedulesFromDatabase: 轉換後的時段', convertedSchedules);
@@ -7564,7 +7566,7 @@ const EventManager = {
               
               const schedulesToSubmit = formalSchedules.map(schedule => ({
                 giver_id: giverId,
-                taker_id: 1, // 預設 taker_id 為 1
+                taker_id: 1, // 預設 【Demo】測試 Taker 的 user_id 為 1
                 date: schedule.date.replace(/\//g, '-'), // 將日期格式從 YYYY/MM/DD 轉換為 YYYY-MM-DD
                 start_time: schedule.startTime + ':00', // 添加秒數以符合 time 格式
                 end_time: schedule.endTime + ':00', // 添加秒數以符合 time 格式
@@ -7573,10 +7575,17 @@ const EventManager = {
                 role: 'TAKER' // 設定為 Taker 角色
               }));
               
-              console.log('EventManager: 準備發送到後端的時段資料', { schedulesToSubmit });
+              // 構建包含操作者資訊的請求體
+              const requestBody = {
+                schedules: schedulesToSubmit,
+                operator_user_id: 1, // 【Demo】測試 Taker 1 的 user_id  
+                operator_role: 'TAKER'
+              };
               
-              // 發送 axios POST 請求到後端
-              const response = await APIClient.post('/api/schedules', schedulesToSubmit);
+              console.log('EventManager: 準備發送到後端的時段資料', { requestBody });
+              
+              // 發送 axios POST 請求到後端（使用帶操作者資訊的端點）
+              const response = await APIClient.post('/api/schedules/with-operator', requestBody);
               console.log('EventManager: 後端回應', { response });
               
               // 添加到正式提供時段列表

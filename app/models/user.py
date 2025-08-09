@@ -49,12 +49,19 @@ class User(Base):  # type: ignore[misc]
     )
 
     # 與 Schedule 的關聯關係
-    given_schedules = relationship(
-        "Schedule", foreign_keys="Schedule.giver_id", back_populates="giver"
-    )
-    taken_schedules = relationship(
-        "Schedule", foreign_keys="Schedule.taker_id", back_populates="taker"
-    )
+    # 暫時註解避免循環依賴問題
+    # given_schedules = relationship(
+    #     "Schedule",
+    #     foreign_keys="Schedule.giver_id",
+    #     back_populates="giver",
+    #     lazy="select"
+    # )
+    # taken_schedules = relationship(
+    #     "Schedule",
+    #     foreign_keys="Schedule.taker_id",
+    #     back_populates="taker",
+    #     lazy="select"
+    # )
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, name='{self.name}', email='{self.email}')>"

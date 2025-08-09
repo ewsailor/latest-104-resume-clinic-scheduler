@@ -11,6 +11,7 @@ from sqlalchemy import (
     Column,
     Date,
     DateTime,
+    Enum,
     ForeignKey,
     String,
     Time,
@@ -82,15 +83,16 @@ class Schedule(Base):  # type: ignore[misc]
         nullable=True,
         comment="最後更新者的使用者 ID，可為 NULL（表示系統自動更新）",
     )
+    updated_by_role = Column(
+        Enum("GIVER", "TAKER", "SYSTEM", name="user_role_enum"),
+        nullable=True,
+        comment="最後更新者的角色：GIVER、TAKER 或 SYSTEM",
+    )
     deleted_at = Column(DateTime, nullable=True, comment="軟刪除標記")
 
     # 關聯關係
-    giver = relationship(
-        "User", foreign_keys=[giver_id], back_populates="given_schedules"
-    )
-    taker = relationship(
-        "User", foreign_keys=[taker_id], back_populates="taken_schedules"
-    )
+    giver = relationship("User", foreign_keys=[giver_id])
+    taker = relationship("User", foreign_keys=[taker_id])
     updated_by_user = relationship("User", foreign_keys=[updated_by])
 
     def __repr__(self) -> str:
@@ -115,6 +117,7 @@ class Schedule(Base):  # type: ignore[misc]
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "updated_by": self.updated_by,
+            "updated_by_role": self.updated_by_role,
             "updated_by_user": (
                 self.updated_by_user.name if self.updated_by_user else None
             ),
