@@ -17,9 +17,10 @@ set TIMESTAMP=%datetime:~0,8%_%datetime:~8,4%
 set DESCRIPTION=%~1
 set MYSQL_PATH=C:\Program Files\MySQL\MySQL Server 8.0\bin
 
-REM 檔案路徑
-set BACKUP_FILE=database\backups\backup_%TIMESTAMP%_before_%DESCRIPTION%.sql
-set PREVIEW_FILE=alembic\sql_previews\preview_%TIMESTAMP%_%DESCRIPTION%.sql
+REM 檔案路徑 - 處理包含空格的描述
+set "DESCRIPTION_SAFE=%DESCRIPTION: =_%"
+set "BACKUP_FILE=database\backups\backup_%TIMESTAMP%_before_%DESCRIPTION_SAFE%.sql"
+set "PREVIEW_FILE=alembic\sql_previews\preview_%TIMESTAMP%_%DESCRIPTION_SAFE%.sql"
 
 echo === Alembic 遷移準備腳本 ===
 echo 時間戳記: %TIMESTAMP%
