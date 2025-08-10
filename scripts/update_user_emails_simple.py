@@ -68,9 +68,7 @@ def main():
         updated_count = 0
         for sql, user_id, email in update_statements:
             try:
-                result = conn.execute(
-                    text(sql), {"email": email, "user_id": user_id}
-                )
+                result = conn.execute(text(sql), {"email": email, "user_id": user_id})
                 if result.rowcount > 0:
                     updated_count += 1
                     logger.info(f"✅ 已更新 ID {user_id} 的 email")

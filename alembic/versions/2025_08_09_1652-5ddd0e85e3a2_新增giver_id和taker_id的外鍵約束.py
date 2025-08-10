@@ -112,5 +112,7 @@ def downgrade() -> None:
         ).scalar()
 
         if result > 0:
-            op.drop_constraint('fk_schedules_updated_by', 'schedules', type_='foreignkey')
+            op.drop_constraint(
+                'fk_schedules_updated_by', 'schedules', type_='foreignkey'
+            )
     # ### end Alembic commands ###
