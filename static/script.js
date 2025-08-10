@@ -2419,7 +2419,7 @@ const FormValidator = {
     // 多筆時段錯誤
     MULTIPLE_SCHEDULES: {
       EMPTY: '請輸入時段資料',
-      INVALID_FORMAT: '時段格式不正確，請使用：日期 時間範圍\n例如：2024/01/15 14:00-16:00',
+      INVALID_FORMAT: '如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。',
       TOO_MANY: '一次最多只能提交 10 個時段',
       NO_VALID_SCHEDULES: '沒有有效的時段資料'
     }
@@ -5981,15 +5981,15 @@ const DOM = {
           return;
         }
         
+        // 先顯示用戶訊息（無論是否為多筆時段模式）
+        console.log('DOM.chat.setupInputControls: 顯示用戶訊息', message);
+        DOM.chat.addUserMessage(message);
+        
         if (ChatStateManager.isMultipleTimesMode()) {
           // 處理多筆時段輸入
           console.log('DOM.chat.setupInputControls: 處理多筆時段輸入', message);
           DOM.chat.handleMultipleTimesSubmission(message);
         } else {
-          // 先顯示用戶訊息
-          console.log('DOM.chat.setupInputControls: 顯示用戶訊息', message);
-          DOM.chat.addUserMessage(message);
-          
           // 模擬 Giver 回覆
           await delay(DELAY_TIMES.CHAT.RESPONSE);
           const giverResponse = DOM.chat.getGiverResponse(message);
