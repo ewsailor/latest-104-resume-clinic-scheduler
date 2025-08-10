@@ -354,12 +354,39 @@ class TestScheduleAPI:
         """測試成功刪除時段。"""
         print("測試成功刪除時段")
 
+        # 使用不同的時段資料避免重疊
+        unique_schedule_data = {
+            "giver_id": 1,
+            "date": "2024-01-25",  # 使用更遠的日期
+            "start_time": "18:00:00",  # 使用不同的時間
+            "end_time": "19:00:00",
+            "status": "AVAILABLE",
+        }
+
         # 先建立一個時段
-        create_response = client.post("/api/schedules", json=[sample_schedule_data])
+        create_request = {
+            "schedules": [unique_schedule_data],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
+        create_response = client.post("/api/schedules", json=create_request)
+
+        # 檢查回應狀態
+        if create_response.status_code != 201:
+            print(
+                f"建立時段失敗: {create_response.status_code} - {create_response.text}"
+            )
+            assert False, f"建立時段失敗: {create_response.status_code}"
+
         created_schedule = create_response.json()[0]
 
         # 執行測試
-        response = client.delete(f"/api/schedules/{created_schedule['id']}")
+        delete_request = {"operator_user_id": 1, "operator_role": "GIVER"}
+        import json
+
+        response = client.request(
+            "DELETE", f"/api/schedules/{created_schedule['id']}", json=delete_request
+        )
 
         # 驗證回應
         assert response.status_code == 200
@@ -371,7 +398,10 @@ class TestScheduleAPI:
         print("測試刪除不存在的時段")
 
         # 執行測試
-        response = client.delete("/api/schedules/999")
+        delete_request = {"operator_user_id": 1, "operator_role": "GIVER"}
+        import json
+
+        response = client.request("DELETE", "/api/schedules/999", json=delete_request)
 
         # 驗證回應
         assert response.status_code == 404
@@ -385,15 +415,34 @@ class TestScheduleAPI:
         """測試刪除時段時的異常處理。"""
         print("測試刪除時段時的異常處理")
 
+        # 使用不同的時段資料避免重疊
+        unique_schedule_data = {
+            "giver_id": 1,
+            "date": "2024-01-21",  # 使用不同的日期
+            "start_time": "16:00:00",  # 使用不同的時間
+            "end_time": "17:00:00",
+            "status": "AVAILABLE",
+        }
+
         # 先建立一個時段
-        create_response = client.post("/api/schedules", json=[sample_schedule_data])
+        create_request = {
+            "schedules": [unique_schedule_data],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
+        create_response = client.post("/api/schedules", json=create_request)
         created_schedule = create_response.json()[0]
 
         # 模擬異常
         mock_delete_schedule.side_effect = Exception("刪除錯誤")
 
         # 執行測試
-        response = client.delete(f"/api/schedules/{created_schedule['id']}")
+        delete_request = {"operator_user_id": 1, "operator_role": "GIVER"}
+        import json
+
+        response = client.request(
+            "DELETE", f"/api/schedules/{created_schedule['id']}", json=delete_request
+        )
 
         # 驗證回應
         assert response.status_code == 400

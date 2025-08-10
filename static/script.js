@@ -7592,10 +7592,31 @@ const EventManager = {
               const response = await APIClient.post('/api/schedules', requestBody);
               console.log('EventManager: 後端回應', { response });
               
+              // 將後端返回的 ID 更新到時段資料中
+              const updatedFormalSchedules = formalSchedules.map((schedule, index) => {
+                const backendSchedule = response[index];
+                if (backendSchedule && backendSchedule.id) {
+                  return {
+                    ...schedule,
+                    id: backendSchedule.id,
+                    created_at: backendSchedule.created_at,
+                    updated_at: backendSchedule.updated_at,
+                    status: backendSchedule.status
+                  };
+                }
+                return schedule;
+              });
+              
+              console.log('EventManager: 更新後的時段資料', { 
+                originalFormalSchedules: formalSchedules,
+                updatedFormalSchedules: updatedFormalSchedules,
+                backendResponse: response 
+              });
+              
               // 添加到正式提供時段列表
               const existingSchedules = ChatStateManager.getProvidedSchedules();
-              const allSchedules = [...existingSchedules, ...formalSchedules];
-              console.log('EventManager: 合併時段列表', { existingSchedulesCount: existingSchedules.length, formalSchedulesCount: formalSchedules.length, allSchedulesCount: allSchedules.length });
+              const allSchedules = [...existingSchedules, ...updatedFormalSchedules];
+              console.log('EventManager: 合併時段列表', { existingSchedulesCount: existingSchedules.length, updatedFormalSchedulesCount: updatedFormalSchedules.length, allSchedulesCount: allSchedules.length });
               ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, allSchedules);
               
               // 清空草稿列表
@@ -7760,7 +7781,7 @@ const EventManager = {
       return new Promise((resolve) => {
         UIComponents.confirmDialog({
           ...dialogConfig,
-          onConfirm: () => {
+          onConfirm: async () => {
             console.log('EventManager: 刪除按鈕被點擊', { index, isProvideTable, isScheduleTable });
       
             // 強制重設快取
@@ -7785,10 +7806,47 @@ const EventManager = {
                 ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.DRAFT_SCHEDULES, updatedDraftSchedules);
                 console.log('EventManager: 草稿時段已刪除', { deletedSchedule: scheduleToDelete, remainingDrafts: updatedDraftSchedules.length });
               } else {
-                // 刪除正式提供時段
-                const updatedProvidedSchedules = providedSchedules.filter((_, idx) => idx !== index);
-                ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, updatedProvidedSchedules);
-                console.log('EventManager: 正式提供時段已刪除', { deletedSchedule: scheduleToDelete, remainingProvided: updatedProvidedSchedules.length });
+                // 刪除正式提供時段 - 需要發送 API 請求到後端
+                try {
+                  // 獲取當前使用者和 Giver 資訊
+                  const currentUserId = ChatStateManager.getCurrentUserId();
+                  const currentGiver = ChatStateManager.getCurrentGiver();
+                  
+                  if (!currentUserId || !currentGiver) {
+                    console.error('EventManager: 無法獲取使用者或 Giver 資訊', { currentUserId, currentGiver });
+                    UIComponents.toast({ message: '刪除失敗：無法獲取使用者資訊', type: 'error' });
+                    return;
+                  }
+                  
+                  // 發送刪除請求到後端
+                  const deleteRequest = {
+                    operator_user_id: currentUserId,
+                    operator_role: scheduleToDelete.role || 'TAKER'  
+                  };
+                  
+                  console.log('EventManager: 發送刪除請求到後端', { 
+                    scheduleId: scheduleToDelete.id, 
+                    deleteRequest 
+                  });
+                  
+                  // 使用 APIClient 發送 DELETE 請求
+                  await APIClient.delete(`/api/schedules/${scheduleToDelete.id}`, {
+                    data: deleteRequest,
+                    headers: { 'Content-Type': 'application/json' }
+                  });
+                  
+                  // 刪除成功後，更新前端狀態
+                  const updatedProvidedSchedules = providedSchedules.filter((_, idx) => idx !== index);
+                  ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES, updatedProvidedSchedules);
+                  console.log('EventManager: 正式提供時段已刪除', { deletedSchedule: scheduleToDelete, remainingProvided: updatedProvidedSchedules.length });
+                  
+                  UIComponents.toast({ message: '時段已成功刪除', type: 'success' });
+                  
+                } catch (error) {
+                  console.error('EventManager: 刪除時段失敗', error);
+                  UIComponents.toast({ message: '刪除失敗：' + (error.response?.data?.detail || error.message), type: 'error' });
+                  return; // 不更新前端狀態
+                }
               }
             }
             

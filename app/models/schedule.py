@@ -22,6 +22,7 @@ from sqlalchemy.orm import relationship
 # ===== 本地模組 =====
 from app.models.database import Base  # 資料庫基類
 from app.models.enums import ScheduleStatusEnum, UserRoleEnum
+from app.utils.model_helpers import format_datetime, safe_getattr  # 模型輔助工具
 from app.utils.timezone import get_local_now_naive  # 本地時間函數
 
 
@@ -138,40 +139,29 @@ class Schedule(Base):  # type: ignore[misc]
             f"date={self.date}, status={self.status})>"
         )
 
-    def _format_datetime(self, dt) -> str | None:
-        """格式化日期時間為 ISO 字串，如果為 None 則返回 None"""
-        return dt.isoformat() if dt else None
-
-    def _safe_getattr(self, attr_name: str, default=None):
-        """安全地取得物件屬性，避免 AttributeError"""
-        try:
-            return getattr(self, attr_name, default)
-        except Exception:
-            return default
-
     def to_dict(self) -> Dict[str, Any]:
         """轉換為字典格式，用於 API 和資料傳輸給前端"""
         try:
             return {
-                "id": self._safe_getattr('id'),
+                "id": safe_getattr(self, 'id'),
                 "creator_role": self.creator_role,  # 向後相容：建立者角色
-                "giver_id": self._safe_getattr('giver_id'),
-                "taker_id": self._safe_getattr('taker_id'),
-                "status": self._safe_getattr('status'),
-                "date": self._format_datetime(self._safe_getattr('date')),
-                "start_time": self._format_datetime(self._safe_getattr('start_time')),
-                "end_time": self._format_datetime(self._safe_getattr('end_time')),
-                "note": self._safe_getattr('note'),
-                "created_at": self._format_datetime(self._safe_getattr('created_at')),
-                "updated_at": self._format_datetime(self._safe_getattr('updated_at')),
-                "updated_by": self._safe_getattr('updated_by'),
-                "updated_by_role": self._safe_getattr('updated_by_role'),
+                "giver_id": safe_getattr(self, 'giver_id'),
+                "taker_id": safe_getattr(self, 'taker_id'),
+                "status": safe_getattr(self, 'status'),
+                "date": format_datetime(safe_getattr(self, 'date')),
+                "start_time": format_datetime(safe_getattr(self, 'start_time')),
+                "end_time": format_datetime(safe_getattr(self, 'end_time')),
+                "note": safe_getattr(self, 'note'),
+                "created_at": format_datetime(safe_getattr(self, 'created_at')),
+                "updated_at": format_datetime(safe_getattr(self, 'updated_at')),
+                "updated_by": safe_getattr(self, 'updated_by'),
+                "updated_by_role": safe_getattr(self, 'updated_by_role'),
                 "updated_by_user": (
-                    self._safe_getattr('updated_by_user').name
-                    if self._safe_getattr('updated_by_user')
+                    safe_getattr(self, 'updated_by_user').name
+                    if safe_getattr(self, 'updated_by_user')
                     else None
                 ),
-                "deleted_at": self._format_datetime(self._safe_getattr('deleted_at')),
+                "deleted_at": format_datetime(safe_getattr(self, 'deleted_at')),
                 # 便利屬性
                 "is_active": self.is_active,
                 "is_deleted": self.is_deleted,
@@ -186,14 +176,14 @@ class Schedule(Base):  # type: ignore[misc]
 
             # 返回基本資訊，避免 API 完全失敗
             return {
-                "id": self._safe_getattr('id'),
+                "id": safe_getattr(self, 'id'),
                 "creator_role": self.creator_role,
-                "giver_id": self._safe_getattr('giver_id'),
-                "taker_id": self._safe_getattr('taker_id'),
-                "status": self._safe_getattr('status', 'unknown'),
-                "date": self._format_datetime(self._safe_getattr('date')),
-                "start_time": self._format_datetime(self._safe_getattr('start_time')),
-                "end_time": self._format_datetime(self._safe_getattr('end_time')),
-                "note": self._safe_getattr('note', ''),
+                "giver_id": safe_getattr(self, 'giver_id'),
+                "taker_id": safe_getattr(self, 'taker_id'),
+                "status": safe_getattr(self, 'status', 'unknown'),
+                "date": format_datetime(safe_getattr(self, 'date')),
+                "start_time": format_datetime(safe_getattr(self, 'start_time')),
+                "end_time": format_datetime(safe_getattr(self, 'end_time')),
+                "note": safe_getattr(self, 'note', ''),
                 "error": "資料序列化時發生錯誤",
             }

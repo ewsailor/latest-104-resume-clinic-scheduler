@@ -203,7 +203,7 @@ class TestScheduleCRUD:
             date=date(2024, 1, 16),
             start_time=time(14, 0),
             end_time=time(15, 0),
-            status="BOOKED",
+            status="PENDING",
         )
         db_session.add_all([schedule1, schedule2])
         db_session.commit()
@@ -267,7 +267,7 @@ class TestScheduleCRUD:
             date=date(2024, 1, 16),
             start_time=time(14, 0),
             end_time=time(15, 0),
-            status="BOOKED",
+            status="PENDING",
         )
         db_session.add_all([schedule1, schedule2])
         db_session.commit()
@@ -319,6 +319,43 @@ class TestScheduleCRUD:
         assert len(schedules) == 1
         assert schedules[0].giver_id == user1.id
         assert schedules[0].status == "AVAILABLE"
+
+    def test_get_schedules_exclude_deleted(self, db_session: Session):
+        """測試查詢時段時排除已軟刪除的記錄。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
+
+        # 建立測試時段
+        schedule1 = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status="AVAILABLE",
+        )
+        schedule2 = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 16),
+            start_time=time(14, 0),
+            end_time=time(15, 0),
+            status="AVAILABLE",
+        )
+        db_session.add_all([schedule1, schedule2])
+        db_session.commit()
+
+        # 軟刪除其中一個時段
+        crud.delete_schedule(db_session, schedule1.id)
+
+        # 查詢時段，應該只返回未刪除的時段
+        schedules = crud.get_schedules(db_session, giver_id=user.id)
+
+        assert len(schedules) == 1
+        assert schedules[0].id == schedule2.id
+        assert schedules[0].deleted_at is None
 
     def test_get_schedule_by_id_success(self, db_session: Session):
         """測試成功根據 ID 查詢時段。"""
@@ -396,10 +433,15 @@ class TestScheduleCRUD:
         """測試更新不存在的時段。"""
         crud = ScheduleCRUD()
 
+        # 先建立一個使用者
+        user = User(name="測試使用者", email="test@example.com")
+        db_session.add(user)
+        db_session.commit()
+
         updated_schedule = crud.update_schedule(
             db_session,
             999,
-            updated_by_user_id=1,
+            updated_by_user_id=user.id,
             operator_role=UserRoleEnum.SYSTEM,
             note="測試備註",
         )
@@ -407,7 +449,7 @@ class TestScheduleCRUD:
         assert updated_schedule is None
 
     def test_delete_schedule_success(self, db_session: Session):
-        """測試成功刪除時段。"""
+        """測試成功軟刪除時段。"""
         crud = ScheduleCRUD()
 
         # 建立測試使用者
@@ -426,14 +468,21 @@ class TestScheduleCRUD:
         db_session.add(schedule)
         db_session.commit()
 
-        # 刪除時段
+        # 軟刪除時段
         result = crud.delete_schedule(db_session, schedule.id)
 
         assert result is True
 
-        # 確認時段已被刪除
+        # 確認時段已被軟刪除（在正常查詢中不可見）
         found_schedule = crud.get_schedule_by_id(db_session, schedule.id)
         assert found_schedule is None
+
+        # 確認時段仍然存在但已被軟刪除
+        found_schedule_with_deleted = crud.get_schedule_by_id_including_deleted(
+            db_session, schedule.id
+        )
+        assert found_schedule_with_deleted is not None
+        assert found_schedule_with_deleted.deleted_at is not None
 
     def test_delete_schedule_not_found(self, db_session: Session):
         """測試刪除不存在的時段。"""
@@ -442,6 +491,41 @@ class TestScheduleCRUD:
         result = crud.delete_schedule(db_session, 999)
 
         assert result is False
+
+    def test_delete_schedule_already_deleted(self, db_session: Session):
+        """測試重複軟刪除時段。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
+
+        # 建立測試時段
+        schedule = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status="AVAILABLE",
+        )
+        db_session.add(schedule)
+        db_session.commit()
+
+        # 第一次軟刪除
+        result1 = crud.delete_schedule(db_session, schedule.id)
+        assert result1 is True
+
+        # 第二次軟刪除（應該成功，因為已經被軟刪除）
+        result2 = crud.delete_schedule(db_session, schedule.id)
+        assert result2 is True
+
+        # 確認時段仍然存在但已被軟刪除
+        found_schedule_with_deleted = crud.get_schedule_by_id_including_deleted(
+            db_session, schedule.id
+        )
+        assert found_schedule_with_deleted is not None
+        assert found_schedule_with_deleted.deleted_at is not None
 
     def test_create_schedules_with_invalid_operator(self, db_session: Session):
         """測試使用不存在的操作者建立時段。"""

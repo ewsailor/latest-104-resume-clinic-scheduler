@@ -78,7 +78,7 @@ class ScheduleCRUD:
         exclude_schedule_id: Optional[int] = None,
     ) -> List[Schedule]:
         """
-        檢查時段重疊。
+        檢查時段重疊（排除已軟刪除的記錄）。
 
         Args:
             db: 資料庫會話
@@ -89,11 +89,15 @@ class ScheduleCRUD:
             exclude_schedule_id: 要排除的時段 ID（用於更新時排除自己）
 
         Returns:
-            List[Schedule]: 重疊的時段列表
+            List[Schedule]: 重疊的時段列表（排除已軟刪除的記錄）
         """
-        # 查詢同一天同一 giver 的所有時段
+        # 查詢同一天同一 giver 的所有時段（排除已軟刪除的記錄）
         query = db.query(Schedule).filter(
-            and_(Schedule.giver_id == giver_id, Schedule.date == schedule_date)
+            and_(
+                Schedule.giver_id == giver_id,
+                Schedule.date == schedule_date,
+                Schedule.deleted_at.is_(None),
+            )
         )
 
         # 排除指定時段（用於更新時排除自己）
@@ -254,7 +258,7 @@ class ScheduleCRUD:
         status_filter: Optional[str] = None,
     ) -> List[Schedule]:
         """
-        查詢時段列表。
+        查詢時段列表（排除已軟刪除的記錄）。
 
         Args:
             db: 資料庫會話
@@ -263,9 +267,12 @@ class ScheduleCRUD:
             status_filter: 可選的狀態篩選條件
 
         Returns:
-            List[Schedule]: 符合條件的時段列表
+            List[Schedule]: 符合條件的時段列表（排除已軟刪除的記錄）
         """
         query = db.query(Schedule)
+
+        # 排除已軟刪除的記錄
+        query = query.filter(Schedule.deleted_at.is_(None))
 
         # 套用篩選條件
         filters = []
@@ -283,7 +290,26 @@ class ScheduleCRUD:
 
     def get_schedule_by_id(self, db: Session, schedule_id: int) -> Optional[Schedule]:
         """
-        根據 ID 查詢單一時段。
+        根據 ID 查詢單一時段（排除已軟刪除的記錄）。
+
+        Args:
+            db: 資料庫會話
+            schedule_id: 時段 ID
+
+        Returns:
+            Optional[Schedule]: 找到的時段物件，如果不存在或已軟刪除則返回 None
+        """
+        return (
+            db.query(Schedule)
+            .filter(Schedule.id == schedule_id, Schedule.deleted_at.is_(None))
+            .first()
+        )
+
+    def get_schedule_by_id_including_deleted(
+        self, db: Session, schedule_id: int
+    ) -> Optional[Schedule]:
+        """
+        根據 ID 查詢單一時段（包含已軟刪除的記錄）。
 
         Args:
             db: 資料庫會話
@@ -381,7 +407,7 @@ class ScheduleCRUD:
         operator_role: Optional[UserRoleEnum] = None,
     ) -> bool:
         """
-        刪除時段。
+        軟刪除時段。
 
         Args:
             db: 資料庫會話
@@ -403,12 +429,21 @@ class ScheduleCRUD:
                 self.logger.error(error_msg)
                 raise ValueError(error_msg)
 
-        self.logger.info(f"正在刪除時段 ID: {schedule_id}，操作者: {operator_user_id}")
+        self.logger.info(
+            f"正在軟刪除時段 ID: {schedule_id}，操作者: {operator_user_id}"
+        )
 
-        schedule = self.get_schedule_by_id(db, schedule_id)
+        schedule = self.get_schedule_by_id_including_deleted(db, schedule_id)
         if not schedule:
             self.logger.warning(f"嘗試刪除不存在的時段: schedule_id={schedule_id}")
             return False
+
+        # 檢查是否已經被軟刪除
+        if schedule.deleted_at is not None:
+            self.logger.warning(
+                f"時段 {schedule_id} 已經被軟刪除，刪除時間: {schedule.deleted_at}"
+            )
+            return True
 
         # 記錄時段詳情
         schedule_info = (
@@ -420,17 +455,30 @@ class ScheduleCRUD:
         if operator_user_id and operator_role:
             self.logger.info(
                 f"時段 {schedule_id} ({schedule_info}) "
-                f"正在被使用者 {operator_user_id} (角色: {operator_role.value}) 刪除"
+                f"正在被使用者 {operator_user_id} (角色: {operator_role.value}) 軟刪除"
             )
 
         try:
-            db.delete(schedule)
+            # 實作軟刪除：設定 deleted_at 時間戳記和更新狀態
+            from app.models.enums import ScheduleStatusEnum
+            from app.utils.timezone import get_local_now_naive
+
+            schedule.deleted_at = get_local_now_naive()
+            schedule.updated_at = get_local_now_naive()
+            schedule.updated_by = operator_user_id
+            schedule.updated_by_role = operator_role
+
+            # 將狀態改為 CANCELLED（已取消）
+            schedule.status = ScheduleStatusEnum.CANCELLED
+
             db.commit()
-            self.logger.info(f"時段 {schedule_id} ({schedule_info}) 已成功刪除")
+            self.logger.info(
+                f"時段 {schedule_id} ({schedule_info}) 已成功軟刪除，狀態改為 CANCELLED，刪除時間: {schedule.deleted_at}"
+            )
             return True
         except Exception as e:
             db.rollback()
-            error_msg = f"刪除時段 {schedule_id} 失敗: {str(e)}"
+            error_msg = f"軟刪除時段 {schedule_id} 失敗: {str(e)}"
             self.logger.error(error_msg)
             raise
 
