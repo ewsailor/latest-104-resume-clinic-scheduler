@@ -33,22 +33,22 @@ class User(Base):  # type: ignore[misc]
         DateTime,
         default=get_local_now_naive,
         nullable=False,
-        comment="建立時間(本地時間)",
+        comment="建立時間（本地時間）",
     )
     updated_at = Column(
         DateTime,
         default=get_local_now_naive,
         onupdate=get_local_now_naive,
         nullable=False,
-        comment="更新時間(本地時間)",
+        comment="更新時間（本地時間）",
     )
     updated_by = Column(
         INTEGER(unsigned=True),
         ForeignKey("users.id", ondelete="SET NULL"),  # 自我參考
         nullable=True,
-        comment="最後更新者的使用者 ID，可為 NULL（表示系統自動更新）",
+        comment="最後更新的使用者 ID，可為 NULL（表示系統自動更新）",
     )
-    deleted_at = Column(DateTime, nullable=True, comment="軟刪除標記(本地時間)")
+    deleted_at = Column(DateTime, nullable=True, comment="軟刪除標記（本地時間）")
 
     # 正向關係：從 updated_by 找到最後更新此使用者的使用者
     updated_by_user = relationship("User", remote_side=[id])

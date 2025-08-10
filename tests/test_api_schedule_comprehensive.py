@@ -61,14 +61,29 @@ class TestAPIScheduleComprehensive:
         schedule.end_time = "10:00:00"
         schedule.note = "測試時段"
         schedule.status = "available"
-        # role 欄位已移除 - 改用計算屬性
-        schedule.creator_role = "TAKER"
-        schedule.role = "TAKER"  # 為了向後相容，mock 對象仍需要這個屬性
         schedule.updated_by = 1
         schedule.updated_by_role = "TAKER"
         schedule.created_at = datetime.now()
         schedule.updated_at = datetime.now()
         schedule.deleted_at = None
+        schedule.creator_role = "TAKER"  # 添加 creator_role 屬性
+        schedule.to_dict.return_value = {
+            "id": 1,
+            "creator_role": "TAKER",
+            "giver_id": 1,
+            "taker_id": None,
+            "date": "2024-01-15",
+            "start_time": "09:00:00",
+            "end_time": "10:00:00",
+            "note": "測試時段",
+            "status": "available",
+            "created_at": schedule.created_at.isoformat(),
+            "updated_at": schedule.updated_at.isoformat(),
+            "updated_by": 1,
+            "updated_by_role": "TAKER",
+            "updated_by_user": None,
+            "deleted_at": None,
+        }
         return schedule
 
     # ===== 直接函數測試 =====

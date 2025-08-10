@@ -440,26 +440,29 @@ const CONFIG = {
     },
     // 狀態文字配置
     STATUS: {
-      GIVER: {
+      GIVER: { // Giver 提供時段，供 Taker 預約
         DRAFT: '草稿：尚未公開預約',
         AVAILABLE: '已公開，尚無人預約',
         PENDING: '有人預約您的時間，待您回覆中',
         ACCEPTED: '您已接受預約',
         REJECTED: '您已婉拒預約',
-        CANCELLED: '您已取消時段'
+        CANCELLED: '您已取消提供此時段',
+        COMPLETED: '諮詢已完成，感謝您的參與'
       },
-      TAKER_VIEW: {
+      TAKER_VIEW: { // Giver 提供時段後，如果 Taker 時間可以則預約 Giver 的時段，如果 Taker 時間不行則選擇提供時間給 Giver（即下方的 TAKER_OFFER）
         PENDING: '預約 Giver 時間成功，待 Giver 回覆',
         ACCEPTED: 'Giver 已接受預約',
-        REJECTED: 'Giver 已婉拒預約',
-        CANCELLED: '預約已取消'
+        REJECTED: 'Giver 已婉拒預約', // 如果 Giver 原本可以的時間，在 Taker 預約後，Giver 因為某種原因不行，則顯示此狀態
+        CANCELLED: '您已取消預約 Giver 的時間',
+        COMPLETED: '諮詢已完成，感謝您的參與'
       },
-      TAKER_OFFER: {
+      TAKER_OFFER: { // Taker 提供時段，供 Giver 回覆是否可以預約，如果 Giver 接受則預約成功，如果 Giver 婉拒則預約失敗
         DRAFT: '草稿：尚未送出給 Giver',
         PENDING: '提供時間成功，待 Giver 回覆',
         ACCEPTED: 'Giver 已接受預約',
         REJECTED: 'Giver 已婉拒預約',
-        CANCELLED: '您已取消提供時間'
+        CANCELLED: '您已取消提供此時段給 Giver',
+        COMPLETED: '諮詢已完成，感謝您的參與'
       }
     },
     // 表格標題配置
@@ -1961,7 +1964,7 @@ const ChatStateManager = {
         endTime: schedule.end_time,
         note: schedule.note,
         status: schedule.status,
-        role: schedule.role,
+        role: schedule.creator_role,  // 使用 creator_role 作為角色資訊
         giverId: schedule.giver_id,
         takerId: schedule.taker_id,
         createdAt: schedule.created_at,

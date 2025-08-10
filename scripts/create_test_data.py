@@ -111,7 +111,7 @@ def create_test_schedules():
             # 建立測試時段
             test_schedules = [
                 {
-                    'role': 'GIVER',
+                    'updated_by_role': UserRoleEnum.GIVER,
                     'giver_id': 1,
                     'date': '2025-08-08',
                     'start_time': '15:00:00',
@@ -120,7 +120,7 @@ def create_test_schedules():
                     'status': 'AVAILABLE',
                 },
                 {
-                    'role': 'GIVER',
+                    'updated_by_role': UserRoleEnum.GIVER,
                     'giver_id': 1,
                     'date': '2025-08-09',
                     'start_time': '16:00:00',
@@ -129,7 +129,7 @@ def create_test_schedules():
                     'status': 'AVAILABLE',
                 },
                 {
-                    'role': 'GIVER',
+                    'updated_by_role': UserRoleEnum.GIVER,
                     'giver_id': 2,
                     'date': '2025-08-10',
                     'start_time': '14:00:00',
@@ -143,16 +143,16 @@ def create_test_schedules():
                 conn.execute(
                     text(
                         """
-                    INSERT INTO schedules (role, giver_id, date, start_time,
+                    INSERT INTO schedules (updated_by_role, giver_id, date, start_time,
                     end_time, note, status)
-                    VALUES (:role, :giver_id, :date, :start_time,
+                    VALUES (:updated_by_role, :giver_id, :date, :start_time,
                     :end_time, :note, :status)
                 """
                     ),
                     schedule,
                 )
                 logger.info(
-                    f"建立時段: {schedule['role']} - {schedule['date']} "
+                    f"建立時段: {schedule['updated_by_role']} - {schedule['date']} "
                     f"{schedule['start_time']}-{schedule['end_time']}"
                 )
 
@@ -166,7 +166,7 @@ def create_test_schedules():
         result = conn.execute(
             text(
                 """
-            SELECT id, role, giver_id, date, start_time, end_time,
+            SELECT id, updated_by_role, giver_id, date, start_time, end_time,
             status, created_at
             FROM schedules
             ORDER BY id

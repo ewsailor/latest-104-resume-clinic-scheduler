@@ -60,7 +60,7 @@ class ScheduleResponse(BaseModel):
     """時段回應模型"""
 
     id: int
-    role: str = Field(
+    creator_role: str = Field(
         description="建立者角色 (由 creator_role 屬性計算)", alias="creator_role"
     )
     giver_id: int

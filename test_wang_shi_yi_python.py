@@ -5,6 +5,9 @@
 
 import requests
 
+# ===== 本地模組 =====
+from app.models.enums import UserRoleEnum
+
 
 def test_wang_shi_yi_schedule() -> None:
     """測試王拾壹的時段提交"""
@@ -19,7 +22,7 @@ def test_wang_shi_yi_schedule() -> None:
             "end_time": "22:00:00",
             "note": "測試王拾壹的時段",
             "status": "AVAILABLE",
-            "role": "TAKER",
+            "updated_by_role": UserRoleEnum.TAKER,
         }
     ]
 
