@@ -53,13 +53,21 @@ CREATE TABLE `users` (
         COMMENT '使用者姓名', 
     `email` VARCHAR(191) NOT NULL UNIQUE 
         COMMENT '電子信箱（唯一）',    
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL 
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL 
         COMMENT '建立時間 (本地時間)',
-    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL 
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL 
         COMMENT '更新時間 (本地時間)',
-    `deleted_at` TIMESTAMP NULL DEFAULT NULL 
-        COMMENT '軟刪除標記 (本地時間)'  -- 最後一個欄位，不需要逗號
+    `updated_by` INT UNSIGNED NULL 
+        COMMENT '最後更新者的使用者 ID，可為 NULL（表示系統自動更新）',
+    `deleted_at` DATETIME NULL DEFAULT NULL 
+        COMMENT '軟刪除標記 (本地時間)',
     
+    -- 自我關聯外鍵約束
+    CONSTRAINT `fk_users_updated_by` 
+        FOREIGN KEY (`updated_by`) 
+        REFERENCES `users` (`id`) 
+        ON DELETE SET NULL
+
 -- 指定儲存引擎、預設字符集、排序規則
 ) ENGINE = InnoDB 
     DEFAULT CHARSET = utf8mb4 
@@ -71,14 +79,14 @@ CREATE INDEX `idx_email`
     ON `users` (`email`);
 CREATE INDEX `idx_deleted_at` 
     ON `users` (`deleted_at`);
+CREATE INDEX `idx_updated_by` 
+    ON `users` (`updated_by`);
 
 -- ===== 行程資料表 `schedules` ===== 
 DROP TABLE IF EXISTS `schedules`;
 CREATE TABLE `schedules` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY 
         COMMENT '行程ID',
-    `role` ENUM('GIVER', 'TAKER') NOT NULL 
-        COMMENT '角色：GIVER=提供者、TAKER=預約者', 
     `giver_id` INT UNSIGNED NOT NULL 
         COMMENT 'Giver 使用者 ID',
     `taker_id` INT UNSIGNED DEFAULT NULL 
@@ -94,28 +102,53 @@ CREATE TABLE `schedules` (
         COMMENT '結束時間 (hh:mm)',
     `note` VARCHAR(255) 
         COMMENT '備註，可為空',
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL 
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL 
         COMMENT '建立時間 (本地時間)',
-    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL 
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL 
         COMMENT '更新時間 (本地時間)',
-    `deleted_at` TIMESTAMP NULL DEFAULT NULL 
+    `updated_by` INT UNSIGNED NULL 
+        COMMENT '最後更新者的使用者 ID，可為 NULL（表示系統自動更新）',
+    `updated_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NULL 
+        COMMENT '最後更新者角色',
+    `deleted_at` DATETIME NULL DEFAULT NULL 
         COMMENT '軟刪除標記 (本地時間)',
     
-    -- 外鍵設定（關聯 users 表）
-    CONSTRAINT `fk_giver` 
+    -- ===== 外鍵約束 =====
+
+    -- Giver 約束
+    CONSTRAINT `fk_schedules_giver` 
         FOREIGN KEY (`giver_id`) 
         REFERENCES `users`(`id`)
-        ON DELETE RESTRICT 
-        ON UPDATE CASCADE,
-    CONSTRAINT `fk_taker` 
+        ON DELETE RESTRICT      -- 保護：不能刪除有時段的 Giver
+        ON UPDATE CASCADE,      -- 更新：如果 Giver ID 改變，自動同步
+    
+    -- Taker 約束
+    CONSTRAINT `fk_schedules_taker` 
         FOREIGN KEY (`taker_id`) 
         REFERENCES `users`(`id`)
-        ON DELETE SET NULL 
-        ON UPDATE CASCADE,
+        ON DELETE SET NULL      -- 靈活：Taker 刪除時設為 NULL（時段變可預約）
+        ON UPDATE CASCADE,      -- 更新：如果 Taker ID 改變，自動同步
     
-    -- 檢查約束：確保開始時間小於結束時間（CHECK 約束本身不能有 COMMENT 說明）
-    CONSTRAINT `chk_time_order` 
-        CHECK (`start_time` < `end_time`)  -- 最後一個欄位，不需要逗號
+    -- 稽核約束
+    CONSTRAINT `fk_schedules_updated_by` 
+        FOREIGN KEY (`updated_by`) 
+        REFERENCES `users` (`id`) 
+        ON DELETE SET NULL      -- 稽核：更新者刪除時保留記錄但設為 NULL
+        ON UPDATE CASCADE,      -- 更新：自動同步 ID 變更
+    
+    -- ===== 業務邏輯約束 =====
+    
+    -- 時間邏輯檢查
+    CONSTRAINT `chk_schedules_time_order` 
+        CHECK (`start_time` < `end_time`),
+    
+    -- 日期邏輯檢查（可選）
+    CONSTRAINT `chk_schedules_future_date` 
+        CHECK (`date` >= CURDATE()),
+    
+    -- 狀態邏輯檢查（可選）
+    CONSTRAINT `chk_schedules_status` 
+        CHECK (`status` IN ('DRAFT', 'AVAILABLE', 'PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED', 'COMPLETED'))
 
 -- 指定儲存引擎、預設字符集、排序規則
 ) ENGINE = InnoDB 

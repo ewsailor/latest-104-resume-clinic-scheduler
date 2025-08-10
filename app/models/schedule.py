@@ -65,10 +65,11 @@ class Schedule(Base):  # type: ignore[misc]
     )
     updated_by = Column(
         INTEGER(unsigned=True),
-        ForeignKey("users.id", ondelete="SET NULL"),
+        ForeignKey("users.id", ondelete="SET NULL"),  # 指向 users 表
         nullable=True,
         comment="最後更新者的使用者 ID，可為 NULL（表示系統自動更新）",
     )
+    updated_by_user = relationship("User", foreign_keys=[updated_by])  # 指向 User 表
     updated_by_role = Column(
         Enum("GIVER", "TAKER", "SYSTEM", name="user_role_enum"),
         nullable=True,
@@ -79,7 +80,6 @@ class Schedule(Base):  # type: ignore[misc]
     # 關聯關係
     giver = relationship("User", foreign_keys=[giver_id])
     taker = relationship("User", foreign_keys=[taker_id])
-    updated_by_user = relationship("User", foreign_keys=[updated_by])
 
     def __repr__(self) -> str:
         """字串表示"""
