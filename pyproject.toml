@@ -46,8 +46,6 @@ pre-commit = "^3.7.0"  # 提交前，自動檢查程式碼品質
 
 # Black 格式化工具配置
 pytest-mock = "^3.14.1"
-flake8 = "^7.3.0"
-pytest-cov = "^6.2.1"
 types-requests = "^2.32.4.20250611"
 [tool.black]
 line-length = 88  # 每行最大字元數，超過此長度會自動換行
@@ -70,12 +68,6 @@ strict = false  # 非嚴格模式，避免過於嚴格的檢查
 ignore_missing_imports = true  # 忽略缺少的匯入，對於無法找到的套件不報錯
 exclude = ["scripts", "tests", ".mypy_cache", "__pycache__"]
 namespace_packages = true
-
-# flake8 程式碼風格檢查工具配置
-[tool.flake8]
-max-line-length = 88
-extend-ignore = ["E203", "W503"]
-exclude = ["scripts/*", "tests/*"]
 
 # 建置系統配置
 [build-system]
