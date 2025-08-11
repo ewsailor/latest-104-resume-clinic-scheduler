@@ -94,17 +94,37 @@ class UserCRUD:
             .first()
         )
 
-    def get_users(self, db: Session) -> list[User]:
+    def get_users(self, db: Session, skip: int = 0, limit: int = 100) -> list[User]:
         """
-        查詢所有使用者列表（排除已軟刪除的記錄）。
+        查詢使用者列表（排除已軟刪除的記錄）。
+
+        Args:
+            db: 資料庫會話
+            skip: 跳過的記錄數（用於分頁）
+            limit: 限制返回的記錄數（用於分頁）
+
+        Returns:
+            list[User]: 使用者列表（排除已軟刪除的記錄）
+        """
+        return (
+            db.query(User)
+            .filter(User.deleted_at.is_(None))
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+
+    def get_users_count(self, db: Session) -> int:
+        """
+        取得使用者總數（排除已軟刪除的記錄）。
 
         Args:
             db: 資料庫會話
 
         Returns:
-            list[User]: 所有使用者的列表（排除已軟刪除的記錄）
+            int: 使用者總數
         """
-        return db.query(User).filter(User.deleted_at.is_(None)).all()
+        return db.query(User).filter(User.deleted_at.is_(None)).count()
 
 
 # 建立全域實例
