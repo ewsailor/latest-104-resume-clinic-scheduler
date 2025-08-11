@@ -88,7 +88,7 @@ class TestAPIScheduleSimple:
         user_data = {"name": "新使用者", "email": "newuser@example.com"}
 
         # 模擬 CRUD 操作
-        with patch('app.crud.schedule_crud.create_user', return_value=mock_user):
+        with patch('app.crud.user_crud.create_user', return_value=mock_user):
             # 執行測試
             response = client.post("/api/users", json=user_data)
 
@@ -107,7 +107,7 @@ class TestAPIScheduleSimple:
 
         # 模擬 CRUD 操作拋出 ValueError
         with patch(
-            'app.crud.schedule_crud.create_user',
+            'app.crud.user_crud.create_user',
             side_effect=ValueError("此電子信箱已被使用"),
         ):
             # 執行測試

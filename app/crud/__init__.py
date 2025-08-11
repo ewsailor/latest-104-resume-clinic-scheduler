@@ -6,6 +6,7 @@ CRUD 操作模組。
 
 # 匯入所有 CRUD 模組
 from app.crud.crud_schedule import schedule_crud
+from app.crud.crud_user import user_crud
 
 # 匯出所有 CRUD 實例
-__all__ = ["schedule_crud"]
+__all__ = ["schedule_crud", "user_crud"]

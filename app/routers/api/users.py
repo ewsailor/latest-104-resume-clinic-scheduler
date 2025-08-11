@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, status  # 路由和錯誤
 from sqlalchemy.orm import Session
 
 # ===== 本地模組 =====
-from app.crud import schedule_crud  # CRUD 操作
+from app.crud import user_crud  # CRUD 操作
 from app.models.database import get_db  # 資料庫連接
 from app.schemas import UserCreate  # 資料模型
 
@@ -38,7 +38,7 @@ async def create_user(
     """
     try:
         # 使用 CRUD 層建立使用者
-        new_user = schedule_crud.create_user(db, user)
+        new_user = user_crud.create_user(db, user)
         return {"message": "使用者建立成功", "user": new_user.to_dict()}
 
     except ValueError as e:

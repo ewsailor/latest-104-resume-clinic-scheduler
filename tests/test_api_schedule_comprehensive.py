@@ -97,7 +97,7 @@ class TestAPIScheduleComprehensive:
         user_data = UserCreate(name="新使用者", email="newuser@example.com")
 
         # 模擬 CRUD 操作
-        with patch('app.crud.schedule_crud.create_user', return_value=mock_user):
+        with patch('app.crud.user_crud.create_user', return_value=mock_user):
             # 執行測試
             result = await create_user(user_data, mock_db)
 
@@ -117,7 +117,7 @@ class TestAPIScheduleComprehensive:
 
         # 模擬 CRUD 操作拋出 ValueError
         with patch(
-            'app.crud.schedule_crud.create_user',
+            'app.crud.user_crud.create_user',
             side_effect=ValueError("此電子信箱已被使用"),
         ):
             # 執行測試並驗證異常
@@ -138,7 +138,7 @@ class TestAPIScheduleComprehensive:
 
         # 模擬 CRUD 操作拋出一般異常
         with patch(
-            'app.crud.schedule_crud.create_user',
+            'app.crud.user_crud.create_user',
             side_effect=Exception("資料庫連線失敗"),
         ):
             # 執行測試並驗證異常
@@ -320,7 +320,7 @@ class TestAPIScheduleComprehensive:
 
         # 模擬 CRUD 操作拋出異常
         with patch(
-            'app.crud.schedule_crud.create_user',
+            'app.crud.user_crud.create_user',
             side_effect=Exception("資料庫錯誤"),
         ):
             # 執行測試並驗證異常
@@ -376,7 +376,7 @@ class TestAPIScheduleComprehensive:
 
         # 模擬 CRUD 操作拋出 ValueError
         with patch(
-            'app.crud.schedule_crud.create_user',
+            'app.crud.user_crud.create_user',
             side_effect=ValueError("無效的電子信箱格式"),
         ):
             # 執行測試並驗證異常
@@ -445,7 +445,7 @@ class TestAPIScheduleComprehensive:
         # 測試使用者建立端點的回應模型
         user_data = {"name": "測試使用者", "email": "test@example.com"}
 
-        with patch('app.crud.schedule_crud.create_user') as mock_create:
+        with patch('app.crud.user_crud.create_user') as mock_create:
             mock_user = Mock()
             mock_user.to_dict.return_value = {
                 "id": 1,
@@ -540,7 +540,7 @@ class TestAPIScheduleComprehensive:
         # 測試成功情況的日誌
         user_data = {"name": "日誌測試使用者", "email": "log@example.com"}
 
-        with patch('app.crud.schedule_crud.create_user') as mock_create:
+        with patch('app.crud.user_crud.create_user') as mock_create:
             mock_user = Mock()
             mock_user.to_dict.return_value = {
                 "id": 1,
@@ -553,8 +553,6 @@ class TestAPIScheduleComprehensive:
             assert response.status_code == 201
 
         # 測試錯誤情況的日誌
-        with patch(
-            'app.crud.schedule_crud.create_user', side_effect=Exception("測試錯誤")
-        ):
+        with patch('app.crud.user_crud.create_user', side_effect=Exception("測試錯誤")):
             response = client.post("/api/users", json=user_data)
             assert response.status_code == 400
