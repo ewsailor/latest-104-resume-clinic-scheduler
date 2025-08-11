@@ -1,7 +1,7 @@
 """
 時段相關的 Pydantic 資料模型。
 
-定義時段管理相關的請求和回應模型，包括使用者建立、時段建立和時段回應模型。
+定義時段管理相關的請求和回應模型。
 """
 
 from datetime import date, datetime, time
@@ -10,13 +10,6 @@ from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.enums import UserRoleEnum
-
-
-class UserCreate(BaseModel):
-    """建立使用者的請求模型"""
-
-    name: str = Field(..., description="使用者姓名")
-    email: str = Field(..., description="電子信箱")
 
 
 class ScheduleCreate(BaseModel):
