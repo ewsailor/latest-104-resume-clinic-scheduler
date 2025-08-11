@@ -359,3 +359,60 @@ class TestGiversAPI:
 
         response = client.get("/api/givers?industry=")
         assert response.status_code == 200
+
+    def test_get_topics_endpoint(self):
+        """測試取得所有服務項目列表端點。"""
+        response = client.get("/api/givers/topics")
+        assert response.status_code == 200
+
+        data = response.json()
+        assert "results" in data
+        assert "total" in data
+        assert "description" in data
+
+        # 檢查結果是列表
+        assert isinstance(data["results"], list)
+        assert isinstance(data["total"], int)
+
+        # 檢查是否有服務項目
+        assert data["total"] > 0
+        assert len(data["results"]) > 0
+
+        # 檢查服務項目內容
+        expected_topics = [
+            "履歷健診",
+            "模擬面試",
+            "職業/產業經驗分享",
+            "職涯諮詢",
+            "英文履歷健診",
+            "英文履歷面試",
+        ]
+        for topic in expected_topics:
+            assert topic in data["results"]
+
+    def test_get_industries_endpoint(self):
+        """測試取得所有產業列表端點。"""
+        response = client.get("/api/givers/industries")
+        assert response.status_code == 200
+
+        data = response.json()
+        assert "results" in data
+        assert "total" in data
+        assert "description" in data
+
+        # 檢查結果是列表
+        assert isinstance(data["results"], list)
+        assert isinstance(data["total"], int)
+
+        # 檢查是否有產業
+        assert data["total"] > 0
+        assert len(data["results"]) > 0
+
+        # 檢查產業內容（至少包含幾個已知的產業）
+        expected_industries = [
+            "電子資訊／軟體／半導體相關業",
+            "金融投顧及保險業",
+            "醫療保健及環境衛生業",
+        ]
+        for industry in expected_industries:
+            assert industry in data["results"]

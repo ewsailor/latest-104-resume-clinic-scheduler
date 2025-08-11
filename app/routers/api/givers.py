@@ -12,6 +12,8 @@ from fastapi import APIRouter, HTTPException, Query, status  # 路由和錯誤�
 # ===== 本地模組 =====
 from app.data.givers import (
     get_all_givers,
+    get_all_industries,
+    get_all_topics,
     get_giver_by_id,
     get_givers_by_industry,
     get_givers_by_topic,
@@ -79,35 +81,26 @@ async def get_givers(
         )
 
 
-@router.get("/givers/{giver_id}")
-async def get_giver(giver_id: int) -> Dict[str, Any]:
+@router.get("/givers/topics")
+async def get_topics() -> Dict[str, Any]:
     """
-    根據 ID 取得特定 Giver 資料。
-
-    Args:
-        giver_id: Giver ID
+    取得所有可用的服務項目列表。
 
     Returns:
-        dict: Giver 詳細資料
-
-    Raises:
-        HTTPException: 當 Giver 不存在時拋出 404 錯誤
+        dict: 包含所有可用服務項目的回應
     """
     try:
-        giver = get_giver_by_id(giver_id)
-        if not giver:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"找不到 ID 為 {giver_id} 的 Giver",
-            )
-        return giver
+        topics = get_all_topics()
+        return {
+            "results": topics,
+            "total": len(topics),
+            "description": "所有可用的服務項目列表",
+        }
 
-    except HTTPException:
-        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"取得 Giver 資料失敗: {str(e)}",
+            detail=f"取得服務項目列表失敗: {str(e)}",
         )
 
 
@@ -130,6 +123,29 @@ async def get_givers_by_topic_endpoint(topic: str) -> Dict[str, Any]:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"根據服務項目篩選 Giver 失敗: {str(e)}",
+        )
+
+
+@router.get("/givers/industries")
+async def get_industries() -> Dict[str, Any]:
+    """
+    取得所有可用的產業列表。
+
+    Returns:
+        dict: 包含所有可用產業的回應
+    """
+    try:
+        industries = get_all_industries()
+        return {
+            "results": industries,
+            "total": len(industries),
+            "description": "所有可用的產業列表",
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"取得產業列表失敗: {str(e)}",
         )
 
 
@@ -171,4 +187,36 @@ async def get_givers_count_endpoint() -> Dict[str, int]:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"取得 Giver 統計失敗: {str(e)}",
+        )
+
+
+@router.get("/givers/{giver_id}")
+async def get_giver(giver_id: int) -> Dict[str, Any]:
+    """
+    根據 ID 取得特定 Giver 資料。
+
+    Args:
+        giver_id: Giver ID
+
+    Returns:
+        dict: Giver 詳細資料
+
+    Raises:
+        HTTPException: 當 Giver 不存在時拋出 404 錯誤
+    """
+    try:
+        giver = get_giver_by_id(giver_id)
+        if not giver:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"找不到 ID 為 {giver_id} 的 Giver",
+            )
+        return giver
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"取得 Giver 資料失敗: {str(e)}",
         )

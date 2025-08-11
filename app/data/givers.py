@@ -300,3 +300,37 @@ def get_givers_count() -> int:
         int: Giver 總數
     """
     return len(MOCK_GIVERS)
+
+
+def get_all_topics() -> List[str]:
+    """
+    取得所有可用的服務項目列表。
+
+    Returns:
+        List[str]: 所有可用的服務項目列表（去重）
+    """
+    topics_set: set[str] = set()
+    for giver in MOCK_GIVERS:
+        giver_topics = giver.get("giverCard__topic", [])
+        if isinstance(giver_topics, list):
+            topics_set.update(giver_topics)
+
+    # 轉換為列表並排序
+    return sorted(list(topics_set))
+
+
+def get_all_industries() -> List[str]:
+    """
+    取得所有可用的產業列表。
+
+    Returns:
+        List[str]: 所有可用的產業列表（去重）
+    """
+    industries_set: set[str] = set()
+    for giver in MOCK_GIVERS:
+        industry = giver.get("industry")
+        if industry and isinstance(industry, str):
+            industries_set.add(industry)
+
+    # 轉換為列表並排序
+    return sorted(list(industries_set))
