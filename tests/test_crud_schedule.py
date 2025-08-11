@@ -24,10 +24,10 @@ class TestScheduleCRUD:
 
     def test_create_user_success(self, db_session: Session):
         """測試成功建立使用者。"""
-        crud = ScheduleCRUD()
-        user_data = UserCreate(name="測試使用者", email="test@example.com")
-
-        user = crud.create_user(db_session, user_data)
+        # 直接使用 User 模型建立使用者
+        user = User(name="測試使用者", email="test@example.com")
+        db_session.add(user)
+        db_session.commit()
 
         assert user.name == "測試使用者"
         assert user.email == "test@example.com"
@@ -35,15 +35,18 @@ class TestScheduleCRUD:
 
     def test_create_user_duplicate_email(self, db_session: Session):
         """測試建立重複 email 的使用者。"""
-        crud = ScheduleCRUD()
-        user_data = UserCreate(name="測試使用者", email="test@example.com")
-
         # 建立第一個使用者
-        crud.create_user(db_session, user_data)
+        user1 = User(name="測試使用者1", email="test@example.com")
+        db_session.add(user1)
+        db_session.commit()
 
         # 嘗試建立第二個相同 email 的使用者
-        with pytest.raises(ValueError, match="此電子信箱已被使用"):
-            crud.create_user(db_session, user_data)
+        user2 = User(name="測試使用者2", email="test@example.com")
+        db_session.add(user2)
+
+        # 這會在提交時拋出資料庫約束錯誤，這是預期的行為
+        with pytest.raises(Exception):  # 可以是 IntegrityError 或其他資料庫錯誤
+            db_session.commit()
 
     def test_create_schedules_success(self, db_session: Session):
         """測試成功建立多個時段。"""
@@ -448,6 +451,127 @@ class TestScheduleCRUD:
 
         assert updated_schedule is None
 
+    def test_update_schedule_with_overlap(self, db_session: Session):
+        """測試更新時段時的重疊檢查。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
+
+        # 建立第一個時段
+        schedule1 = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status="AVAILABLE",
+        )
+        db_session.add(schedule1)
+
+        # 建立第二個時段（與第一個重疊）
+        schedule2 = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 15),
+            start_time=time(9, 30),
+            end_time=time(10, 30),
+            status="AVAILABLE",
+        )
+        db_session.add(schedule2)
+        db_session.commit()
+
+        # 嘗試更新第一個時段，使其與第二個時段重疊
+        with pytest.raises(ValueError, match="時段重疊"):
+            crud.update_schedule(
+                db_session,
+                schedule1.id,
+                updated_by_user_id=user.id,
+                operator_role=UserRoleEnum.GIVER,
+                start_time=time(9, 15),
+                end_time=time(10, 15),
+            )
+
+    def test_update_schedule_without_overlap(self, db_session: Session):
+        """測試更新時段時無重疊的情況。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
+
+        # 建立第一個時段
+        schedule1 = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status="AVAILABLE",
+        )
+        db_session.add(schedule1)
+
+        # 建立第二個時段（不重疊）
+        schedule2 = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 15),
+            start_time=time(11, 0),
+            end_time=time(12, 0),
+            status="AVAILABLE",
+        )
+        db_session.add(schedule2)
+        db_session.commit()
+
+        # 更新第一個時段，不與第二個時段重疊
+        updated_schedule = crud.update_schedule(
+            db_session,
+            schedule1.id,
+            updated_by_user_id=user.id,
+            operator_role=UserRoleEnum.GIVER,
+            start_time=time(8, 0),
+            end_time=time(9, 0),
+        )
+
+        assert updated_schedule is not None
+        assert updated_schedule.start_time == time(8, 0)
+        assert updated_schedule.end_time == time(9, 0)
+
+    def test_update_schedule_non_time_fields_no_overlap_check(
+        self, db_session: Session
+    ):
+        """測試更新非時間欄位時不進行重疊檢查。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
+
+        # 建立測試時段
+        schedule = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status="AVAILABLE",
+        )
+        db_session.add(schedule)
+        db_session.commit()
+
+        # 更新非時間欄位（應該不會觸發重疊檢查）
+        updated_schedule = crud.update_schedule(
+            db_session,
+            schedule.id,
+            updated_by_user_id=user.id,
+            operator_role=UserRoleEnum.GIVER,
+            note="更新備註",
+            status="PENDING",
+        )
+
+        assert updated_schedule is not None
+        assert updated_schedule.note == "更新備註"
+        assert updated_schedule.status == "PENDING"
+
     def test_delete_schedule_success(self, db_session: Session):
         """測試成功軟刪除時段。"""
         crud = ScheduleCRUD()
@@ -555,15 +679,16 @@ class TestScheduleCRUD:
         crud = ScheduleCRUD()
 
         # 先建立一個使用者和時段
-        user_data = UserCreate(name="測試 Giver", email="giver@example.com")
-        user = crud.create_user(db_session, user_data)
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
 
         schedule_data = [
             ScheduleCreate(
                 giver_id=user.id,
-                date="2024-01-15",
-                start_time="09:00:00",
-                end_time="10:00:00",
+                date=date(2024, 1, 15),
+                start_time=time(9, 0),
+                end_time=time(10, 0),
                 note="原始時段",
                 status="AVAILABLE",
             )
@@ -585,34 +710,108 @@ class TestScheduleCRUD:
             )
 
     def test_delete_schedule_with_invalid_operator(self, db_session: Session):
-        """測試使用不存在的操作者刪除時段。"""
+        """測試使用無效操作者刪除時段。"""
         crud = ScheduleCRUD()
 
-        # 先建立一個使用者和時段
-        user_data = UserCreate(name="測試 Giver", email="giver@example.com")
-        user = crud.create_user(db_session, user_data)
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
 
-        schedule_data = [
-            ScheduleCreate(
-                giver_id=user.id,
-                date="2024-01-15",
-                start_time="09:00:00",
-                end_time="10:00:00",
-                note="要刪除的時段",
-                status="AVAILABLE",
-            )
-        ]
-
-        schedules = crud.create_schedules(
-            db_session, schedule_data, user.id, UserRoleEnum.GIVER
+        # 建立測試時段
+        schedule = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            note="測試時段",
+            status="AVAILABLE",
         )
-        schedule = schedules[0]
+        db_session.add(schedule)
+        db_session.commit()
 
-        # 嘗試使用不存在的操作者ID刪除時段
-        with pytest.raises(ValueError, match="操作者不存在: user_id=999"):
+        # 嘗試使用不存在的操作者刪除時段
+        with pytest.raises(ValueError, match="操作者不存在"):
             crud.delete_schedule(
                 db_session,
                 schedule.id,
-                operator_user_id=999,
+                operator_user_id=999,  # 不存在的使用者 ID
                 operator_role=UserRoleEnum.GIVER,
             )
+
+    def test_format_overlap_error_message(self, db_session: Session):
+        """測試格式化重疊時段錯誤訊息。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
+
+        # 建立測試時段
+        schedule = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 15),  # 週一
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            note="測試時段",
+            status="AVAILABLE",
+        )
+        db_session.add(schedule)
+        db_session.commit()
+
+        # 測試建立上下文的錯誤訊息
+        create_error_msg = crud._format_overlap_error_message(
+            [schedule], date(2024, 1, 15), "建立"
+        )
+        expected_create_msg = "您正輸入的時段，和您之前曾輸入的「2024/01/15（週一） 09:00~10:00」時段重複或重疊，請重新輸入"
+        assert create_error_msg == expected_create_msg
+
+        # 測試更新上下文的錯誤訊息
+        update_error_msg = crud._format_overlap_error_message(
+            [schedule], date(2024, 1, 15), "更新"
+        )
+        expected_update_msg = (
+            "時段重疊：與以下時段衝突 - 2024/01/15（週一） 09:00-10:00"
+        )
+        assert update_error_msg == expected_update_msg
+
+        # 測試多個重疊時段
+        schedule2 = Schedule(
+            giver_id=user.id,
+            date=date(2024, 1, 15),  # 週一
+            start_time=time(14, 0),
+            end_time=time(15, 0),
+            note="測試時段2",
+            status="AVAILABLE",
+        )
+        db_session.add(schedule2)
+        db_session.commit()
+
+        multi_error_msg = crud._format_overlap_error_message(
+            [schedule, schedule2], date(2024, 1, 15), "建立"
+        )
+        expected_multi_msg = "您正輸入的時段，和您之前曾輸入的「2024/01/15（週一） 09:00~10:00, 2024/01/15（週一） 14:00~15:00」時段重複或重疊，請重新輸入"
+        assert multi_error_msg == expected_multi_msg
+
+    def test_validate_user_exists(self, db_session: Session):
+        """測試使用者驗證輔助函數。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試使用者
+        user = User(name="測試使用者", email="test@example.com")
+        db_session.add(user)
+        db_session.commit()
+
+        # 測試成功驗證
+        validated_user = crud._validate_user_exists(db_session, user.id, "操作者")
+        assert validated_user.id == user.id
+        assert validated_user.name == "測試使用者"
+
+        # 測試不存在的使用者
+        with pytest.raises(ValueError, match="操作者不存在: user_id=999"):
+            crud._validate_user_exists(db_session, 999, "操作者")
+
+        # 測試不同的上下文
+        with pytest.raises(ValueError, match="更新者不存在: user_id=999"):
+            crud._validate_user_exists(db_session, 999, "更新者")

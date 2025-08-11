@@ -30,6 +30,69 @@ class ScheduleCRUD:
         """初始化 CRUD 實例，設定日誌器。"""
         self.logger = logging.getLogger(__name__)
 
+    def _validate_user_exists(
+        self, db: Session, user_id: int, context: str = "操作者"
+    ) -> User:
+        """
+        驗證使用者是否存在。
+
+        Args:
+            db: 資料庫會話
+            user_id: 使用者 ID
+            context: 上下文描述（用於錯誤訊息）
+
+        Returns:
+            User: 使用者物件
+
+        Raises:
+            ValueError: 當使用者不存在時
+        """
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            error_msg = f"{context}不存在: user_id={user_id}"
+            self.logger.error(error_msg)
+            raise ValueError(error_msg)
+        return user
+
+    def _format_overlap_error_message(
+        self,
+        overlapping_schedules: List[Schedule],
+        schedule_date: date,
+        context: str = "建立",
+    ) -> str:
+        """
+        格式化重疊時段的錯誤訊息。
+
+        Args:
+            overlapping_schedules: 重疊的時段列表
+            schedule_date: 時段日期
+            context: 操作上下文（"建立" 或 "更新"）
+
+        Returns:
+            str: 格式化後的錯誤訊息
+        """
+        overlapping_info = []
+        for overlap_schedule in overlapping_schedules:
+            weekday_names = ['週一', '週二', '週三', '週四', '週五', '週六', '週日']
+            weekday = weekday_names[schedule_date.weekday()]
+            formatted_date = f"{schedule_date.strftime('%Y/%m/%d')}（{weekday}）"
+
+            if context == "建立":
+                # 建立時使用 ~ 分隔符
+                overlapping_info.append(
+                    f"{formatted_date} {overlap_schedule.start_time.strftime('%H:%M')}~{overlap_schedule.end_time.strftime('%H:%M')}"
+                )
+            else:
+                # 更新時使用 - 分隔符
+                overlapping_info.append(
+                    f"{formatted_date} {overlap_schedule.start_time.strftime('%H:%M')}-{overlap_schedule.end_time.strftime('%H:%M')}"
+                )
+
+        if context == "建立":
+            return f"您正輸入的時段，和您之前曾輸入的「{', '.join(overlapping_info)}」時段重複或重疊，請重新輸入"
+        else:
+            return f"時段重疊：與以下時段衝突 - {', '.join(overlapping_info)}"
+
     def check_schedule_overlap(
         self,
         db: Session,
@@ -102,11 +165,7 @@ class ScheduleCRUD:
             ValueError: 當檢測到時段重疊時或操作者不存在時
         """
         # 驗證操作者是否存在
-        operator = db.query(User).filter(User.id == operator_user_id).first()
-        if not operator:
-            error_msg = f"操作者不存在: user_id={operator_user_id}"
-            self.logger.error(error_msg)
-            raise ValueError(error_msg)
+        operator = self._validate_user_exists(db, operator_user_id, "操作者")
 
         # 記錄建立操作
         self.logger.info(
@@ -125,34 +184,10 @@ class ScheduleCRUD:
 
             if overlapping_schedules:
                 # 格式化重疊時段的錯誤訊息
-                overlapping_info = []
-                for overlap_schedule in overlapping_schedules:
-                    # 格式化日期為 YYYY/MM/DD（週X）格式
-                    weekday_names = [
-                        '週一',
-                        '週二',
-                        '週三',
-                        '週四',
-                        '週五',
-                        '週六',
-                        '週日',
-                    ]
-                    weekday = weekday_names[overlap_schedule.date.weekday()]
-                    formatted_date = (
-                        f"{overlap_schedule.date.strftime('%Y/%m/%d')}（{weekday}）"
-                    )
-
-                    # 格式化時間
-                    start_time_str = overlap_schedule.start_time.strftime('%H:%M')
-                    end_time_str = overlap_schedule.end_time.strftime('%H:%M')
-
-                    overlapping_info.append(
-                        f"{formatted_date} {start_time_str}~{end_time_str}"
-                    )
-
-                raise ValueError(
-                    f"您正輸入的時段，和您之前曾輸入的「{', '.join(overlapping_info)}」時段重複或重疊，請重新輸入"
+                error_msg = self._format_overlap_error_message(
+                    overlapping_schedules, schedule_data.schedule_date, "建立"
                 )
+                raise ValueError(error_msg)
 
         # 建立時段物件列表
         schedule_objects = []
@@ -307,11 +342,7 @@ class ScheduleCRUD:
             ValueError: 當更新者不存在時
         """
         # 驗證更新者是否存在
-        updater = db.query(User).filter(User.id == updated_by_user_id).first()
-        if not updater:
-            error_msg = f"更新者不存在: user_id={updated_by_user_id}"
-            self.logger.error(error_msg)
-            raise ValueError(error_msg)
+        updater = self._validate_user_exists(db, updated_by_user_id, "更新者")
 
         # 驗證時段是否存在
         schedule = self.get_schedule_by_id(db, schedule_id)
@@ -324,6 +355,36 @@ class ScheduleCRUD:
             f"時段 {schedule_id} 正在被使用者 {updated_by_user_id} "
             f"(角色: {operator_role.value}) 更新"
         )
+
+        # 檢查是否需要進行重疊檢查（當更新時間相關欄位時）
+        need_overlap_check = any(
+            field in kwargs for field in ["schedule_date", "start_time", "end_time"]
+        )
+
+        # 如果更新了時間相關欄位，先進行重疊檢查
+        if need_overlap_check:
+            # 取得更新後的時間值
+            new_date = kwargs.get("schedule_date", schedule.date)
+            new_start_time = kwargs.get("start_time", schedule.start_time)
+            new_end_time = kwargs.get("end_time", schedule.end_time)
+
+            # 檢查重疊（排除自己）
+            overlapping_schedules = self.check_schedule_overlap(
+                db=db,
+                giver_id=schedule.giver_id,
+                schedule_date=new_date,
+                start_time=new_start_time,
+                end_time=new_end_time,
+                exclude_schedule_id=schedule_id,  # 排除自己
+            )
+
+            if overlapping_schedules:
+                # 格式化重疊時段的錯誤訊息
+                error_msg = self._format_overlap_error_message(
+                    overlapping_schedules, new_date, "更新"
+                )
+                self.logger.warning(f"更新時段 {schedule_id} 時檢測到重疊: {error_msg}")
+                raise ValueError(error_msg)
 
         # 設定更新者資訊
         schedule.updated_by = updated_by_user_id
@@ -385,11 +446,7 @@ class ScheduleCRUD:
         """
         # 如果提供了操作者ID，驗證操作者是否存在
         if operator_user_id:
-            operator = db.query(User).filter(User.id == operator_user_id).first()
-            if not operator:
-                error_msg = f"操作者不存在: user_id={operator_user_id}"
-                self.logger.error(error_msg)
-                raise ValueError(error_msg)
+            operator = self._validate_user_exists(db, operator_user_id, "操作者")
 
         self.logger.info(
             f"正在軟刪除時段 ID: {schedule_id}，操作者: {operator_user_id}"
