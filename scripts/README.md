@@ -6,17 +6,138 @@
 
 ```
 scripts/
-├── cors/                    # CORS 檢查工具套件
-│   ├── __init__.py         # 套件初始化
-│   ├── security_checker.py # 安全性檢查器
-│   ├── config_checker.py   # 配置檢查器
-│   └── validator.py        # 驗證器
-├── cors_check.py           # 統一 CORS 檢查工具
-├── cors_config_checker.py  # 舊版配置檢查器（已棄用）
-├── cors_security_check.py  # 舊版安全性檢查器（已棄用）
-├── config_validator.py     # 配置驗證器
-└── README.md              # 本文件
+├── database/                   # 資料庫相關腳本
+│   ├── migration/              # 資料庫遷移腳本
+│   │   ├── migrate_to_utc.py
+│   │   ├── migrate_to_local_time.py
+│   │   └── fix_timezone.py
+│   ├── maintenance/            # 資料庫維護腳本
+│   │   ├── clear_alembic_version.py
+│   │   ├── backup_and_preview.bat
+│   │   └── backup_and_preview.sh
+│   └── testing/                # 資料庫測試腳本
+│       ├── test_database_connection.py
+│       └── test_database_config.py
+├── data/                       # 資料管理腳本
+│   ├── users/                  # 使用者資料腳本
+│   │   ├── add_test_users.py
+│   │   ├── create_giver_users.py
+│   │   ├── update_user_emails.py
+│   │   └── update_user_emails.sql
+│   └── test_data/              # 測試資料腳本
+│       └── create_test_data.py
+├── testing/                    # 測試相關腳本
+│   ├── run_tests.py
+│   ├── test_schedule_submission.py
+│   └── test_local_time.py
+├── maintenance/                # 系統維護腳本
+│   ├── clear_cache.py
+│   ├── health_check.py
+│   └── config_validator.py
+├── security/                   # 安全性檢查腳本
+│   ├── cors/                   # CORS 相關腳本
+│   │   ├── cors_check.py
+│   │   ├── security_checker.py
+│   │   ├── config_checker.py
+│   │   └── validator.py
+│   └── cors_legacy/            # 舊版 CORS 腳本
+│       ├── cors_config_checker.py
+│       └── cors_security_check.py
+├── debug/                      # 除錯腳本
+│   ├── diagnose_timestamp.py
+│   ├── test_settings_validators.py
+│   └── debug/                  # 除錯子目錄
+│       ├── README.md
+│       ├── test_wang_shi_yi_python.py
+│       ├── test_wang_shi_yi_fix.js
+│       ├── test_api_fix.js
+│       ├── test_giver_id_fix.js
+│       ├── test_chat_session_debug.js
+│       └── test_giver_id_debug.js
+├── batch/                      # 批次檔案
+│   ├── run_tests.bat
+│   ├── clear_cache.bat
+│   └── backup_and_preview.bat
+├── shell/                      # Shell 腳本
+│   ├── clear_cache.sh
+│   └── backup_and_preview.sh
+└── README.md                   # 本文件
 ```
+
+## 🚀 腳本分類
+
+### 資料庫腳本 (`database/`)
+
+#### 遷移腳本 (`database/migration/`)
+
+- **`migrate_to_utc.py`**: 將資料庫時間遷移到 UTC
+- **`migrate_to_local_time.py`**: 將資料庫時間遷移到本地時間
+- **`fix_timezone.py`**: 修復時區相關問題
+
+#### 維護腳本 (`database/maintenance/`)
+
+- **`clear_alembic_version.py`**: 清理 Alembic 版本記錄
+- **`backup_and_preview.bat/.sh`**: 資料庫備份和預覽
+
+#### 測試腳本 (`database/testing/`)
+
+- **`test_database_connection.py`**: 測試資料庫連線
+- **`test_database_config.py`**: 測試資料庫配置
+
+### 資料管理腳本 (`data/`)
+
+#### 使用者資料腳本 (`data/users/`)
+
+- **`add_test_users.py`**: 新增測試使用者
+- **`create_giver_users.py`**: 建立諮詢師使用者
+- **`update_user_emails.py`**: 更新使用者電子郵件
+- **`update_user_emails.sql`**: 使用者電子郵件更新 SQL
+
+#### 測試資料腳本 (`data/test_data/`)
+
+- **`create_test_data.py`**: 建立測試資料
+
+### 測試腳本 (`testing/`)
+
+- **`run_tests.py`**: 執行測試套件
+- **`test_schedule_submission.py`**: 測試排程提交功能
+- **`test_local_time.py`**: 測試本地時間功能
+
+### 系統維護腳本 (`maintenance/`)
+
+- **`clear_cache.py`**: 清理快取
+- **`health_check.py`**: 系統健康檢查
+- **`config_validator.py`**: 配置驗證
+
+### 安全性腳本 (`security/`)
+
+#### CORS 腳本 (`security/cors/`)
+
+- **`cors_check.py`**: 統一 CORS 檢查工具
+- **`security_checker.py`**: CORS 安全性檢查器
+- **`config_checker.py`**: CORS 配置檢查器
+- **`validator.py`**: CORS 驗證器
+
+#### 舊版 CORS 腳本 (`security/cors_legacy/`)
+
+- **`cors_config_checker.py`**: 舊版配置檢查器
+- **`cors_security_check.py`**: 舊版安全性檢查器
+
+### 除錯腳本 (`debug/`)
+
+- **`diagnose_timestamp.py`**: 時間戳診斷
+- **`test_settings_validators.py`**: 設定驗證器測試
+
+### 批次檔案 (`batch/`)
+
+- **`run_tests.bat`**: Windows 測試執行批次檔
+- **`clear_cache.bat`**: Windows 快取清理批次檔
+- **`backup_and_preview.bat`**: Windows 備份批次檔
+
+### Shell 腳本 (`shell/`)
+
+- **`clear_cache.sh`**: Linux/Mac 快取清理腳本
+- **`backup_and_preview.sh`**: Linux/Mac 備份腳本
 
 ## 🚀 CORS 檢查工具
 
