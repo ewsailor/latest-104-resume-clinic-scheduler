@@ -15,7 +15,7 @@ from sqlalchemy import and_  # SQL 條件組合
 # ===== 第三方套件 =====
 from sqlalchemy.orm import Session  # 資料庫會話
 
-from app.models.enums import UserRoleEnum  # ENUM 定義
+from app.models.enums import ScheduleStatusEnum, UserRoleEnum  # ENUM 定義
 
 # ===== 本地模組 =====
 from app.models.schedule import Schedule  # 時段模型
@@ -196,12 +196,12 @@ class ScheduleCRUD:
             # GIVER 建立時段 -> AVAILABLE (可預約)
             # TAKER 建立時段 -> PENDING (等待 Giver 確認)
             if operator_role == UserRoleEnum.TAKER:
-                status = "PENDING"
+                status = ScheduleStatusEnum.PENDING
             elif operator_role == UserRoleEnum.GIVER:
-                status = "AVAILABLE"
+                status = ScheduleStatusEnum.AVAILABLE
             else:
                 # 使用傳入的狀態或預設為 DRAFT
-                status = schedule_data.status or "DRAFT"
+                status = schedule_data.status or ScheduleStatusEnum.DRAFT
 
             schedule = Schedule(
                 giver_id=schedule_data.giver_id,

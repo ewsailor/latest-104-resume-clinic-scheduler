@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session  # 資料庫會話
 
 # ===== 本地模組 =====
 from app.crud.crud_schedule import ScheduleCRUD  # CRUD 操作
-from app.models.enums import UserRoleEnum  # 角色枚舉
+from app.models.enums import ScheduleStatusEnum, UserRoleEnum  # 角色枚舉
 from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型
 from app.schemas import ScheduleCreate, UserCreate  # 資料模型
@@ -64,7 +64,7 @@ class TestScheduleCRUD:
                 start_time=time(9, 0),
                 end_time=time(10, 0),
                 note="測試時段1",
-                status="AVAILABLE",
+                status=ScheduleStatusEnum.AVAILABLE,
             ),
             ScheduleCreate(
                 giver_id=user.id,
@@ -72,7 +72,7 @@ class TestScheduleCRUD:
                 start_time=time(14, 0),
                 end_time=time(15, 0),
                 note="測試時段2",
-                status="AVAILABLE",
+                status=ScheduleStatusEnum.AVAILABLE,
             ),
         ]
 
@@ -104,7 +104,7 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add(existing_schedule)
         db_session.commit()
@@ -131,7 +131,7 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add(existing_schedule)
         db_session.commit()
@@ -159,7 +159,7 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add(existing_schedule)
         db_session.commit()
@@ -172,7 +172,7 @@ class TestScheduleCRUD:
                 start_time=time(9, 30),
                 end_time=time(10, 30),
                 note="重疊時段",
-                status="AVAILABLE",
+                status=ScheduleStatusEnum.AVAILABLE,
             )
         ]
 
@@ -199,14 +199,14 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         schedule2 = Schedule(
             giver_id=user.id,
             date=date(2024, 1, 16),
             start_time=time(14, 0),
             end_time=time(15, 0),
-            status="PENDING",
+            status=ScheduleStatusEnum.PENDING,
         )
         db_session.add_all([schedule1, schedule2])
         db_session.commit()
@@ -231,14 +231,14 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         schedule2 = Schedule(
             giver_id=user2.id,
             date=date(2024, 1, 16),
             start_time=time(14, 0),
             end_time=time(15, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add_all([schedule1, schedule2])
         db_session.commit()
@@ -263,22 +263,24 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         schedule2 = Schedule(
             giver_id=user.id,
             date=date(2024, 1, 16),
             start_time=time(14, 0),
             end_time=time(15, 0),
-            status="PENDING",
+            status=ScheduleStatusEnum.PENDING,
         )
         db_session.add_all([schedule1, schedule2])
         db_session.commit()
 
-        schedules = crud.get_schedules(db_session, status_filter="AVAILABLE")
+        schedules = crud.get_schedules(
+            db_session, status_filter=ScheduleStatusEnum.AVAILABLE
+        )
 
         assert len(schedules) == 1
-        assert schedules[0].status == "AVAILABLE"
+        assert schedules[0].status == ScheduleStatusEnum.AVAILABLE
 
     def test_get_schedules_filter_by_both(self, db_session: Session):
         """測試同時根據 giver_id 和狀態篩選時段。"""
@@ -296,32 +298,32 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         schedule2 = Schedule(
             giver_id=user1.id,
             date=date(2024, 1, 16),
             start_time=time(14, 0),
             end_time=time(15, 0),
-            status="BOOKED",
+            status=ScheduleStatusEnum.ACCEPTED,
         )
         schedule3 = Schedule(
             giver_id=user2.id,
             date=date(2024, 1, 17),
             start_time=time(16, 0),
             end_time=time(17, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add_all([schedule1, schedule2, schedule3])
         db_session.commit()
 
         schedules = crud.get_schedules(
-            db_session, giver_id=user1.id, status_filter="AVAILABLE"
+            db_session, giver_id=user1.id, status_filter=ScheduleStatusEnum.AVAILABLE
         )
 
         assert len(schedules) == 1
         assert schedules[0].giver_id == user1.id
-        assert schedules[0].status == "AVAILABLE"
+        assert schedules[0].status == ScheduleStatusEnum.AVAILABLE
 
     def test_get_schedules_exclude_deleted(self, db_session: Session):
         """測試查詢時段時排除已軟刪除的記錄。"""
@@ -338,14 +340,14 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         schedule2 = Schedule(
             giver_id=user.id,
             date=date(2024, 1, 16),
             start_time=time(14, 0),
             end_time=time(15, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add_all([schedule1, schedule2])
         db_session.commit()
@@ -375,7 +377,7 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add(schedule)
         db_session.commit()
@@ -409,7 +411,7 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add(schedule)
         db_session.commit()
@@ -466,7 +468,7 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add(schedule1)
 
@@ -476,7 +478,7 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(9, 30),
             end_time=time(10, 30),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add(schedule2)
         db_session.commit()
@@ -507,7 +509,7 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add(schedule1)
 
@@ -517,7 +519,7 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(11, 0),
             end_time=time(12, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add(schedule2)
         db_session.commit()
@@ -553,7 +555,7 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add(schedule)
         db_session.commit()
@@ -565,12 +567,12 @@ class TestScheduleCRUD:
             updated_by_user_id=user.id,
             operator_role=UserRoleEnum.GIVER,
             note="更新備註",
-            status="PENDING",
+            status=ScheduleStatusEnum.PENDING,
         )
 
         assert updated_schedule is not None
         assert updated_schedule.note == "更新備註"
-        assert updated_schedule.status == "PENDING"
+        assert updated_schedule.status == ScheduleStatusEnum.PENDING
 
     def test_delete_schedule_success(self, db_session: Session):
         """測試成功軟刪除時段。"""
@@ -587,7 +589,7 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add(schedule)
         db_session.commit()
@@ -631,7 +633,7 @@ class TestScheduleCRUD:
             date=date(2024, 1, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add(schedule)
         db_session.commit()
@@ -661,7 +663,7 @@ class TestScheduleCRUD:
                 start_time="09:00:00",
                 end_time="10:00:00",
                 note="測試時段",
-                status="AVAILABLE",
+                status=ScheduleStatusEnum.AVAILABLE,
             )
         ]
 
@@ -690,7 +692,7 @@ class TestScheduleCRUD:
                 start_time=time(9, 0),
                 end_time=time(10, 0),
                 note="原始時段",
-                status="AVAILABLE",
+                status=ScheduleStatusEnum.AVAILABLE,
             )
         ]
 
@@ -725,7 +727,7 @@ class TestScheduleCRUD:
             start_time=time(9, 0),
             end_time=time(10, 0),
             note="測試時段",
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add(schedule)
         db_session.commit()
@@ -755,7 +757,7 @@ class TestScheduleCRUD:
             start_time=time(9, 0),
             end_time=time(10, 0),
             note="測試時段",
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add(schedule)
         db_session.commit()
@@ -783,7 +785,7 @@ class TestScheduleCRUD:
             start_time=time(14, 0),
             end_time=time(15, 0),
             note="測試時段2",
-            status="AVAILABLE",
+            status=ScheduleStatusEnum.AVAILABLE,
         )
         db_session.add(schedule2)
         db_session.commit()

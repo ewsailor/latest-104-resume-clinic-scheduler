@@ -4,6 +4,7 @@
 定義使用者管理相關的請求和回應模型。
 """
 
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field
@@ -22,6 +23,7 @@ class UserResponse(BaseModel):
     id: int
     name: str
     email: EmailStr
-    role: Optional[str] = None
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
+    created_at: datetime = Field(description="建立時間（本地時間）")
+    updated_at: datetime = Field(description="更新時間（本地時間）")
+    updated_by: Optional[int] = Field(None, description="最後更新者的使用者 ID")
+    deleted_at: Optional[datetime] = Field(None, description="軟刪除標記（本地時間）")

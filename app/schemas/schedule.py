@@ -9,7 +9,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.enums import UserRoleEnum
+from app.models.enums import ScheduleStatusEnum, UserRoleEnum
 
 
 class ScheduleCreate(BaseModel):
@@ -17,13 +17,14 @@ class ScheduleCreate(BaseModel):
 
     giver_id: int = Field(..., description="Giver ID")
     taker_id: Optional[int] = Field(None, description="Taker ID")
+    status: Optional[ScheduleStatusEnum] = Field(
+        default=None,
+        description="時段狀態（可選，後端會根據操作者角色自動決定：GIVER→AVAILABLE，TAKER→PENDING，其他→DRAFT）",
+    )
     schedule_date: date = Field(..., description="時段日期", alias="date")
     start_time: time = Field(..., description="開始時間")
     end_time: time = Field(..., description="結束時間")
     note: Optional[str] = Field(None, description="備註")
-    status: Optional[str] = Field(
-        default=None, description="時段狀態（由後端根據操作者角色自動決定）"
-    )
 
 
 class ScheduleCreateWithOperator(BaseModel):
@@ -54,20 +55,21 @@ class ScheduleResponse(BaseModel):
 
     id: int
     creator_role: str = Field(
-        description="建立者角色 (由 creator_role 屬性計算)", alias="creator_role"
+        description="建立者角色（向後相容屬性）", alias="creator_role"
     )
     giver_id: int
     taker_id: Optional[int]
+    status: ScheduleStatusEnum
     date: date
     start_time: time
     end_time: time
     note: Optional[str]
-    status: str
-    created_at: Optional[datetime]  # 改回 datetime 類型，因為資料庫現在儲存本地時間
-    updated_at: Optional[datetime]  # 改回 datetime 類型，因為資料庫現在儲存本地時間
+    created_at: datetime  # 建立時間（本地時間）
+    updated_at: datetime  # 更新時間（本地時間）
     updated_by: Optional[int] = Field(None, description="最後更新者的使用者 ID")
     updated_by_role: Optional[UserRoleEnum] = Field(
         None, description="最後更新者的角色"
     )
+    deleted_at: Optional[datetime] = Field(None, description="軟刪除標記（本地時間）")
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
