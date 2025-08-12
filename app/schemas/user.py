@@ -6,14 +6,14 @@
 
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserCreate(BaseModel):
     """建立使用者的請求模型"""
 
     name: str = Field(..., description="使用者姓名")
-    email: str = Field(..., description="電子信箱")
+    email: EmailStr = Field(..., description="電子信箱")
 
 
 class UserResponse(BaseModel):
@@ -21,7 +21,7 @@ class UserResponse(BaseModel):
 
     id: int
     name: str
-    email: str
+    email: EmailStr
     role: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
