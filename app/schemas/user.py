@@ -5,7 +5,7 @@
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional  # 保留 Optional，因為它沒有內建替代
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -25,5 +25,5 @@ class UserResponse(BaseModel):
     email: EmailStr
     created_at: datetime = Field(description="建立時間（本地時間）")
     updated_at: datetime = Field(description="更新時間（本地時間）")
-    updated_by: Optional[int] = Field(None, description="最後更新者的使用者 ID")
-    deleted_at: Optional[datetime] = Field(None, description="軟刪除標記（本地時間）")
+    updated_by: int | None = Field(None, description="最後更新者的使用者 ID")
+    deleted_at: datetime | None = Field(None, description="軟刪除標記（本地時間）")

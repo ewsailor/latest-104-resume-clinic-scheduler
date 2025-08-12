@@ -7,7 +7,7 @@
 import logging
 import traceback
 import uuid
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import Request, Response, status
 from fastapi.exceptions import HTTPException, RequestValidationError
@@ -152,14 +152,17 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
         return JSONResponse(status_code=status_code, content=error_response)
 
 
-def create_error_handler_middleware() -> ErrorHandlerMiddleware:
+def create_error_handler_middleware(app) -> ErrorHandlerMiddleware:
     """
     創建錯誤處理中間件實例。
+
+    Args:
+        app: FastAPI 應用程式實例
 
     Returns:
         ErrorHandlerMiddleware: 錯誤處理中間件實例
     """
-    return ErrorHandlerMiddleware()
+    return ErrorHandlerMiddleware(app)
 
 
 # 全域異常處理器（用於 FastAPI 的 exception_handler 裝飾器）

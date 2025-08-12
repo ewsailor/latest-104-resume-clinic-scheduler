@@ -7,7 +7,7 @@
 from typing import Any, Optional
 
 
-def format_datetime(dt) -> Optional[str]:
+def format_datetime(dt) -> str | None:
     """
     格式化日期時間為 ISO 字串，如果為 None 則返回 None。
 
@@ -15,7 +15,7 @@ def format_datetime(dt) -> Optional[str]:
         dt: 日期時間物件或 None
 
     Returns:
-        Optional[str]: ISO 格式的字串或 None
+        str | None: ISO 格式的字串或 None
     """
     return dt.isoformat() if dt else None
 

@@ -8,7 +8,7 @@
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import requests
 
@@ -37,12 +37,12 @@ class HealthChecker:
         self.session = requests.Session()
         self.session.timeout = 10  # 10 秒超時
 
-    def check_ping(self) -> Dict[str, Any]:
+    def check_ping(self) -> dict[str, Any]:
         """
         檢查 ping 端點。
 
         Returns:
-            Dict: 檢查結果
+            dict: 檢查結果
         """
         start_time = time.time()
         try:
@@ -67,12 +67,12 @@ class HealthChecker:
                 "error": str(e),
             }
 
-    def check_health(self) -> Dict[str, Any]:
+    def check_health(self) -> dict[str, Any]:
         """
         檢查 health 端點。
 
         Returns:
-            Dict: 檢查結果
+            dict: 檢查結果
         """
         start_time = time.time()
         try:
@@ -97,12 +97,12 @@ class HealthChecker:
                 "error": str(e),
             }
 
-    def check_root(self) -> Dict[str, Any]:
+    def check_root(self) -> dict[str, Any]:
         """
         檢查根端點。
 
         Returns:
-            Dict: 檢查結果
+            dict: 檢查結果
         """
         start_time = time.time()
         try:
@@ -129,12 +129,12 @@ class HealthChecker:
                 "error": str(e),
             }
 
-    def comprehensive_check(self) -> Dict[str, Any]:
+    def comprehensive_check(self) -> dict[str, Any]:
         """
         執行全面健康檢查。
 
         Returns:
-            Dict: 完整檢查結果
+            dict: 完整檢查結果
         """
         print(f"🔍 健康檢查開始 - {self.base_url}")
         print("=" * 60)
@@ -173,7 +173,7 @@ class HealthChecker:
             },
         }
 
-    def _print_result(self, title: str, result: Dict[str, Any]) -> None:
+    def _print_result(self, title: str, result: dict[str, Any]) -> None:
         """印出檢查結果。"""
         status_icon = "✅" if result["status"] == "success" else "❌"
         print(f"{status_icon} {title}")

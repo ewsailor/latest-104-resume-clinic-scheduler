@@ -8,7 +8,7 @@ Settings 驗證器測試腳本。
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 # 添加專案根目錄到 Python 路徑
 project_root = Path(__file__).parent.parent

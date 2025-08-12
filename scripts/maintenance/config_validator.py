@@ -15,7 +15,7 @@
 import argparse
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 # 添加專案根目錄到 Python 路徑
 project_root = Path(__file__).parent.parent

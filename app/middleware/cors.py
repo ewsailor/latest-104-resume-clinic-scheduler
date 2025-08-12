@@ -7,7 +7,7 @@ CORS 中間件模組。
 
 # ===== 標準函式庫 =====
 import logging
-from typing import Any, Dict, List  # 型別註解支援
+from typing import Any  # 型別註解支援
 
 # ===== 第三方套件 =====
 from fastapi import FastAPI  # Web 框架核心
@@ -20,7 +20,7 @@ from app.core.settings import Settings  # 應用程式設定
 logger = logging.getLogger(__name__)
 
 
-def get_cors_origins_by_environment(settings: Settings) -> List[str]:
+def get_cors_origins_by_environment(settings: Settings) -> list[str]:
     """
     根據環境動態取得 CORS 來源列表。
 
@@ -28,7 +28,7 @@ def get_cors_origins_by_environment(settings: Settings) -> List[str]:
         settings: 應用程式設定物件
 
     Returns:
-        List[str]: CORS 來源列表
+        list[str]: CORS 來源列表
     """
     logger.info(f"設定 CORS 來源，環境：{settings.app_env}")
 
@@ -72,7 +72,7 @@ def get_cors_origins_by_environment(settings: Settings) -> List[str]:
     return cors_origins
 
 
-def validate_cors_origins(origins: List[str]) -> List[str]:
+def validate_cors_origins(origins: list[str]) -> list[str]:
     """
     驗證和清理 CORS 來源列表。
 
@@ -80,7 +80,7 @@ def validate_cors_origins(origins: List[str]) -> List[str]:
         origins: 原始 CORS 來源列表
 
     Returns:
-        List[str]: 驗證後的 CORS 來源列表
+        list[str]: 驗證後的 CORS 來源列表
     """
     logger.info("驗證 CORS 來源設定")
 
@@ -116,12 +116,12 @@ def validate_cors_origins(origins: List[str]) -> List[str]:
     return validated_origins
 
 
-def get_cors_methods() -> List[str]:
+def get_cors_methods() -> list[str]:
     """
     取得允許的 HTTP 方法列表。
 
     Returns:
-        List[str]: 允許的 HTTP 方法列表
+        list[str]: 允許的 HTTP 方法列表
     """
     return [
         "GET",  # 讀取資料
@@ -133,12 +133,12 @@ def get_cors_methods() -> List[str]:
     ]
 
 
-def get_cors_headers() -> List[str]:
+def get_cors_headers() -> list[str]:
     """
     取得允許的標頭列表。
 
     Returns:
-        List[str]: 允許的標頭列表
+        list[str]: 允許的標頭列表
     """
     return [
         "Accept",
@@ -201,7 +201,7 @@ def setup_cors_middleware(app: FastAPI, settings: Settings) -> None:
         raise
 
 
-def get_cors_config_summary(settings: Settings) -> Dict[str, Any]:
+def get_cors_config_summary(settings: Settings) -> dict[str, Any]:
     """
     取得 CORS 配置摘要，用於除錯和監控。
 

@@ -4,7 +4,7 @@ Giver 管理 API 路由模組。
 提供 Giver 相關的 API 端點，包括查詢 Giver 列表和詳細資訊。
 """
 
-from typing import Any, Dict, Optional  # 型別提示
+from typing import Any  # 型別提示
 
 # ===== 第三方套件 =====
 from fastapi import APIRouter, HTTPException, Query, status  # 路由和錯誤處理
@@ -31,11 +31,11 @@ router = APIRouter(prefix="/api", tags=["Givers"])
 
 @router.get("/givers")
 async def get_givers(
-    topic: Optional[str] = Query(None, description="根據服務項目篩選"),
-    industry: Optional[str] = Query(None, description="根據產業篩選"),
+    topic: str | None = Query(None, description="根據服務項目篩選"),
+    industry: str | None = Query(None, description="根據產業篩選"),
     page: int = Query(1, ge=1, description="頁碼"),
     per_page: int = Query(12, ge=1, le=100, description="每頁數量"),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     取得 Giver 列表。
 
@@ -91,7 +91,7 @@ async def get_givers(
 
 
 @router.get("/givers/topics")
-async def get_topics() -> Dict[str, Any]:
+async def get_topics() -> dict[str, Any]:
     """
     取得所有可用的服務項目列表。
 
@@ -114,7 +114,7 @@ async def get_topics() -> Dict[str, Any]:
 
 
 @router.get("/givers/topics/{topic}")
-async def get_givers_by_topic_endpoint(topic: str) -> Dict[str, Any]:
+async def get_givers_by_topic_endpoint(topic: str) -> dict[str, Any]:
     """
     根據服務項目取得 Giver 列表。
 
@@ -136,7 +136,7 @@ async def get_givers_by_topic_endpoint(topic: str) -> Dict[str, Any]:
 
 
 @router.get("/givers/industries")
-async def get_industries() -> Dict[str, Any]:
+async def get_industries() -> dict[str, Any]:
     """
     取得所有可用的產業列表。
 
@@ -159,7 +159,7 @@ async def get_industries() -> Dict[str, Any]:
 
 
 @router.get("/givers/industries/{industry}")
-async def get_givers_by_industry_endpoint(industry: str) -> Dict[str, Any]:
+async def get_givers_by_industry_endpoint(industry: str) -> dict[str, Any]:
     """
     根據產業取得 Giver 列表。
 
@@ -181,7 +181,7 @@ async def get_givers_by_industry_endpoint(industry: str) -> Dict[str, Any]:
 
 
 @router.get("/givers/stats/count")
-async def get_givers_count_endpoint() -> Dict[str, int]:
+async def get_givers_count_endpoint() -> dict[str, int]:
     """
     取得 Giver 總數統計。
 
@@ -200,7 +200,7 @@ async def get_givers_count_endpoint() -> Dict[str, int]:
 
 
 @router.get("/givers/{giver_id}")
-async def get_giver(giver_id: int) -> Dict[str, Any]:
+async def get_giver(giver_id: int) -> dict[str, Any]:
     """
     根據 ID 取得特定 Giver 資料。
 

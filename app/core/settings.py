@@ -8,7 +8,7 @@
 # ===== 標準函式庫 =====
 import tomllib  # Python 3.11+ 內建，解析 TOML 格式檔案
 from pathlib import Path  # 現代化的路徑處理
-from typing import Any, Dict, List, Optional  # 型別註解支援
+from typing import Any  # 保留 Any，因為它沒有內建替代
 
 # ===== 第三方套件 =====
 from pydantic import Field, SecretStr, field_validator  # Pydantic v2 驗證和欄位定義
@@ -86,7 +86,7 @@ class Settings(BaseSettings):
     # 如果 .env 或系統中結果是小寫字串 "true"，就回傳 True，開啟「除錯模式（debug mode）」
     # 如果 .env 或系統中沒有 DEBUG，預設回傳 False（布林值）
     debug: bool = Field(default=False, description="是否啟用除錯模式")
-    secret_key: Optional[SecretStr] = Field(default=None, description="應用程式密鑰")
+    secret_key: SecretStr | None = Field(default=None, description="應用程式密鑰")
 
     # ===== API 文件配置 =====
     docs_url: str = Field(default="/docs", description="API 文件 URL")
@@ -100,11 +100,11 @@ class Settings(BaseSettings):
     # MySQL 配置
     mysql_host: str = Field(default="localhost", description="MySQL 主機地址")
     mysql_port: int = Field(default=3306, description="MySQL 連接埠")
-    mysql_user: Optional[str] = Field(
+    mysql_user: str | None = Field(
         default=None,
         description="MySQL 使用者名稱（建議使用專用應用程式帳號，不要使用 root）",
     )
-    mysql_password: Optional[SecretStr] = Field(
+    mysql_password: SecretStr | None = Field(
         default=None,  # 使用 None 作為預設值，強制從環境變數設定
         description="MySQL 密碼",
     )
@@ -123,26 +123,20 @@ class Settings(BaseSettings):
     redis_host: str = Field(default="localhost", description="Redis 主機地址")
     redis_port: int = Field(default=6379, description="Redis 連接埠")
     redis_db: int = Field(default=0, description="Redis 資料庫編號")
-    redis_password: Optional[SecretStr] = Field(default=None, description="Redis 密碼")
+    redis_password: SecretStr | None = Field(default=None, description="Redis 密碼")
 
     # ===== AWS 配置 =====
-    aws_access_key_id: Optional[str] = Field(
-        default=None, description="AWS 存取金鑰 ID"
-    )
-    aws_secret_access_key: Optional[SecretStr] = Field(
+    aws_access_key_id: str | None = Field(default=None, description="AWS 存取金鑰 ID")
+    aws_secret_access_key: SecretStr | None = Field(
         default=None, description="AWS 秘密存取金鑰"
     )
     aws_region: str = Field(default="ap-northeast-1", description="AWS 區域")
-    aws_s3_bucket: Optional[str] = Field(default=None, description="AWS S3 儲存桶名稱")
+    aws_s3_bucket: str | None = Field(default=None, description="AWS S3 儲存桶名稱")
 
     # ===== 104 API 配置 =====
-    api_104_base_url: Optional[str] = Field(
-        default=None, description="104 API 基礎 URL"
-    )
-    api_104_client_id: Optional[str] = Field(
-        default=None, description="104 API 客戶端 ID"
-    )
-    api_104_client_secret: Optional[SecretStr] = Field(
+    api_104_base_url: str | None = Field(default=None, description="104 API 基礎 URL")
+    api_104_client_id: str | None = Field(default=None, description="104 API 客戶端 ID")
+    api_104_client_secret: SecretStr | None = Field(
         default=None, description="104 API 客戶端密鑰"
     )
 
@@ -161,13 +155,13 @@ class Settings(BaseSettings):
     cors_origins: str = Field(
         default="http://localhost:8000", description="CORS 允許的來源（逗號分隔）"
     )
-    session_secret: Optional[SecretStr] = Field(default=None, description="會話密鑰")
+    session_secret: SecretStr | None = Field(default=None, description="會話密鑰")
 
     # ===== 郵件配置 =====
-    smtp_host: Optional[str] = Field(default=None, description="SMTP 主機地址")
+    smtp_host: str | None = Field(default=None, description="SMTP 主機地址")
     smtp_port: int = Field(default=587, description="SMTP 連接埠")
-    smtp_user: Optional[str] = Field(default=None, description="SMTP 使用者名稱")
-    smtp_password: Optional[SecretStr] = Field(default=None, description="SMTP 密碼")
+    smtp_user: str | None = Field(default=None, description="SMTP 使用者名稱")
+    smtp_password: SecretStr | None = Field(default=None, description="SMTP 密碼")
 
     # ===== 驗證器 =====
     @field_validator("app_env")
@@ -198,16 +192,14 @@ class Settings(BaseSettings):
 
     @field_validator("secret_key", "session_secret")
     @classmethod
-    def validate_secret_key(
-        cls, v: Optional[SecretStr], info: Any
-    ) -> Optional[SecretStr]:
+    def validate_secret_key(cls, v: SecretStr | None, info: Any) -> SecretStr | None:
         if v is None or len(v.get_secret_value()) < 32:
             raise ValueError(f"{info.field_name} 必須設定且長度至少 32 個字元")
         return v
 
     @field_validator("mysql_user")
     @classmethod
-    def validate_mysql_user(cls, v: Optional[str]) -> Optional[str]:
+    def validate_mysql_user(cls, v: str | None) -> str | None:
         """驗證 MySQL 使用者設定"""
         if v is None or not v:  # 檢查 None 或空字串
             raise ValueError("❌ MYSQL_USER 未設定，請檢查 .env 檔案")
@@ -217,7 +209,7 @@ class Settings(BaseSettings):
 
     @field_validator("mysql_password")
     @classmethod
-    def validate_mysql_password(cls, v: Optional[SecretStr]) -> Optional[SecretStr]:
+    def validate_mysql_password(cls, v: SecretStr | None) -> SecretStr | None:
         """驗證 MySQL 密碼設定"""
         if v is None or not v.get_secret_value():
             raise ValueError("❌ MYSQL_PASSWORD 未設定，請檢查 .env 檔案")
@@ -314,7 +306,7 @@ class Settings(BaseSettings):
         return v
 
     @property
-    def cors_origins_list(self) -> List[str]:
+    def cors_origins_list(self) -> list[str]:
         """取得 CORS 來源列表"""
         return [
             origin.strip() for origin in self.cors_origins.split(",") if origin.strip()
@@ -371,7 +363,7 @@ class Settings(BaseSettings):
             )
         return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
-    def get_smtp_config(self) -> Dict[str, Any]:
+    def get_smtp_config(self) -> dict[str, Any]:
         """取得 SMTP 配置"""
         if not all([self.smtp_host, self.smtp_user, self.smtp_password]):
             return {}

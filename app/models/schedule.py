@@ -4,7 +4,7 @@
 定義時段相關的資料庫模型和結構。
 """
 
-from typing import Any, Dict
+from typing import Any
 
 # ===== 第三方套件 =====
 from sqlalchemy import (  # 資料庫欄位類型
@@ -139,7 +139,7 @@ class Schedule(Base):  # type: ignore[misc]
             f"date={self.date}, status={self.status})>"
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """轉換為字典格式，用於 API 和資料傳輸給前端"""
         try:
             return {

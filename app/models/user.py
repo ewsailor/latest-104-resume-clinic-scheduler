@@ -4,7 +4,7 @@
 定義使用者資料表對應的 SQLAlchemy 模型。
 """
 
-from typing import Any, Dict
+from typing import Any
 
 # ===== 第三方套件 =====
 from sqlalchemy import Column, DateTime, ForeignKey, String
@@ -62,7 +62,7 @@ class User(Base):  # type: ignore[misc]
         """字串表示，用於除錯和日誌"""
         return f"<User(id={self.id}, name='{self.name}', email='{self.email}')>"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """轉換為字典格式，用於 API 和資料傳輸給前端"""
         try:
             return {

@@ -4,11 +4,13 @@
 提供統一的錯誤處理機制，包括錯誤類型定義、錯誤回應格式化和錯誤日誌記錄。
 """
 
-import logging
+# ===== 標準函式庫 =====
+import logging  # 日誌記錄
 import traceback
-from datetime import datetime
-from typing import Any, Dict, Optional, Union
+from datetime import datetime  # 日期時間處理
+from typing import Any, Optional, Union  # 保留這些，因為它們沒有內建替代
 
+# ===== 第三方套件 =====
 from fastapi import HTTPException, status
 from pydantic import ValidationError as PydanticValidationError
 
@@ -59,8 +61,8 @@ class APIError(Exception):
         message: str,
         error_code: str,
         status_code: int = status.HTTP_400_BAD_REQUEST,
-        details: Optional[Dict[str, Any]] = None,
-        context: Optional[str] = None,
+        details: dict[str, Any] | None = None,
+        context: str | None = None,
     ):
         self.message = message
         self.error_code = error_code
@@ -73,7 +75,7 @@ class APIError(Exception):
 class ValidationError(APIError):
     """資料驗證錯誤"""
 
-    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
         super().__init__(
             message=message,
             error_code=ErrorCode.VALIDATION_ERROR,
@@ -86,7 +88,7 @@ class BusinessLogicError(APIError):
     """業務邏輯錯誤"""
 
     def __init__(
-        self, message: str, error_code: str, details: Optional[Dict[str, Any]] = None
+        self, message: str, error_code: str, details: dict[str, Any] | None = None
     ):
         super().__init__(
             message=message,
@@ -99,7 +101,7 @@ class BusinessLogicError(APIError):
 class DatabaseError(APIError):
     """資料庫錯誤"""
 
-    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
         super().__init__(
             message=message,
             error_code=ErrorCode.DATABASE_ERROR,
@@ -111,7 +113,7 @@ class DatabaseError(APIError):
 class AuthenticationError(APIError):
     """認證錯誤"""
 
-    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
         super().__init__(
             message=message,
             error_code=ErrorCode.AUTHENTICATION_ERROR,
@@ -123,7 +125,7 @@ class AuthenticationError(APIError):
 class AuthorizationError(APIError):
     """授權錯誤"""
 
-    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
         super().__init__(
             message=message,
             error_code=ErrorCode.AUTHORIZATION_ERROR,
@@ -139,7 +141,7 @@ class NotFoundError(APIError):
         self,
         resource_type: str,
         resource_id: Union[int, str],
-        details: Optional[Dict[str, Any]] = None,
+        details: dict[str, Any] | None = None,
     ):
         message = f"{resource_type}不存在: ID={resource_id}"
         super().__init__(
@@ -151,8 +153,8 @@ class NotFoundError(APIError):
 
 
 def format_error_response(
-    error: Exception, include_traceback: bool = False, request_id: Optional[str] = None
-) -> Dict[str, Any]:
+    error: Exception, include_traceback: bool = False, request_id: str | None = None
+) -> dict[str, Any]:
     """
     格式化錯誤回應。
 
@@ -162,7 +164,7 @@ def format_error_response(
         request_id: 請求 ID（用於追蹤）
 
     Returns:
-        Dict[str, Any]: 格式化的錯誤回應
+        dict[str, Any]: 格式化的錯誤回應
     """
     if isinstance(error, APIError):
         error_response = {
@@ -230,8 +232,8 @@ def format_error_response(
 def log_error(
     error: Exception,
     context: str = "API",
-    request_info: Optional[Dict[str, Any]] = None,
-    user_info: Optional[Dict[str, Any]] = None,
+    request_info: dict[str, Any] | None = None,
+    user_info: dict[str, Any] | None = None,
 ) -> None:
     """
     記錄錯誤資訊。
@@ -242,7 +244,7 @@ def log_error(
         request_info: 請求資訊
         user_info: 使用者資訊
     """
-    error_data: Dict[str, Any] = {
+    error_data: dict[str, Any] = {
         "timestamp": datetime.now().isoformat(),
         "context": context,
         "error_type": type(error).__name__,

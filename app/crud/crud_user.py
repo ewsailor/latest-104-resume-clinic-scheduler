@@ -62,7 +62,7 @@ class UserCRUD:
             self.logger.error(error_msg)
             raise
 
-    def get_user_by_id(self, db: Session, user_id: int) -> Optional[User]:
+    def get_user_by_id(self, db: Session, user_id: int) -> User | None:
         """
         根據 ID 查詢使用者（排除已軟刪除的記錄）。
 
@@ -71,13 +71,13 @@ class UserCRUD:
             user_id: 使用者 ID
 
         Returns:
-            Optional[User]: 找到的使用者物件，如果不存在或已軟刪除則返回 None
+            User | None: 找到的使用者物件，如果不存在或已軟刪除則返回 None
         """
         return (
             db.query(User).filter(User.id == user_id, User.deleted_at.is_(None)).first()
         )
 
-    def get_user_by_email(self, db: Session, email: str) -> Optional[User]:
+    def get_user_by_email(self, db: Session, email: str) -> User | None:
         """
         根據 email 查詢使用者（排除已軟刪除的記錄）。
 
@@ -86,7 +86,7 @@ class UserCRUD:
             email: 使用者 email
 
         Returns:
-            Optional[User]: 找到的使用者物件，如果不存在或已軟刪除則返回 None
+            User | None: 找到的使用者物件，如果不存在或已軟刪除則返回 None
         """
         return (
             db.query(User)

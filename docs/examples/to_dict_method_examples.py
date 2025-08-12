@@ -21,7 +21,7 @@ to_dict 方法實作範例
 - 建議在生產環境中使用版本 3 或版本 4
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 # 假設的導入（在實際使用時需要根據您的專案結構調整）
 try:
@@ -38,7 +38,7 @@ except ImportError:
 
 
 # ===== 版本 1：基本改進版 =====
-def to_dict_basic(self) -> Dict[str, Any]:
+def to_dict_basic(self) -> dict[str, Any]:
     """基本改進版本"""
     try:
         # 安全取得 updated_by_user 資訊
@@ -62,7 +62,7 @@ def to_dict_basic(self) -> Dict[str, Any]:
 
 
 # ===== 版本 2：完整改進版 =====
-def to_dict_enhanced(self, include_relations: bool = True) -> Dict[str, Any]:
+def to_dict_enhanced(self, include_relations: bool = True) -> dict[str, Any]:
     """
     完整改進版本
 
@@ -98,7 +98,7 @@ def to_dict_enhanced(self, include_relations: bool = True) -> Dict[str, Any]:
 
 
 # ===== 版本 3：高效能版本（推薦） =====
-def to_dict_optimized(self, db_session: Optional[Session] = None) -> Dict[str, Any]:
+def to_dict_optimized(self, db_session: Session | None = None) -> dict[str, Any]:
     """
     高效能版本 - 避免 N+1 查詢問題
 
@@ -135,7 +135,7 @@ def to_dict_optimized(self, db_session: Optional[Session] = None) -> Dict[str, A
 
 
 # ===== 版本 4：使用屬性檢查版本 =====
-def to_dict_safe(self) -> Dict[str, Any]:
+def to_dict_safe(self) -> dict[str, Any]:
     """安全版本 - 檢查屬性是否已加載"""
     from sqlalchemy import inspect
 

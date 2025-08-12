@@ -4,7 +4,7 @@ Giver 資料模組。
 提供 Giver 相關的資料和常數定義。
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 # ===== 測試用 Giver 資料 =====
 MOCK_GIVERS = [
@@ -236,7 +236,7 @@ MOCK_GIVERS = [
 ]
 
 
-def get_all_givers() -> List[Dict[str, Any]]:
+def get_all_givers() -> list[dict[str, Any]]:
     """
     取得所有 Giver 資料。
 
@@ -246,7 +246,7 @@ def get_all_givers() -> List[Dict[str, Any]]:
     return MOCK_GIVERS
 
 
-def get_giver_by_id(giver_id: int) -> Optional[Dict[str, Any]]:
+def get_giver_by_id(giver_id: int) -> dict[str, Any] | None:
     """
     根據 ID 取得特定 Giver 資料。
 
@@ -262,7 +262,7 @@ def get_giver_by_id(giver_id: int) -> Optional[Dict[str, Any]]:
     return None
 
 
-def get_givers_by_topic(topic: str) -> List[Dict[str, Any]]:
+def get_givers_by_topic(topic: str) -> list[dict[str, Any]]:
     """
     根據服務項目篩選 Giver。
 
@@ -279,7 +279,7 @@ def get_givers_by_topic(topic: str) -> List[Dict[str, Any]]:
     ]
 
 
-def get_givers_by_industry(industry: str) -> List[Dict[str, Any]]:
+def get_givers_by_industry(industry: str) -> list[dict[str, Any]]:
     """
     根據產業篩選 Giver。
 
@@ -302,12 +302,12 @@ def get_givers_count() -> int:
     return len(MOCK_GIVERS)
 
 
-def get_all_topics() -> List[str]:
+def get_all_topics() -> list[str]:
     """
     取得所有可用的服務項目列表。
 
     Returns:
-        List[str]: 所有可用的服務項目列表（去重）
+        list[str]: 所有可用的服務項目列表（去重）
     """
     topics_set: set[str] = set()
     for giver in MOCK_GIVERS:
@@ -319,12 +319,12 @@ def get_all_topics() -> List[str]:
     return sorted(list(topics_set))
 
 
-def get_all_industries() -> List[str]:
+def get_all_industries() -> list[str]:
     """
     取得所有可用的產業列表。
 
     Returns:
-        List[str]: 所有可用的產業列表（去重）
+        list[str]: 所有可用的產業列表（去重）
     """
     industries_set: set[str] = set()
     for giver in MOCK_GIVERS:

@@ -4,7 +4,7 @@
 提供使用者相關的 API 端點，包括建立、查詢、更新和刪除使用者。
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # ===== 第三方套件 =====
 from fastapi import APIRouter, Depends, HTTPException, Query, status  # 路由和錯誤處理
@@ -32,7 +32,7 @@ async def get_users(
     page: int = Query(1, ge=1, description="頁碼"),
     per_page: int = Query(10, ge=1, le=100, description="每頁數量"),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     取得使用者列表。
 
@@ -71,7 +71,7 @@ async def get_users(
 @router.post("/users", status_code=status.HTTP_201_CREATED)
 async def create_user(
     user: UserCreate, db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     建立使用者。
 

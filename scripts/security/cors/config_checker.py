@@ -7,7 +7,7 @@ CORS 配置檢查器。
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 # 添加專案根目錄到 Python 路徑
 project_root = Path(__file__).parent.parent.parent
@@ -30,12 +30,12 @@ class CORSConfigChecker:
         """初始化配置檢查器。"""
         self.security_checker = CORSecurityChecker()
 
-    def get_current_config(self) -> Dict[str, Any]:
+    def get_current_config(self) -> dict[str, Any]:
         """
         取得目前的 CORS 配置。
 
         Returns:
-            Dict: 目前的 CORS 配置
+            dict: 目前的 CORS 配置
         """
         try:
             return get_cors_config_summary(settings)
@@ -51,12 +51,12 @@ class CORSConfigChecker:
                 "allow_credentials": False,
             }
 
-    def check_environment_variables(self) -> Dict[str, Any]:
+    def check_environment_variables(self) -> dict[str, Any]:
         """
         檢查環境變數設定。
 
         Returns:
-            Dict: 環境變數檢查結果
+            dict: 環境變數檢查結果
         """
         cors_origins = os.getenv("CORS_ORIGINS", "")
         app_env = os.getenv("APP_ENV", "development")
@@ -79,12 +79,12 @@ class CORSConfigChecker:
 
         return result
 
-    def comprehensive_check(self) -> Dict[str, Any]:
+    def comprehensive_check(self) -> dict[str, Any]:
         """
         執行全面的配置檢查。
 
         Returns:
-            Dict: 完整的檢查結果
+            dict: 完整的檢查結果
         """
         # 取得目前配置
         current_config = self.get_current_config()

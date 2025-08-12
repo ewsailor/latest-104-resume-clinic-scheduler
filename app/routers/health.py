@@ -6,7 +6,7 @@
 
 # ===== 標準函式庫 =====
 import logging  # 日誌記錄
-from typing import Any, Dict  # 型別註解支援
+from typing import Any  # 型別註解支援
 
 # ===== 第三方套件 =====
 from fastapi import APIRouter, Depends, HTTPException, status  # 路由物件
@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["health"])
 
 
-@router.get("/healthz", response_model=Dict[str, Any])
-async def liveness_probe() -> Dict[str, Any]:
+@router.get("/healthz", response_model=dict[str, Any])
+async def liveness_probe() -> dict[str, Any]:
     """
     存活探測：檢查應用程式是否正在運行。
 
@@ -32,7 +32,7 @@ async def liveness_probe() -> Dict[str, Any]:
     不應該包含外部依賴檢查，只檢查應用程式本身狀態。
 
     Returns:
-        Dict[str, Any]: 應用程式狀態資訊，包含狀態、時間戳、版本等資訊。
+        dict[str, Any]: 應用程式狀態資訊，包含狀態、時間戳、版本等資訊。
     """
     logger.info("liveness_probe() called: 執行存活探測檢查")
 
@@ -61,8 +61,8 @@ async def liveness_probe() -> Dict[str, Any]:
         )
 
 
-@router.get("/readyz", response_model=Dict[str, Any])
-async def readiness_probe(db_healthy: bool = Depends(get_healthy_db)) -> Dict[str, Any]:
+@router.get("/readyz", response_model=dict[str, Any])
+async def readiness_probe(db_healthy: bool = Depends(get_healthy_db)) -> dict[str, Any]:
     """
     準備就緒探測：檢查應用程式所有外部依賴（資料庫、快取等），是否已經準備好處理請求。
 
@@ -73,7 +73,7 @@ async def readiness_probe(db_healthy: bool = Depends(get_healthy_db)) -> Dict[st
         db_healthy: 資料庫連線狀態依賴，由 get_healthy_db() 提供
 
     Returns:
-        Dict[str, Any]: 應用程式就緒狀態資訊。
+        dict[str, Any]: 應用程式就緒狀態資訊。
     """
     logger.info("readiness_probe() called: 執行準備就緒探測檢查")
 

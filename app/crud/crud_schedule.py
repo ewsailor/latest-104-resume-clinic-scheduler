@@ -8,7 +8,7 @@ import logging  # 日誌記錄
 from datetime import date, time  # 日期和時間處理
 
 # ===== 標準函式庫 =====
-from typing import Any, List, Optional  # 型別提示
+from typing import Any  # 型別提示
 
 from sqlalchemy import and_  # SQL 條件組合
 
@@ -67,7 +67,7 @@ class ScheduleCRUD:
 
     def _format_overlap_error_message(
         self,
-        overlapping_schedules: List[Schedule],
+        overlapping_schedules: list[Schedule],
         schedule_date: date,
         context: str = "建立",
     ) -> str:
@@ -111,8 +111,8 @@ class ScheduleCRUD:
         schedule_date: date,
         start_time: time,
         end_time: time,
-        exclude_schedule_id: Optional[int] = None,
-    ) -> List[Schedule]:
+        exclude_schedule_id: int | None = None,
+    ) -> list[Schedule]:
         """
         檢查時段重疊（排除已軟刪除的記錄）。
 
@@ -125,7 +125,7 @@ class ScheduleCRUD:
             exclude_schedule_id: 要排除的時段 ID（用於更新時排除自己）
 
         Returns:
-            List[Schedule]: 重疊的時段列表（排除已軟刪除的記錄）
+            list[Schedule]: 重疊的時段列表（排除已軟刪除的記錄）
         """
         # 查詢同一天同一 giver 的所有時段（排除已軟刪除的記錄）
         query = db.query(Schedule).filter(
@@ -156,10 +156,10 @@ class ScheduleCRUD:
     def create_schedules(
         self,
         db: Session,
-        schedules: List[ScheduleCreate],
+        schedules: list[ScheduleCreate],
         operator_user_id: int,
         operator_role: UserRoleEnum,
-    ) -> List[Schedule]:
+    ) -> list[Schedule]:
         """
         建立多個時段。
 
@@ -170,7 +170,7 @@ class ScheduleCRUD:
             operator_role: 操作者的角色 (UserRoleEnum)
 
         Returns:
-            List[Schedule]: 建立成功的時段列表
+            list[Schedule]: 建立成功的時段列表
 
         Raises:
             ValueError: 當檢測到時段重疊時或操作者不存在時
@@ -259,10 +259,10 @@ class ScheduleCRUD:
     def get_schedules(
         self,
         db: Session,
-        giver_id: Optional[int] = None,
-        taker_id: Optional[int] = None,
-        status_filter: Optional[str] = None,
-    ) -> List[Schedule]:
+        giver_id: int | None = None,
+        taker_id: int | None = None,
+        status_filter: str | None = None,
+    ) -> list[Schedule]:
         """
         查詢時段列表（排除已軟刪除的記錄）。
 
@@ -273,7 +273,7 @@ class ScheduleCRUD:
             status_filter: 可選的狀態篩選條件
 
         Returns:
-            List[Schedule]: 符合條件的時段列表（排除已軟刪除的記錄）
+            list[Schedule]: 符合條件的時段列表（排除已軟刪除的記錄）
         """
         query = db.query(Schedule)
 
@@ -329,7 +329,7 @@ class ScheduleCRUD:
 
     def get_schedule_by_id_including_deleted(
         self, db: Session, schedule_id: int
-    ) -> Optional[Schedule]:
+    ) -> Schedule | None:
         """
         根據 ID 查詢單一時段（包含已軟刪除的記錄）。
 
@@ -338,7 +338,7 @@ class ScheduleCRUD:
             schedule_id: 時段 ID
 
         Returns:
-            Optional[Schedule]: 找到的時段物件，如果不存在則返回 None
+            Schedule | None: 找到的時段物件，如果不存在則返回 None
         """
         return db.query(Schedule).filter(Schedule.id == schedule_id).first()
 
@@ -349,7 +349,7 @@ class ScheduleCRUD:
         updated_by_user_id: int,
         operator_role: UserRoleEnum,
         **kwargs: Any,
-    ) -> Optional[Schedule]:
+    ) -> Schedule | None:
         """
         更新時段。
 
@@ -361,7 +361,7 @@ class ScheduleCRUD:
             **kwargs: 要更新的欄位
 
         Returns:
-            Optional[Schedule]: 更新後的時段物件，如果不存在則返回 None
+            Schedule | None: 更新後的時段物件，如果不存在則返回 None
 
         Raises:
             ValueError: 當更新者不存在時
@@ -451,8 +451,8 @@ class ScheduleCRUD:
         self,
         db: Session,
         schedule_id: int,
-        operator_user_id: Optional[int] = None,
-        operator_role: Optional[UserRoleEnum] = None,
+        operator_user_id: int | None = None,
+        operator_role: UserRoleEnum | None = None,
     ) -> bool:
         """
         軟刪除時段。

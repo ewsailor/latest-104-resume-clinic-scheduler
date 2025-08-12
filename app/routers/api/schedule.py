@@ -4,7 +4,7 @@
 提供時段相關的 API 端點，包括建立、查詢、更新和刪除時段。
 """
 
-from typing import Dict, List, Optional
+from typing import List  # 保留 List，因為 FastAPI response_model 需要
 
 # ===== 第三方套件 =====
 from fastapi import APIRouter, Depends, HTTPException, status  # 路由和錯誤處理
@@ -42,7 +42,7 @@ router = APIRouter(prefix="/api", tags=["Schedules"])
 )
 async def create_schedules(
     request: ScheduleCreateWithOperator, db: Session = Depends(get_db)
-) -> List[ScheduleResponse]:
+) -> list[ScheduleResponse]:
     """
     建立多個時段。
 
@@ -54,7 +54,7 @@ async def create_schedules(
         db: 資料庫會話依賴注入
 
     Returns:
-        List[ScheduleResponse]: 建立成功的時段列表
+        list[ScheduleResponse]: 建立成功的時段列表
 
     Raises:
         HTTPException: 當建立失敗時拋出 400 錯誤
@@ -87,11 +87,11 @@ async def create_schedules(
 
 @router.get("/schedules", response_model=List[ScheduleResponse])
 async def get_schedules(
-    giver_id: Optional[int] = None,
-    taker_id: Optional[int] = None,
-    status_filter: Optional[str] = None,
+    giver_id: int | None = None,
+    taker_id: int | None = None,
+    status_filter: str | None = None,
     db: Session = Depends(get_db),
-) -> List[ScheduleResponse]:
+) -> list[ScheduleResponse]:
     """
     取得時段列表。
 
@@ -104,7 +104,7 @@ async def get_schedules(
         db: 資料庫會話依賴注入
 
     Returns:
-        List[ScheduleResponse]: 符合條件的時段列表
+        list[ScheduleResponse]: 符合條件的時段列表
     """
     try:
         # 使用 CRUD 層查詢時段
@@ -208,7 +208,7 @@ async def update_schedule(
 @router.delete("/schedules/{schedule_id}")
 async def delete_schedule(
     schedule_id: int, request: ScheduleDeleteWithOperator, db: Session = Depends(get_db)
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """
     刪除時段。
 
