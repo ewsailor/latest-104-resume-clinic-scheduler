@@ -18,7 +18,7 @@ def clear_python_cache():
     print("🧹 開始清除 Python 快取文件...")
 
     # 獲取專案根目錄
-    project_root = Path(__file__).parent.parent
+    project_root = Path(__file__).parent.parent.parent
     print(f"📁 專案根目錄: {project_root}")
 
     # 統計清除的文件數量
