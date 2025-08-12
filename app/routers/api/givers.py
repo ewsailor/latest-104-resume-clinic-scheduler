@@ -19,6 +19,11 @@ from app.data.givers import (
     get_givers_by_topic,
     get_givers_count,
 )
+from app.utils.error_handler import (
+    APIError,
+    create_http_exception_from_api_error,
+    safe_execute,
+)
 
 # 建立路由器
 router = APIRouter(prefix="/api", tags=["Givers"])
@@ -74,7 +79,11 @@ async def get_givers(
             "total_pages": (total + per_page - 1) // per_page,
         }
 
+    except APIError as e:
+        # 處理自定義 API 錯誤
+        raise create_http_exception_from_api_error(e)
     except Exception as e:
+        # 處理其他未預期的錯誤
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"取得 Giver 列表失敗: {str(e)}",
@@ -213,9 +222,13 @@ async def get_giver(giver_id: int) -> Dict[str, Any]:
             )
         return giver
 
+    except APIError as e:
+        # 處理自定義 API 錯誤
+        raise create_http_exception_from_api_error(e)
     except HTTPException:
         raise
     except Exception as e:
+        # 處理其他未預期的錯誤
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"取得 Giver 資料失敗: {str(e)}",

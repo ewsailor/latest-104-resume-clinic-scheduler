@@ -21,6 +21,17 @@ from app.models.enums import ScheduleStatusEnum, UserRoleEnum  # ENUM 定義
 from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型
 from app.schemas import ScheduleCreate  # 資料模型
+from app.utils.error_handler import (
+    BusinessLogicError,
+    DatabaseError,
+    ErrorCode,
+    NotFoundError,
+    create_schedule_not_found_error,
+    create_schedule_overlap_error,
+    create_user_not_found_error,
+    handle_database_error,
+    safe_execute,
+)
 
 
 class ScheduleCRUD:
@@ -45,13 +56,13 @@ class ScheduleCRUD:
             User: 使用者物件
 
         Raises:
-            ValueError: 當使用者不存在時
+            NotFoundError: 當使用者不存在時
         """
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             error_msg = f"{context}不存在: user_id={user_id}"
             self.logger.error(error_msg)
-            raise ValueError(error_msg)
+            raise create_user_not_found_error(user_id)
         return user
 
     def _format_overlap_error_message(
@@ -243,9 +254,7 @@ class ScheduleCRUD:
 
         except Exception as e:
             db.rollback()
-            error_msg = f"建立時段失敗: {str(e)}"
-            self.logger.error(error_msg)
-            raise
+            raise handle_database_error(e, "建立時段")
 
     def get_schedules(
         self,
@@ -293,7 +302,7 @@ class ScheduleCRUD:
 
         return query.all()
 
-    def get_schedule_by_id(self, db: Session, schedule_id: int) -> Optional[Schedule]:
+    def get_schedule_by_id(self, db: Session, schedule_id: int) -> Schedule:
         """
         根據 ID 查詢單一時段（排除已軟刪除的記錄）。
 
@@ -302,13 +311,21 @@ class ScheduleCRUD:
             schedule_id: 時段 ID
 
         Returns:
-            Optional[Schedule]: 找到的時段物件，如果不存在或已軟刪除則返回 None
+            Schedule: 找到的時段物件
+
+        Raises:
+            NotFoundError: 當時段不存在或已軟刪除時
         """
-        return (
+        schedule = (
             db.query(Schedule)
             .filter(Schedule.id == schedule_id, Schedule.deleted_at.is_(None))
             .first()
         )
+
+        if not schedule:
+            raise create_schedule_not_found_error(schedule_id)
+
+        return schedule
 
     def get_schedule_by_id_including_deleted(
         self, db: Session, schedule_id: int

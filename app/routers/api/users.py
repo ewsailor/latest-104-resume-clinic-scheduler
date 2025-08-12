@@ -14,6 +14,11 @@ from sqlalchemy.orm import Session
 from app.crud import user_crud  # CRUD 操作
 from app.models.database import get_db  # 資料庫連接
 from app.schemas import UserCreate  # 資料模型
+from app.utils.error_handler import (
+    APIError,
+    create_http_exception_from_api_error,
+    safe_execute,
+)
 
 # 建立路由器
 router = APIRouter(prefix="/api", tags=["Users"])
@@ -52,7 +57,11 @@ async def get_users(
             "total_pages": (total + per_page - 1) // per_page,
         }
 
+    except APIError as e:
+        # 處理自定義 API 錯誤
+        raise create_http_exception_from_api_error(e)
     except Exception as e:
+        # 處理其他未預期的錯誤
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"取得使用者列表失敗: {str(e)}",
@@ -78,10 +87,13 @@ async def create_user(
         new_user = user_crud.create_user(db, user)
         return {"message": "使用者建立成功", "user": new_user.to_dict()}
 
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except APIError as e:
+        # 處理自定義 API 錯誤
+        raise create_http_exception_from_api_error(e)
     except Exception as e:
+        # 處理其他未預期的錯誤
         db.rollback()
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=f"建立使用者失敗: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"建立使用者時發生內部錯誤: {str(e)}",
         )

@@ -19,6 +19,14 @@ from app.schemas import (  # 資料模型
     ScheduleResponse,
     ScheduleUpdateWithOperator,
 )
+from app.utils.error_handler import (
+    APIError,
+    BusinessLogicError,
+    DatabaseError,
+    NotFoundError,
+    create_http_exception_from_api_error,
+    safe_execute,
+)
 
 # 建立路由器
 router = APIRouter(prefix="/api", tags=["Schedules"])
@@ -65,14 +73,15 @@ async def create_schedules(
             ScheduleResponse.model_validate(schedule) for schedule in schedule_objects
         ]
 
-    except ValueError as e:
-        # 處理時段重疊等業務邏輯錯誤
-        db.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except APIError as e:
+        # 處理自定義 API 錯誤
+        raise create_http_exception_from_api_error(e)
     except Exception as e:
+        # 處理其他未預期的錯誤
         db.rollback()
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=f"建立時段失敗: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"建立時段時發生內部錯誤: {str(e)}",
         )
 
 
@@ -103,7 +112,11 @@ async def get_schedules(
         # 轉換為回應格式 - 使用 model_validate 替代 from_orm
         return [ScheduleResponse.model_validate(schedule) for schedule in schedules]
 
+    except APIError as e:
+        # 處理自定義 API 錯誤
+        raise create_http_exception_from_api_error(e)
     except Exception as e:
+        # 處理其他未預期的錯誤
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"查詢時段失敗: {str(e)}",
@@ -129,15 +142,13 @@ async def get_schedule(
     """
     try:
         schedule = schedule_crud.get_schedule_by_id(db, schedule_id)
-        if not schedule:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="時段不存在"
-            )
         return ScheduleResponse.model_validate(schedule)
 
-    except HTTPException:
-        raise
+    except APIError as e:
+        # 處理自定義 API 錯誤
+        raise create_http_exception_from_api_error(e)
     except Exception as e:
+        # 處理其他未預期的錯誤
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"查詢時段失敗: {str(e)}",

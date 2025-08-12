@@ -7,6 +7,7 @@ FastAPI 應用程式主入口。
 # ===== 本地模組 =====
 from app.core import settings  # 應用程式配置
 from app.factory import create_app, create_templates  # 應用程式工廠
+from app.middleware.error_handler import setup_error_handlers  # 錯誤處理器
 from app.routers.api import api_router  # API 路由集中匯入
 from app.routers.health import router as health_router  # 健康檢查路由
 from app.routers.main import router as main_router  # 主要路由
@@ -20,6 +21,9 @@ templates = create_templates(settings)
 
 # 將 templates 設定到應用程式狀態中，用依賴注入解決循環匯入問題
 app.state.templates = templates
+
+# 設定錯誤處理器
+setup_error_handlers(app)
 
 # 註冊路由
 app.include_router(main_router)
