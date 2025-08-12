@@ -12,16 +12,16 @@
     <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     
     <!-- 性能優化：關鍵資源預載入 -->
-    <link rel="preload" href="/static/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="/static/script.js" as="script" onload="this.onload=null;this.rel='script'">
+    <link rel="preload" href="/static/css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="/static/js/script.js" as="script" onload="this.onload=null;this.rel='script'">
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" as="style" crossorigin>
     
     <!-- 性能優化：字體預載入 -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" as="style" crossorigin>
     
     <!-- 性能優化：關鍵圖片預載入 -->
-    <link rel="preload" href="/static/logo-header.svg" as="image" type="image/svg+xml">
-    <link rel="preload" href="/static/chat-avatar.svg" as="image" type="image/svg+xml">
+    <link rel="preload" href="/static/images/icons/logo-header.svg" as="image" type="image/svg+xml">
+    <link rel="preload" href="/static/images/icons/chat-avatar.svg" as="image" type="image/svg+xml">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -33,8 +33,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <!-- 自定義樣式 -->
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="icon" href="/static/favicon.png" type="image/x-icon" />
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/images/icons/favicon.png" type="image/x-icon" />
     
     <!-- 性能優化：內聯關鍵 CSS -->
     <style>
@@ -63,7 +63,7 @@
             </button>
 
             <a class="navbar-brand mx-auto" href="#" aria-label="回到首頁">
-                <img src="/static/logo-header.svg" alt="104 履歷診療室">
+                <img src="/static/images/icons/logo-header.svg" alt="104 履歷診療室">
                 <span class="visually-hidden">104 履歷診療室</span>
             </a>
 
@@ -181,7 +181,7 @@
                         <!-- 新增諮詢時間區域 -->
                         <div class="message giver-message">
                             <div class="d-flex align-items-center mb-2">
-                                <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver 頭像"
+                                <img id="chat-giver-avatar-small" src="/static/images/icons/chat-avatar.svg" alt="Giver 頭像"
                                     class="chat-avatar-modal">
                             </div>
                             <div class="message-content">
@@ -342,7 +342,7 @@
         crossorigin="anonymous"></script>
 
     <!-- 再載入自定義腳本 --> 
-    <script src="/static/script.js" defer></script>
+    <script src="/static/js/script.js" defer></script>
     
     <!-- 性能優化：延遲載入非關鍵資源 -->
     <script>

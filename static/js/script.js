@@ -1095,7 +1095,7 @@ const generateScheduleTable = (allSchedules, includeButtons = false) => {
   const result = `
     <div class="message giver-message">
       <div class="d-flex align-items-center">
-        <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+        <img id="chat-giver-avatar-small" src="/static/images/icons/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
       </div>
       <div class="message-content">
         <p class="message-title">您目前已提供 ${scheduleCount} 個時段，進度如下：</p>
@@ -3170,7 +3170,7 @@ const TEMPLATES = {
       withAvatar: (title, buttonGroup) => `
         <div class="message giver-message">
           <div class="d-flex align-items-center">
-            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+            <img id="chat-giver-avatar-small" src="/static/images/icons/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
           </div>
           <div class="message-content">
             <p class="message-title">${title}</p>
@@ -3192,7 +3192,7 @@ const TEMPLATES = {
       withTable: (title, tableContent, tableClass = 'table-hover') => `
         <div class="message giver-message">
           <div class="d-flex align-items-center">
-            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+            <img id="chat-giver-avatar-small" src="/static/images/icons/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
           </div>
           <div class="message-content">
             <p class="message-title">${title}</p>
@@ -3209,7 +3209,7 @@ const TEMPLATES = {
       withContent: (title, content) => `
         <div class="message giver-message">
           <div class="d-flex align-items-center">
-            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+            <img id="chat-giver-avatar-small" src="/static/images/icons/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
           </div>
           <div class="message-content">
             <p class="message-title">${title}</p>
@@ -3222,7 +3222,7 @@ const TEMPLATES = {
       withTableAndButtons: (title, tableContent, buttonGroup, tableClass = 'table-hover') => `
         <div class="message giver-message">
           <div class="d-flex align-items-center">
-            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+            <img id="chat-giver-avatar-small" src="/static/images/icons/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
           </div>
           <div class="message-content">
             <p class="message-title">${title}</p>
@@ -3244,7 +3244,7 @@ const TEMPLATES = {
     initialMessage: () =>`
       <div class="message giver-message">
         <div class="d-flex align-items-center mb-2">
-            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver 頭像"
+            <img id="chat-giver-avatar-small" src="/static/images/icons/chat-avatar.svg" alt="Giver 頭像"
                 class="chat-avatar-modal">
         </div>
         <div class="message-content">
@@ -3267,7 +3267,7 @@ const TEMPLATES = {
     scheduleOptions: () => `
       <div class="message giver-message">
         <div class="d-flex align-items-center">
-            <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+            <img id="chat-giver-avatar-small" src="/static/images/icons/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
         </div>
         
         <div class="message-content">
@@ -3462,7 +3462,7 @@ const TEMPLATES = {
     giverAvailableTimesWithCheckboxes: () => `
       <div class="message giver-message">
         <div class="d-flex align-items-center">
-          <img id="chat-giver-avatar-small" src="/static/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
+          <img id="chat-giver-avatar-small" src="/static/images/icons/chat-avatar.svg" alt="Giver" class="chat-avatar-modal">
         </div>
         <div class="message-content">
           <p class="message-title">以下是 Giver 已提供、尚未被預約的日期：</p>
@@ -3849,7 +3849,7 @@ const DOM = {
       const avatarContainer = DOM.createElement('div', 'd-flex align-items-center');
       const avatarImg = DOM.createElement('img');
       avatarImg.id = 'chat-giver-avatar-small';
-      avatarImg.src = '/static/chat-avatar.svg';
+              avatarImg.src = '/static/images/icons/chat-avatar.svg';
       avatarImg.alt = 'Giver';
       avatarImg.className = 'avatar-modal';
       avatarContainer.appendChild(avatarImg);
