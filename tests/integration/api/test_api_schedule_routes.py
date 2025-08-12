@@ -34,22 +34,26 @@ class TestScheduleAPI:
     def sample_schedule_list(self):
         """提供測試用的時段列表資料。"""
         print("建立測試用的時段列表資料")
-        return [
-            {
-                "giver_id": 1,
-                "date": "2024-01-15",
-                "start_time": "09:00:00",
-                "end_time": "10:00:00",
-                "status": "AVAILABLE",
-            },
-            {
-                "giver_id": 1,
-                "date": "2024-01-15",
-                "start_time": "10:00:00",
-                "end_time": "11:00:00",
-                "status": "AVAILABLE",
-            },
-        ]
+        return {
+            "schedules": [
+                {
+                    "giver_id": 1,
+                    "date": "2024-01-15",
+                    "start_time": "09:00:00",
+                    "end_time": "10:00:00",
+                    "status": "AVAILABLE",
+                },
+                {
+                    "giver_id": 1,
+                    "date": "2024-01-15",
+                    "start_time": "10:00:00",
+                    "end_time": "11:00:00",
+                    "status": "AVAILABLE",
+                },
+            ],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
 
     def test_create_schedules_success(self, sample_schedule_list):
         """測試成功建立多個時段。"""
@@ -78,15 +82,19 @@ class TestScheduleAPI:
         print("測試建立時段時使用無效資料")
 
         # 無效的時段資料
-        invalid_data = [
-            {
-                "giver_id": "invalid",  # 應該是整數
-                "date": "2024-01-15",
-                "start_time": "09:00:00",
-                "end_time": "10:00:00",
-                "status": "AVAILABLE",
-            }
-        ]
+        invalid_data = {
+            "schedules": [
+                {
+                    "giver_id": "invalid",  # 應該是整數
+                    "date": "2024-01-15",
+                    "start_time": "09:00:00",
+                    "end_time": "10:00:00",
+                    "status": "AVAILABLE",
+                }
+            ],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
 
         # 執行測試
         response = client.post("/api/schedules", json=invalid_data)
@@ -98,8 +106,15 @@ class TestScheduleAPI:
         """測試建立空的時段列表。"""
         print("測試建立空的時段列表")
 
+        # 空的時段列表
+        empty_data = {
+            "schedules": [],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
+
         # 執行測試
-        response = client.post("/api/schedules", json=[])
+        response = client.post("/api/schedules", json=empty_data)
 
         # 驗證回應
         assert response.status_code == 201
@@ -206,13 +221,19 @@ class TestScheduleAPI:
 
         # 先建立一個時段
         schedule_data = {
-            "giver_id": 1,
-            "date": "2024-01-15",
-            "start_time": "09:00:00",
-            "end_time": "10:00:00",
-            "status": "AVAILABLE",
+            "schedules": [
+                {
+                    "giver_id": 1,
+                    "date": "2024-01-20",  # 使用不同的日期避免重疊
+                    "start_time": "14:00:00",  # 使用不同的時間避免重疊
+                    "end_time": "15:00:00",
+                    "status": "AVAILABLE",
+                }
+            ],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
         }
-        create_response = client.post("/api/schedules", json=[schedule_data])
+        create_response = client.post("/api/schedules", json=schedule_data)
         created_schedule = create_response.json()[0]
 
         # 執行測試
@@ -260,16 +281,25 @@ class TestScheduleAPI:
         print("測試成功更新時段")
 
         # 先建立一個時段
-        create_response = client.post("/api/schedules", json=[sample_schedule_data])
+        create_data = {
+            "schedules": [sample_schedule_data],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
+        create_response = client.post("/api/schedules", json=create_data)
         created_schedule = create_response.json()[0]
 
         # 更新資料
         update_data = {
-            "giver_id": 2,
-            "date": "2024-01-16",
-            "start_time": "10:00:00",
-            "end_time": "11:00:00",
-            "status": "AVAILABLE",
+            "schedule_data": {
+                "giver_id": 2,
+                "date": "2024-01-16",
+                "start_time": "10:00:00",
+                "end_time": "11:00:00",
+                "status": "AVAILABLE",
+            },
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
         }
 
         # 執行測試
@@ -292,11 +322,15 @@ class TestScheduleAPI:
 
         # 更新資料
         update_data = {
-            "giver_id": 1,
-            "date": "2024-01-15",
-            "start_time": "09:00:00",
-            "end_time": "10:00:00",
-            "status": "AVAILABLE",
+            "schedule_data": {
+                "giver_id": 1,
+                "date": "2024-01-15",
+                "start_time": "09:00:00",
+                "end_time": "10:00:00",
+                "status": "AVAILABLE",
+            },
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
         }
 
         # 執行測試
@@ -313,11 +347,15 @@ class TestScheduleAPI:
 
         # 無效的更新資料
         invalid_data = {
-            "giver_id": "invalid",  # 應該是整數
-            "date": "2024-01-15",
-            "start_time": "09:00:00",
-            "end_time": "10:00:00",
-            "status": "AVAILABLE",
+            "schedule_data": {
+                "giver_id": "invalid",  # 應該是整數
+                "date": "2024-01-15",
+                "start_time": "09:00:00",
+                "end_time": "10:00:00",
+                "status": "AVAILABLE",
+            },
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
         }
 
         # 執行測試
@@ -334,7 +372,12 @@ class TestScheduleAPI:
         print("測試更新時段時的異常處理")
 
         # 先建立一個時段
-        create_response = client.post("/api/schedules", json=[sample_schedule_data])
+        create_data = {
+            "schedules": [sample_schedule_data],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
+        create_response = client.post("/api/schedules", json=create_data)
         created_schedule = create_response.json()[0]
 
         # 模擬異常
@@ -454,7 +497,12 @@ class TestScheduleAPI:
         print("測試時段日期欄位映射")
 
         # 執行測試
-        response = client.post("/api/schedules", json=[sample_schedule_data])
+        create_data = {
+            "schedules": [sample_schedule_data],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
+        response = client.post("/api/schedules", json=create_data)
 
         # 驗證回應
         assert response.status_code == 201
@@ -477,7 +525,12 @@ class TestScheduleAPI:
             "status": "AVAILABLE",
         }
 
-        response = client.post("/api/schedules", json=[invalid_date_data])
+        invalid_request = {
+            "schedules": [invalid_date_data],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
+        response = client.post("/api/schedules", json=invalid_request)
         assert response.status_code == 422
 
         # 測試無效的時間格式
@@ -489,7 +542,12 @@ class TestScheduleAPI:
             "status": "AVAILABLE",
         }
 
-        response = client.post("/api/schedules", json=[invalid_time_data])
+        invalid_request = {
+            "schedules": [invalid_time_data],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
+        response = client.post("/api/schedules", json=invalid_request)
         assert response.status_code == 422
 
         # 測試無效的狀態 - 資料庫會拒絕無效狀態，返回 400 錯誤
@@ -501,7 +559,12 @@ class TestScheduleAPI:
             "status": "INVALID_STATUS",
         }
 
-        response = client.post("/api/schedules", json=[invalid_status_data])
+        invalid_request = {
+            "schedules": [invalid_status_data],
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
+        response = client.post("/api/schedules", json=invalid_request)
         assert response.status_code == 400
 
     def test_schedule_bulk_operations(self):
@@ -534,7 +597,12 @@ class TestScheduleAPI:
         ]
 
         # 執行測試
-        response = client.post("/api/schedules", json=bulk_data)
+        bulk_request = {
+            "schedules": bulk_data,
+            "operator_user_id": 1,
+            "operator_role": "GIVER",
+        }
+        response = client.post("/api/schedules", json=bulk_request)
 
         # 驗證回應
         assert response.status_code == 201

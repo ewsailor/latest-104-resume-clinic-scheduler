@@ -278,7 +278,15 @@ class ScheduleCRUD:
         if taker_id is not None:
             filters.append(Schedule.taker_id == taker_id)
         if status_filter is not None:
-            filters.append(Schedule.status == status_filter)
+            # 將字串狀態值轉換為 ENUM
+            try:
+                status_enum = ScheduleStatusEnum(status_filter)
+                filters.append(Schedule.status == status_enum)
+            except ValueError:
+                # 如果狀態值無效，記錄警告但不拋出異常
+                self.logger.warning(f"無效的狀態值: {status_filter}")
+                # 可以選擇拋出異常或忽略此篩選條件
+                # raise ValueError(f"無效的狀態值: {status_filter}")
 
         if filters:
             query = query.filter(and_(*filters))

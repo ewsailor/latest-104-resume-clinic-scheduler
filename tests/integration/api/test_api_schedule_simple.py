@@ -56,7 +56,7 @@ class TestAPIScheduleSimple:
         schedule.start_time = "09:00:00"
         schedule.end_time = "10:00:00"
         schedule.note = "測試時段"
-        schedule.status = "available"
+        schedule.status = "AVAILABLE"
         schedule.updated_by_role = "TAKER"
         schedule.updated_by = 1
         schedule.created_at = datetime.now()
@@ -72,7 +72,7 @@ class TestAPIScheduleSimple:
             "start_time": "09:00:00",
             "end_time": "10:00:00",
             "note": "測試時段",
-            "status": "available",
+            "status": "AVAILABLE",
             "created_at": schedule.created_at.isoformat(),
             "updated_at": schedule.updated_at.isoformat(),
             "updated_by": 1,
@@ -230,7 +230,7 @@ class TestAPIScheduleSimple:
             'app.crud.schedule_crud.get_schedules', return_value=[mock_schedule]
         ):
             # 執行測試
-            response = client.get("/api/schedules?status_filter=available")
+            response = client.get("/api/schedules?status_filter=AVAILABLE")
 
         # 驗證結果
         assert response.status_code == 200

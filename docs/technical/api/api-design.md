@@ -135,7 +135,7 @@ GET /api/users?page=1&size=10
 ### 2. 篩選參數
 
 ```bash
-GET /api/schedules?giver_id=1&status=available
+GET /api/schedules?giver_id=1&status=AVAILABLE
 ```
 
 ### 3. 排序參數

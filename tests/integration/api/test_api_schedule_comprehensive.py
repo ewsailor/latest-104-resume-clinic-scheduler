@@ -60,7 +60,7 @@ class TestAPIScheduleComprehensive:
         schedule.start_time = "09:00:00"
         schedule.end_time = "10:00:00"
         schedule.note = "測試時段"
-        schedule.status = "available"
+        schedule.status = "AVAILABLE"
         schedule.updated_by = 1
         schedule.updated_by_role = "TAKER"
         schedule.created_at = datetime.now()
@@ -76,7 +76,7 @@ class TestAPIScheduleComprehensive:
             "start_time": "09:00:00",
             "end_time": "10:00:00",
             "note": "測試時段",
-            "status": "available",
+            "status": "AVAILABLE",
             "created_at": schedule.created_at.isoformat(),
             "updated_at": schedule.updated_at.isoformat(),
             "updated_by": 1,
@@ -250,7 +250,7 @@ class TestAPIScheduleComprehensive:
         ):
             # 執行測試
             result = await get_schedules(
-                giver_id=1, status_filter="available", db=mock_db
+                giver_id=1, status_filter="AVAILABLE", db=mock_db
             )
 
         # 驗證結果
@@ -526,7 +526,7 @@ class TestAPIScheduleComprehensive:
         ):
             # 執行測試 - 同時使用多個篩選條件
             result = await get_schedules(
-                giver_id=1, status_filter="available", db=mock_db
+                giver_id=1, status_filter="AVAILABLE", db=mock_db
             )
 
         # 驗證結果
