@@ -47,17 +47,35 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
 
-        # 記錄請求開始
-        logger.info(f"請求開始: {request.method} {request.url.path} [ID: {request_id}]")
+        # 記錄請求開始 - 根據配置決定是否記錄
+        from app.core.settings import settings
+
+        if request.url.path.startswith("/api/"):
+            if settings.log_api_requests:
+                logger.info(
+                    f"API 請求開始: {request.method} {request.url.path} [ID: {request_id}]"
+                )
+        else:
+            if settings.log_static_requests:
+                logger.debug(
+                    f"靜態資源請求: {request.method} {request.url.path} [ID: {request_id}]"
+                )
 
         try:
             # 執行下一個中間件或路由處理器
             response = await call_next(request)
 
-            # 記錄請求成功
-            logger.info(
-                f"請求成功: {request.method} {request.url.path} [ID: {request_id}] - {response.status_code}"
-            )
+            # 記錄請求成功 - 根據配置決定是否記錄
+            if request.url.path.startswith("/api/"):
+                if settings.log_api_requests:
+                    logger.info(
+                        f"API 請求成功: {request.method} {request.url.path} [ID: {request_id}] - {response.status_code}"
+                    )
+            else:
+                if settings.log_static_requests:
+                    logger.debug(
+                        f"靜態資源請求成功: {request.method} {request.url.path} [ID: {request_id}] - {response.status_code}"
+                    )
 
             return response
 

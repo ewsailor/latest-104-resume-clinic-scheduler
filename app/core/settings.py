@@ -96,6 +96,17 @@ class Settings(BaseSettings):
     static_url: str = Field(default="/static", description="靜態檔案 URL 路徑")
     static_name: str = Field(default="static", description="靜態檔案掛載名稱")
 
+    # ===== 日誌配置 =====
+    log_level: str = Field(
+        default="INFO",
+        description="日誌級別 (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+    )
+    log_api_requests: bool = Field(default=True, description="是否記錄 API 請求日誌")
+    log_static_requests: bool = Field(
+        default=False, description="是否記錄靜態資源請求日誌"
+    )
+    log_file: str = Field(default="logs/app.log", description="日誌檔案路徑")
+
     # ===== 資料庫配置 =====
     # MySQL 配置
     mysql_host: str = Field(default="localhost", description="MySQL 主機地址")
@@ -144,12 +155,6 @@ class Settings(BaseSettings):
     api_timeout: int = Field(default=10, description="API 請求總超時時間（秒）")
     api_connect_timeout: int = Field(default=5, description="API 連接超時時間（秒）")
     api_read_timeout: int = Field(default=10, description="API 讀取超時時間（秒）")
-
-    # ===== 日誌配置 =====
-    log_level: str = Field(
-        default="INFO", description="日誌等級 (DEBUG, INFO, WARNING, ERROR, CRITICAL)"
-    )
-    log_file: str = Field(default="logs/app.log", description="日誌檔案路徑")
 
     # ===== 安全配置 =====
     cors_origins: str = Field(
