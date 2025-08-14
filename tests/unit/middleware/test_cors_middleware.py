@@ -20,6 +20,7 @@ from app.middleware.cors import (
     setup_cors_middleware,
     validate_cors_origins,
 )
+from tests.logger import log_test_info
 
 
 class TestCorsMiddleware:

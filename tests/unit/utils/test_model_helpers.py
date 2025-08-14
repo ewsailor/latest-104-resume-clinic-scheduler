@@ -9,6 +9,7 @@ from datetime import date, datetime, time
 import pytest
 
 from app.utils.model_helpers import format_datetime, safe_getattr
+from tests.logger import log_test_info
 
 
 class TestModelHelpers:

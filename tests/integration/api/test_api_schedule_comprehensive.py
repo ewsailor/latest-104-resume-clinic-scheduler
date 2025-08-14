@@ -18,6 +18,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.routers.api.schedule import create_schedules, get_schedules
 from app.routers.api.users import create_user
+from tests.logger import log_test_info
 
 
 class TestAPIScheduleComprehensive:

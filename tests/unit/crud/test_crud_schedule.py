@@ -18,6 +18,7 @@ from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型
 from app.schemas import ScheduleCreate, UserCreate  # 資料模型
 from app.utils.error_handler import NotFoundError  # 錯誤處理
+from tests.logger import log_test_info
 
 
 class TestScheduleCRUD:

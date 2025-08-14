@@ -15,6 +15,7 @@ from app.utils.timezone import (
     get_local_now_naive,
     get_utc_timestamp,
 )
+from tests.logger import log_test_info
 
 
 class TestTimezoneModule:

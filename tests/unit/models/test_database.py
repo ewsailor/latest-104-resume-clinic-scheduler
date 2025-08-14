@@ -25,6 +25,7 @@ from app.models.database import (
     get_db,
     get_healthy_db,
 )
+from tests.logger import log_test_info
 
 
 # ===== 測試設定 =====

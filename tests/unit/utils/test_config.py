@@ -10,6 +10,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from app.core import Settings, get_project_version
+from tests.logger import log_test_info
 
 
 class TestSettings:

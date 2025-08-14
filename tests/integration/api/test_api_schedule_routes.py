@@ -10,6 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.logger import log_test_info
 
 # 建立測試客戶端
 client = TestClient(app)
@@ -21,7 +22,7 @@ class TestScheduleAPI:
     @pytest.fixture
     def sample_schedule_data(self):
         """提供測試用的時段資料。"""
-        print("建立測試用的時段資料")
+        log_test_info("建立測試用的時段資料")
         import datetime
         import random
 
@@ -41,7 +42,7 @@ class TestScheduleAPI:
     @pytest.fixture
     def sample_schedule_list(self):
         """提供測試用的時段列表資料。"""
-        print("建立測試用的時段列表資料")
+        log_test_info("建立測試用的時段列表資料")
         import datetime
         import random
 
@@ -75,7 +76,7 @@ class TestScheduleAPI:
 
     def test_create_schedules_success(self, sample_schedule_list):
         """測試成功建立多個時段。"""
-        print("測試成功建立多個時段")
+        log_test_info("測試成功建立多個時段")
 
         # 執行測試
         response = client.post("/api/schedules", json=sample_schedule_list)
@@ -98,7 +99,7 @@ class TestScheduleAPI:
 
     def test_create_schedules_invalid_data(self):
         """測試建立時段時使用無效資料。"""
-        print("測試建立時段時使用無效資料")
+        log_test_info("測試建立時段時使用無效資料")
 
         # 無效的時段資料
         invalid_data = {
@@ -123,7 +124,7 @@ class TestScheduleAPI:
 
     def test_create_schedules_empty_list(self):
         """測試建立空的時段列表。"""
-        print("測試建立空的時段列表")
+        log_test_info("測試建立空的時段列表")
 
         # 空的時段列表
         empty_data = {
@@ -145,7 +146,7 @@ class TestScheduleAPI:
         self, mock_create_schedules, sample_schedule_list
     ):
         """測試建立時段時的異常處理。"""
-        print("測試建立時段時的異常處理")
+        log_test_info("測試建立時段時的異常處理")
 
         # 模擬異常
         mock_create_schedules.side_effect = Exception("資料庫錯誤")
@@ -160,7 +161,7 @@ class TestScheduleAPI:
 
     def test_get_schedules_success(self):
         """測試成功取得時段列表。"""
-        print("測試成功取得時段列表")
+        log_test_info("測試成功取得時段列表")
 
         # 執行測試
         response = client.get("/api/schedules")
@@ -174,7 +175,7 @@ class TestScheduleAPI:
 
     def test_get_schedules_with_giver_id_filter(self):
         """測試根據 Giver ID 篩選時段。"""
-        print("測試根據 Giver ID 篩選時段")
+        log_test_info("測試根據 Giver ID 篩選時段")
 
         # 執行測試
         response = client.get("/api/schedules?giver_id=1")
@@ -189,7 +190,7 @@ class TestScheduleAPI:
 
     def test_get_schedules_with_status_filter(self):
         """測試根據狀態篩選時段。"""
-        print("測試根據狀態篩選時段")
+        log_test_info("測試根據狀態篩選時段")
 
         # 執行測試
         response = client.get("/api/schedules?status_filter=AVAILABLE")
@@ -204,7 +205,7 @@ class TestScheduleAPI:
 
     def test_get_schedules_with_combined_filters(self):
         """測試組合篩選條件。"""
-        print("測試組合篩選條件")
+        log_test_info("測試組合篩選條件")
 
         # 執行測試
         response = client.get("/api/schedules?giver_id=1&status_filter=AVAILABLE")
@@ -221,7 +222,7 @@ class TestScheduleAPI:
     @patch('app.routers.api.schedule.schedule_crud.get_schedules')
     def test_get_schedules_exception_handling(self, mock_get_schedules):
         """測試取得時段列表時的異常處理。"""
-        print("測試取得時段列表時的異常處理")
+        log_test_info("測試取得時段列表時的異常處理")
 
         # 模擬異常
         mock_get_schedules.side_effect = Exception("查詢錯誤")
@@ -236,7 +237,7 @@ class TestScheduleAPI:
 
     def test_get_schedule_by_id_success(self):
         """測試成功根據 ID 取得時段。"""
-        print("測試成功根據 ID 取得時段")
+        log_test_info("測試成功根據 ID 取得時段")
 
         # 先建立一個時段
         import datetime
@@ -261,7 +262,7 @@ class TestScheduleAPI:
 
         # 檢查建立是否成功
         if create_response.status_code != 201:
-            print(
+            log_test_info(
                 f"建立時段失敗: {create_response.status_code} - {create_response.text}"
             )
             # 如果建立失敗，跳過這個測試
@@ -283,7 +284,7 @@ class TestScheduleAPI:
 
     def test_get_schedule_by_id_not_found(self):
         """測試取得不存在的時段。"""
-        print("測試取得不存在的時段")
+        log_test_info("測試取得不存在的時段")
 
         # 執行測試
         response = client.get("/api/schedules/999")
@@ -297,7 +298,7 @@ class TestScheduleAPI:
     @patch('app.routers.api.schedule.schedule_crud.get_schedule_by_id')
     def test_get_schedule_exception_handling(self, mock_get_schedule_by_id):
         """測試取得單一時段時的異常處理。"""
-        print("測試取得單一時段時的異常處理")
+        log_test_info("測試取得單一時段時的異常處理")
 
         # 模擬異常
         mock_get_schedule_by_id.side_effect = Exception("查詢錯誤")
@@ -312,7 +313,7 @@ class TestScheduleAPI:
 
     def test_update_schedule_success(self, sample_schedule_data):
         """測試成功更新時段。"""
-        print("測試成功更新時段")
+        log_test_info("測試成功更新時段")
 
         # 先建立一個時段
         create_data = {
@@ -324,7 +325,7 @@ class TestScheduleAPI:
 
         # 檢查建立是否成功
         if create_response.status_code != 201:
-            print(
+            log_test_info(
                 f"建立時段失敗: {create_response.status_code} - {create_response.text}"
             )
             # 如果建立失敗，跳過這個測試
@@ -361,7 +362,7 @@ class TestScheduleAPI:
 
     def test_update_schedule_not_found(self):
         """測試更新不存在的時段。"""
-        print("測試更新不存在的時段")
+        log_test_info("測試更新不存在的時段")
 
         # 更新資料
         update_data = {
@@ -386,7 +387,7 @@ class TestScheduleAPI:
 
     def test_update_schedule_invalid_data(self):
         """測試更新時段時使用無效資料。"""
-        print("測試更新時段時使用無效資料")
+        log_test_info("測試更新時段時使用無效資料")
 
         # 無效的更新資料
         invalid_data = {
@@ -412,7 +413,7 @@ class TestScheduleAPI:
         self, mock_update_schedule, sample_schedule_data
     ):
         """測試更新時段時的異常處理。"""
-        print("測試更新時段時的異常處理")
+        log_test_info("測試更新時段時的異常處理")
 
         # 先建立一個時段
         create_data = {
@@ -424,7 +425,7 @@ class TestScheduleAPI:
 
         # 檢查建立是否成功
         if create_response.status_code != 201:
-            print(
+            log_test_info(
                 f"建立時段失敗: {create_response.status_code} - {create_response.text}"
             )
             # 如果建立失敗，跳過這個測試
@@ -452,7 +453,7 @@ class TestScheduleAPI:
 
     def test_delete_schedule_success(self, sample_schedule_data):
         """測試成功刪除時段。"""
-        print("測試成功刪除時段")
+        log_test_info("測試成功刪除時段")
 
         # 使用不同的時段資料避免重疊
         unique_schedule_data = {
@@ -473,7 +474,7 @@ class TestScheduleAPI:
 
         # 檢查回應狀態
         if create_response.status_code != 201:
-            print(
+            log_test_info(
                 f"建立時段失敗: {create_response.status_code} - {create_response.text}"
             )
             assert False, f"建立時段失敗: {create_response.status_code}"
@@ -495,7 +496,7 @@ class TestScheduleAPI:
 
     def test_delete_schedule_not_found(self):
         """測試刪除不存在的時段。"""
-        print("測試刪除不存在的時段")
+        log_test_info("測試刪除不存在的時段")
 
         # 執行測試
         delete_request = {"operator_user_id": 1, "operator_role": "GIVER"}
@@ -513,7 +514,7 @@ class TestScheduleAPI:
         self, mock_delete_schedule, sample_schedule_data
     ):
         """測試刪除時段時的異常處理。"""
-        print("測試刪除時段時的異常處理")
+        log_test_info("測試刪除時段時的異常處理")
 
         # 使用不同的時段資料避免重疊
         import datetime
@@ -541,7 +542,7 @@ class TestScheduleAPI:
 
         # 檢查建立是否成功
         if create_response.status_code != 201:
-            print(
+            log_test_info(
                 f"建立時段失敗: {create_response.status_code} - {create_response.text}"
             )
             # 如果建立失敗，跳過這個測試
@@ -567,7 +568,7 @@ class TestScheduleAPI:
 
     def test_schedule_date_field_mapping(self, sample_schedule_data):
         """測試時段日期欄位映射。"""
-        print("測試時段日期欄位映射")
+        log_test_info("測試時段日期欄位映射")
 
         # 執行測試
         create_data = {
@@ -588,7 +589,7 @@ class TestScheduleAPI:
 
     def test_schedule_validation_edge_cases(self):
         """測試時段驗證的邊界情況。"""
-        print("測試時段驗證的邊界情況")
+        log_test_info("測試時段驗證的邊界情況")
 
         # 測試無效的日期格式
         invalid_date_data = {
@@ -643,7 +644,7 @@ class TestScheduleAPI:
 
     def test_schedule_bulk_operations(self):
         """測試時段批量操作。"""
-        print("測試時段批量操作")
+        log_test_info("測試時段批量操作")
 
         # 建立多個時段
         import datetime

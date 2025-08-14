@@ -9,6 +9,7 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.logger import log_test_info
 
 # 建立測試客戶端
 client = TestClient(app)

@@ -26,6 +26,7 @@ from app.utils.error_handler import (
     log_error,
     safe_execute,
 )
+from tests.logger import log_test_info
 
 
 class TestErrorCode:

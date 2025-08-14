@@ -14,6 +14,7 @@ from fastapi.testclient import TestClient
 
 # ===== 本地模組 =====
 from app.main import app
+from tests.logger import log_test_info
 
 
 class TestAPIScheduleSimple:

@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 
 from app.data.givers import MOCK_GIVERS
 from app.main import app
+from tests.logger import log_test_info
 
 # 建立測試客戶端
 client = TestClient(app)
@@ -20,7 +21,7 @@ class TestGiversAPI:
 
     def test_get_givers_success(self):
         """測試成功取得 Giver 列表。"""
-        print("測試成功取得 Giver 列表")
+        log_test_info("測試成功取得 Giver 列表")
 
         # 執行測試
         response = client.get("/api/givers")
@@ -44,7 +45,7 @@ class TestGiversAPI:
 
     def test_get_givers_with_topic_filter(self):
         """測試根據服務項目篩選 Giver。"""
-        print("測試根據服務項目篩選 Giver")
+        log_test_info("測試根據服務項目篩選 Giver")
 
         # 執行測試
         response = client.get("/api/givers?topic=履歷健診")
@@ -60,7 +61,7 @@ class TestGiversAPI:
 
     def test_get_givers_with_industry_filter(self):
         """測試根據產業篩選 Giver。"""
-        print("測試根據產業篩選 Giver")
+        log_test_info("測試根據產業篩選 Giver")
 
         # 執行測試
         response = client.get("/api/givers?industry=電子資訊／軟體／半導體相關業")
@@ -76,7 +77,7 @@ class TestGiversAPI:
 
     def test_get_givers_with_pagination(self):
         """測試分頁功能。"""
-        print("測試分頁功能")
+        log_test_info("測試分頁功能")
 
         # 執行測試
         response = client.get("/api/givers?page=2&per_page=5")
@@ -92,7 +93,7 @@ class TestGiversAPI:
 
     def test_get_givers_with_invalid_page(self):
         """測試無效的頁碼參數。"""
-        print("測試無效的頁碼參數")
+        log_test_info("測試無效的頁碼參數")
 
         # 執行測試
         response = client.get("/api/givers?page=0")
@@ -102,7 +103,7 @@ class TestGiversAPI:
 
     def test_get_givers_with_invalid_per_page(self):
         """測試無效的每頁數量參數。"""
-        print("測試無效的每頁數量參數")
+        log_test_info("測試無效的每頁數量參數")
 
         # 執行測試
         response = client.get("/api/givers?per_page=0")
@@ -112,7 +113,7 @@ class TestGiversAPI:
 
     def test_get_givers_with_large_per_page(self):
         """測試超過限制的每頁數量參數。"""
-        print("測試超過限制的每頁數量參數")
+        log_test_info("測試超過限制的每頁數量參數")
 
         # 執行測試
         response = client.get("/api/givers?per_page=101")
@@ -122,7 +123,7 @@ class TestGiversAPI:
 
     def test_get_giver_by_id_success(self):
         """測試成功根據 ID 取得 Giver。"""
-        print("測試成功根據 ID 取得 Giver")
+        log_test_info("測試成功根據 ID 取得 Giver")
 
         # 執行測試
         response = client.get("/api/givers/1")
@@ -138,7 +139,7 @@ class TestGiversAPI:
 
     def test_get_giver_by_id_not_found(self):
         """測試取得不存在的 Giver。"""
-        print("測試取得不存在的 Giver")
+        log_test_info("測試取得不存在的 Giver")
 
         # 執行測試
         response = client.get("/api/givers/999")
@@ -150,7 +151,7 @@ class TestGiversAPI:
 
     def test_get_givers_by_topic_endpoint_success(self):
         """測試根據服務項目取得 Giver 列表端點。"""
-        print("測試根據服務項目取得 Giver 列表端點")
+        log_test_info("測試根據服務項目取得 Giver 列表端點")
 
         # 執行測試
         response = client.get("/api/givers/topics/履歷健診")
@@ -172,7 +173,7 @@ class TestGiversAPI:
 
     def test_get_givers_by_topic_endpoint_empty(self):
         """測試根據不存在的服務項目取得 Giver 列表。"""
-        print("測試根據不存在的服務項目取得 Giver 列表")
+        log_test_info("測試根據不存在的服務項目取得 Giver 列表")
 
         # 執行測試
         response = client.get("/api/givers/topics/不存在的服務")
@@ -188,7 +189,7 @@ class TestGiversAPI:
 
     def test_get_givers_by_industry_endpoint_success(self):
         """測試根據產業取得 Giver 列表端點。"""
-        print("測試根據產業取得 Giver 列表端點")
+        log_test_info("測試根據產業取得 Giver 列表端點")
 
         # 執行測試
         response = client.get("/api/givers/industries/電子資訊／軟體／半導體相關業")
@@ -210,7 +211,7 @@ class TestGiversAPI:
 
     def test_get_givers_by_industry_endpoint_empty(self):
         """測試根據不存在的產業取得 Giver 列表。"""
-        print("測試根據不存在的產業取得 Giver 列表")
+        log_test_info("測試根據不存在的產業取得 Giver 列表")
 
         # 執行測試
         response = client.get("/api/givers/industries/不存在的產業")
@@ -226,7 +227,7 @@ class TestGiversAPI:
 
     def test_get_givers_count_endpoint_success(self):
         """測試取得 Giver 總數統計端點。"""
-        print("測試取得 Giver 總數統計端點")
+        log_test_info("測試取得 Giver 總數統計端點")
 
         # 執行測試
         response = client.get("/api/givers/stats/count")
@@ -245,7 +246,7 @@ class TestGiversAPI:
     @patch('app.routers.api.givers.get_all_givers')
     def test_get_givers_exception_handling(self, mock_get_all_givers):
         """測試取得 Giver 列表時的異常處理。"""
-        print("測試取得 Giver 列表時的異常處理")
+        log_test_info("測試取得 Giver 列表時的異常處理")
 
         # 模擬異常
         mock_get_all_givers.side_effect = Exception("資料庫錯誤")
@@ -261,7 +262,7 @@ class TestGiversAPI:
     @patch('app.routers.api.givers.get_giver_by_id')
     def test_get_giver_exception_handling(self, mock_get_giver_by_id):
         """測試取得單一 Giver 時的異常處理。"""
-        print("測試取得單一 Giver 時的異常處理")
+        log_test_info("測試取得單一 Giver 時的異常處理")
 
         # 模擬異常
         mock_get_giver_by_id.side_effect = Exception("資料庫錯誤")
@@ -277,7 +278,7 @@ class TestGiversAPI:
     @patch('app.routers.api.givers.get_givers_by_topic')
     def test_get_givers_by_topic_exception_handling(self, mock_get_givers_by_topic):
         """測試根據服務項目篩選時的異常處理。"""
-        print("測試根據服務項目篩選時的異常處理")
+        log_test_info("測試根據服務項目篩選時的異常處理")
 
         # 模擬異常
         mock_get_givers_by_topic.side_effect = Exception("篩選錯誤")
@@ -295,7 +296,7 @@ class TestGiversAPI:
         self, mock_get_givers_by_industry
     ):
         """測試根據產業篩選時的異常處理。"""
-        print("測試根據產業篩選時的異常處理")
+        log_test_info("測試根據產業篩選時的異常處理")
 
         # 模擬異常
         mock_get_givers_by_industry.side_effect = Exception("篩選錯誤")
@@ -311,7 +312,7 @@ class TestGiversAPI:
     @patch('app.routers.api.givers.get_givers_count')
     def test_get_givers_count_exception_handling(self, mock_get_givers_count):
         """測試取得 Giver 統計時的異常處理。"""
-        print("測試取得 Giver 統計時的異常處理")
+        log_test_info("測試取得 Giver 統計時的異常處理")
 
         # 模擬異常
         mock_get_givers_count.side_effect = Exception("統計錯誤")
@@ -326,7 +327,7 @@ class TestGiversAPI:
 
     def test_get_givers_combined_filters(self):
         """測試組合篩選條件。"""
-        print("測試組合篩選條件")
+        log_test_info("測試組合篩選條件")
 
         # 執行測試 - 同時使用 topic 和 industry 篩選
         response = client.get(
@@ -345,7 +346,7 @@ class TestGiversAPI:
 
     def test_get_givers_edge_cases(self):
         """測試邊界情況。"""
-        print("測試邊界情況")
+        log_test_info("測試邊界情況")
 
         # 測試非常大的頁碼
         response = client.get("/api/givers?page=999999")

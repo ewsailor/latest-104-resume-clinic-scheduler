@@ -12,6 +12,7 @@ from httpx import ASGITransport, AsyncClient  # 非同步 HTTP 客戶端
 
 # ===== 本地模組 =====
 from app.main import app  # FastAPI 應用程式
+from tests.logger import log_test_info
 
 
 @pytest.mark.asyncio

@@ -12,6 +12,7 @@ from app.data.givers import (
     get_givers_by_topic,
     get_givers_count,
 )
+from tests.logger import log_test_info
 
 
 class TestGiversData:
@@ -19,7 +20,7 @@ class TestGiversData:
 
     def test_get_all_givers(self):
         """測試取得所有 Giver 資料。"""
-        print("測試取得所有 Giver 資料")
+        log_test_info("測試取得所有 Giver 資料")
 
         # 執行測試
         result = get_all_givers()
@@ -40,7 +41,7 @@ class TestGiversData:
 
     def test_get_giver_by_id_existing(self):
         """測試根據 ID 取得存在的 Giver。"""
-        print("測試根據 ID 取得存在的 Giver")
+        log_test_info("測試根據 ID 取得存在的 Giver")
 
         # 測試取得第一個 Giver
         giver_id = 1
@@ -54,7 +55,7 @@ class TestGiversData:
 
     def test_get_giver_by_id_not_existing(self):
         """測試根據 ID 取得不存在的 Giver。"""
-        print("測試根據 ID 取得不存在的 Giver")
+        log_test_info("測試根據 ID 取得不存在的 Giver")
 
         # 測試取得不存在的 Giver
         giver_id = 999
@@ -65,7 +66,7 @@ class TestGiversData:
 
     def test_get_givers_by_topic_existing(self):
         """測試根據服務項目篩選存在的 Giver。"""
-        print("測試根據服務項目篩選存在的 Giver")
+        log_test_info("測試根據服務項目篩選存在的 Giver")
 
         # 測試篩選有履歷健診服務的 Giver
         topic = "履歷健診"
@@ -81,7 +82,7 @@ class TestGiversData:
 
     def test_get_givers_by_topic_not_existing(self):
         """測試根據不存在的服務項目篩選 Giver。"""
-        print("測試根據不存在的服務項目篩選 Giver")
+        log_test_info("測試根據不存在的服務項目篩選 Giver")
 
         # 測試篩選不存在的服務項目
         topic = "不存在的服務"
@@ -93,7 +94,7 @@ class TestGiversData:
 
     def test_get_givers_by_topic_empty_string(self):
         """測試根據空字串篩選 Giver。"""
-        print("測試根據空字串篩選 Giver")
+        log_test_info("測試根據空字串篩選 Giver")
 
         # 測試空字串
         topic = ""
@@ -106,7 +107,7 @@ class TestGiversData:
 
     def test_get_givers_by_industry_existing(self):
         """測試根據產業篩選存在的 Giver。"""
-        print("測試根據產業篩選存在的 Giver")
+        log_test_info("測試根據產業篩選存在的 Giver")
 
         # 測試篩選特定產業的 Giver
         industry = "電子資訊／軟體／半導體相關業"
@@ -122,7 +123,7 @@ class TestGiversData:
 
     def test_get_givers_by_industry_not_existing(self):
         """測試根據不存在的產業篩選 Giver。"""
-        print("測試根據不存在的產業篩選 Giver")
+        log_test_info("測試根據不存在的產業篩選 Giver")
 
         # 測試篩選不存在的產業
         industry = "不存在的產業"
@@ -134,7 +135,7 @@ class TestGiversData:
 
     def test_get_givers_by_industry_empty_string(self):
         """測試根據空字串篩選產業。"""
-        print("測試根據空字串篩選產業")
+        log_test_info("測試根據空字串篩選產業")
 
         # 測試空字串
         industry = ""
@@ -147,7 +148,7 @@ class TestGiversData:
 
     def test_get_givers_count(self):
         """測試取得 Giver 總數。"""
-        print("測試取得 Giver 總數")
+        log_test_info("測試取得 Giver 總數")
 
         # 執行測試
         result = get_givers_count()
@@ -159,7 +160,7 @@ class TestGiversData:
 
     def test_mock_givers_data_structure(self):
         """測試 MOCK_GIVERS 資料結構的完整性。"""
-        print("測試 MOCK_GIVERS 資料結構的完整性")
+        log_test_info("測試 MOCK_GIVERS 資料結構的完整性")
 
         # 驗證 MOCK_GIVERS 的基本結構
         assert isinstance(MOCK_GIVERS, list)
@@ -182,7 +183,7 @@ class TestGiversData:
 
     def test_giver_ids_unique(self):
         """測試所有 Giver ID 都是唯一的。"""
-        print("測試所有 Giver ID 都是唯一的")
+        log_test_info("測試所有 Giver ID 都是唯一的")
 
         # 取得所有 ID
         ids = [giver["id"] for giver in MOCK_GIVERS]
@@ -192,7 +193,7 @@ class TestGiversData:
 
     def test_giver_topics_consistency(self):
         """測試 Giver 服務項目的一致性。"""
-        print("測試 Giver 服務項目的一致性")
+        log_test_info("測試 Giver 服務項目的一致性")
 
         # 收集所有服務項目
         all_topics = set()
