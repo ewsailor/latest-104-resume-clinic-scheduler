@@ -85,18 +85,24 @@ def test_liveness_probe_failure(mocker):
     response = client.get("/healthz")
     assert response.status_code == HTTP_500_INTERNAL_SERVER_ERROR
     response_data = response.json()
-    assert "detail" in response_data
-    assert response_data["detail"]["status"] == EXPECTED_STATUS_UNHEALTHY
-    assert response_data["detail"]["error"] == EXPECTED_ERROR_MESSAGE
-    assert "timestamp" in response_data["detail"]
+    # 修正：使用 error.message 欄位而不是 detail
+    assert "error" in response_data
+    assert "message" in response_data["error"]
+    # 檢查錯誤訊息內容
+    error_message = response_data["error"]["message"]
+    assert "status" in error_message
+    assert "error" in error_message
+    assert error_message["status"] == EXPECTED_STATUS_UNHEALTHY
+    assert error_message["error"] == EXPECTED_ERROR_MESSAGE
+    assert "timestamp" in error_message
 
     # 檢查時間戳是有效的 ISO 格式字串
-    assert isinstance(response_data["detail"]["timestamp"], str)
+    assert isinstance(error_message["timestamp"], str)
     # 驗證時間戳格式：YYYY-MM-DDTHH:MM:SSZ
     timestamp_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
     assert re.match(
-        timestamp_pattern, response_data["detail"]["timestamp"]
-    ), f"時間戳格式不正確: {response_data['detail']['timestamp']}"
+        timestamp_pattern, error_message["timestamp"]
+    ), f"時間戳格式不正確: {error_message['timestamp']}"
 
 
 def test_readiness_probe_success(mocker):
@@ -147,15 +153,21 @@ def test_readiness_probe_failure(mocker):
     response = client.get("/readyz")
     assert response.status_code == HTTP_503_SERVICE_UNAVAILABLE
     response_data = response.json()
-    assert "detail" in response_data
-    assert response_data["detail"]["status"] == "error"
-    assert response_data["detail"]["database"] == EXPECTED_DATABASE_DISCONNECTED
-    assert "timestamp" in response_data["detail"]
+    # 修正：使用 error.message 欄位而不是 detail
+    assert "error" in response_data
+    assert "message" in response_data["error"]
+    # 檢查錯誤訊息內容
+    error_message = response_data["error"]["message"]
+    assert "status" in error_message
+    assert "database" in error_message
+    assert error_message["status"] == "error"
+    assert error_message["database"] == EXPECTED_DATABASE_DISCONNECTED
+    assert "timestamp" in error_message
 
     # 檢查時間戳是有效的 ISO 格式字串
-    assert isinstance(response_data["detail"]["timestamp"], str)
+    assert isinstance(error_message["timestamp"], str)
     # 驗證時間戳格式：YYYY-MM-DDTHH:MM:SSZ
     timestamp_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
     assert re.match(
-        timestamp_pattern, response_data["detail"]["timestamp"]
-    ), f"時間戳格式不正確: {response_data['detail']['timestamp']}"
+        timestamp_pattern, error_message["timestamp"]
+    ), f"時間戳格式不正確: {error_message['timestamp']}"

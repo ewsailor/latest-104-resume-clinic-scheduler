@@ -101,10 +101,15 @@ class BusinessLogicError(APIError):
 class DatabaseError(APIError):
     """資料庫錯誤"""
 
-    def __init__(self, message: str, details: dict[str, Any] | None = None):
+    def __init__(
+        self,
+        message: str,
+        details: dict[str, Any] | None = None,
+        error_code: str = ErrorCode.DATABASE_ERROR,
+    ):
         super().__init__(
             message=message,
-            error_code=ErrorCode.DATABASE_ERROR,
+            error_code=error_code,
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             details=details,
         )
@@ -280,18 +285,23 @@ def handle_database_error(error: Exception, operation: str) -> DatabaseError:
     Returns:
         DatabaseError: 格式化的資料庫錯誤
     """
-    error_message = f"資料庫操作失敗 ({operation}): {str(error)}"
+    error_str = str(error).lower()
 
-    # 根據錯誤類型提供更具體的錯誤訊息
-    if "connection" in str(error).lower():
+    # 根據錯誤類型提供更具體的錯誤訊息和代碼
+    if "connection" in error_str:
         error_message = f"資料庫連線失敗 ({operation})"
-    elif "transaction" in str(error).lower():
+        error_code = ErrorCode.CONNECTION_ERROR
+    elif "transaction" in error_str:
         error_message = f"資料庫交易失敗 ({operation})"
+        error_code = ErrorCode.TRANSACTION_ERROR
     else:
         error_message = f"資料庫操作失敗 ({operation}): {str(error)}"
+        error_code = ErrorCode.DATABASE_ERROR
 
     return DatabaseError(
-        error_message, {"operation": operation, "original_error": str(error)}
+        error_message,
+        {"operation": operation, "original_error": str(error)},
+        error_code=error_code,
     )
 
 

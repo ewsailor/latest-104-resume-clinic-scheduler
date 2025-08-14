@@ -77,10 +77,14 @@ def test_liveness_probe_failure_new_style(mocker):
 
     response = client.get("/healthz")
     assert response.status_code == HTTP.INTERNAL_SERVER_ERROR
-    assert "detail" in response.json()
-    assert response.json()["detail"]["status"] == EXPECTED.STATUS.UNHEALTHY
-    assert response.json()["detail"]["error"] == EXPECTED.MESSAGE.ERROR
-    assert "timestamp" in response.json()["detail"]
+    # 修正：使用 error.message 欄位而不是 detail
+    response_data = response.json()
+    assert "error" in response_data
+    assert "message" in response_data["error"]
+    error_message = response_data["error"]["message"]
+    assert error_message["status"] == EXPECTED.STATUS.UNHEALTHY
+    assert error_message["error"] == EXPECTED.MESSAGE.ERROR
+    assert "timestamp" in error_message
 
 
 def test_readiness_probe_success_new_style(mocker):
@@ -124,10 +128,14 @@ def test_readiness_probe_failure_new_style(mocker):
     )
     response = client.get("/readyz")
     assert response.status_code == HTTP.SERVICE_UNAVAILABLE
-    assert "detail" in response.json()
-    assert response.json()["detail"]["status"] == "error"
-    assert response.json()["detail"]["database"] == EXPECTED.DATABASE.DISCONNECTED
-    assert "timestamp" in response.json()["detail"]
+    # 修正：使用 error.message 欄位而不是 detail
+    response_data = response.json()
+    assert "error" in response_data
+    assert "message" in response_data["error"]
+    error_message = response_data["error"]["message"]
+    assert error_message["status"] == "error"
+    assert error_message["database"] == EXPECTED.DATABASE.DISCONNECTED
+    assert "timestamp" in error_message
 
 
 def test_constants_structure():

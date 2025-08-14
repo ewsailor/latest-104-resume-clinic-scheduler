@@ -17,6 +17,7 @@ from app.models.enums import ScheduleStatusEnum, UserRoleEnum  # 角色枚舉
 from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型
 from app.schemas import ScheduleCreate, UserCreate  # 資料模型
+from app.utils.error_handler import NotFoundError  # 錯誤處理
 
 
 class TestScheduleCRUD:
@@ -392,9 +393,8 @@ class TestScheduleCRUD:
         """測試根據不存在的 ID 查詢時段。"""
         crud = ScheduleCRUD()
 
-        found_schedule = crud.get_schedule_by_id(db_session, 999)
-
-        assert found_schedule is None
+        with pytest.raises(NotFoundError, match="時段不存在: ID=999"):
+            crud.get_schedule_by_id(db_session, 999)
 
     def test_update_schedule_success(self, db_session: Session):
         """測試成功更新時段。"""
@@ -443,15 +443,14 @@ class TestScheduleCRUD:
         db_session.add(user)
         db_session.commit()
 
-        updated_schedule = crud.update_schedule(
-            db_session,
-            999,
-            updated_by_user_id=user.id,
-            operator_role=UserRoleEnum.SYSTEM,
-            note="測試備註",
-        )
-
-        assert updated_schedule is None
+        with pytest.raises(NotFoundError, match="時段不存在: ID=999"):
+            crud.update_schedule(
+                db_session,
+                999,
+                updated_by_user_id=user.id,
+                operator_role=UserRoleEnum.SYSTEM,
+                note="測試備註",
+            )
 
     def test_update_schedule_with_overlap(self, db_session: Session):
         """測試更新時段時的重疊檢查。"""
@@ -600,8 +599,8 @@ class TestScheduleCRUD:
         assert result is True
 
         # 確認時段已被軟刪除（在正常查詢中不可見）
-        found_schedule = crud.get_schedule_by_id(db_session, schedule.id)
-        assert found_schedule is None
+        with pytest.raises(NotFoundError, match="時段不存在: ID=1"):
+            crud.get_schedule_by_id(db_session, schedule.id)
 
         # 確認時段仍然存在但已被軟刪除
         found_schedule_with_deleted = crud.get_schedule_by_id_including_deleted(
@@ -668,7 +667,7 @@ class TestScheduleCRUD:
         ]
 
         # 嘗試使用不存在的操作者ID
-        with pytest.raises(ValueError, match="操作者不存在: user_id=999"):
+        with pytest.raises(NotFoundError, match="使用者不存在: ID=999"):
             crud.create_schedules(
                 db_session,
                 schedule_data,
@@ -702,7 +701,7 @@ class TestScheduleCRUD:
         schedule = schedules[0]
 
         # 嘗試使用不存在的操作者ID更新時段
-        with pytest.raises(ValueError, match="更新者不存在: user_id=999"):
+        with pytest.raises(NotFoundError, match="使用者不存在: ID=999"):
             crud.update_schedule(
                 db_session,
                 schedule.id,
@@ -733,7 +732,7 @@ class TestScheduleCRUD:
         db_session.commit()
 
         # 嘗試使用不存在的操作者刪除時段
-        with pytest.raises(ValueError, match="操作者不存在"):
+        with pytest.raises(NotFoundError, match="使用者不存在: ID=999"):
             crud.delete_schedule(
                 db_session,
                 schedule.id,
@@ -811,9 +810,9 @@ class TestScheduleCRUD:
         assert validated_user.name == "測試使用者"
 
         # 測試不存在的使用者
-        with pytest.raises(ValueError, match="操作者不存在: user_id=999"):
+        with pytest.raises(NotFoundError, match="使用者不存在: ID=999"):
             crud._validate_user_exists(db_session, 999, "操作者")
 
         # 測試不同的上下文
-        with pytest.raises(ValueError, match="更新者不存在: user_id=999"):
+        with pytest.raises(NotFoundError, match="使用者不存在: ID=999"):
             crud._validate_user_exists(db_session, 999, "更新者")

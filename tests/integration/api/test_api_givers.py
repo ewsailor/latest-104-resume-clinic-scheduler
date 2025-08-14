@@ -146,7 +146,7 @@ class TestGiversAPI:
         # 驗證回應
         assert response.status_code == 404
         data = response.json()
-        assert "找不到 ID 為 999 的 Giver" in data["detail"]
+        assert "找不到 ID 為 999 的 Giver" in data["error"]["message"]
 
     def test_get_givers_by_topic_endpoint_success(self):
         """測試根據服務項目取得 Giver 列表端點。"""
@@ -256,7 +256,7 @@ class TestGiversAPI:
         # 驗證回應
         assert response.status_code == 500
         data = response.json()
-        assert "取得 Giver 列表失敗" in data["detail"]
+        assert "取得 Giver 列表失敗" in data["error"]["message"]
 
     @patch('app.routers.api.givers.get_giver_by_id')
     def test_get_giver_exception_handling(self, mock_get_giver_by_id):
@@ -272,7 +272,7 @@ class TestGiversAPI:
         # 驗證回應
         assert response.status_code == 500
         data = response.json()
-        assert "取得 Giver 資料失敗" in data["detail"]
+        assert "取得 Giver 資料失敗" in data["error"]["message"]
 
     @patch('app.routers.api.givers.get_givers_by_topic')
     def test_get_givers_by_topic_exception_handling(self, mock_get_givers_by_topic):
@@ -288,7 +288,7 @@ class TestGiversAPI:
         # 驗證回應
         assert response.status_code == 500
         data = response.json()
-        assert "根據服務項目篩選 Giver 失敗" in data["detail"]
+        assert "根據服務項目篩選 Giver 失敗" in data["error"]["message"]
 
     @patch('app.routers.api.givers.get_givers_by_industry')
     def test_get_givers_by_industry_exception_handling(
@@ -306,7 +306,7 @@ class TestGiversAPI:
         # 驗證回應
         assert response.status_code == 500
         data = response.json()
-        assert "根據產業篩選 Giver 失敗" in data["detail"]
+        assert "根據產業篩選 Giver 失敗" in data["error"]["message"]
 
     @patch('app.routers.api.givers.get_givers_count')
     def test_get_givers_count_exception_handling(self, mock_get_givers_count):
@@ -322,7 +322,7 @@ class TestGiversAPI:
         # 驗證回應
         assert response.status_code == 500
         data = response.json()
-        assert "取得 Giver 統計失敗" in data["detail"]
+        assert "取得 Giver 統計失敗" in data["error"]["message"]
 
     def test_get_givers_combined_filters(self):
         """測試組合篩選條件。"""

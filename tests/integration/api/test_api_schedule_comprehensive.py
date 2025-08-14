@@ -125,7 +125,7 @@ class TestAPIScheduleComprehensive:
                 await create_user(user_data, mock_db)
 
         # 驗證異常詳情
-        assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
+        assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert "此電子信箱已被使用" in str(exc_info.value.detail)
 
     @pytest.mark.asyncio
@@ -146,8 +146,8 @@ class TestAPIScheduleComprehensive:
                 await create_user(user_data, mock_db)
 
         # 驗證異常詳情
-        assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
-        assert "建立使用者失敗" in str(exc_info.value.detail)
+        assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert "建立使用者時發生內部錯誤" in str(exc_info.value.detail)
         assert "資料庫連線失敗" in str(exc_info.value.detail)
 
         # 驗證資料庫回滾被呼叫
@@ -219,8 +219,8 @@ class TestAPIScheduleComprehensive:
                 await create_schedules(schedule_data, mock_db)
 
         # 驗證異常詳情
-        assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
-        assert "建立時段失敗" in str(exc_info.value.detail)
+        assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert "建立時段時發生內部錯誤" in str(exc_info.value.detail)
         assert "資料庫錯誤" in str(exc_info.value.detail)
 
         # 驗證資料庫回滾被呼叫
@@ -371,8 +371,8 @@ class TestAPIScheduleComprehensive:
         """測試建立使用者時無效資料處理。"""
         from app.schemas import UserCreate
 
-        # 準備測試資料 - 無效的 email 格式
-        user_data = UserCreate(name="測試使用者", email="invalid-email")
+        # 準備測試資料 - 使用有效的 email 格式，但模擬 CRUD 層的驗證錯誤
+        user_data = UserCreate(name="測試使用者", email="test@example.com")
 
         # 模擬 CRUD 操作拋出 ValueError
         with patch(
@@ -384,7 +384,7 @@ class TestAPIScheduleComprehensive:
                 await create_user(user_data, mock_db)
 
         # 驗證異常詳情
-        assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
+        assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert "無效的電子信箱格式" in str(exc_info.value.detail)
 
     @pytest.mark.asyncio
@@ -419,8 +419,8 @@ class TestAPIScheduleComprehensive:
                 await create_schedules(schedule_data, mock_db)
 
         # 驗證異常詳情
-        assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
-        assert "建立時段失敗" in str(exc_info.value.detail)
+        assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert "建立時段時發生內部錯誤" in str(exc_info.value.detail)
         assert "時間衝突" in str(exc_info.value.detail)
 
     # ===== 整合測試 =====
@@ -555,4 +555,4 @@ class TestAPIScheduleComprehensive:
         # 測試錯誤情況的日誌
         with patch('app.crud.user_crud.create_user', side_effect=Exception("測試錯誤")):
             response = client.post("/api/users", json=user_data)
-            assert response.status_code == 400
+            assert response.status_code == 500

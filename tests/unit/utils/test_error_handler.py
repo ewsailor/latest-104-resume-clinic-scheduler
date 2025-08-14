@@ -18,6 +18,7 @@ from app.utils.error_handler import (
 from app.utils.error_handler import ValidationError as CustomValidationError
 from app.utils.error_handler import (
     create_giver_not_found_error,
+    create_http_exception_from_api_error,
     create_schedule_not_found_error,
     create_user_not_found_error,
     format_error_response,
