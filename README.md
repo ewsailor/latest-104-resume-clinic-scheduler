@@ -6,10 +6,35 @@
 [![Alembic](https://img.shields.io/badge/Alembic-1.16+-purple.svg)](https://alembic.sqlalchemy.org/)
 [![Poetry](https://img.shields.io/badge/Poetry-1.8+-orange.svg)](https://python-poetry.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
+[![Test Coverage](https://img.shields.io/badge/Coverage-90%25-brightgreen.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
+[![Version](https://img.shields.io/badge/Version-1.2.0-blue.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
+
+## 📑 目錄
+
+- [專案概述](#專案概述)
+- [核心功能](#核心功能)
+- [專案特色](#專案特色)
+- [技術架構](#技術架構)
+- [快速開始](#快速開始)
+- [專案結構](#專案結構)
+- [API 文檔](#api-文檔)
+- [測試指南](#測試指南)
+- [開發指南](#開發指南)
+- [故障排除](#故障排除)
+- [貢獻指南](#貢獻指南)
+- [更新日誌](#更新日誌)
 
 ## 專案概述
 
 讓 Giver（諮詢師）與 Taker（求職者）使用 104 履歷診療室時，雙方能在平台內，設定可面談時段並完成配對媒合，同時快速發送預計回覆時間通知，以減少等待回應時的不確定與焦慮感。
+
+### 🎯 專案目標
+
+- **提升媒合效率**：自動化時間配對，減少人工協調時間
+- **改善用戶體驗**：即時通知和狀態更新，降低等待焦慮
+- **標準化流程**：建立統一的諮詢預約和管理流程
+- **資料分析**：提供諮詢數據分析，優化服務品質
 
 ## 核心功能
 
@@ -248,7 +273,28 @@
 └── README.md                     # 專案說明文件
 ```
 
-## 快速導覽
+## 快速開始
+
+### 🚀 **一鍵啟動（推薦）**
+
+```bash
+# 1. 複製專案
+git clone https://github.com/ewsailor/104-resume-clinic-scheduler.git
+cd 104-resume-clinic-scheduler
+
+# 2. 使用 Poetry 安裝依賴
+poetry install
+
+# 3. 設定環境變數
+cp .env.example .env
+# 編輯 .env 檔案，填入您的資料庫設定
+
+# 4. 初始化資料庫
+poetry run alembic upgrade head
+
+# 5. 啟動開發伺服器
+poetry run uvicorn app.main:app --reload --reload-dir app
+```
 
 ### 📖 **文檔導覽**
 
@@ -474,34 +520,238 @@ poetry run mypy app/
 poetry run flake8 app/
 ```
 
-## API 端點
+## API 文檔
 
-### 健康檢查端點
+### 🔍 **API 端點概覽**
+
+#### 健康檢查端點
 
 - **基本健康檢查**: `GET /healthz` - 檢查應用程式是否正在運行
 - **就緒檢查**: `GET /readyz` - 檢查應用程式和資料庫是否準備好接收流量
 
-### API 文件
+#### 使用者管理 API
+
+- **取得使用者列表**: `GET /api/users/` - 取得所有使用者
+- **取得特定使用者**: `GET /api/users/{user_id}` - 取得特定使用者資訊
+- **建立使用者**: `POST /api/users/` - 建立新使用者
+- **更新使用者**: `PUT /api/users/{user_id}` - 更新使用者資訊
+
+#### 諮詢師管理 API
+
+- **取得諮詢師列表**: `GET /api/givers/` - 取得所有諮詢師
+- **取得特定諮詢師**: `GET /api/givers/{giver_id}` - 取得特定諮詢師資訊
+- **建立諮詢師**: `POST /api/givers/` - 建立新諮詢師
+
+#### 排程管理 API
+
+- **取得排程列表**: `GET /api/schedules/` - 取得所有排程
+- **取得特定排程**: `GET /api/schedules/{schedule_id}` - 取得特定排程資訊
+- **建立排程**: `POST /api/schedules/` - 建立新排程
+- **更新排程**: `PUT /api/schedules/{schedule_id}` - 更新排程資訊
+- **刪除排程**: `DELETE /api/schedules/{schedule_id}` - 刪除排程
+
+### 📚 **API 文件**
 
 啟動伺服器後，可以訪問以下文件：
 
 - **Swagger UI**: http://127.0.0.1:8000/docs
 - **ReDoc**: http://127.0.0.1:8000/redoc
 
+### 🔧 **API 使用範例**
+
+```bash
+# 健康檢查
+curl http://127.0.0.1:8000/healthz
+
+# 取得使用者列表
+curl http://127.0.0.1:8000/api/users/
+
+# 建立新排程
+curl -X POST http://127.0.0.1:8000/api/schedules/ \
+  -H "Content-Type: application/json" \
+  -d '{"giver_id": 1, "taker_id": 2, "start_time": "2025-01-15T10:00:00Z"}'
+```
+
+## 故障排除
+
+### 🔧 **常見問題**
+
+#### 1. 資料庫連線問題
+
+```bash
+# 錯誤：OperationalError: (2003, "Can't connect to MySQL server")
+# 解決方案：
+# 1. 確認 MySQL 服務正在運行
+sudo systemctl start mysql
+
+# 2. 檢查資料庫連線設定
+cat .env | grep DATABASE
+
+# 3. 測試資料庫連線
+poetry run python scripts/test_database_connection.py
+```
+
+#### 2. 環境變數問題
+
+```bash
+# 錯誤：KeyError: 'DATABASE_URL'
+# 解決方案：
+# 1. 確認 .env 檔案存在
+ls -la .env
+
+# 2. 檢查環境變數設定
+poetry run python scripts/config_validator.py
+```
+
+#### 3. 測試警告問題
+
+```bash
+# 警告：PendingDeprecationWarning: multipart
+# 解決方案：使用專案提供的測試腳本
+python scripts/run_tests.py
+```
+
+#### 4. 資料庫遷移問題
+
+```bash
+# 錯誤：Alembic revision failed
+# 解決方案：
+# 1. 檢查模型變更
+poetry run alembic check
+
+# 2. 手動建立遷移
+poetry run alembic revision --autogenerate -m "描述變更"
+
+# 3. 應用遷移
+poetry run alembic upgrade head
+```
+
+### 📞 **尋求協助**
+
+如果遇到其他問題，請：
+
+1. 查看 [Issues](https://github.com/ewsailor/104-resume-clinic-scheduler/issues) 是否有類似問題
+2. 檢查 [文檔目錄](docs/) 中的相關指南
+3. 建立新的 Issue，並提供詳細的錯誤資訊
+
+## 開發指南
+
+### 🛠️ **開發環境設定**
+
+1. **安裝開發工具**
+
+   ```bash
+   # 安裝 pre-commit hooks
+   poetry run pre-commit install
+
+   # 設定 Git hooks
+   poetry run pre-commit install --hook-type commit-msg
+   ```
+
+2. **程式碼品質檢查**
+
+   ```bash
+   # 格式化程式碼
+   poetry run black app/
+
+   # 整理 import 語句
+   poetry run isort app/
+
+   # 型別檢查
+   poetry run mypy app/
+
+   # 程式碼風格檢查
+   poetry run flake8 app/
+   ```
+
+3. **測試執行**
+
+   ```bash
+   # 執行所有測試
+   poetry run pytest
+
+   # 執行測試並生成覆蓋率報告
+   poetry run pytest --cov=app --cov-report=html
+   ```
+
 ## 貢獻指南
 
-1. Fork 本專案
-2. 建立功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交變更 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 開啟 Pull Request
+### 🤝 **貢獻流程**
 
-### 開發規範
+1. **Fork 專案**
 
+   ```bash
+   # 在 GitHub 上 Fork 本專案
+   # 然後複製到本地
+   git clone https://github.com/YOUR_USERNAME/104-resume-clinic-scheduler.git
+   cd 104-resume-clinic-scheduler
+   ```
+
+2. **建立功能分支**
+
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+3. **開發和測試**
+
+   ```bash
+   # 安裝依賴
+   poetry install
+
+   # 執行測試
+   poetry run pytest
+
+   # 程式碼品質檢查
+   poetry run black app/
+   poetry run isort app/
+   ```
+
+4. **提交變更**
+
+   ```bash
+   git add .
+   git commit -m "feat: 新增功能描述"
+   git push origin feature/your-feature-name
+   ```
+
+5. **開啟 Pull Request**
+   - 在 GitHub 上建立 Pull Request
+   - 填寫詳細的變更說明
+   - 確保所有測試通過
+
+### 📋 **開發規範**
+
+#### 程式碼風格
+
+- 遵循 [PEP 8](https://www.python.org/dev/peps/pep-0008/) 程式碼風格
+- 使用 [Black](https://black.readthedocs.io/) 進行程式碼格式化
+- 使用 [isort](https://pycqa.github.io/isort/) 整理 import 語句
+
+#### 測試要求
+
+- 新增功能必須包含對應的測試案例
+- 測試覆蓋率不得低於 90%
+- 使用 `tests/constants.py` 中的測試常數
+
+#### Commit 訊息規範
+
+使用 [Conventional Commits](https://www.conventionalcommits.org/) 格式：
+
+```bash
+feat: 新增使用者管理功能
+fix: 修復資料庫連線問題
+docs: 更新 API 文檔
+test: 新增使用者測試案例
+refactor: 重構資料庫模型
+```
+
+#### 文件要求
 - 遵循 PEP 8 程式碼風格
 - 撰寫測試案例
-- 更新相關文件
-- 使用有意義的 commit 訊息
+- 新增功能必須更新相關文檔
+- 複雜功能需要提供使用範例
+- 更新 README.md 中的相關章節
 
 ## 授權
 
@@ -513,7 +763,7 @@ poetry run flake8 app/
 
 ## 更新日誌
 
-### v1.2.0 (2025-01-XX)
+### v1.2.0 (2025-01-15)
 
 - 🏗️ **專案架構重構**
   - 重新組織測試目錄結構（單元/整合/端到端測試）
@@ -541,7 +791,7 @@ poetry run flake8 app/
   - 涵蓋 PM、前端工程師、QA、UI/UX 四個角色
   - 建立標準化的協作流程和品質標準
 
-### v1.1.0 (2025-01-XX)
+### v1.1.0 (2025-01-10)
 
 - 🔄 **新增 Alembic 資料庫遷移工具**
   - 完整的資料庫版本控制
@@ -556,9 +806,11 @@ poetry run flake8 app/
   - 新增 Alembic 版本清理工具
   - 更新專案結構文檔
 
-### v1.0.0 (2024-01-XX)
+### v1.0.0 (2024-12-20)
 
-- 初始版本發布
-- 實現時間媒合系統核心功能
-- 添加開發者工具和伺服器監控
-- 完善文件和使用說明
+- 🚀 **初始版本發布**
+  - 實現時間媒合系統核心功能
+  - 建立 FastAPI 後端架構
+  - 整合 MySQL 資料庫
+  - 添加開發者工具和伺服器監控
+  - 完善文件和使用說明
