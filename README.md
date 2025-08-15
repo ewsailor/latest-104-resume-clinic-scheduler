@@ -53,6 +53,7 @@
 - **測試覆蓋率**: 90% 以上的程式碼覆蓋率
 - **測試資料管理**: 集中化的測試資料和 Fixtures
 - **自動化測試**: CI/CD 整合，確保程式碼品質
+- **品質保證**: 完整的 QA 流程和測試策略
 
 ### 📁 **專業的檔案管理**
 
@@ -60,6 +61,7 @@
 - **測試架構**: 結構化的測試目錄和命名規範
 - **文檔完善**: 詳細的開發指南和最佳實踐
 - **版本控制**: 完整的資料庫遷移和版本管理
+- **團隊協作**: 標準化的協作確認指標和流程
 
 ### 🔧 **開發者體驗**
 
@@ -217,6 +219,13 @@
 │   ├── schema_utc.sql            # UTC 時區資料庫結構（參考用）
 │   └── schema_best_practice.sql  # 最佳實踐資料庫結構
 ├── docs/                         # 文件目錄
+│   ├── collaboration/            # 團隊協作確認指標
+│   │   ├── README.md             # 協作確認指標總覽
+│   │   ├── collaboration-overview.md # 跨角色協作重點
+│   │   ├── pm-collaboration-checklist.md # PM協作確認指標
+│   │   ├── frontend-collaboration-checklist.md # 前端工程師協作確認指標
+│   │   ├── qa-collaboration-checklist.md # QA協作確認指標
+│   │   └── uiux-collaboration-checklist.md # UI/UX協作確認指標
 │   ├── alembic_guide.md          # Alembic 資料庫遷移指南
 │   ├── database_connection_best_practices.md # 資料庫連線最佳實踐
 │   ├── import_guidelines.md      # 匯入指南
@@ -243,6 +252,7 @@
 
 ### 📖 **文檔導覽**
 
+- **[團隊協作確認指標](docs/collaboration/README.md)**: 跨角色協作檢查清單和最佳實踐
 - **[測試管理指南](tests/README.md)**: 完整的測試策略和最佳實踐
 - **[靜態檔案管理指南](static/README.md)**: 靜態資源組織和命名規範
 - **[開發腳本說明](scripts/README.md)**: 開發工具和腳本使用指南
@@ -254,6 +264,7 @@
 - **`tests/`**: 分層測試架構（unit/integration/e2e）
 - **`static/`**: 分類管理的靜態資源
 - **`docs/`**: 詳細的開發文檔
+  - **`docs/collaboration/`**: 團隊協作確認指標文檔
 - **`scripts/`**: 開發工具和腳本
 
 ### 🚀 **快速開始**
@@ -524,6 +535,11 @@ poetry run flake8 app/
   - 新增測試管理指南
   - 新增靜態檔案管理指南
   - 完善開發工具說明
+- 👥 **團隊協作改進**
+  - 建立團隊協作確認指標文檔
+  - 提供跨角色協作檢查清單
+  - 涵蓋 PM、前端工程師、QA、UI/UX 四個角色
+  - 建立標準化的協作流程和品質標準
 
 ### v1.1.0 (2025-01-XX)
 
