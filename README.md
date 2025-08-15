@@ -10,7 +10,7 @@
 [![Test Coverage](https://img.shields.io/badge/Coverage-90%25-brightgreen.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
 [![Version](https://img.shields.io/badge/Version-1.2.0-blue.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
 
-## 📑 目錄
+## 目錄
 
 - [專案概述](#專案概述)
 - [核心功能](#核心功能)
@@ -25,18 +25,18 @@
 - [貢獻指南](#貢獻指南)
 - [更新日誌](#更新日誌)
 
-## 專案概述
+## <a name="專案概述"></a>專案概述 [返回目錄 ↑](#目錄)
 
 讓 Giver（諮詢師）與 Taker（求職者）使用 104 履歷診療室時，雙方能在平台內，設定可面談時段並完成配對媒合，同時快速發送預計回覆時間通知，以減少等待回應時的不確定與焦慮感。
 
-### 🎯 專案目標
+### 專案目標
 
 - **提升媒合效率**：自動化時間配對，減少人工協調時間
 - **改善用戶體驗**：即時通知和狀態更新，降低等待焦慮
 - **標準化流程**：建立統一的諮詢預約和管理流程
 - **資料分析**：提供諮詢數據分析，優化服務品質
 
-## 核心功能
+## <a name="核心功能"></a>核心功能 [返回目錄 ↑](#目錄)
 
 ### 主要功能
 
@@ -63,7 +63,7 @@
 - 作為系統，我希望能夠發送預計回覆時間通知
 - 作為系統，我希望能夠追蹤諮詢完成狀態
 
-## 專案特色
+## <a name="專案特色"></a>專案特色 [返回目錄 ↑](#目錄)
 
 ### 🏗️ **現代化架構設計**
 
@@ -95,7 +95,7 @@
 - **除錯工具**: 完整的日誌系統和錯誤處理
 - **開發腳本**: 豐富的開發工具和腳本
 
-## 技術架構
+## <a name="技術架構"></a>技術架構 [返回目錄 ↑](#目錄)
 
 ### 後端技術棧
 
@@ -141,7 +141,7 @@
   - **監控**: 整合日誌系統
   - **AWS 整合**: Boto3 SDK 支援
 
-## 專案結構
+## <a name="專案結構"></a>專案結構 [返回目錄 ↑](#目錄)
 
 ```
 104-resume-clinic-scheduler/
@@ -313,7 +313,9 @@ poetry run uvicorn app.main:app --reload --reload-dir app
   - **`docs/collaboration/`**: 團隊協作確認指標文檔
 - **`scripts/`**: 開發工具和腳本
 
-### 🚀 **快速開始**
+## <a name="快速開始"></a>快速開始 [返回目錄 ↑](#目錄)
+
+### 🚀 **一鍵啟動（推薦）**
 
 ### 1. 環境需求
 
@@ -418,7 +420,7 @@ poetry run uvicorn app.main:app --reload --reload-dir app
 - ✅ 授予權限時，遵循最小權限原則
 - ✅ 使用環境變數管理敏感資訊
 
-## 測試
+## <a name="測試指南"></a>測試指南 [返回目錄 ↑](#目錄)
 
 ### 測試工具
 
@@ -520,7 +522,7 @@ poetry run mypy app/
 poetry run flake8 app/
 ```
 
-## API 文檔
+## <a name="api-文檔"></a>API 文檔 [返回目錄 ↑](#目錄)
 
 ### 🔍 **API 端點概覽**
 
@@ -572,7 +574,7 @@ curl -X POST http://127.0.0.1:8000/api/schedules/ \
   -d '{"giver_id": 1, "taker_id": 2, "start_time": "2025-01-15T10:00:00Z"}'
 ```
 
-## 故障排除
+## <a name="故障排除"></a>故障排除 [返回目錄 ↑](#目錄)
 
 ### 🔧 **常見問題**
 
@@ -634,7 +636,7 @@ poetry run alembic upgrade head
 2. 檢查 [文檔目錄](docs/) 中的相關指南
 3. 建立新的 Issue，並提供詳細的錯誤資訊
 
-## 開發指南
+## <a name="開發指南"></a>開發指南 [返回目錄 ↑](#目錄)
 
 ### 🛠️ **開發環境設定**
 
@@ -674,7 +676,7 @@ poetry run alembic upgrade head
    poetry run pytest --cov=app --cov-report=html
    ```
 
-## 貢獻指南
+## <a name="貢獻指南"></a>貢獻指南 [返回目錄 ↑](#目錄)
 
 ### 🤝 **貢獻流程**
 
@@ -747,6 +749,7 @@ refactor: 重構資料庫模型
 ```
 
 #### 文件要求
+
 - 遵循 PEP 8 程式碼風格
 - 撰寫測試案例
 - 新增功能必須更新相關文檔
@@ -761,7 +764,7 @@ refactor: 重構資料庫模型
 
 **Oscar Chung** - [GitHub](https://github.com/ewsailor)
 
-## 更新日誌
+## <a name="更新日誌"></a>更新日誌 [返回目錄 ↑](#目錄)
 
 ### v1.2.0 (2025-01-15)
 
