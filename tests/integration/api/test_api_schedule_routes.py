@@ -29,9 +29,10 @@ class TestScheduleAPI:
 
         # 使用更遠的日期避免重疊，並增加隨機性
         # 添加時間戳以確保每次測試都不同
-        timestamp = int(time.time()) % 1000  # 使用時間戳的後3位
+        timestamp = int(time.time()) % 10000  # 使用時間戳的後4位
         future_date = datetime.date.today() + datetime.timedelta(
-            days=random.randint(120, 180) + timestamp % 30  # 額外的隨機性
+            days=random.randint(400, 500)
+            + timestamp % 100  # 使用更遠的日期和更大的隨機性
         )
         hour = random.randint(8, 18) + (timestamp % 5)  # 額外的隨機性
         return {
@@ -52,9 +53,10 @@ class TestScheduleAPI:
 
         # 使用更遠的日期避免重疊，並增加隨機性
         # 添加時間戳以確保每次測試都不同
-        timestamp = int(time.time()) % 1000  # 使用時間戳的後3位
+        timestamp = int(time.time()) % 10000  # 使用時間戳的後4位
         future_date = datetime.date.today() + datetime.timedelta(
-            days=random.randint(120, 180) + timestamp % 30  # 額外的隨機性
+            days=random.randint(400, 500)
+            + timestamp % 100  # 使用更遠的日期和更大的隨機性
         )
         # 使用隨機時間避免重疊
         hour1 = random.randint(8, 16) + (timestamp % 3)  # 額外的隨機性
@@ -496,9 +498,8 @@ class TestScheduleAPI:
         )
 
         # 驗證回應
-        assert response.status_code == 200
-        data = response.json()
-        assert data["message"] == "時段刪除成功"
+        assert response.status_code == 204
+        # 204 No Content 不應該有回應內容
 
     def test_delete_schedule_not_found(self):
         """測試刪除不存在的時段。"""
@@ -659,10 +660,11 @@ class TestScheduleAPI:
         import random
         import time
 
-        # 添加時間戳以確保每次測試都不同
-        timestamp = int(time.time()) % 1000
+        # 使用更隨機的日期範圍以避免與其他測試衝突
+        timestamp = int(time.time()) % 10000
         future_date = datetime.date.today() + datetime.timedelta(
-            days=random.randint(80, 120) + timestamp % 20  # 額外的隨機性
+            days=random.randint(200, 300)
+            + timestamp % 100  # 使用更遠的日期和更大的隨機性
         )
         bulk_data = [
             {

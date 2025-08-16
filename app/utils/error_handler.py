@@ -8,7 +8,7 @@
 import logging  # 日誌記錄
 import traceback
 from datetime import datetime  # 日期時間處理
-from typing import Any, Optional, Union  # 保留這些，因為它們沒有內建替代
+from typing import Any, Dict, Optional, Union  # 保留這些，因為它們沒有內建替代
 
 # ===== 第三方套件 =====
 from fastapi import HTTPException, status
@@ -434,4 +434,111 @@ def create_invalid_status_transition_error(
             "target_status": target_status,
             "allowed_transitions": allowed_transitions,
         },
+    )
+
+
+# ===== OpenAPI 回應定義 =====
+
+
+def get_common_error_responses() -> Dict[int, Dict[str, Any]]:
+    """取得通用錯誤回應定義"""
+    return {
+        400: {
+            "description": "請求參數錯誤",
+            "content": {"application/json": {"example": {"detail": "請求參數錯誤"}}},
+        },
+        422: {
+            "description": "資料驗證錯誤",
+            "content": {"application/json": {"example": {"detail": "資料驗證失敗"}}},
+        },
+        500: {
+            "description": "伺服器內部錯誤",
+            "content": {"application/json": {"example": {"detail": "伺服器內部錯誤"}}},
+        },
+    }
+
+
+def get_schedule_error_responses() -> Dict[int, Dict[str, Any]]:
+    """取得時段相關錯誤回應定義"""
+    return {
+        400: {
+            "description": "時段重疊錯誤",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "您正輸入的時段，和您之前曾輸入的「2025/08/01（週五） 10:00~11:00」時段重複或重疊，請重新輸入"
+                    }
+                }
+            },
+        },
+        404: {
+            "description": "時段不存在",
+            "content": {"application/json": {"example": {"detail": "時段不存在"}}},
+        },
+    }
+
+
+def get_schedule_create_responses() -> Dict[int, Dict[str, Any]]:
+    """取得建立時段的完整回應定義"""
+    return (
+        {
+            201: {
+                "description": "成功建立時段",
+                "content": {
+                    "application/json": {
+                        "example": [
+                            {
+                                "id": 17,
+                                "giver_id": 1,
+                                "date": "2025-08-01",
+                                "start_time": "10:00:00",
+                                "end_time": "11:00:00",
+                                "status": "AVAILABLE",
+                                "note": "線上討論履歷",
+                                "created_at": "2025-07-27T09:12:00",
+                                "updated_at": "2025-07-27T09:12:00",
+                            }
+                        ]
+                    }
+                },
+            }
+        }
+        | get_schedule_error_responses()
+        | get_common_error_responses()
+    )
+
+
+def get_schedule_update_responses() -> Dict[int, Dict[str, Any]]:
+    """取得更新時段的完整回應定義"""
+    return (
+        {
+            200: {
+                "description": "成功更新時段",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "id": 17,
+                            "giver_id": 1,
+                            "date": "2025-08-01",
+                            "start_time": "10:00:00",
+                            "end_time": "11:00:00",
+                            "status": "AVAILABLE",
+                            "note": "更新後的備註",
+                            "updated_at": "2025-07-27T09:12:00",
+                        }
+                    }
+                },
+            }
+        }
+        | get_schedule_error_responses()
+        | get_common_error_responses()
+    )
+
+
+def get_schedule_delete_responses() -> Dict[int, Dict[str, Any]]:
+    """取得刪除時段的完整回應定義"""
+    return (
+        {204: {"description": "成功刪除時段"}}
+        | get_schedule_error_responses()
+        | get_common_error_responses()
     )

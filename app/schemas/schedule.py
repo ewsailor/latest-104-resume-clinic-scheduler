@@ -14,8 +14,8 @@ from app.models.enums import ScheduleStatusEnum, UserRoleEnum
 class ScheduleCreate(BaseModel):
     """建立時段的請求模型"""
 
-    giver_id: int = Field(..., description="Giver ID")
-    taker_id: int | None = Field(None, description="Taker ID")
+    giver_id: int = Field(..., description="Giver ID", gt=0)
+    taker_id: int | None = Field(None, description="Taker ID（可選）", gt=0)
     status: ScheduleStatusEnum | None = Field(
         default=None,
         description="時段狀態（可選，後端會根據操作者角色自動決定：GIVER→AVAILABLE，TAKER→PENDING，其他→DRAFT）",
@@ -23,7 +23,7 @@ class ScheduleCreate(BaseModel):
     schedule_date: date = Field(..., description="時段日期", alias="date")
     start_time: time = Field(..., description="開始時間")
     end_time: time = Field(..., description="結束時間")
-    note: str | None = Field(None, description="備註")
+    note: str | None = Field(None, description="備註（最多100字）", max_length=100)
 
 
 class ScheduleCreateWithOperator(BaseModel):

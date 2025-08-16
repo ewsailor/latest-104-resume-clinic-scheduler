@@ -21,10 +21,10 @@ from app.schemas import (  # 資料模型
 )
 from app.utils.error_handler import (
     APIError,
-    BusinessLogicError,
-    DatabaseError,
-    NotFoundError,
     create_http_exception_from_api_error,
+    get_schedule_create_responses,
+    get_schedule_delete_responses,
+    get_schedule_update_responses,
     safe_execute,
 )
 
@@ -39,6 +39,9 @@ router = APIRouter(prefix="/api/v1", tags=["Schedules"])
     "/schedules",
     response_model=List[ScheduleResponse],
     status_code=status.HTTP_201_CREATED,
+    summary="建立多個時段",
+    description="Giver 新增自己的可預約時間，供 Taker 選擇預約。支援批量建立多個時段。",
+    responses=get_schedule_create_responses(),
 )
 async def create_schedules(
     request: ScheduleCreateWithOperator, db: Session = Depends(get_db)
@@ -155,7 +158,11 @@ async def get_schedule(
         )
 
 
-@router.patch("/schedules/{schedule_id}", response_model=ScheduleResponse)
+@router.patch(
+    "/schedules/{schedule_id}",
+    response_model=ScheduleResponse,
+    responses=get_schedule_update_responses(),
+)
 async def update_schedule(
     schedule_id: int,
     request: SchedulePartialUpdateWithOperator,
@@ -207,10 +214,14 @@ async def update_schedule(
         )
 
 
-@router.delete("/schedules/{schedule_id}")
+@router.delete(
+    "/schedules/{schedule_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses=get_schedule_delete_responses(),
+)
 async def delete_schedule(
     schedule_id: int, request: ScheduleDeleteWithOperator, db: Session = Depends(get_db)
-) -> dict[str, str]:
+) -> None:
     """
     刪除時段。
 
@@ -221,9 +232,6 @@ async def delete_schedule(
         schedule_id: 時段 ID
         request: 包含操作者資訊的請求
         db: 資料庫會話依賴注入
-
-    Returns:
-        dict: 刪除成功的訊息
 
     Raises:
         HTTPException: 當時段不存在或刪除失敗時拋出錯誤
@@ -239,7 +247,6 @@ async def delete_schedule(
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="時段不存在"
             )
-        return {"message": "時段刪除成功"}
 
     except HTTPException:
         raise
