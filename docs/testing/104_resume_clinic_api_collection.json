@@ -83,7 +83,7 @@
               "raw": "{\n  \"schedules\": [\n    {\n      \"giver_id\": 1,\n      \"date\": \"2024-01-20\",\n      \"start_time\": \"09:00:00\",\n      \"end_time\": \"10:00:00\",\n      \"status\": \"AVAILABLE\"\n    }\n  ],\n  \"operator_user_id\": 1,\n  \"operator_role\": \"GIVER\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/schedules",
+              "raw": "{{base_url}}/api/v1/schedules",
               "host": ["{{base_url}}"],
               "path": ["api", "schedules"]
             }
@@ -144,7 +144,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/schedules?giver_id={{test_giver_id}}&status_filter=AVAILABLE&page=1&size=5",
+              "raw": "{{base_url}}/api/v1/schedules?giver_id={{test_giver_id}}&status_filter=AVAILABLE&page=1&size=5",
               "host": ["{{base_url}}"],
               "path": ["api", "schedules"],
               "query": [
@@ -193,7 +193,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/schedules/{{test_schedule_id}}",
+              "raw": "{{base_url}}/api/v1/schedules/{{test_schedule_id}}",
               "host": ["{{base_url}}"],
               "path": ["api", "schedules", "{{test_schedule_id}}"]
             }
@@ -236,7 +236,7 @@
               "raw": "{\n  \"schedule_data\": {\n    \"giver_id\": 1,\n    \"date\": \"2024-01-21\",\n    \"start_time\": \"10:00:00\",\n    \"end_time\": \"11:00:00\",\n    \"status\": \"BOOKED\"\n  },\n  \"operator_user_id\": 1,\n  \"operator_role\": \"GIVER\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/schedules/{{test_schedule_id}}",
+              "raw": "{{base_url}}/api/v1/schedules/{{test_schedule_id}}",
               "host": ["{{base_url}}"],
               "path": ["api", "schedules", "{{test_schedule_id}}"]
             }
@@ -276,7 +276,7 @@
               "raw": "{\n  \"operator_user_id\": 1,\n  \"operator_role\": \"GIVER\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/schedules/{{test_schedule_id}}",
+              "raw": "{{base_url}}/api/v1/schedules/{{test_schedule_id}}",
               "host": ["{{base_url}}"],
               "path": ["api", "schedules", "{{test_schedule_id}}"]
             }
@@ -312,7 +312,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/givers?page=1&size=10",
+              "raw": "{{base_url}}/api/v1/givers?page=1&size=10",
               "host": ["{{base_url}}"],
               "path": ["api", "givers"],
               "query": [
@@ -353,7 +353,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/givers/{{test_giver_id}}",
+              "raw": "{{base_url}}/api/v1/givers/{{test_giver_id}}",
               "host": ["{{base_url}}"],
               "path": ["api", "givers", "{{test_giver_id}}"]
             }
@@ -387,7 +387,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/givers/topics/履歷健診",
+              "raw": "{{base_url}}/api/v1/givers/topics/履歷健診",
               "host": ["{{base_url}}"],
               "path": ["api", "givers", "topics", "履歷健診"]
             }
@@ -420,7 +420,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/givers/industries/電子資訊／軟體／半導體相關業",
+              "raw": "{{base_url}}/api/v1/givers/industries/電子資訊／軟體／半導體相關業",
               "host": ["{{base_url}}"],
               "path": [
                 "api",
@@ -458,7 +458,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/givers/stats/count",
+              "raw": "{{base_url}}/api/v1/givers/stats/count",
               "host": ["{{base_url}}"],
               "path": ["api", "givers", "stats", "count"]
             }
@@ -495,7 +495,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/users?page=1&size=10",
+              "raw": "{{base_url}}/api/v1/users?page=1&size=10",
               "host": ["{{base_url}}"],
               "path": ["api", "users"],
               "query": [
@@ -536,7 +536,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/users/{{test_user_id}}",
+              "raw": "{{base_url}}/api/v1/users/{{test_user_id}}",
               "host": ["{{base_url}}"],
               "path": ["api", "users", "{{test_user_id}}"]
             }
@@ -579,7 +579,7 @@
               "raw": "{\n  \"name\": \"測試使用者\",\n  \"email\": \"test@example.com\",\n  \"phone\": \"0912345678\",\n  \"role\": \"TAKER\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/users",
+              "raw": "{{base_url}}/api/v1/users",
               "host": ["{{base_url}}"],
               "path": ["api", "users"]
             }
@@ -622,7 +622,7 @@
               "raw": "{\n  \"name\": \"更新後的使用者名稱\",\n  \"email\": \"updated@example.com\",\n  \"phone\": \"0987654321\",\n  \"role\": \"TAKER\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/users/{{test_user_id}}",
+              "raw": "{{base_url}}/api/v1/users/{{test_user_id}}",
               "host": ["{{base_url}}"],
               "path": ["api", "users", "{{test_user_id}}"]
             }
@@ -654,7 +654,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/users/{{test_user_id}}",
+              "raw": "{{base_url}}/api/v1/users/{{test_user_id}}",
               "host": ["{{base_url}}"],
               "path": ["api", "users", "{{test_user_id}}"]
             }
@@ -699,7 +699,7 @@
               "raw": "{\n  \"schedules\": [\n    {\n      \"giver_id\": \"invalid\",\n      \"date\": \"invalid-date\",\n      \"start_time\": \"25:00:00\",\n      \"end_time\": \"10:00:00\",\n      \"status\": \"INVALID_STATUS\"\n    }\n  ],\n  \"operator_user_id\": 1,\n  \"operator_role\": \"GIVER\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/schedules",
+              "raw": "{{base_url}}/api/v1/schedules",
               "host": ["{{base_url}}"],
               "path": ["api", "schedules"]
             }
@@ -732,7 +732,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/schedules/999",
+              "raw": "{{base_url}}/api/v1/schedules/999",
               "host": ["{{base_url}}"],
               "path": ["api", "schedules", "999"]
             }
@@ -772,7 +772,7 @@
               "raw": "{\n  \"schedules\": [\n    {\n      \"giver_id\": 1,\n      \"date\": \"2024-01-20\",\n      \"start_time\": \"09:00:00\",\n      \"end_time\": \"10:00:00\",\n      \"status\": \"AVAILABLE\"\n    },\n    {\n      \"giver_id\": 1,\n      \"date\": \"2024-01-20\",\n      \"start_time\": \"09:30:00\",\n      \"end_time\": \"10:30:00\",\n      \"status\": \"AVAILABLE\"\n    }\n  ],\n  \"operator_user_id\": 1,\n  \"operator_role\": \"GIVER\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/schedules",
+              "raw": "{{base_url}}/api/v1/schedules",
               "host": ["{{base_url}}"],
               "path": ["api", "schedules"]
             }

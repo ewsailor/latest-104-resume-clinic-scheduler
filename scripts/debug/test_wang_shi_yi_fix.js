@@ -16,7 +16,7 @@ const testSchedule = {
 console.log('📋 測試資料:', testSchedule);
 
 // 發送 POST 請求
-fetch('http://localhost:8000/api/schedules', {
+fetch('http://localhost:8000/api/v1/schedules', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',

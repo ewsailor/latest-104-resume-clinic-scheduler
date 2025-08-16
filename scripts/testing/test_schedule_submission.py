@@ -33,7 +33,7 @@ def test_schedule_submission():
     try:
         # 發送 POST 請求
         response = requests.post(
-            "http://localhost:8000/api/schedules",
+            "http://localhost:8000/api/v1/schedules",
             json=test_schedules,
             headers={"Content-Type": "application/json"},
         )

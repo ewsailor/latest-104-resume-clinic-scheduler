@@ -29,7 +29,7 @@ def test_wang_shi_yi_schedule() -> None:
     try:
         # 發送 POST 請求
         response = requests.post(
-            "http://localhost:8000/api/schedules",
+            "http://localhost:8000/api/v1/schedules",
             json=test_schedules,
             headers={"Content-Type": "application/json"},
         )

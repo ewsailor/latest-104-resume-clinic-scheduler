@@ -9,23 +9,25 @@
 ### 1. RESTful 設計原則
 
 #### 資源導向設計
+
 - 使用名詞而非動詞來命名資源
 - 使用複數形式表示資源集合
 - 保持 URL 結構簡潔明瞭
 
 ```bash
 # ✅ 正確
-GET /api/schedules
-POST /api/users
-PUT /api/givers/123
+GET /api/v1/schedules
+POST /api/v1/users
+PUT /api/v1/givers/123
 
 # ❌ 錯誤
-GET /api/get-schedules
-POST /api/create-user
-PUT /api/update-giver/123
+GET /api/v1/get-schedules
+POST /api/v1/create-user
+PUT /api/v1/update-giver/123
 ```
 
 #### HTTP 方法語義
+
 - **GET**: 安全且冪等，用於取得資源
 - **POST**: 非冪等，用於建立資源
 - **PUT**: 冪等，用於完整更新資源
@@ -35,11 +37,13 @@ PUT /api/update-giver/123
 ### 2. 狀態碼使用原則
 
 #### 成功狀態碼
+
 - **200 OK**: 請求成功，返回資源內容
 - **201 Created**: 資源建立成功，返回新建立的資源
 - **204 No Content**: 請求成功但無回應內容（如刪除操作）
 
 #### 客戶端錯誤
+
 - **400 Bad Request**: 請求格式錯誤或業務邏輯錯誤
 - **401 Unauthorized**: 需要認證但未提供或認證失敗
 - **403 Forbidden**: 已認證但無權限訪問
@@ -47,6 +51,7 @@ PUT /api/update-giver/123
 - **422 Unprocessable Entity**: 請求語義正確但無法處理
 
 #### 伺服器錯誤
+
 - **500 Internal Server Error**: 伺服器內部錯誤
 - **503 Service Unavailable**: 服務暫時不可用
 
@@ -55,6 +60,7 @@ PUT /api/update-giver/123
 ### 1. 一致性原則
 
 #### 命名規範
+
 - 使用 snake_case 命名資料庫欄位
 - 使用 camelCase 命名 JSON 回應欄位
 - 保持命名的一致性和可讀性
@@ -63,7 +69,7 @@ PUT /api/update-giver/123
 # 資料庫模型
 class Schedule(Base):
     __tablename__ = "schedules"
-    
+
     id = Column(Integer, primary_key=True)
     giver_id = Column(Integer, ForeignKey("users.id"))
     schedule_date = Column(Date, nullable=False)
@@ -82,6 +88,7 @@ class ScheduleResponse(BaseModel):
 ```
 
 #### 資料類型一致性
+
 - 使用 ENUM 確保狀態值的一致性
 - 統一日期時間格式
 - 保持數值類型的精確性
@@ -102,6 +109,7 @@ class ScheduleStatusEnum(str, Enum):
 ### 2. 驗證和錯誤處理
 
 #### 輸入驗證
+
 - 使用 Pydantic 進行資料驗證
 - 提供清楚的錯誤訊息
 - 驗證業務邏輯規則
@@ -115,7 +123,7 @@ class ScheduleCreate(BaseModel):
     schedule_date: date = Field(..., description="時段日期")
     start_time: time = Field(..., description="開始時間")
     end_time: time = Field(..., description="結束時間")
-    
+
     @field_validator('end_time')
     @classmethod
     def validate_end_time(cls, v, info):
@@ -126,6 +134,7 @@ class ScheduleCreate(BaseModel):
 ```
 
 #### 錯誤回應格式
+
 - 提供一致的錯誤回應格式
 - 包含錯誤代碼和詳細訊息
 - 支援多語言錯誤訊息
@@ -151,6 +160,7 @@ class ScheduleCreate(BaseModel):
 ### 1. 認證和授權
 
 #### JWT Token 認證
+
 - 使用安全的 JWT 實作
 - 設定適當的過期時間
 - 實作 Token 刷新機制
@@ -176,6 +186,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 ```
 
 #### 角色基礎存取控制 (RBAC)
+
 - 實作細粒度的權限控制
 - 驗證操作者的角色和權限
 - 記錄所有敏感操作
@@ -203,6 +214,7 @@ def require_role(required_role: UserRole):
 ### 2. 資料保護
 
 #### 輸入驗證和清理
+
 - 驗證所有輸入資料
 - 防止 SQL 注入攻擊
 - 使用參數化查詢
@@ -218,6 +230,7 @@ def get_schedules_by_giver_unsafe(db: Session, giver_id: str):
 ```
 
 #### 敏感資料處理
+
 - 加密敏感資料
 - 使用 HTTPS 傳輸
 - 實作資料遮罩
@@ -236,6 +249,7 @@ class UserCreate(BaseModel):
 ### 1. 資料庫優化
 
 #### 索引策略
+
 - 為常用查詢欄位建立索引
 - 使用複合索引優化多欄位查詢
 - 定期分析查詢效能
@@ -248,28 +262,30 @@ CREATE INDEX idx_schedules_created_at ON schedules(created_at);
 ```
 
 #### 查詢優化
+
 - 使用分頁避免大量資料載入
 - 實作延遲載入 (Lazy Loading)
 - 使用連線池管理資料庫連線
 
 ```python
 def get_schedules_paginated(
-    db: Session, 
-    skip: int = 0, 
+    db: Session,
+    skip: int = 0,
     limit: int = 100,
     giver_id: Optional[int] = None
 ):
     query = db.query(Schedule)
-    
+
     if giver_id:
         query = query.filter(Schedule.giver_id == giver_id)
-    
+
     return query.offset(skip).limit(limit).all()
 ```
 
 ### 2. 快取策略
 
 #### Redis 快取
+
 - 快取常用查詢結果
 - 實作快取失效策略
 - 使用快取標頭
@@ -285,22 +301,23 @@ def cache_result(expire_time: int = 300):
         @wraps(func)
         def wrapper(*args, **kwargs):
             cache_key = f"{func.__name__}:{hash(str(args) + str(kwargs))}"
-            
+
             # 嘗試從快取取得結果
             cached_result = redis_client.get(cache_key)
             if cached_result:
                 return json.loads(cached_result)
-            
+
             # 執行函數並快取結果
             result = func(*args, **kwargs)
             redis_client.setex(cache_key, expire_time, json.dumps(result))
-            
+
             return result
         return wrapper
     return decorator
 ```
 
 #### HTTP 快取
+
 - 使用 ETag 和 Last-Modified 標頭
 - 設定適當的快取控制標頭
 - 實作條件請求
@@ -309,15 +326,15 @@ def cache_result(expire_time: int = 300):
 from fastapi import Response
 from datetime import datetime
 
-@router.get("/api/schedules")
+@router.get("/api/v1/schedules")
 async def get_schedules(response: Response, db: Session = Depends(get_db)):
     schedules = schedule_crud.get_schedules(db)
-    
+
     # 設定快取標頭
     response.headers["ETag"] = f'"{hash(str(schedules))}"'
     response.headers["Last-Modified"] = datetime.now().strftime("%a, %d %b %Y %H:%M:%S GMT")
     response.headers["Cache-Control"] = "public, max-age=300"
-    
+
     return schedules
 ```
 
@@ -326,6 +343,7 @@ async def get_schedules(response: Response, db: Session = Depends(get_db)):
 ### 1. 結構化日誌
 
 #### 日誌格式
+
 - 使用結構化日誌格式 (JSON)
 - 包含必要的上下文資訊
 - 設定適當的日誌級別
@@ -338,7 +356,7 @@ from datetime import datetime
 class StructuredLogger:
     def __init__(self, name: str):
         self.logger = logging.getLogger(name)
-    
+
     def log_request(self, method: str, path: str, status_code: int, duration: float):
         log_entry = {
             "timestamp": datetime.now().isoformat(),
@@ -353,6 +371,7 @@ class StructuredLogger:
 ```
 
 #### 錯誤追蹤
+
 - 記錄詳細的錯誤資訊
 - 包含堆疊追蹤
 - 實作錯誤報告機制
@@ -361,7 +380,7 @@ class StructuredLogger:
 import traceback
 from fastapi import HTTPException
 
-@router.post("/api/schedules")
+@router.post("/api/v1/schedules")
 async def create_schedules(request: ScheduleCreateWithOperator, db: Session = Depends(get_db)):
     try:
         return schedule_crud.create_schedules(db, request.schedules)
@@ -369,7 +388,7 @@ async def create_schedules(request: ScheduleCreateWithOperator, db: Session = De
         # 記錄詳細錯誤資訊
         logger.error(f"建立排程失敗: {str(e)}")
         logger.error(f"堆疊追蹤: {traceback.format_exc()}")
-        
+
         # 回傳適當的錯誤回應
         raise HTTPException(
             status_code=500,
@@ -380,6 +399,7 @@ async def create_schedules(request: ScheduleCreateWithOperator, db: Session = De
 ### 2. 效能監控
 
 #### 關鍵指標
+
 - API 回應時間
 - 請求量和錯誤率
 - 資料庫查詢效能
@@ -394,12 +414,12 @@ async def add_process_time_header(request: Request, call_next):
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time
-    
+
     response.headers["X-Process-Time"] = str(process_time)
-    
+
     # 記錄效能指標
     logger.info(f"請求處理時間: {process_time:.3f}秒")
-    
+
     return response
 ```
 
@@ -408,6 +428,7 @@ async def add_process_time_header(request: Request, call_next):
 ### 1. 單元測試
 
 #### 測試覆蓋率
+
 - 確保高測試覆蓋率
 - 測試邊界條件
 - 測試錯誤情況
@@ -425,17 +446,17 @@ def test_create_schedule_success():
         start_time=time(14, 0),
         end_time=time(15, 0)
     )
-    
+
     # 模擬資料庫操作
     mock_schedule = Mock()
     mock_schedule.id = 1
     mock_db.add.return_value = None
     mock_db.commit.return_value = None
     mock_db.refresh.return_value = None
-    
+
     # 執行測試
     result = schedule_crud.create_schedule(mock_db, schedule_data)
-    
+
     # 驗證結果
     assert result.id == 1
     mock_db.add.assert_called_once()
@@ -445,6 +466,7 @@ def test_create_schedule_success():
 ### 2. 整合測試
 
 #### API 端點測試
+
 - 測試完整的 API 流程
 - 驗證請求和回應格式
 - 測試錯誤處理
@@ -454,7 +476,7 @@ from fastapi.testclient import TestClient
 
 def test_create_schedules_api():
     client = TestClient(app)
-    
+
     # 準備測試資料
     schedule_data = {
         "schedules": [{
@@ -466,10 +488,10 @@ def test_create_schedules_api():
         "operator_user_id": 1,
         "operator_role": "GIVER"
     }
-    
+
     # 執行 API 請求
-    response = client.post("/api/schedules", json=schedule_data)
-    
+    response = client.post("/api/v1/schedules", json=schedule_data)
+
     # 驗證回應
     assert response.status_code == 201
     data = response.json()
@@ -480,6 +502,7 @@ def test_create_schedules_api():
 ### 3. 端到端測試
 
 #### 完整流程測試
+
 - 測試真實的使用場景
 - 驗證系統整合
 - 測試效能和穩定性
@@ -491,16 +514,16 @@ import httpx
 async def test_complete_schedule_flow():
     async with httpx.AsyncClient(app=app, base_url="http://test") as client:
         # 1. 建立使用者
-        user_response = await client.post("/api/users", json={
+        user_response = await client.post("/api/v1/users", json={
             "name": "測試使用者",
             "email": "test@example.com",
             "role": "GIVER"
         })
         assert user_response.status_code == 201
         user_id = user_response.json()["user"]["id"]
-        
+
         # 2. 建立排程
-        schedule_response = await client.post("/api/schedules", json={
+        schedule_response = await client.post("/api/v1/schedules", json={
             "schedules": [{
                 "giver_id": user_id,
                 "date": "2024-01-20",
@@ -511,9 +534,9 @@ async def test_complete_schedule_flow():
             "operator_role": "GIVER"
         })
         assert schedule_response.status_code == 201
-        
+
         # 3. 查詢排程
-        schedules_response = await client.get(f"/api/schedules?giver_id={user_id}")
+        schedules_response = await client.get(f"/api/v1/schedules?giver_id={user_id}")
         assert schedules_response.status_code == 200
         schedules = schedules_response.json()
         assert len(schedules) == 1
@@ -524,6 +547,7 @@ async def test_complete_schedule_flow():
 ### 1. URL 版本控制
 
 #### 版本命名
+
 - 使用語義化版本控制
 - 保持向後相容性
 - 提供遷移指南
@@ -543,18 +567,19 @@ async def get_schedules_v2():
 ### 2. 向後相容性
 
 #### 相容性原則
+
 - 保持舊版 API 的相容性
 - 逐步淘汰舊版功能
 - 提供遷移工具
 
 ```python
 # 支援舊版格式
-@router.post("/api/schedules")
+@router.post("/api/v1/schedules")
 async def create_schedules(request: Union[ScheduleCreateWithOperator, ScheduleCreateLegacy]):
     if isinstance(request, ScheduleCreateLegacy):
         # 轉換舊版格式
         request = convert_legacy_format(request)
-    
+
     return schedule_crud.create_schedules(request)
 ```
 
@@ -563,6 +588,7 @@ async def create_schedules(request: Union[ScheduleCreateWithOperator, ScheduleCr
 ### 1. 環境配置
 
 #### 配置管理
+
 - 使用環境變數管理配置
 - 支援多環境部署
 - 實作配置驗證
@@ -575,7 +601,7 @@ class Settings(BaseSettings):
     redis_url: str
     secret_key: str
     debug: bool = False
-    
+
     class Config:
         env_file = ".env"
 
@@ -585,6 +611,7 @@ settings = Settings()
 ### 2. 健康檢查
 
 #### 健康檢查端點
+
 - 檢查資料庫連線
 - 檢查外部服務狀態
 - 提供詳細的健康狀態
@@ -596,10 +623,10 @@ async def health_check():
         # 檢查資料庫連線
         db = next(get_db())
         db.execute("SELECT 1")
-        
+
         # 檢查 Redis 連線
         redis_client.ping()
-        
+
         return {
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),

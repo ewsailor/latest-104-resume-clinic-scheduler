@@ -65,10 +65,10 @@ def test_docs_endpoint(base_url="http://localhost:8000"):
 
 def test_givers_endpoint(base_url="http://localhost:8000"):
     """測試 Givers API 端點"""
-    print(f"\n👥 測試 Givers API 端點: {base_url}/api/givers")
+    print(f"\n👥 測試 Givers API 端點: {base_url}/api/v1/givers")
 
     try:
-        response = requests.get(f"{base_url}/api/givers", timeout=10)
+        response = requests.get(f"{base_url}/api/v1/givers", timeout=10)
 
         if response.status_code == 200:
             data = response.json()
@@ -89,10 +89,10 @@ def test_givers_endpoint(base_url="http://localhost:8000"):
 
 def test_schedules_endpoint(base_url="http://localhost:8000"):
     """測試 Schedules API 端點"""
-    print(f"\n📅 測試 Schedules API 端點: {base_url}/api/schedules")
+    print(f"\n📅 測試 Schedules API 端點: {base_url}/api/v1/schedules")
 
     try:
-        response = requests.get(f"{base_url}/api/schedules", timeout=10)
+        response = requests.get(f"{base_url}/api/v1/schedules", timeout=10)
 
         if response.status_code == 200:
             data = response.json()

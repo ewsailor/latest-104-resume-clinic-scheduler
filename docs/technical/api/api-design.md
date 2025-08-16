@@ -16,14 +16,14 @@
 
 ```bash
 # ✅ 正確
-GET /api/schedules
-POST /api/users
-PUT /api/givers/123
+GET /api/v1/schedules
+POST /api/v1/users
+PUT /api/v1/givers/123
 
 # ❌ 錯誤
-GET /api/get-schedules
-POST /api/create-user
-PUT /api/update-giver/123
+GET /api/v1/get-schedules
+POST /api/v1/create-user
+PUT /api/v1/update-giver/123
 ```
 
 #### HTTP 方法使用
@@ -93,7 +93,7 @@ PUT /api/update-giver/123
 
 #### 1.1 取得使用者列表
 
-**端點**: `GET /api/users`
+**端點**: `GET /api/v1/users`
 
 **描述**: 取得分頁的使用者列表
 
@@ -105,7 +105,7 @@ PUT /api/update-giver/123
 **請求範例**:
 
 ```bash
-GET /api/users?page=1&per_page=20
+GET /api/v1/users?page=1&per_page=20
 ```
 
 **成功回應** (200 OK):
@@ -134,7 +134,7 @@ GET /api/users?page=1&per_page=20
 
 #### 1.2 建立使用者
 
-**端點**: `POST /api/users`
+**端點**: `POST /api/v1/users`
 
 **描述**: 建立新的使用者帳戶
 
@@ -172,7 +172,7 @@ GET /api/users?page=1&per_page=20
 
 #### 2.1 建立排程
 
-**端點**: `POST /api/schedules`
+**端點**: `POST /api/v1/schedules`
 
 **描述**: 批量建立多個時段，需要提供操作者資訊以確保安全性和審計追蹤
 
@@ -226,7 +226,7 @@ GET /api/users?page=1&per_page=20
 
 #### 2.2 取得排程列表
 
-**端點**: `GET /api/schedules`
+**端點**: `GET /api/v1/schedules`
 
 **描述**: 取得排程列表，支援多種篩選條件
 
@@ -239,7 +239,7 @@ GET /api/users?page=1&per_page=20
 **請求範例**:
 
 ```bash
-GET /api/schedules?giver_id=1&status_filter=AVAILABLE
+GET /api/v1/schedules?giver_id=1&status_filter=AVAILABLE
 ```
 
 **成功回應** (200 OK):
@@ -267,7 +267,7 @@ GET /api/schedules?giver_id=1&status_filter=AVAILABLE
 
 #### 2.3 取得特定排程
 
-**端點**: `GET /api/schedules/{id}`
+**端點**: `GET /api/v1/schedules/{id}`
 
 **描述**: 根據 ID 取得特定排程的詳細資訊
 
@@ -278,7 +278,7 @@ GET /api/schedules?giver_id=1&status_filter=AVAILABLE
 **請求範例**:
 
 ```bash
-GET /api/schedules/1
+GET /api/v1/schedules/1
 ```
 
 **成功回應** (200 OK):
@@ -308,7 +308,7 @@ GET /api/schedules/1
 
 #### 2.4 更新排程
 
-**端點**: `PUT /api/schedules/{id}`
+**端點**: `PUT /api/v1/schedules/{id}`
 
 **描述**: 更新特定排程的資訊
 
@@ -363,7 +363,7 @@ GET /api/schedules/1
 
 #### 2.5 刪除排程
 
-**端點**: `DELETE /api/schedules/{id}`
+**端點**: `DELETE /api/v1/schedules/{id}`
 
 **描述**: 軟刪除特定排程（標記為已刪除但不實際移除資料）
 
@@ -389,7 +389,7 @@ GET /api/schedules/1
 
 #### 2.6 取得諮詢師排程
 
-**端點**: `GET /api/schedules/giver/{giver_id}`
+**端點**: `GET /api/v1/schedules/giver/{giver_id}`
 
 **描述**: 取得特定諮詢師的所有排程
 
@@ -422,7 +422,7 @@ GET /api/schedules/1
 
 #### 2.7 取得求職者排程
 
-**端點**: `GET /api/schedules/taker/{taker_id}`
+**端點**: `GET /api/v1/schedules/taker/{taker_id}`
 
 **描述**: 取得特定求職者的所有排程
 
@@ -457,7 +457,7 @@ GET /api/schedules/1
 
 #### 3.1 取得諮詢師列表
 
-**端點**: `GET /api/givers`
+**端點**: `GET /api/v1/givers`
 
 **描述**: 取得分頁的諮詢師列表，支援按服務項目和產業篩選
 
@@ -471,7 +471,7 @@ GET /api/schedules/1
 **請求範例**:
 
 ```bash
-GET /api/givers?topic=履歷諮詢&industry=科技業&page=1&per_page=10
+GET /api/v1/givers?topic=履歷諮詢&industry=科技業&page=1&per_page=10
 ```
 
 **成功回應** (200 OK):
@@ -500,7 +500,7 @@ GET /api/givers?topic=履歷諮詢&industry=科技業&page=1&per_page=10
 
 #### 3.2 取得特定諮詢師
 
-**端點**: `GET /api/givers/{id}`
+**端點**: `GET /api/v1/givers/{id}`
 
 **描述**: 取得特定諮詢師的詳細資訊
 
@@ -538,7 +538,7 @@ GET /api/givers?topic=履歷諮詢&industry=科技業&page=1&per_page=10
 
 #### 3.3 取得服務項目列表
 
-**端點**: `GET /api/givers/topics`
+**端點**: `GET /api/v1/givers/topics`
 
 **描述**: 取得所有可用的服務項目列表
 
@@ -554,7 +554,7 @@ GET /api/givers?topic=履歷諮詢&industry=科技業&page=1&per_page=10
 
 #### 3.4 取得產業列表
 
-**端點**: `GET /api/givers/industries`
+**端點**: `GET /api/v1/givers/industries`
 
 **描述**: 取得所有可用的產業列表
 
@@ -591,19 +591,19 @@ GET /api/givers?topic=履歷諮詢&industry=科技業&page=1&per_page=10
 ### 1. 分頁參數
 
 ```bash
-GET /api/users?page=1&size=10
+GET /api/v1/users?page=1&size=10
 ```
 
 ### 2. 篩選參數
 
 ```bash
-GET /api/schedules?giver_id=1&status=AVAILABLE
+GET /api/v1/schedules?giver_id=1&status=AVAILABLE
 ```
 
 ### 3. 排序參數
 
 ```bash
-GET /api/users?sort=name&order=asc
+GET /api/v1/users?sort=name&order=asc
 ```
 
 ## 資料驗證
@@ -703,12 +703,12 @@ uvicorn app.main:app --reload
 http://localhost:8000/docs
 
 # 3. 建立使用者
-curl -X POST "http://localhost:8000/api/users" \
+curl -X POST "http://localhost:8000/api/v1/users" \
   -H "Content-Type: application/json" \
   -d '{"name": "王零一", "email": "wang@example.com", "role": "GIVER"}'
 
 # 4. 建立排程
-curl -X POST "http://localhost:8000/api/schedules" \
+curl -X POST "http://localhost:8000/api/v1/schedules" \
   -H "Content-Type: application/json" \
   -d '{
     "schedules": [{
@@ -728,7 +728,7 @@ curl -X POST "http://localhost:8000/api/schedules" \
 import requests
 
 try:
-    response = requests.post("/api/schedules", json=schedule_data)
+    response = requests.post("/api/v1/schedules", json=schedule_data)
     response.raise_for_status()
     return response.json()
 except requests.exceptions.HTTPError as e:
@@ -750,7 +750,7 @@ def get_all_schedules():
     page = 1
 
     while True:
-        response = requests.get(f"/api/schedules?page={page}")
+        response = requests.get(f"/api/v1/schedules?page={page}")
         data = response.json()
 
         all_schedules.extend(data["results"])

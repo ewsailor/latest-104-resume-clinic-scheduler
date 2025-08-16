@@ -32,28 +32,28 @@ http://localhost:8000
 
    - `GET /health` - 健康狀態檢查
 
-2. **時段管理 API** (`/api/schedules`)
+2. **時段管理 API** (`/api/v1/schedules`)
 
-   - `POST /api/schedules` - 建立時段
-   - `GET /api/schedules` - 取得時段列表
-   - `GET /api/schedules/{id}` - 取得特定時段
-   - `PUT /api/schedules/{id}` - 更新時段
-   - `DELETE /api/schedules/{id}` - 刪除時段
+   - `POST /api/v1/schedules` - 建立時段
+   - `GET /api/v1/schedules` - 取得時段列表
+   - `GET /api/v1/schedules/{id}` - 取得特定時段
+   - `PUT /api/v1/schedules/{id}` - 更新時段
+   - `DELETE /api/v1/schedules/{id}` - 刪除時段
 
-3. **Giver 管理 API** (`/api/givers`)
+3. **Giver 管理 API** (`/api/v1/givers`)
 
-   - `GET /api/givers` - 取得 Giver 列表
-   - `GET /api/givers/{id}` - 取得特定 Giver
-   - `GET /api/givers/topics/{topic}` - 根據服務項目篩選
-   - `GET /api/givers/industries/{industry}` - 根據產業篩選
-   - `GET /api/givers/stats/count` - 取得 Giver 統計
+   - `GET /api/v1/givers` - 取得 Giver 列表
+   - `GET /api/v1/givers/{id}` - 取得特定 Giver
+   - `GET /api/v1/givers/topics/{topic}` - 根據服務項目篩選
+   - `GET /api/v1/givers/industries/{industry}` - 根據產業篩選
+   - `GET /api/v1/givers/stats/count` - 取得 Giver 統計
 
-4. **使用者管理 API** (`/api/users`)
-   - `GET /api/users` - 取得使用者列表
-   - `GET /api/users/{id}` - 取得特定使用者
-   - `POST /api/users` - 建立使用者
-   - `PUT /api/users/{id}` - 更新使用者
-   - `DELETE /api/users/{id}` - 刪除使用者
+4. **使用者管理 API** (`/api/v1/users`)
+   - `GET /api/v1/users` - 取得使用者列表
+   - `GET /api/v1/users/{id}` - 取得特定使用者
+   - `POST /api/v1/users` - 建立使用者
+   - `PUT /api/v1/users/{id}` - 更新使用者
+   - `DELETE /api/v1/users/{id}` - 刪除使用者
 
 ## Postman 集合設定
 
@@ -118,7 +118,7 @@ http://localhost:8000
 
 **請求名稱**: Create Schedule  
 **方法**: POST  
-**URL**: `{{base_url}}/api/schedules`  
+**URL**: `{{base_url}}/api/v1/schedules`  
 **Headers**:
 
 ```
@@ -164,7 +164,7 @@ Content-Type: application/json
 
 **請求名稱**: Get All Schedules  
 **方法**: GET  
-**URL**: `{{base_url}}/api/schedules`
+**URL**: `{{base_url}}/api/v1/schedules`
 
 **查詢參數** (可選):
 
@@ -173,19 +173,19 @@ Content-Type: application/json
 - `page`: 頁碼 (預設: 1)
 - `size`: 每頁數量 (預設: 10)
 
-**範例 URL**: `{{base_url}}/api/schedules?giver_id=1&status_filter=AVAILABLE&page=1&size=5`
+**範例 URL**: `{{base_url}}/api/v1/schedules?giver_id=1&status_filter=AVAILABLE&page=1&size=5`
 
 #### 2.3 取得特定時段
 
 **請求名稱**: Get Schedule by ID  
 **方法**: GET  
-**URL**: `{{base_url}}/api/schedules/1`
+**URL**: `{{base_url}}/api/v1/schedules/1`
 
 #### 2.4 更新時段
 
 **請求名稱**: Update Schedule  
 **方法**: PUT  
-**URL**: `{{base_url}}/api/schedules/1`  
+**URL**: `{{base_url}}/api/v1/schedules/1`  
 **Headers**:
 
 ```
@@ -212,7 +212,7 @@ Content-Type: application/json
 
 **請求名稱**: Delete Schedule  
 **方法**: DELETE  
-**URL**: `{{base_url}}/api/schedules/1`  
+**URL**: `{{base_url}}/api/v1/schedules/1`  
 **Headers**:
 
 ```
@@ -234,7 +234,7 @@ Content-Type: application/json
 
 **請求名稱**: Get All Givers  
 **方法**: GET  
-**URL**: `{{base_url}}/api/givers`
+**URL**: `{{base_url}}/api/v1/givers`
 
 **查詢參數** (可選):
 
@@ -247,25 +247,25 @@ Content-Type: application/json
 
 **請求名稱**: Get Giver by ID  
 **方法**: GET  
-**URL**: `{{base_url}}/api/givers/1`
+**URL**: `{{base_url}}/api/v1/givers/1`
 
 #### 3.3 根據服務項目篩選
 
 **請求名稱**: Get Givers by Topic  
 **方法**: GET  
-**URL**: `{{base_url}}/api/givers/topics/履歷健診`
+**URL**: `{{base_url}}/api/v1/givers/topics/履歷健診`
 
 #### 3.4 根據產業篩選
 
 **請求名稱**: Get Givers by Industry  
 **方法**: GET  
-**URL**: `{{base_url}}/api/givers/industries/電子資訊／軟體／半導體相關業`
+**URL**: `{{base_url}}/api/v1/givers/industries/電子資訊／軟體／半導體相關業`
 
 #### 3.5 取得 Giver 統計
 
 **請求名稱**: Get Giver Stats  
 **方法**: GET  
-**URL**: `{{base_url}}/api/givers/stats/count`
+**URL**: `{{base_url}}/api/v1/givers/stats/count`
 
 ### 4. 使用者管理 API
 
@@ -273,19 +273,19 @@ Content-Type: application/json
 
 **請求名稱**: Get All Users  
 **方法**: GET  
-**URL**: `{{base_url}}/api/users`
+**URL**: `{{base_url}}/api/v1/users`
 
 #### 4.2 取得特定使用者
 
 **請求名稱**: Get User by ID  
 **方法**: GET  
-**URL**: `{{base_url}}/api/users/1`
+**URL**: `{{base_url}}/api/v1/users/1`
 
 #### 4.3 建立使用者
 
 **請求名稱**: Create User  
 **方法**: POST  
-**URL**: `{{base_url}}/api/users`  
+**URL**: `{{base_url}}/api/v1/users`  
 **Headers**:
 
 ```
@@ -307,7 +307,7 @@ Content-Type: application/json
 
 **請求名稱**: Update User  
 **方法**: PUT  
-**URL**: `{{base_url}}/api/users/1`  
+**URL**: `{{base_url}}/api/v1/users/1`  
 **Headers**:
 
 ```
@@ -329,7 +329,7 @@ Content-Type: application/json
 
 **請求名稱**: Delete User  
 **方法**: DELETE  
-**URL**: `{{base_url}}/api/users/1`
+**URL**: `{{base_url}}/api/v1/users/1`
 
 ## 錯誤處理測試
 
@@ -358,7 +358,7 @@ Content-Type: application/json
 **測試案例**: 取得不存在的時段
 
 ```
-GET {{base_url}}/api/schedules/999
+GET {{base_url}}/api/v1/schedules/999
 ```
 
 ### 3. 業務邏輯錯誤 (400)

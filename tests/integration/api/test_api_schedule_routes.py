@@ -79,7 +79,7 @@ class TestScheduleAPI:
         log_test_info("測試成功建立多個時段")
 
         # 執行測試
-        response = client.post("/api/schedules", json=sample_schedule_list)
+        response = client.post("/api/v1/schedules", json=sample_schedule_list)
 
         # 驗證回應
         assert response.status_code == 201
@@ -117,7 +117,7 @@ class TestScheduleAPI:
         }
 
         # 執行測試
-        response = client.post("/api/schedules", json=invalid_data)
+        response = client.post("/api/v1/schedules", json=invalid_data)
 
         # 驗證回應
         assert response.status_code == 422  # Validation error
@@ -134,7 +134,7 @@ class TestScheduleAPI:
         }
 
         # 執行測試
-        response = client.post("/api/schedules", json=empty_data)
+        response = client.post("/api/v1/schedules", json=empty_data)
 
         # 驗證回應
         assert response.status_code == 201
@@ -152,7 +152,7 @@ class TestScheduleAPI:
         mock_create_schedules.side_effect = Exception("資料庫錯誤")
 
         # 執行測試
-        response = client.post("/api/schedules", json=sample_schedule_list)
+        response = client.post("/api/v1/schedules", json=sample_schedule_list)
 
         # 驗證回應
         assert response.status_code == 500
@@ -164,7 +164,7 @@ class TestScheduleAPI:
         log_test_info("測試成功取得時段列表")
 
         # 執行測試
-        response = client.get("/api/schedules")
+        response = client.get("/api/v1/schedules")
 
         # 驗證回應
         assert response.status_code == 200
@@ -178,7 +178,7 @@ class TestScheduleAPI:
         log_test_info("測試根據 Giver ID 篩選時段")
 
         # 執行測試
-        response = client.get("/api/schedules?giver_id=1")
+        response = client.get("/api/v1/schedules?giver_id=1")
 
         # 驗證回應
         assert response.status_code == 200
@@ -193,7 +193,7 @@ class TestScheduleAPI:
         log_test_info("測試根據狀態篩選時段")
 
         # 執行測試
-        response = client.get("/api/schedules?status_filter=AVAILABLE")
+        response = client.get("/api/v1/schedules?status_filter=AVAILABLE")
 
         # 驗證回應
         assert response.status_code == 200
@@ -208,7 +208,7 @@ class TestScheduleAPI:
         log_test_info("測試組合篩選條件")
 
         # 執行測試
-        response = client.get("/api/schedules?giver_id=1&status_filter=AVAILABLE")
+        response = client.get("/api/v1/schedules?giver_id=1&status_filter=AVAILABLE")
 
         # 驗證回應
         assert response.status_code == 200
@@ -228,7 +228,7 @@ class TestScheduleAPI:
         mock_get_schedules.side_effect = Exception("查詢錯誤")
 
         # 執行測試
-        response = client.get("/api/schedules")
+        response = client.get("/api/v1/schedules")
 
         # 驗證回應
         assert response.status_code == 500
@@ -258,7 +258,7 @@ class TestScheduleAPI:
             "operator_user_id": 1,
             "operator_role": "GIVER",
         }
-        create_response = client.post("/api/schedules", json=schedule_data)
+        create_response = client.post("/api/v1/schedules", json=schedule_data)
 
         # 檢查建立是否成功
         if create_response.status_code != 201:
@@ -271,7 +271,7 @@ class TestScheduleAPI:
         created_schedule = create_response.json()[0]
 
         # 執行測試
-        response = client.get(f"/api/schedules/{created_schedule['id']}")
+        response = client.get(f"/api/v1/schedules/{created_schedule['id']}")
 
         # 驗證回應
         assert response.status_code == 200
@@ -287,7 +287,7 @@ class TestScheduleAPI:
         log_test_info("測試取得不存在的時段")
 
         # 執行測試
-        response = client.get("/api/schedules/999")
+        response = client.get("/api/v1/schedules/999")
 
         # 驗證回應
         assert response.status_code == 404
@@ -304,7 +304,7 @@ class TestScheduleAPI:
         mock_get_schedule_by_id.side_effect = Exception("查詢錯誤")
 
         # 執行測試
-        response = client.get("/api/schedules/1")
+        response = client.get("/api/v1/schedules/1")
 
         # 驗證異常處理
         assert response.status_code == 500
@@ -321,7 +321,7 @@ class TestScheduleAPI:
             "operator_user_id": 1,
             "operator_role": "GIVER",
         }
-        create_response = client.post("/api/schedules", json=create_data)
+        create_response = client.post("/api/v1/schedules", json=create_data)
 
         # 檢查建立是否成功
         if create_response.status_code != 201:
@@ -348,7 +348,7 @@ class TestScheduleAPI:
 
         # 執行測試
         response = client.put(
-            f"/api/schedules/{created_schedule['id']}", json=update_data
+            f"/api/v1/schedules/{created_schedule['id']}", json=update_data
         )
 
         # 驗證回應
@@ -378,7 +378,7 @@ class TestScheduleAPI:
         }
 
         # 執行測試
-        response = client.put("/api/schedules/999", json=update_data)
+        response = client.put("/api/v1/schedules/999", json=update_data)
 
         # 驗證回應
         assert response.status_code == 400  # 實際返回 400 而不是 404
@@ -403,7 +403,7 @@ class TestScheduleAPI:
         }
 
         # 執行測試
-        response = client.put("/api/schedules/1", json=invalid_data)
+        response = client.put("/api/v1/schedules/1", json=invalid_data)
 
         # 驗證回應
         assert response.status_code == 422  # Validation error
@@ -421,7 +421,7 @@ class TestScheduleAPI:
             "operator_user_id": 1,
             "operator_role": "GIVER",
         }
-        create_response = client.post("/api/schedules", json=create_data)
+        create_response = client.post("/api/v1/schedules", json=create_data)
 
         # 檢查建立是否成功
         if create_response.status_code != 201:
@@ -443,7 +443,7 @@ class TestScheduleAPI:
             "operator_role": "GIVER",
         }
         response = client.put(
-            f"/api/schedules/{created_schedule['id']}", json=update_data
+            f"/api/v1/schedules/{created_schedule['id']}", json=update_data
         )
 
         # 驗證回應
@@ -470,7 +470,7 @@ class TestScheduleAPI:
             "operator_user_id": 1,
             "operator_role": "GIVER",
         }
-        create_response = client.post("/api/schedules", json=create_request)
+        create_response = client.post("/api/v1/schedules", json=create_request)
 
         # 檢查回應狀態
         if create_response.status_code != 201:
@@ -486,7 +486,7 @@ class TestScheduleAPI:
         import json
 
         response = client.request(
-            "DELETE", f"/api/schedules/{created_schedule['id']}", json=delete_request
+            "DELETE", f"/api/v1/schedules/{created_schedule['id']}", json=delete_request
         )
 
         # 驗證回應
@@ -502,7 +502,9 @@ class TestScheduleAPI:
         delete_request = {"operator_user_id": 1, "operator_role": "GIVER"}
         import json
 
-        response = client.request("DELETE", "/api/schedules/999", json=delete_request)
+        response = client.request(
+            "DELETE", "/api/v1/schedules/999", json=delete_request
+        )
 
         # 驗證回應
         assert response.status_code == 404
@@ -538,7 +540,7 @@ class TestScheduleAPI:
             "operator_user_id": 1,
             "operator_role": "GIVER",
         }
-        create_response = client.post("/api/schedules", json=create_request)
+        create_response = client.post("/api/v1/schedules", json=create_request)
 
         # 檢查建立是否成功
         if create_response.status_code != 201:
@@ -558,7 +560,7 @@ class TestScheduleAPI:
         import json
 
         response = client.request(
-            "DELETE", f"/api/schedules/{created_schedule['id']}", json=delete_request
+            "DELETE", f"/api/v1/schedules/{created_schedule['id']}", json=delete_request
         )
 
         # 驗證回應
@@ -576,7 +578,7 @@ class TestScheduleAPI:
             "operator_user_id": 1,
             "operator_role": "GIVER",
         }
-        response = client.post("/api/schedules", json=create_data)
+        response = client.post("/api/v1/schedules", json=create_data)
 
         # 驗證回應
         assert response.status_code == 201
@@ -605,7 +607,7 @@ class TestScheduleAPI:
             "operator_user_id": 1,
             "operator_role": "GIVER",
         }
-        response = client.post("/api/schedules", json=invalid_request)
+        response = client.post("/api/v1/schedules", json=invalid_request)
         assert response.status_code == 422
 
         # 測試無效的時間格式
@@ -622,7 +624,7 @@ class TestScheduleAPI:
             "operator_user_id": 1,
             "operator_role": "GIVER",
         }
-        response = client.post("/api/schedules", json=invalid_request)
+        response = client.post("/api/v1/schedules", json=invalid_request)
         assert response.status_code == 422
 
         # 測試無效的狀態 - Pydantic 會拒絕無效狀態，返回 422 錯誤
@@ -639,7 +641,7 @@ class TestScheduleAPI:
             "operator_user_id": 1,
             "operator_role": "GIVER",
         }
-        response = client.post("/api/schedules", json=invalid_request)
+        response = client.post("/api/v1/schedules", json=invalid_request)
         assert response.status_code == 422
 
     def test_schedule_bulk_operations(self):
@@ -683,7 +685,7 @@ class TestScheduleAPI:
             "operator_user_id": 1,
             "operator_role": "GIVER",
         }
-        response = client.post("/api/schedules", json=bulk_request)
+        response = client.post("/api/v1/schedules", json=bulk_request)
 
         # 驗證回應
         assert response.status_code == 201

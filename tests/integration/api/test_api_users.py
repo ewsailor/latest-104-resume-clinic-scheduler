@@ -1,5 +1,5 @@
 """
-測試 app/routers/api/users.py 模組。
+測試 app/routers/api/v1/users.py 模組。
 
 測試使用者相關的 API 端點，包括查詢和建立功能。
 """
@@ -20,7 +20,7 @@ class TestUsersAPI:
 
     def test_get_users_success(self):
         """測試成功取得使用者列表。"""
-        response = client.get("/api/users")
+        response = client.get("/api/v1/users")
         assert response.status_code == 200
 
         data = response.json()
@@ -38,7 +38,7 @@ class TestUsersAPI:
 
     def test_get_users_with_pagination(self):
         """測試分頁功能。"""
-        response = client.get("/api/users?page=1&per_page=3")
+        response = client.get("/api/v1/users?page=1&per_page=3")
         assert response.status_code == 200
 
         data = response.json()
@@ -48,17 +48,17 @@ class TestUsersAPI:
 
     def test_get_users_with_invalid_page(self):
         """測試無效的頁碼參數。"""
-        response = client.get("/api/users?page=0")
+        response = client.get("/api/v1/users?page=0")
         assert response.status_code == 422  # Validation error
 
     def test_get_users_with_invalid_per_page(self):
         """測試無效的每頁數量參數。"""
-        response = client.get("/api/users?per_page=0")
+        response = client.get("/api/v1/users?per_page=0")
         assert response.status_code == 422  # Validation error
 
     def test_get_users_with_large_per_page(self):
         """測試超過限制的每頁數量參數。"""
-        response = client.get("/api/users?per_page=101")
+        response = client.get("/api/v1/users?per_page=101")
         assert response.status_code == 422  # Validation error
 
     @patch('app.routers.api.users.user_crud.get_users')
@@ -68,7 +68,7 @@ class TestUsersAPI:
         mock_get_users.side_effect = Exception("資料庫錯誤")
 
         # 執行測試
-        response = client.get("/api/users")
+        response = client.get("/api/v1/users")
 
         # 驗證回應 - 修正：使用 error.message 欄位
         assert response.status_code == 500
@@ -86,7 +86,7 @@ class TestUsersAPI:
             "email": f"unique_test_user_{timestamp}@example.com",
         }
 
-        response = client.post("/api/users", json=user_data)
+        response = client.post("/api/v1/users", json=user_data)
         assert response.status_code == 201
 
         data = response.json()
@@ -101,7 +101,7 @@ class TestUsersAPI:
             "email": "wang01@example.com",  # 使用已存在的 email
         }
 
-        response = client.post("/api/users", json=user_data)
+        response = client.post("/api/v1/users", json=user_data)
         # 修正：實際返回 500 錯誤，因為 ValueError 被當作一般異常處理
         assert response.status_code == 500
 
@@ -116,5 +116,5 @@ class TestUsersAPI:
             "email": "invalid-email-format",  # 無效的 email 格式
         }
 
-        response = client.post("/api/users", json=user_data)
+        response = client.post("/api/v1/users", json=user_data)
         assert response.status_code == 422  # Validation error

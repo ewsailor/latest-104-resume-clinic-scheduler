@@ -204,7 +204,7 @@ const CONFIG = {
   
   // API 配置
   API: {
-    BASE_URL: '/api/givers',
+    BASE_URL: '/api/v1/givers',
     POSTER_URL: 'https://randomuser.me/api/portraits/',
     TIMEOUT: 10000,
     RETRY_DELAY: 1000,
@@ -1946,7 +1946,7 @@ const ChatStateManager = {
     
     try {
       // 呼叫 API 獲取使用者提供給該 Giver 的時段
-      const response = await fetch(`/api/schedules?giver_id=${giverId}&taker_id=${userId}`);
+      const response = await fetch(`/api/v1/schedules?giver_id=${giverId}&taker_id=${userId}`);
       
       if (!response.ok) {
         console.error('ChatStateManager.loadUserSchedulesFromDatabase: API 請求失敗', response.status);
@@ -7589,7 +7589,7 @@ const EventManager = {
               console.log('EventManager: 準備發送到後端的時段資料', { requestBody });
               
               // 發送 axios POST 請求到後端（統一後的端點，包含操作者資訊）
-              const response = await APIClient.post('/api/schedules', requestBody);
+              const response = await APIClient.post('/api/v1/schedules', requestBody);
               console.log('EventManager: 後端回應', { response });
               
               // 將後端返回的 ID 更新到時段資料中
@@ -7830,7 +7830,7 @@ const EventManager = {
                   });
                   
                   // 使用 APIClient 發送 DELETE 請求
-                  await APIClient.delete(`/api/schedules/${scheduleToDelete.id}`, {
+                  await APIClient.delete(`/api/v1/schedules/${scheduleToDelete.id}`, {
                     data: deleteRequest,
                     headers: { 'Content-Type': 'application/json' }
                   });

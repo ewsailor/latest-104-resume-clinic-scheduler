@@ -20,7 +20,7 @@ async function testAPISubmission() {
   try {
     console.log('🚀 發送 API 請求...');
     
-    const response = await fetch('/api/schedules', {
+    const response = await fetch('/api/v1/schedules', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

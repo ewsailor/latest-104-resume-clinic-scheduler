@@ -438,8 +438,8 @@ class TestAPIScheduleComprehensive:
         openapi_spec = response.json()
 
         # 驗證 API 路徑存在
-        assert "/api/users" in openapi_spec["paths"]
-        assert "/api/schedules" in openapi_spec["paths"]
+        assert "/api/v1/users" in openapi_spec["paths"]
+        assert "/api/v1/schedules" in openapi_spec["paths"]
 
     def test_api_response_models(self, client):
         """測試 API 回應模型。"""
@@ -455,7 +455,7 @@ class TestAPIScheduleComprehensive:
             }
             mock_create.return_value = mock_user
 
-            response = client.post("/api/users", json=user_data)
+            response = client.post("/api/v1/users", json=user_data)
 
             assert response.status_code == 201
             result = response.json()
@@ -466,11 +466,11 @@ class TestAPIScheduleComprehensive:
     def test_api_error_responses(self, client):
         """測試 API 錯誤回應格式。"""
         # 測試無效的 JSON 資料
-        response = client.post("/api/users", content="invalid json")
+        response = client.post("/api/v1/users", content="invalid json")
         assert response.status_code == 422  # Unprocessable Entity
 
         # 測試缺少必要欄位
-        response = client.post("/api/users", json={})
+        response = client.post("/api/v1/users", json={})
         assert response.status_code == 422
 
         # 測試無效的時段資料（新格式：包含操作者資訊）
@@ -479,7 +479,7 @@ class TestAPIScheduleComprehensive:
             "operator_user_id": 1,
             "operator_role": "GIVER",
         }
-        response = client.post("/api/schedules", json=invalid_request_data)
+        response = client.post("/api/v1/schedules", json=invalid_request_data)
         assert response.status_code == 422
 
     # ===== 效能和穩定性測試 =====
@@ -550,10 +550,10 @@ class TestAPIScheduleComprehensive:
             }
             mock_create.return_value = mock_user
 
-            response = client.post("/api/users", json=user_data)
+            response = client.post("/api/v1/users", json=user_data)
             assert response.status_code == 201
 
         # 測試錯誤情況的日誌
         with patch('app.crud.user_crud.create_user', side_effect=Exception("測試錯誤")):
-            response = client.post("/api/users", json=user_data)
+            response = client.post("/api/v1/users", json=user_data)
             assert response.status_code == 500

@@ -91,7 +91,7 @@ class TestAPIScheduleSimple:
         # 模擬 CRUD 操作
         with patch('app.crud.user_crud.create_user', return_value=mock_user):
             # 執行測試
-            response = client.post("/api/users", json=user_data)
+            response = client.post("/api/v1/users", json=user_data)
 
         # 驗證結果
         assert response.status_code == 201
@@ -112,7 +112,7 @@ class TestAPIScheduleSimple:
             side_effect=ValueError("此電子信箱已被使用"),
         ):
             # 執行測試
-            response = client.post("/api/users", json=user_data)
+            response = client.post("/api/v1/users", json=user_data)
 
         # 驗證結果 - 修正：實際返回 500 錯誤，因為 ValueError 被當作一般異常處理
         assert response.status_code == 500
@@ -128,7 +128,7 @@ class TestAPIScheduleSimple:
         }
 
         # 執行測試
-        response = client.post("/api/users", json=invalid_user_data)
+        response = client.post("/api/v1/users", json=invalid_user_data)
 
         # 驗證結果 - 修正：FastAPI 的驗證錯誤返回 422
         assert response.status_code == 422  # Validation Error
@@ -165,7 +165,7 @@ class TestAPIScheduleSimple:
             return_value=[mock_schedule, mock_schedule],
         ):
             # 執行測試
-            response = client.post("/api/schedules", json=request_data)
+            response = client.post("/api/v1/schedules", json=request_data)
 
         # 驗證結果
         assert response.status_code == 201
@@ -191,7 +191,7 @@ class TestAPIScheduleSimple:
         }
 
         # 執行測試
-        response = client.post("/api/schedules", json=invalid_request_data)
+        response = client.post("/api/v1/schedules", json=invalid_request_data)
 
         # 驗證結果
         assert response.status_code == 422  # Validation Error
@@ -203,7 +203,7 @@ class TestAPIScheduleSimple:
             'app.crud.schedule_crud.get_schedules', return_value=[mock_schedule]
         ):
             # 執行測試
-            response = client.get("/api/schedules")
+            response = client.get("/api/v1/schedules")
 
         # 驗證結果
         assert response.status_code == 200
@@ -217,7 +217,7 @@ class TestAPIScheduleSimple:
             'app.crud.schedule_crud.get_schedules', return_value=[mock_schedule]
         ):
             # 執行測試
-            response = client.get("/api/schedules?giver_id=1")
+            response = client.get("/api/v1/schedules?giver_id=1")
 
         # 驗證結果
         assert response.status_code == 200
@@ -231,7 +231,7 @@ class TestAPIScheduleSimple:
             'app.crud.schedule_crud.get_schedules', return_value=[mock_schedule]
         ):
             # 執行測試
-            response = client.get("/api/schedules?status_filter=AVAILABLE")
+            response = client.get("/api/v1/schedules?status_filter=AVAILABLE")
 
         # 驗證結果
         assert response.status_code == 200
@@ -243,7 +243,7 @@ class TestAPIScheduleSimple:
         # 模擬 CRUD 操作返回空列表
         with patch('app.crud.schedule_crud.get_schedules', return_value=[]):
             # 執行測試
-            response = client.get("/api/schedules?giver_id=999")
+            response = client.get("/api/v1/schedules?giver_id=999")
 
         # 驗證結果
         assert response.status_code == 200
@@ -253,7 +253,7 @@ class TestAPIScheduleSimple:
     def test_get_schedules_invalid_filter(self, client):
         """測試無效的篩選參數。"""
         # 執行測試 - 使用無效的 giver_id 格式
-        response = client.get("/api/schedules?giver_id=invalid")
+        response = client.get("/api/v1/schedules?giver_id=invalid")
 
         # 驗證結果
         assert response.status_code == 422  # Validation Error
@@ -261,11 +261,11 @@ class TestAPIScheduleSimple:
     def test_api_endpoints_exist(self, client):
         """測試 API 端點是否存在。"""
         # 測試使用者建立端點 - 修正：實際支援 GET 方法
-        response = client.get("/api/users")
+        response = client.get("/api/v1/users")
         assert response.status_code == 200  # 端點存在且支援 GET
 
         # 測試時段端點
-        response = client.get("/api/schedules")
+        response = client.get("/api/v1/schedules")
         assert response.status_code == 200  # 端點存在且支援 GET
 
     def test_api_response_format(self, client, mock_schedule):
@@ -275,7 +275,7 @@ class TestAPIScheduleSimple:
             'app.crud.schedule_crud.get_schedules', return_value=[mock_schedule]
         ):
             # 測試時段列表回應格式
-            response = client.get("/api/schedules")
+            response = client.get("/api/v1/schedules")
             assert response.status_code == 200
 
             # 驗證回應標頭
@@ -292,7 +292,7 @@ class TestAPIScheduleSimple:
         assert response.status_code == 404
 
         # 測試不支援的 HTTP 方法
-        response = client.delete("/api/users")
+        response = client.delete("/api/v1/users")
         assert response.status_code in [404, 405]
 
     def test_create_schedules_empty_list(self, client, mock_db):
@@ -307,7 +307,7 @@ class TestAPIScheduleSimple:
         # 模擬 CRUD 操作
         with patch('app.crud.schedule_crud.create_schedules', return_value=[]):
             # 執行測試
-            response = client.post("/api/schedules", json=empty_request_data)
+            response = client.post("/api/v1/schedules", json=empty_request_data)
 
         # 驗證結果
         assert response.status_code == 201
@@ -330,7 +330,7 @@ class TestAPIScheduleSimple:
         }
 
         # 執行測試
-        response = client.post("/api/schedules", json=incomplete_request_data)
+        response = client.post("/api/v1/schedules", json=incomplete_request_data)
 
         # 驗證結果
         assert response.status_code == 422  # Validation Error
@@ -389,7 +389,7 @@ class TestAPIScheduleSimple:
             ),
         ):
             # 執行測試
-            response = client.post("/api/schedules", json=overlapping_request_data)
+            response = client.post("/api/v1/schedules", json=overlapping_request_data)
 
         # 驗證結果 - 修正：實際返回 500 錯誤，因為 ValueError 被當作一般異常處理
         assert response.status_code == 500

@@ -29,7 +29,7 @@ from app.utils.error_handler import (
 )
 
 # 建立路由器
-router = APIRouter(prefix="/api", tags=["Schedules"])
+router = APIRouter(prefix="/api/v1", tags=["Schedules"])
 
 
 # ===== API 端點 =====
