@@ -1,4 +1,4 @@
-# 【MVP】104 履歷診療室 - 站內諮詢時間媒合系統
+# 【MVP】104 履歷診療室 - 平台內諮詢時間媒合系統
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111+-green.svg)](https://fastapi.tiangolo.com/)
@@ -28,6 +28,12 @@
 ## <a name="專案概述"></a>專案概述 [返回目錄 ↑](#目錄)
 
 讓 Giver（諮詢師）與 Taker（求職者）使用 104 履歷診療室時，雙方能在平台內，設定可面談時段並完成配對媒合，同時快速發送預計回覆時間通知，以減少等待回應時的不確定與焦慮感。
+
+### 用戶流程圖
+
+![用戶流程圖](static/images/content/user-flow.png)
+
+_圖：104 履歷診療室 - 平台內諮詢時間媒合系統用戶流程_
 
 ### 專案目標
 
