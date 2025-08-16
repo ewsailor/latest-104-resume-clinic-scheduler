@@ -15,7 +15,9 @@ from .schedule import (
     ScheduleCreate,
     ScheduleCreateWithOperator,
     ScheduleDeleteWithOperator,
+    SchedulePartialUpdateWithOperator,
     ScheduleResponse,
+    ScheduleUpdate,
     ScheduleUpdateWithOperator,
 )
 from .user import UserCreate, UserResponse
@@ -27,5 +29,7 @@ __all__ = [
     "ScheduleResponse",
     "ScheduleCreateWithOperator",
     "ScheduleDeleteWithOperator",
+    "SchedulePartialUpdateWithOperator",
+    "ScheduleUpdate",
     "ScheduleUpdateWithOperator",
 ]

@@ -37,7 +37,7 @@ http://localhost:8000
    - `POST /api/v1/schedules` - 建立時段
    - `GET /api/v1/schedules` - 取得時段列表
    - `GET /api/v1/schedules/{id}` - 取得特定時段
-   - `PUT /api/v1/schedules/{id}` - 更新時段
+   - `PATCH /api/v1/schedules/{id}` - 更新時段
    - `DELETE /api/v1/schedules/{id}` - 刪除時段
 
 3. **Giver 管理 API** (`/api/v1/givers`)
@@ -184,7 +184,7 @@ Content-Type: application/json
 #### 2.4 更新時段
 
 **請求名稱**: Update Schedule  
-**方法**: PUT  
+**方法**: PATCH  
 **URL**: `{{base_url}}/api/v1/schedules/1`  
 **Headers**:
 

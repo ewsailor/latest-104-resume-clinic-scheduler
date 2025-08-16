@@ -25,12 +25,15 @@ class TestScheduleAPI:
         log_test_info("建立測試用的時段資料")
         import datetime
         import random
+        import time
 
         # 使用更遠的日期避免重疊，並增加隨機性
+        # 添加時間戳以確保每次測試都不同
+        timestamp = int(time.time()) % 1000  # 使用時間戳的後3位
         future_date = datetime.date.today() + datetime.timedelta(
-            days=random.randint(120, 180)
-        )  # 使用 120-180 天後
-        hour = random.randint(8, 18)
+            days=random.randint(120, 180) + timestamp % 30  # 額外的隨機性
+        )
+        hour = random.randint(8, 18) + (timestamp % 5)  # 額外的隨機性
         return {
             "giver_id": 1,
             "date": future_date.strftime("%Y-%m-%d"),
@@ -45,13 +48,16 @@ class TestScheduleAPI:
         log_test_info("建立測試用的時段列表資料")
         import datetime
         import random
+        import time
 
         # 使用更遠的日期避免重疊，並增加隨機性
+        # 添加時間戳以確保每次測試都不同
+        timestamp = int(time.time()) % 1000  # 使用時間戳的後3位
         future_date = datetime.date.today() + datetime.timedelta(
-            days=random.randint(120, 180)
-        )  # 使用 120-180 天後
+            days=random.randint(120, 180) + timestamp % 30  # 額外的隨機性
+        )
         # 使用隨機時間避免重疊
-        hour1 = random.randint(8, 16)
+        hour1 = random.randint(8, 16) + (timestamp % 3)  # 額外的隨機性
         hour2 = hour1 + 2  # 確保不重疊
         return {
             "schedules": [
@@ -347,7 +353,7 @@ class TestScheduleAPI:
         }
 
         # 執行測試
-        response = client.put(
+        response = client.patch(
             f"/api/v1/schedules/{created_schedule['id']}", json=update_data
         )
 
@@ -378,7 +384,7 @@ class TestScheduleAPI:
         }
 
         # 執行測試
-        response = client.put("/api/v1/schedules/999", json=update_data)
+        response = client.patch("/api/v1/schedules/999", json=update_data)
 
         # 驗證回應
         assert response.status_code == 400  # 實際返回 400 而不是 404
@@ -403,7 +409,7 @@ class TestScheduleAPI:
         }
 
         # 執行測試
-        response = client.put("/api/v1/schedules/1", json=invalid_data)
+        response = client.patch("/api/v1/schedules/1", json=invalid_data)
 
         # 驗證回應
         assert response.status_code == 422  # Validation error
@@ -442,7 +448,7 @@ class TestScheduleAPI:
             "operator_user_id": 1,
             "operator_role": "GIVER",
         }
-        response = client.put(
+        response = client.patch(
             f"/api/v1/schedules/{created_schedule['id']}", json=update_data
         )
 
@@ -651,10 +657,13 @@ class TestScheduleAPI:
         # 建立多個時段
         import datetime
         import random
+        import time
 
+        # 添加時間戳以確保每次測試都不同
+        timestamp = int(time.time()) % 1000
         future_date = datetime.date.today() + datetime.timedelta(
-            days=random.randint(80, 120)
-        )  # 使用80-120天後避免重疊
+            days=random.randint(80, 120) + timestamp % 20  # 額外的隨機性
+        )
         bulk_data = [
             {
                 "giver_id": 1,

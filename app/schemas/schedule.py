@@ -34,10 +34,34 @@ class ScheduleCreateWithOperator(BaseModel):
     operator_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
 
 
-class ScheduleUpdateWithOperator(BaseModel):
-    """帶有操作者資訊的更新時段請求模型"""
+class ScheduleUpdate(BaseModel):
+    """部分更新時段的請求模型 - 所有欄位都是可選的"""
 
-    schedule_data: ScheduleCreate = Field(..., description="更新的時段資料")
+    giver_id: int | None = Field(None, description="Giver ID")
+    taker_id: int | None = Field(None, description="Taker ID")
+    status: ScheduleStatusEnum | None = Field(None, description="時段狀態")
+    schedule_date: date | None = Field(None, description="時段日期", alias="date")
+    start_time: time | None = Field(None, description="開始時間")
+    end_time: time | None = Field(None, description="結束時間")
+    note: str | None = Field(None, description="備註")
+
+
+class ScheduleUpdateWithOperator(BaseModel):
+    """帶有操作者資訊的完整更新時段請求模型（用於 PUT 方法）"""
+
+    schedule_data: ScheduleCreate = Field(
+        ..., description="完整的時段資料（所有欄位必填）"
+    )
+    operator_user_id: int = Field(..., description="操作者的使用者 ID（必填）")
+    operator_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
+
+
+class SchedulePartialUpdateWithOperator(BaseModel):
+    """帶有操作者資訊的部分更新時段請求模型"""
+
+    schedule_data: ScheduleUpdate = Field(
+        ..., description="要更新的時段資料（部分欄位）"
+    )
     operator_user_id: int = Field(..., description="操作者的使用者 ID（必填）")
     operator_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
 

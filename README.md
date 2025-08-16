@@ -553,7 +553,7 @@ poetry run flake8 app/
 - **取得排程列表**: `GET /api/v1/schedules/` - 取得所有排程
 - **取得特定排程**: `GET /api/v1/schedules/{schedule_id}` - 取得特定排程資訊
 - **建立排程**: `POST /api/v1/schedules/` - 建立新排程
-- **更新排程**: `PUT /api/v1/schedules/{schedule_id}` - 更新排程資訊
+- **更新排程**: `PATCH /api/v1/schedules/{schedule_id}` - 更新排程資訊
 - **刪除排程**: `DELETE /api/v1/schedules/{schedule_id}` - 刪除排程
 
 ### 📚 **API 文件**

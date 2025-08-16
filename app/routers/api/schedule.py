@@ -16,8 +16,8 @@ from app.models.database import get_db  # 資料庫連接
 from app.schemas import (  # 資料模型
     ScheduleCreateWithOperator,
     ScheduleDeleteWithOperator,
+    SchedulePartialUpdateWithOperator,
     ScheduleResponse,
-    ScheduleUpdateWithOperator,
 )
 from app.utils.error_handler import (
     APIError,
@@ -155,14 +155,16 @@ async def get_schedule(
         )
 
 
-@router.put("/schedules/{schedule_id}", response_model=ScheduleResponse)
+@router.patch("/schedules/{schedule_id}", response_model=ScheduleResponse)
 async def update_schedule(
-    schedule_id: int, request: ScheduleUpdateWithOperator, db: Session = Depends(get_db)
+    schedule_id: int,
+    request: SchedulePartialUpdateWithOperator,
+    db: Session = Depends(get_db),
 ) -> ScheduleResponse:
     """
-    更新時段。
+    部分更新時段。
 
-    更新指定的時段資料。
+    更新指定的時段資料，只需要提供要更新的欄位。
     所有的時段更新操作都需要提供操作者資訊以確保安全性和審計追蹤。
 
     Args:
@@ -177,8 +179,8 @@ async def update_schedule(
         HTTPException: 當時段不存在或更新失敗時拋出錯誤
     """
     try:
-        # 轉換為字典格式
-        update_data = request.schedule_data.model_dump()
+        # 轉換為字典格式，只包含非 None 的欄位
+        update_data = request.schedule_data.model_dump(exclude_none=True)
         # 處理 date 欄位的別名 - 將 date 轉換為 schedule_date
         if "date" in update_data:
             update_data["schedule_date"] = update_data.pop("date")

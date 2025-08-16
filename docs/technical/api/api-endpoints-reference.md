@@ -16,7 +16,7 @@
 | GET    | `/api/v1/schedules`                  | 取得排程列表   | 200    |
 | POST   | `/api/v1/schedules`                  | 建立排程       | 201    |
 | GET    | `/api/v1/schedules/{id}`             | 取得特定排程   | 200    |
-| PUT    | `/api/v1/schedules/{id}`             | 更新排程       | 200    |
+| PATCH  | `/api/v1/schedules/{id}`             | 更新排程       | 200    |
 | DELETE | `/api/v1/schedules/{id}`             | 刪除排程       | 204    |
 | GET    | `/api/v1/schedules/giver/{giver_id}` | 取得諮詢師排程 | 200    |
 | GET    | `/api/v1/schedules/taker/{taker_id}` | 取得求職者排程 | 200    |
@@ -203,7 +203,7 @@
 }
 ```
 
-#### PUT /api/v1/schedules/{id}
+#### PATCH /api/v1/schedules/{id}
 
 更新特定排程的資訊
 
