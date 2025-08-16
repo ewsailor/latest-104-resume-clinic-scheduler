@@ -31,9 +31,7 @@
 
 ### 用戶流程圖
 
-![用戶流程圖](static/images/content/user-flow.png)
-
-_圖：104 履歷診療室 - 平台內諮詢時間媒合系統用戶流程_
+![104 履歷診療室 - 平台內諮詢時間媒合系統用戶流程](static/images/content/user-flow.png)
 
 ### 專案目標
 
