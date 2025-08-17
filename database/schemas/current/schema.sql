@@ -1,6 +1,6 @@
 -- ===== 【MVP】104 履歷診療室 - 站內諮詢時間媒合系統 - 資料庫結構 (本地時間版本) =====
 -- 建立日期：2025-08-06
--- 版本：2.1.0
+-- 版本：2.2.0
 -- 描述：使用本地時間戳記的完整資料庫結構，包含軟刪除、來源追蹤等最佳實踐
 
 
@@ -57,17 +57,8 @@ CREATE TABLE `users` (
         COMMENT '建立時間（本地時間）',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL 
         COMMENT '更新時間（本地時間）',
-    `updated_by` INT UNSIGNED NULL 
-        COMMENT '最後更新的使用者 ID，可為 NULL（表示系統自動更新）',
     `deleted_at` DATETIME NULL DEFAULT NULL 
-        COMMENT '軟刪除標記（本地時間）',
-    
-    -- 自我關聯外鍵約束
-    CONSTRAINT `fk_users_updated_by` 
-        FOREIGN KEY (`updated_by`) 
-        REFERENCES `users` (`id`) 
-        ON DELETE SET NULL      -- 靈活：使用者刪除時設為 NULL
-        ON UPDATE CASCADE,      -- 更新：如果使用者 ID 改變，自動同步
+        COMMENT '軟刪除標記（本地時間）'
 
 -- 指定儲存引擎、預設字符集、排序規則
 ) ENGINE = InnoDB 
@@ -75,9 +66,11 @@ CREATE TABLE `users` (
     COLLATE = utf8mb4_unicode_ci 
     COMMENT = '使用者資料表 (本地時間戳記)';
 
--- 使用者資料表索引（加速查詢）
-CREATE INDEX `idx_deleted_at` 
-    ON `users` (`deleted_at`);
+-- ===== 加速查詢用的索引 =====
+-- 場景：查看最新註冊多少位使用者
+CREATE INDEX `idx_users_created_at`
+    ON `users` (`created_at`);
+
 
 -- ===== 諮詢時段資料表 `schedules` ===== 
 DROP TABLE IF EXISTS `schedules`;
@@ -86,104 +79,105 @@ CREATE TABLE `schedules` (
         COMMENT '諮詢時段 ID',
     `giver_id` INT UNSIGNED NOT NULL 
         COMMENT 'Giver 使用者 ID',
-    `taker_id` INT UNSIGNED DEFAULT NULL 
-        COMMENT 'Taker 使用者 ID，可為 NULL（表示 Giver 提供時段供 Taker 預約）', 
-    `status` ENUM('DRAFT', 'AVAILABLE', 'PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED', 'COMPLETED') 
-        NOT NULL DEFAULT 'DRAFT' 
+    `taker_id` INT UNSIGNED NULL 
+        COMMENT 'Taker 使用者 ID，可為 NULL（表示 Giver 提供時段供 Taker 預約）',
+    `status` ENUM('DRAFT', 'AVAILABLE', 'PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED', 'COMPLETED') NOT NULL DEFAULT 'DRAFT'
         COMMENT '諮詢時段狀態',
     `date` DATE NOT NULL 
-        COMMENT '日期 ',
+        COMMENT '日期',
     `start_time` TIME NOT NULL 
         COMMENT '開始時間',
     `end_time` TIME NOT NULL 
         COMMENT '結束時間',
-    `note` VARCHAR(255) 
+    `note` VARCHAR(255) NULL 
         COMMENT '備註，可為空',
+    
+    -- ===== 審計欄位 =====
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL 
         COMMENT '建立時間（本地時間）',
-    `created_by` INT UNSIGNED NULL 
+    `created_by` INT UNSIGNED NULL
         COMMENT '建立者的使用者 ID，可為 NULL（表示系統自動建立）',
-    `created_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NULL 
+    `created_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NULL
         COMMENT '建立者角色',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL 
         COMMENT '更新時間（本地時間）',
     `updated_by` INT UNSIGNED NULL 
         COMMENT '最後更新的使用者 ID，可為 NULL（表示系統自動更新）',
-    `updated_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NULL 
+    `updated_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NULL
         COMMENT '最後更新者角色',
     `deleted_at` DATETIME NULL DEFAULT NULL 
         COMMENT '軟刪除標記（本地時間）',
-    `deleted_by` INT UNSIGNED NULL 
+    `deleted_by` INT UNSIGNED NULL
         COMMENT '刪除者的使用者 ID，可為 NULL（表示系統自動刪除）',
-    `deleted_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NULL 
+    `deleted_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NULL
         COMMENT '刪除者角色',
     
     -- ===== 外鍵約束 =====
-    CONSTRAINT `fk_schedules_giver` 
+    CONSTRAINT `fk_schedules_giver_id` 
         FOREIGN KEY (`giver_id`) 
-        REFERENCES `users`(`id`)
+        REFERENCES `users`(`id`) 
         ON DELETE RESTRICT      -- 保護：不能刪除有時段的 Giver
-        ON UPDATE CASCADE,      -- 更新：如果 Giver ID 改變，自動同步
-    CONSTRAINT `fk_schedules_taker` 
+        ON UPDATE CASCADE,      -- 更新：如果使用者 ID 改變，自動同步
+    
+    CONSTRAINT `fk_schedules_taker_id` 
         FOREIGN KEY (`taker_id`) 
-        REFERENCES `users`(`id`)
+        REFERENCES `users`(`id`) 
         ON DELETE SET NULL      -- 靈活：Taker 刪除時設為 NULL（時段變可預約）
-        ON UPDATE CASCADE,      -- 更新：如果 Taker ID 改變，自動同步
+        ON UPDATE CASCADE,      -- 更新：如果使用者 ID 改變，自動同步
+    
     CONSTRAINT `fk_schedules_created_by` 
         FOREIGN KEY (`created_by`) 
-        REFERENCES `users`(`id`)
-        ON DELETE SET NULL      -- 稽核：建立者刪除時保留記錄但設為 NULL
-        ON UPDATE CASCADE,      -- 更新：自動同步 ID 變更
+        REFERENCES `users`(`id`) 
+        ON DELETE SET NULL 
+        ON UPDATE CASCADE,
+        
     CONSTRAINT `fk_schedules_updated_by` 
         FOREIGN KEY (`updated_by`) 
-        REFERENCES `users`(`id`)
-        ON DELETE SET NULL      -- 稽核：更新者刪除時保留記錄但設為 NULL
-        ON UPDATE CASCADE,      -- 更新：自動同步 ID 變更
+        REFERENCES `users`(`id`) 
+        ON DELETE SET NULL      -- 靈活：使用者刪除時設為 NULL
+        ON UPDATE CASCADE,      -- 更新：如果使用者 ID 改變，自動同步
+    
     CONSTRAINT `fk_schedules_deleted_by` 
         FOREIGN KEY (`deleted_by`) 
-        REFERENCES `users`(`id`)
-        ON DELETE SET NULL      -- 稽核：刪除者刪除時保留記錄但設為 NULL
-        ON UPDATE CASCADE,      -- 更新：自動同步 ID 變更
-    
-    -- ===== 業務邏輯約束 =====
-    CONSTRAINT `chk_schedules_time_order` 
-        CHECK (`start_time` < `end_time`)
+        REFERENCES `users`(`id`) 
+        ON DELETE SET NULL 
+        ON UPDATE CASCADE
+
 -- 指定儲存引擎、預設字符集、排序規則
 ) ENGINE = InnoDB 
     DEFAULT CHARSET = utf8mb4 
     COLLATE = utf8mb4_unicode_ci 
     COMMENT = '諮詢時段資料表 (本地時間戳記)';
 
-
 -- ===== 加速查詢用的索引 =====
-
--- 日期範圍查詢（行事曆介面常見）
-CREATE INDEX `idx_schedule_date`
-    ON `schedules` (`date`);
-
--- 複合索引：Giver + 日期（Giver 查詢自己的時段，包含單欄位查詢）
 CREATE INDEX `idx_schedule_giver_date` 
     ON `schedules` (`giver_id`, `date`);
 
--- 複合索引：Taker + 日期（Taker 查詢自己的預約，包含單欄位查詢）
 CREATE INDEX `idx_schedule_taker_date` 
     ON `schedules` (`taker_id`, `date`);
 
--- 軟刪除查詢（基礎功能，幾乎所有查詢，都需要過濾已刪除記錄）
+CREATE INDEX `idx_schedule_status` 
+    ON `schedules` (`status`);
+
 CREATE INDEX `idx_schedule_deleted_at` 
     ON `schedules` (`deleted_at`);
 
--- 可用時段查詢（支援 is_available 屬性，高頻使用）
-CREATE INDEX `idx_schedule_available` 
-    ON `schedules` (`deleted_at`, `status`, `taker_id`);
+CREATE INDEX `idx_schedule_created_by` 
+    ON `schedules` (`created_by`);
+
+CREATE INDEX `idx_schedule_updated_by` 
+    ON `schedules` (`updated_by`);
+
+CREATE INDEX `idx_schedule_deleted_by` 
+    ON `schedules` (`deleted_by`);
 
 
--- ===== 結構驗證 =====
+-- ===== 顯示資料表結構 =====
 SHOW TABLES;
+
 DESCRIBE `users`;
 DESCRIBE `schedules`;
 
-
--- ===== 快速查詢驗證資料 =====
-SELECT * FROM `schedules` 
-    ORDER BY `id` DESC;
+-- ===== 顯示索引資訊 =====
+SHOW INDEX FROM `users`;
+SHOW INDEX FROM `schedules`;

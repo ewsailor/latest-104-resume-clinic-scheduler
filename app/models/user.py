@@ -7,9 +7,8 @@
 from typing import Any
 
 # ===== 第三方套件 =====
-from sqlalchemy import Column, DateTime, ForeignKey, String
+from sqlalchemy import Column, DateTime, String
 from sqlalchemy.dialects.mysql import INTEGER
-from sqlalchemy.orm import relationship
 
 # ===== 本地模組 =====
 from app.models.database import Base
@@ -43,20 +42,7 @@ class User(Base):  # type: ignore[misc]
         nullable=False,
         comment="更新時間（本地時間）",
     )
-    updated_by = Column(
-        INTEGER(unsigned=True),
-        ForeignKey("users.id", ondelete="SET NULL"),  # 自我參考
-        nullable=True,
-        comment="最後更新的使用者 ID，可為 NULL（表示系統自動更新）",
-    )
     deleted_at = Column(DateTime, nullable=True, comment="軟刪除標記（本地時間）")
-
-    # 正向關係：從 updated_by 找到最後更新此使用者的使用者
-    updated_by_user = relationship("User", remote_side=[id])
-    # 反向關係：此使用者最後更新過的使用者列表 (只讀，避免衝突)
-    updated_users = relationship(
-        "User", remote_side=[updated_by], viewonly=True, overlaps="updated_by_user"
-    )
 
     def __repr__(self) -> str:
         """字串表示，用於除錯和日誌"""
@@ -71,7 +57,6 @@ class User(Base):  # type: ignore[misc]
                 "email": safe_getattr(self, 'email'),
                 "created_at": format_datetime(safe_getattr(self, 'created_at')),
                 "updated_at": format_datetime(safe_getattr(self, 'updated_at')),
-                "updated_by": safe_getattr(self, 'updated_by'),
                 "deleted_at": format_datetime(safe_getattr(self, 'deleted_at')),
             }
         except Exception as e:

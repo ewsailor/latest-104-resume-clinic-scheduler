@@ -1,0 +1,470 @@
+{
+  "backup_info": {
+    "timestamp": "2025-08-17T20:41:35.612871",
+    "table_name": "users",
+    "total_records": 51,
+    "description": "備份 users 資料表，準備移除 updated_by 欄位",
+    "backup_type": "full_table_backup"
+  },
+  "data": [
+    {
+      "id": 1,
+      "name": "王零一",
+      "email": "wang01@example.com",
+      "created_at": "2025-08-06T22:44:22",
+      "updated_at": "2025-08-09T23:05:16",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 2,
+      "name": "王零二",
+      "email": "wang02@example.com",
+      "created_at": "2025-08-06T22:44:22",
+      "updated_at": "2025-08-09T23:05:16",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 3,
+      "name": "王零三",
+      "email": "wang03@example.com",
+      "created_at": "2025-08-06T22:44:22",
+      "updated_at": "2025-08-09T23:05:16",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 4,
+      "name": "王零四",
+      "email": "wang04@example.com",
+      "created_at": "2025-08-06T22:44:22",
+      "updated_at": "2025-08-09T23:05:16",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 5,
+      "name": "王零五",
+      "email": "wang05@example.com",
+      "created_at": "2025-08-07T21:44:18",
+      "updated_at": "2025-08-09T23:05:16",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 6,
+      "name": "王零六",
+      "email": "wang06@example.com",
+      "created_at": "2025-08-08T02:07:45",
+      "updated_at": "2025-08-09T23:05:16",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 7,
+      "name": "王零七",
+      "email": "wang07@example.com",
+      "created_at": "2025-08-08T02:07:45",
+      "updated_at": "2025-08-09T23:05:16",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 8,
+      "name": "王零八",
+      "email": "wang08@example.com",
+      "created_at": "2025-08-08T02:07:45",
+      "updated_at": "2025-08-09T23:05:16",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 9,
+      "name": "王零九",
+      "email": "wang09@example.com",
+      "created_at": "2025-08-08T02:07:45",
+      "updated_at": "2025-08-09T23:05:16",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 10,
+      "name": "王拾",
+      "email": "wang10@example.com",
+      "created_at": "2025-08-08T02:07:45",
+      "updated_at": "2025-08-09T23:05:16",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 11,
+      "name": "王拾一",
+      "email": "wang11@example.com",
+      "created_at": "2025-08-08T02:07:45",
+      "updated_at": "2025-08-09T23:05:16",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 12,
+      "name": "王拾二",
+      "email": "wang12@example.com",
+      "created_at": "2025-08-08T02:07:45",
+      "updated_at": "2025-08-09T23:05:16",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 13,
+      "name": "王拾三",
+      "email": "wang13@example.com",
+      "created_at": "2025-08-08T02:07:45",
+      "updated_at": "2025-08-09T23:05:16",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 14,
+      "name": "王拾四",
+      "email": "wang14@example.com",
+      "created_at": "2025-08-08T20:16:19",
+      "updated_at": "2025-08-09T23:05:16",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 15,
+      "name": "【Demo】Taker_1",
+      "email": "demo_taker_1@example.com",
+      "created_at": "2025-08-09T23:07:48",
+      "updated_at": "2025-08-09T23:07:48",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 16,
+      "name": "[DEBUG] Invalid User",
+      "email": "debug_invalid_user@test.local",
+      "created_at": "2025-08-09T23:07:48",
+      "updated_at": "2025-08-09T23:07:48",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 17,
+      "name": "",
+      "email": "invalid-email",
+      "created_at": "2025-08-10T16:45:12",
+      "updated_at": "2025-08-10T16:45:12",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 18,
+      "name": "測試使用者",
+      "email": "test@example.com",
+      "created_at": "2025-08-12T02:57:21",
+      "updated_at": "2025-08-12T02:57:21",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 19,
+      "name": "",
+      "email": "invalid-email-format",
+      "created_at": "2025-08-12T02:57:49",
+      "updated_at": "2025-08-12T02:57:49",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 20,
+      "name": "測試使用者",
+      "email": "unique_test_user_12345@example.com",
+      "created_at": "2025-08-14T22:21:49",
+      "updated_at": "2025-08-14T22:21:49",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 21,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755181388@example.com",
+      "created_at": "2025-08-14T22:23:08",
+      "updated_at": "2025-08-14T22:23:08",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 22,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755181413@example.com",
+      "created_at": "2025-08-14T22:23:34",
+      "updated_at": "2025-08-14T22:23:34",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 23,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755181964@example.com",
+      "created_at": "2025-08-14T22:32:45",
+      "updated_at": "2025-08-14T22:32:45",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 24,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755182005@example.com",
+      "created_at": "2025-08-14T22:33:26",
+      "updated_at": "2025-08-14T22:33:26",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 25,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755182051@example.com",
+      "created_at": "2025-08-14T22:34:12",
+      "updated_at": "2025-08-14T22:34:12",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 26,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755182089@example.com",
+      "created_at": "2025-08-14T22:34:50",
+      "updated_at": "2025-08-14T22:34:50",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 27,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755182163@example.com",
+      "created_at": "2025-08-14T22:36:03",
+      "updated_at": "2025-08-14T22:36:03",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 28,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755346236@example.com",
+      "created_at": "2025-08-16T20:10:38",
+      "updated_at": "2025-08-16T20:10:38",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 29,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755346296@example.com",
+      "created_at": "2025-08-16T20:11:37",
+      "updated_at": "2025-08-16T20:11:37",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 30,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755346932@example.com",
+      "created_at": "2025-08-16T20:22:13",
+      "updated_at": "2025-08-16T20:22:13",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 31,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755347015@example.com",
+      "created_at": "2025-08-16T20:23:36",
+      "updated_at": "2025-08-16T20:23:36",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 32,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755347910@example.com",
+      "created_at": "2025-08-16T20:38:31",
+      "updated_at": "2025-08-16T20:38:31",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 33,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755348092@example.com",
+      "created_at": "2025-08-16T20:41:33",
+      "updated_at": "2025-08-16T20:41:33",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 34,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755348144@example.com",
+      "created_at": "2025-08-16T20:42:25",
+      "updated_at": "2025-08-16T20:42:25",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 35,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755348224@example.com",
+      "created_at": "2025-08-16T20:43:45",
+      "updated_at": "2025-08-16T20:43:45",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 36,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755349713@example.com",
+      "created_at": "2025-08-16T21:08:33",
+      "updated_at": "2025-08-16T21:08:33",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 37,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755352977@example.com",
+      "created_at": "2025-08-16T22:02:57",
+      "updated_at": "2025-08-16T22:02:57",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 38,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755353021@example.com",
+      "created_at": "2025-08-16T22:03:42",
+      "updated_at": "2025-08-16T22:03:42",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 39,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755353055@example.com",
+      "created_at": "2025-08-16T22:04:16",
+      "updated_at": "2025-08-16T22:04:16",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 40,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755353095@example.com",
+      "created_at": "2025-08-16T22:04:55",
+      "updated_at": "2025-08-16T22:04:55",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 41,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755353124@example.com",
+      "created_at": "2025-08-16T22:05:25",
+      "updated_at": "2025-08-16T22:05:25",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 42,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755353160@example.com",
+      "created_at": "2025-08-16T22:06:01",
+      "updated_at": "2025-08-16T22:06:01",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 43,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755353190@example.com",
+      "created_at": "2025-08-16T22:06:30",
+      "updated_at": "2025-08-16T22:06:30",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 44,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755353218@example.com",
+      "created_at": "2025-08-16T22:06:58",
+      "updated_at": "2025-08-16T22:06:58",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 45,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755353396@example.com",
+      "created_at": "2025-08-16T22:09:57",
+      "updated_at": "2025-08-16T22:09:57",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 46,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755353474@example.com",
+      "created_at": "2025-08-16T22:11:15",
+      "updated_at": "2025-08-16T22:11:15",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 47,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755430336@example.com",
+      "created_at": "2025-08-17T19:32:17",
+      "updated_at": "2025-08-17T19:32:17",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 48,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755430365@example.com",
+      "created_at": "2025-08-17T19:32:46",
+      "updated_at": "2025-08-17T19:32:46",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 49,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755431651@example.com",
+      "created_at": "2025-08-17T19:54:11",
+      "updated_at": "2025-08-17T19:54:11",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 50,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755433138@example.com",
+      "created_at": "2025-08-17T20:18:59",
+      "updated_at": "2025-08-17T20:18:59",
+      "updated_by": null,
+      "deleted_at": null
+    },
+    {
+      "id": 51,
+      "name": "測試使用者",
+      "email": "unique_test_user_1755433178@example.com",
+      "created_at": "2025-08-17T20:19:38",
+      "updated_at": "2025-08-17T20:19:38",
+      "updated_by": null,
+      "deleted_at": null
+    }
+  ]
+}
