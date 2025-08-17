@@ -13,7 +13,7 @@ from typing import Any  # 型別提示
 from sqlalchemy import and_  # SQL 條件組合
 
 # ===== 第三方套件 =====
-from sqlalchemy.orm import Session  # 資料庫會話
+from sqlalchemy.orm import Session, joinedload  # 資料庫會話
 
 from app.models.enums import ScheduleStatusEnum, UserRoleEnum  # ENUM 定義
 
@@ -40,6 +40,41 @@ class ScheduleCRUD:
     def __init__(self):
         """初始化 CRUD 實例，設定日誌器。"""
         self.logger = logging.getLogger(__name__)
+
+    def _get_schedule_query_options(self, include_relations: list[str] | None = None):
+        """
+        取得時段查詢的選項設定。
+
+        Args:
+            include_relations: 要載入的關聯列表，如果為 None 則載入所有關聯
+
+        Returns:
+            list: joinedload 選項列表
+        """
+        if include_relations is None:
+            # 預設載入所有關聯
+            include_relations = [
+                'giver',
+                'taker',
+                'created_by_user',
+                'updated_by_user',
+                'deleted_by_user',
+            ]
+
+        options = []
+        relation_mapping = {
+            'giver': joinedload(Schedule.giver),
+            'taker': joinedload(Schedule.taker),
+            'created_by_user': joinedload(Schedule.created_by_user),
+            'updated_by_user': joinedload(Schedule.updated_by_user),
+            'deleted_by_user': joinedload(Schedule.deleted_by_user),
+        }
+
+        for relation in include_relations:
+            if relation in relation_mapping:
+                options.append(relation_mapping[relation])
+
+        return options
 
     def _validate_user_exists(
         self, db: Session, user_id: int, context: str = "操作者"
@@ -279,7 +314,7 @@ class ScheduleCRUD:
         Returns:
             list[Schedule]: 符合條件的時段列表（排除已軟刪除的記錄）
         """
-        query = db.query(Schedule)
+        query = db.query(Schedule).options(*self._get_schedule_query_options())
 
         # 排除已軟刪除的記錄
         query = query.filter(Schedule.deleted_at.is_(None))
@@ -322,6 +357,7 @@ class ScheduleCRUD:
         """
         schedule = (
             db.query(Schedule)
+            .options(*self._get_schedule_query_options())
             .filter(Schedule.id == schedule_id, Schedule.deleted_at.is_(None))
             .first()
         )
@@ -344,7 +380,12 @@ class ScheduleCRUD:
         Returns:
             Schedule | None: 找到的時段物件，如果不存在則返回 None
         """
-        return db.query(Schedule).filter(Schedule.id == schedule_id).first()
+        return (
+            db.query(Schedule)
+            .options(*self._get_schedule_query_options())
+            .filter(Schedule.id == schedule_id)
+            .first()
+        )
 
     def update_schedule(
         self,
