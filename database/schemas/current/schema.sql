@@ -67,7 +67,7 @@ CREATE TABLE `users` (
     COMMENT = '使用者資料表 (本地時間戳記)';
 
 -- ===== 加速查詢用的索引 =====
--- 場景：查看最新註冊多少位使用者
+-- 場景：後台查看最新註冊多少位使用者
 CREATE INDEX `idx_users_created_at`
     ON `users` (`created_at`);
 
@@ -105,7 +105,7 @@ CREATE TABLE `schedules` (
         COMMENT '最後更新的使用者 ID，可為 NULL（表示系統自動更新）',
     `updated_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NULL
         COMMENT '最後更新者角色',
-    `deleted_at` DATETIME NULL DEFAULT NULL 
+    `deleted_at` DATETIME NULL 
         COMMENT '軟刪除標記（本地時間）',
     `deleted_by` INT UNSIGNED NULL
         COMMENT '刪除者的使用者 ID，可為 NULL（表示系統自動刪除）',
@@ -116,30 +116,32 @@ CREATE TABLE `schedules` (
     CONSTRAINT `fk_schedules_giver_id` 
         FOREIGN KEY (`giver_id`) 
         REFERENCES `users`(`id`) 
-        ON DELETE RESTRICT      -- 保護：不能刪除有時段的 Giver
-        ON UPDATE CASCADE,      -- 更新：如果使用者 ID 改變，自動同步
+        -- 保護：不能刪除有時段的 Giver，避免資料不一致
+        ON DELETE RESTRICT      
+        ON UPDATE CASCADE,
     
     CONSTRAINT `fk_schedules_taker_id` 
         FOREIGN KEY (`taker_id`) 
         REFERENCES `users`(`id`) 
-        ON DELETE SET NULL      -- 靈活：Taker 刪除時設為 NULL（時段變可預約）
-        ON UPDATE CASCADE,      -- 更新：如果使用者 ID 改變，自動同步
+        -- 靈活：Taker 刪除時設為 NULL（時段變可預約）
+        ON DELETE SET NULL      
+        ON UPDATE CASCADE,
     
     CONSTRAINT `fk_schedules_created_by` 
         FOREIGN KEY (`created_by`) 
-        REFERENCES `users`(`id`) 
+        REFERENCES `users`(`id`)
         ON DELETE SET NULL 
         ON UPDATE CASCADE,
         
     CONSTRAINT `fk_schedules_updated_by` 
         FOREIGN KEY (`updated_by`) 
-        REFERENCES `users`(`id`) 
-        ON DELETE SET NULL      -- 靈活：使用者刪除時設為 NULL
-        ON UPDATE CASCADE,      -- 更新：如果使用者 ID 改變，自動同步
+        REFERENCES `users`(`id`)
+        ON DELETE SET NULL      
+        ON UPDATE CASCADE,
     
     CONSTRAINT `fk_schedules_deleted_by` 
         FOREIGN KEY (`deleted_by`) 
-        REFERENCES `users`(`id`) 
+        REFERENCES `users`(`id`)
         ON DELETE SET NULL 
         ON UPDATE CASCADE
 
@@ -150,27 +152,21 @@ CREATE TABLE `schedules` (
     COMMENT = '諮詢時段資料表 (本地時間戳記)';
 
 -- ===== 加速查詢用的索引 =====
+-- 場景：Giver 查詢自己含各種狀態的時段，可以是某個日期範圍內，或依日期、開始時間排序
 CREATE INDEX `idx_schedule_giver_date` 
-    ON `schedules` (`giver_id`, `date`);
+    ON `schedules` (`giver_id`, `date`, `start_time`);
 
+-- 場景：Taker 查詢自己含各種狀態的時段，可以是某個日期範圍內，或依日期、開始時間排序
 CREATE INDEX `idx_schedule_taker_date` 
-    ON `schedules` (`taker_id`, `date`);
+    ON `schedules` (`taker_id`, `date`, `start_time`);
 
-CREATE INDEX `idx_schedule_status` 
+-- 場景：後台查詢各種狀態的時段，如多少時段被預約、多少時段被接受、多少時段被拒絕等
+CREATE INDEX `idx_schedule_status`
     ON `schedules` (`status`);
 
-CREATE INDEX `idx_schedule_deleted_at` 
-    ON `schedules` (`deleted_at`);
-
-CREATE INDEX `idx_schedule_created_by` 
-    ON `schedules` (`created_by`);
-
-CREATE INDEX `idx_schedule_updated_by` 
-    ON `schedules` (`updated_by`);
-
-CREATE INDEX `idx_schedule_deleted_by` 
-    ON `schedules` (`deleted_by`);
-
+-- 場景：時間衝突檢查
+CREATE INDEX `idx_schedule_giver_time` 
+    ON `schedules` (`giver_id`, `start_time`, `end_time`);
 
 -- ===== 顯示資料表結構 =====
 SHOW TABLES;
@@ -181,3 +177,7 @@ DESCRIBE `schedules`;
 -- ===== 顯示索引資訊 =====
 SHOW INDEX FROM `users`;
 SHOW INDEX FROM `schedules`;
+
+-- ===== 快速查詢資料 =====
+SELECT * FROM scheduler_db.schedules ORDER BY id DESC;  
+SELECT * FROM scheduler_db.users ORDER BY id DESC;  

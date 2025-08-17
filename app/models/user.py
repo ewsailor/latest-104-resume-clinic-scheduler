@@ -7,7 +7,7 @@
 from typing import Any
 
 # ===== 第三方套件 =====
-from sqlalchemy import Column, DateTime, String
+from sqlalchemy import Column, DateTime, Index, String
 from sqlalchemy.dialects.mysql import INTEGER
 
 # ===== 本地模組 =====
@@ -43,6 +43,8 @@ class User(Base):  # type: ignore[misc]
         comment="更新時間（本地時間）",
     )
     deleted_at = Column(DateTime, nullable=True, comment="軟刪除標記（本地時間）")
+
+    __table_args__ = (Index('idx_users_created_at', 'created_at'),)
 
     def __repr__(self) -> str:
         """字串表示，用於除錯和日誌"""

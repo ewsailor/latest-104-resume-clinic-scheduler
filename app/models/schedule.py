@@ -13,6 +13,7 @@ from sqlalchemy import (  # 資料庫欄位類型
     DateTime,
     Enum,
     ForeignKey,
+    Index,
     String,
     Time,
 )
@@ -131,6 +132,13 @@ class Schedule(Base):  # type: ignore[misc]
     created_by_user = relationship("User", foreign_keys=[created_by], lazy='joined')
     updated_by_user = relationship("User", foreign_keys=[updated_by], lazy='joined')
     deleted_by_user = relationship("User", foreign_keys=[deleted_by], lazy='joined')
+
+    __table_args__ = (
+        Index('idx_schedule_giver_date', 'giver_id', 'date', 'start_time'),
+        Index('idx_schedule_taker_date', 'taker_id', 'date', 'start_time'),
+        Index('idx_schedule_status', 'status'),
+        Index('idx_schedule_giver_time', 'giver_id', 'start_time', 'end_time'),
+    )
 
     @property
     def is_active(self) -> bool:

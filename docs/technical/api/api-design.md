@@ -39,7 +39,7 @@ HTTP 方法決了對資源的操作類型，常用的有：
 
 處理邏輯是 API 實際執行的核心，常見步驟如下：
 - **解析請求 (Parse Request)**：
-  - 解析傳入請求的：
+  - 在 `routers` 層（相當 `Controller` 層），解析傳入的請求，呼叫對應 CRUD 函式
     - 標頭 (`Headers`)
     - 請求體 (`Request Body`)
     - 路徑參數 (`Path Params`)
@@ -48,21 +48,25 @@ HTTP 方法決了對資源的操作類型，常用的有：
   - **認證 (Authentication)**：確認請求者是誰，例如，驗證使用者令牌
   - **授權 (Authorization)**：確認請求者的操作權限
   - **中介邏輯 (Middleware)**：處理一些共通的、非核心的邏輯，比如請求壓縮、速率限制、緩存等，常使用 `CORS`
-- **驗證資料 (Validate Data)**：
-  - 在 `models` 層，藉 `SQLAlchemy ORM` 設定資料表欄位的屬性，使用**小寫、底線**。如：
-    - **基本屬性**：資料型別 (`Type`)、備註 (`comment`)、別名 (`alias`) 等
-    - **約束條件**：非負 (`unsigned`)、必填 (`nullable`)、預設值 (`default`)、唯一 (`unique`) 等
-    - **關聯**：主鍵 (`Primary Key, PK`)、外鍵 (`Foreign Key, FK`)、關聯 (`relationship`) 等
-    - **審計追蹤**：建立時間 (`created_at`)、更新時間 (`updated_at`)、最後更新的使用者 ID (`updated_by`)、最後更新者角色 (`updated_by_role`)、軟刪除 (`deleted_at`) 等
+- **驗證資料 (Validate Data)**：  
   - 在 `schema` 層，用 `Pydantic` 或自訂驗證，檢查傳入資料之正確性
+  - 序列化輸出資料
+- 防止非法資料進入 CRUD 層
   - 驗證失敗進行錯誤處理 (`Error Handling`)、日誌 (`Logging`) 顯示錯誤
 - **執行業務邏輯 (Execute Business Logic)**：
   - 根據請求內容，執行操作：
     - 查詢或更新資料庫
     - 新增一筆資料
     - 呼叫其他服務
+`crud` 層：執行增刪改查，避免路由直接寫 SQLAlchemy 語法
+- 在 `models` 層設定資料表欄位的屬性，使用**小寫、底線**，藉 `SQLAlchemy ORM` 對應資料庫表格欄位、索引、關聯等。如：
+    - **基本屬性**：資料型別 (`Type`)、備註 (`comment`)、別名 (`alias`) 等
+    - **約束條件**：非負 (`unsigned`)、必填 (`nullable`)、預設值 (`default`)、唯一 (`unique`) 等
+    - **關聯**：主鍵 (`Primary Key, PK`)、外鍵 (`Foreign Key, FK`)、關聯 (`relationship`) 等
+    - **審計追蹤**：建立時間 (`created_at`)、更新時間 (`updated_at`)、最後更新的使用者 ID (`updated_by`)、最後更新者角色 (`updated_by_role`)、軟刪除 (`deleted_at`) 等
+db（資料庫）	真正存取資料
 - **建立與設定回應 (Create and Set Response)**：
-  - **建立回應 (Create Response)**：封裝業務邏輯的結果（如查詢到的資料），組成回傳資料的標準格式（如 JSON）
+  - **建立回應 (Create Response)**：`route`返回 Response，封裝業務邏輯的結果（如查詢到的資料），組成回傳資料的標準格式（如 JSON）
   - **設定回應 (Set Response)**：
     - 狀態碼 (`Status Code`)
     - 標頭 (`Headers`)
