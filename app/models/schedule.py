@@ -82,6 +82,17 @@ class Schedule(Base):  # type: ignore[misc]
         nullable=False,
         comment="建立時間（本地時間）",
     )
+    created_by = Column(
+        INTEGER(unsigned=True),
+        ForeignKey("users.id", ondelete="SET NULL"),  # 指向 users 表
+        nullable=True,
+        comment="建立者的使用者 ID，可為 NULL（表示系統自動建立）",
+    )
+    created_by_role = Column(
+        Enum(UserRoleEnum),
+        nullable=True,
+        comment="建立者角色",
+    )
     updated_at = Column(
         DateTime,
         default=get_local_now_naive,
@@ -103,15 +114,23 @@ class Schedule(Base):  # type: ignore[misc]
 
     # ===== 系統欄位 =====
     deleted_at = Column(DateTime, nullable=True, comment="軟刪除標記（本地時間）")
+    deleted_by = Column(
+        INTEGER(unsigned=True),
+        ForeignKey("users.id", ondelete="SET NULL"),  # 指向 users 表
+        nullable=True,
+        comment="刪除者的使用者 ID，可為 NULL（表示系統自動刪除）",
+    )
+    deleted_by_role = Column(
+        Enum(UserRoleEnum),
+        nullable=True,
+        comment="刪除者角色",
+    )
 
     giver = relationship("User", foreign_keys=[giver_id], lazy='joined')
     taker = relationship("User", foreign_keys=[taker_id], lazy='joined')
+    created_by_user = relationship("User", foreign_keys=[created_by], lazy='joined')
     updated_by_user = relationship("User", foreign_keys=[updated_by], lazy='joined')
-
-    @property
-    def creator_role(self):
-        """建立者角色（向後相容屬性）"""
-        return self.updated_by_role
+    deleted_by_user = relationship("User", foreign_keys=[deleted_by], lazy='joined')
 
     @property
     def is_active(self) -> bool:
@@ -144,7 +163,6 @@ class Schedule(Base):  # type: ignore[misc]
         try:
             return {
                 "id": safe_getattr(self, 'id'),
-                "creator_role": self.creator_role,  # 向後相容：建立者角色
                 "giver_id": safe_getattr(self, 'giver_id'),
                 "taker_id": safe_getattr(self, 'taker_id'),
                 "status": safe_getattr(self, 'status'),
@@ -153,6 +171,13 @@ class Schedule(Base):  # type: ignore[misc]
                 "end_time": format_datetime(safe_getattr(self, 'end_time')),
                 "note": safe_getattr(self, 'note'),
                 "created_at": format_datetime(safe_getattr(self, 'created_at')),
+                "created_by": safe_getattr(self, 'created_by'),
+                "created_by_role": safe_getattr(self, 'created_by_role'),
+                "created_by_user": (
+                    safe_getattr(self, 'created_by_user').name
+                    if safe_getattr(self, 'created_by_user')
+                    else None
+                ),
                 "updated_at": format_datetime(safe_getattr(self, 'updated_at')),
                 "updated_by": safe_getattr(self, 'updated_by'),
                 "updated_by_role": safe_getattr(self, 'updated_by_role'),
@@ -162,6 +187,13 @@ class Schedule(Base):  # type: ignore[misc]
                     else None
                 ),
                 "deleted_at": format_datetime(safe_getattr(self, 'deleted_at')),
+                "deleted_by": safe_getattr(self, 'deleted_by'),
+                "deleted_by_role": safe_getattr(self, 'deleted_by_role'),
+                "deleted_by_user": (
+                    safe_getattr(self, 'deleted_by_user').name
+                    if safe_getattr(self, 'deleted_by_user')
+                    else None
+                ),
                 # 便利屬性
                 "is_active": self.is_active,
                 "is_deleted": self.is_deleted,
@@ -177,7 +209,6 @@ class Schedule(Base):  # type: ignore[misc]
             # 返回基本資訊，避免 API 完全失敗
             return {
                 "id": safe_getattr(self, 'id'),
-                "creator_role": self.creator_role,
                 "giver_id": safe_getattr(self, 'giver_id'),
                 "taker_id": safe_getattr(self, 'taker_id'),
                 "status": safe_getattr(self, 'status', 'unknown'),

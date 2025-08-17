@@ -101,6 +101,10 @@ CREATE TABLE `schedules` (
         COMMENT '備註，可為空',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL 
         COMMENT '建立時間（本地時間）',
+    `created_by` INT UNSIGNED NULL 
+        COMMENT '建立者的使用者 ID，可為 NULL（表示系統自動建立）',
+    `created_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NULL 
+        COMMENT '建立者角色',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL 
         COMMENT '更新時間（本地時間）',
     `updated_by` INT UNSIGNED NULL 
@@ -109,6 +113,10 @@ CREATE TABLE `schedules` (
         COMMENT '最後更新者角色',
     `deleted_at` DATETIME NULL DEFAULT NULL 
         COMMENT '軟刪除標記（本地時間）',
+    `deleted_by` INT UNSIGNED NULL 
+        COMMENT '刪除者的使用者 ID，可為 NULL（表示系統自動刪除）',
+    `deleted_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NULL 
+        COMMENT '刪除者角色',
     
     -- ===== 外鍵約束 =====
     CONSTRAINT `fk_schedules_giver` 
@@ -121,10 +129,20 @@ CREATE TABLE `schedules` (
         REFERENCES `users`(`id`)
         ON DELETE SET NULL      -- 靈活：Taker 刪除時設為 NULL（時段變可預約）
         ON UPDATE CASCADE,      -- 更新：如果 Taker ID 改變，自動同步
+    CONSTRAINT `fk_schedules_created_by` 
+        FOREIGN KEY (`created_by`) 
+        REFERENCES `users`(`id`)
+        ON DELETE SET NULL      -- 稽核：建立者刪除時保留記錄但設為 NULL
+        ON UPDATE CASCADE,      -- 更新：自動同步 ID 變更
     CONSTRAINT `fk_schedules_updated_by` 
         FOREIGN KEY (`updated_by`) 
         REFERENCES `users`(`id`)
         ON DELETE SET NULL      -- 稽核：更新者刪除時保留記錄但設為 NULL
+        ON UPDATE CASCADE,      -- 更新：自動同步 ID 變更
+    CONSTRAINT `fk_schedules_deleted_by` 
+        FOREIGN KEY (`deleted_by`) 
+        REFERENCES `users`(`id`)
+        ON DELETE SET NULL      -- 稽核：刪除者刪除時保留記錄但設為 NULL
         ON UPDATE CASCADE,      -- 更新：自動同步 ID 變更
     
     -- ===== 業務邏輯約束 =====

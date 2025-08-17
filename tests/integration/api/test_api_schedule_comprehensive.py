@@ -62,15 +62,17 @@ class TestAPIScheduleComprehensive:
         schedule.end_time = "10:00:00"
         schedule.note = "測試時段"
         schedule.status = "AVAILABLE"
+        schedule.created_by = 1
+        schedule.created_by_role = "TAKER"
         schedule.updated_by = 1
         schedule.updated_by_role = "TAKER"
+        schedule.deleted_by = None
+        schedule.deleted_by_role = None
         schedule.created_at = datetime.now()
         schedule.updated_at = datetime.now()
         schedule.deleted_at = None
-        schedule.creator_role = "TAKER"  # 添加 creator_role 屬性
         schedule.to_dict.return_value = {
             "id": 1,
-            "creator_role": "TAKER",
             "giver_id": 1,
             "taker_id": None,
             "date": "2024-01-15",
@@ -79,11 +81,14 @@ class TestAPIScheduleComprehensive:
             "note": "測試時段",
             "status": "AVAILABLE",
             "created_at": schedule.created_at.isoformat(),
+            "created_by": 1,
+            "created_by_role": "TAKER",
             "updated_at": schedule.updated_at.isoformat(),
             "updated_by": 1,
             "updated_by_role": "TAKER",
-            "updated_by_user": None,
             "deleted_at": None,
+            "deleted_by": None,
+            "deleted_by_role": None,
         }
         return schedule
 
@@ -173,7 +178,7 @@ class TestAPIScheduleComprehensive:
                 )
             ],
             updated_by=1,
-            updated_by_role=UserRoleEnum.GIVER,
+            updated_by_role=UserRoleEnum.TAKER,
         )
 
         # 模擬 CRUD 操作
@@ -207,7 +212,7 @@ class TestAPIScheduleComprehensive:
                 )
             ],
             updated_by=1,
-            updated_by_role=UserRoleEnum.GIVER,
+            updated_by_role=UserRoleEnum.TAKER,
         )
 
         # 模擬 CRUD 操作拋出異常
@@ -287,7 +292,7 @@ class TestAPIScheduleComprehensive:
         schedule_data = ScheduleCreateWithOperator(
             schedules=[],
             updated_by=1,
-            updated_by_role=UserRoleEnum.GIVER,
+            updated_by_role=UserRoleEnum.TAKER,
         )
 
         # 模擬 CRUD 操作
@@ -350,7 +355,7 @@ class TestAPIScheduleComprehensive:
                 )
             ],
             updated_by=1,
-            updated_by_role=UserRoleEnum.GIVER,
+            updated_by_role=UserRoleEnum.TAKER,
         )
 
         # 模擬 CRUD 操作拋出異常
@@ -407,7 +412,7 @@ class TestAPIScheduleComprehensive:
                 )
             ],
             updated_by=1,
-            updated_by_role=UserRoleEnum.GIVER,
+            updated_by_role=UserRoleEnum.TAKER,
         )
 
         # 模擬 CRUD 操作拋出異常（例如：時間衝突）
@@ -477,7 +482,7 @@ class TestAPIScheduleComprehensive:
         invalid_request_data = {
             "schedules": [{"invalid": "data"}],
             "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "updated_by_role": "TAKER",
         }
         response = client.post("/api/v1/schedules", json=invalid_request_data)
         assert response.status_code == 422
@@ -504,7 +509,7 @@ class TestAPIScheduleComprehensive:
                 for i in range(100)
             ],
             updated_by=1,
-            updated_by_role=UserRoleEnum.GIVER,
+            updated_by_role=UserRoleEnum.TAKER,
         )
 
         # 模擬 CRUD 操作

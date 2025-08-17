@@ -1964,7 +1964,7 @@ const ChatStateManager = {
         endTime: schedule.end_time,
         note: schedule.note,
         status: schedule.status,
-        role: schedule.creator_role,  // 使用 creator_role 作為角色資訊
+        role: schedule.created_by_role,
         giverId: schedule.giver_id,
         takerId: schedule.taker_id,
         createdAt: schedule.created_at,

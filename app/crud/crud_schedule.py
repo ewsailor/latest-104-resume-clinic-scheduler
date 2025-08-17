@@ -222,8 +222,12 @@ class ScheduleCRUD:
                 end_time=schedule_data.end_time,
                 note=schedule_data.note,
                 status=status,  # 使用計算的狀態
+                created_by=updated_by,
+                created_by_role=updated_by_role,
                 updated_by=updated_by,
                 updated_by_role=updated_by_role,
+                deleted_by=None,
+                deleted_by_role=None,
             )
             schedule_objects.append(schedule)
 
@@ -505,10 +509,12 @@ class ScheduleCRUD:
             from app.models.enums import ScheduleStatusEnum
             from app.utils.timezone import get_local_now_naive
 
-            schedule.deleted_at = get_local_now_naive()
             schedule.updated_at = get_local_now_naive()
             schedule.updated_by = updated_by
             schedule.updated_by_role = updated_by_role
+            schedule.deleted_at = get_local_now_naive()
+            schedule.deleted_by = updated_by
+            schedule.deleted_by_role = updated_by_role
 
             # 將狀態改為 CANCELLED（已取消）
             schedule.status = ScheduleStatusEnum.CANCELLED

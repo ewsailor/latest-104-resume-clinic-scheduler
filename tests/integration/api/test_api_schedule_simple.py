@@ -58,15 +58,17 @@ class TestAPIScheduleSimple:
         schedule.end_time = "10:00:00"
         schedule.note = "測試時段"
         schedule.status = "AVAILABLE"
-        schedule.updated_by_role = "TAKER"
+        schedule.created_by = 1
+        schedule.created_by_role = "TAKER"
         schedule.updated_by = 1
+        schedule.updated_by_role = "TAKER"
+        schedule.deleted_by = None
+        schedule.deleted_by_role = None
         schedule.created_at = datetime.now()
         schedule.updated_at = datetime.now()
         schedule.deleted_at = None
-        schedule.creator_role = "TAKER"  # 添加 creator_role 屬性
         schedule.to_dict.return_value = {
             "id": 1,
-            "creator_role": "TAKER",
             "giver_id": 1,
             "taker_id": None,
             "date": "2024-01-15",
@@ -75,11 +77,14 @@ class TestAPIScheduleSimple:
             "note": "測試時段",
             "status": "AVAILABLE",
             "created_at": schedule.created_at.isoformat(),
+            "created_by": 1,
+            "created_by_role": "TAKER",
             "updated_at": schedule.updated_at.isoformat(),
             "updated_by": 1,
             "updated_by_role": "TAKER",
-            "updated_by_user": None,
             "deleted_at": None,
+            "deleted_by": None,
+            "deleted_by_role": None,
         }
         return schedule
 

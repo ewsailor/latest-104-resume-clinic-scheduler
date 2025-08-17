@@ -197,7 +197,7 @@ async def update_schedule(
             schedule_id,
             updated_by=request.updated_by,
             updated_by_role=request.updated_by_role,
-            **update_data,
+            **update_data,  # 字典解包：傳遞更新資料
         )
         if not updated_schedule:
             raise HTTPException(

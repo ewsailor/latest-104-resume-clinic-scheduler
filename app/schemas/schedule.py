@@ -77,9 +77,6 @@ class ScheduleResponse(BaseModel):
     """時段回應模型"""
 
     id: int
-    creator_role: str = Field(
-        description="建立者角色（向後相容屬性）", alias="creator_role"
-    )
     giver_id: int
     taker_id: int | None
     status: ScheduleStatusEnum
@@ -88,9 +85,13 @@ class ScheduleResponse(BaseModel):
     end_time: time
     note: str | None
     created_at: datetime  # 建立時間（本地時間）
+    created_by: int | None = Field(None, description="建立者的使用者 ID")
+    created_by_role: UserRoleEnum | None = Field(None, description="建立者角色")
     updated_at: datetime  # 更新時間（本地時間）
     updated_by: int | None = Field(None, description="最後更新者的使用者 ID")
     updated_by_role: UserRoleEnum | None = Field(None, description="最後更新者的角色")
     deleted_at: datetime | None = Field(None, description="軟刪除標記（本地時間）")
+    deleted_by: int | None = Field(None, description="刪除者的使用者 ID")
+    deleted_by_role: UserRoleEnum | None = Field(None, description="刪除者角色")
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
