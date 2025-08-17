@@ -67,8 +67,8 @@ async def create_schedules(
         schedule_objects = schedule_crud.create_schedules(
             db,
             request.schedules,
-            operator_user_id=request.operator_user_id,
-            operator_role=request.operator_role,
+            updated_by=request.updated_by,
+            updated_by_role=request.updated_by_role,
         )
 
         # 轉換為回應格式
@@ -195,8 +195,8 @@ async def update_schedule(
         updated_schedule = schedule_crud.update_schedule(
             db,
             schedule_id,
-            updated_by_user_id=request.operator_user_id,
-            operator_role=request.operator_role,
+            updated_by=request.updated_by,
+            updated_by_role=request.updated_by_role,
             **update_data,
         )
         if not updated_schedule:
@@ -240,8 +240,8 @@ async def delete_schedule(
         success = schedule_crud.delete_schedule(
             db,
             schedule_id,
-            operator_user_id=request.operator_user_id,
-            operator_role=request.operator_role,
+            updated_by=request.updated_by,
+            updated_by_role=request.updated_by_role,
         )
         if not success:
             raise HTTPException(

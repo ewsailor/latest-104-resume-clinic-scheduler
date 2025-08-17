@@ -7582,8 +7582,8 @@ const EventManager = {
               // 構建包含操作者資訊的請求體
               const requestBody = {
                 schedules: schedulesToSubmit,
-                operator_user_id: 1, // 【Demo】測試 Taker 1 的 user_id  
-                operator_role: 'TAKER'
+                updated_by: 1, // 【Demo】測試 Taker 1 的 user_id  
+                updated_by_role: 'TAKER'
               };
               
               console.log('EventManager: 準備發送到後端的時段資料', { requestBody });
@@ -7820,8 +7820,8 @@ const EventManager = {
                   
                   // 發送刪除請求到後端
                   const deleteRequest = {
-                    operator_user_id: currentUserId,
-                    operator_role: scheduleToDelete.role || 'TAKER'  
+                    updated_by: currentUserId,
+                    updated_by_role: scheduleToDelete.role || 'TAKER'  
                   };
                   
                   console.log('EventManager: 發送刪除請求到後端', { 

@@ -155,8 +155,8 @@ class TestAPIScheduleSimple:
                     "status": "AVAILABLE",
                 },
             ],
-            "operator_user_id": 1,
-            "operator_role": "GIVER",
+            "updated_by": 1,
+            "updated_by_role": "GIVER",
         }
 
         # 模擬 CRUD 操作
@@ -186,8 +186,8 @@ class TestAPIScheduleSimple:
                     "status": "invalid-status",
                 }
             ],
-            "operator_user_id": 1,
-            "operator_role": "GIVER",
+            "updated_by": 1,
+            "updated_by_role": "GIVER",
         }
 
         # 執行測試
@@ -300,8 +300,8 @@ class TestAPIScheduleSimple:
         # 準備空時段列表的請求資料（新格式：包含操作者資訊）
         empty_request_data = {
             "schedules": [],
-            "operator_user_id": 1,
-            "operator_role": "GIVER",
+            "updated_by": 1,
+            "updated_by_role": "GIVER",
         }
 
         # 模擬 CRUD 操作
@@ -325,8 +325,8 @@ class TestAPIScheduleSimple:
                     "note": "不完整的時段",
                 }
             ],
-            "operator_user_id": 1,
-            "operator_role": "GIVER",
+            "updated_by": 1,
+            "updated_by_role": "GIVER",
         }
 
         # 執行測試
@@ -377,8 +377,8 @@ class TestAPIScheduleSimple:
                     "status": "AVAILABLE",
                 },
             ],
-            "operator_user_id": 1,
-            "operator_role": "GIVER",
+            "updated_by": 1,
+            "updated_by_role": "GIVER",
         }
 
         # 模擬 CRUD 操作拋出重疊錯誤

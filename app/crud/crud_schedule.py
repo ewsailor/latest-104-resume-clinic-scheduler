@@ -157,8 +157,8 @@ class ScheduleCRUD:
         self,
         db: Session,
         schedules: list[ScheduleCreate],
-        operator_user_id: int,
-        operator_role: UserRoleEnum,
+        updated_by: int,
+        updated_by_role: UserRoleEnum,
     ) -> list[Schedule]:
         """
         建立多個時段。
@@ -166,8 +166,8 @@ class ScheduleCRUD:
         Args:
             db: 資料庫會話
             schedules: 要建立的時段列表
-            operator_user_id: 操作者的使用者 ID（建立者）
-            operator_role: 操作者的角色 (UserRoleEnum)
+            updated_by: 操作者的使用者 ID（建立者）
+            updated_by_role: 操作者的角色 (UserRoleEnum)
 
         Returns:
             list[Schedule]: 建立成功的時段列表
@@ -176,11 +176,11 @@ class ScheduleCRUD:
             ValueError: 當檢測到時段重疊時或操作者不存在時
         """
         # 驗證操作者是否存在
-        operator = self._validate_user_exists(db, operator_user_id, "操作者")
+        operator = self._validate_user_exists(db, updated_by, "操作者")
 
         # 記錄建立操作
         self.logger.info(
-            f"使用者 {operator_user_id} (角色: {operator_role.value}) "
+            f"使用者 {updated_by} (角色: {updated_by_role.value}) "
             f"正在建立 {len(schedules)} 個時段"
         )
         # 檢查重疊時段
@@ -206,9 +206,9 @@ class ScheduleCRUD:
             # 根據操作者角色決定時段狀態
             # GIVER 建立時段 -> AVAILABLE (可預約)
             # TAKER 建立時段 -> PENDING (等待 Giver 確認)
-            if operator_role == UserRoleEnum.TAKER:
+            if updated_by_role == UserRoleEnum.TAKER:
                 status = ScheduleStatusEnum.PENDING
-            elif operator_role == UserRoleEnum.GIVER:
+            elif updated_by_role == UserRoleEnum.GIVER:
                 status = ScheduleStatusEnum.AVAILABLE
             else:
                 # 使用傳入的狀態或預設為 DRAFT
@@ -222,8 +222,8 @@ class ScheduleCRUD:
                 end_time=schedule_data.end_time,
                 note=schedule_data.note,
                 status=status,  # 使用計算的狀態
-                updated_by=operator_user_id,
-                updated_by_role=operator_role,
+                updated_by=updated_by,
+                updated_by_role=updated_by_role,
             )
             schedule_objects.append(schedule)
 
@@ -346,8 +346,8 @@ class ScheduleCRUD:
         self,
         db: Session,
         schedule_id: int,
-        updated_by_user_id: int,
-        operator_role: UserRoleEnum,
+        updated_by: int,
+        updated_by_role: UserRoleEnum,
         **kwargs: Any,
     ) -> Schedule | None:
         """
@@ -356,8 +356,8 @@ class ScheduleCRUD:
         Args:
             db: 資料庫會話
             schedule_id: 時段 ID
-            updated_by_user_id: 操作者的使用者 ID（更新者）
-            operator_role: 操作者的角色 (UserRoleEnum)
+            updated_by: 操作者的使用者 ID（更新者）
+            updated_by_role: 操作者的角色 (UserRoleEnum)
             **kwargs: 要更新的欄位
 
         Returns:
@@ -367,7 +367,7 @@ class ScheduleCRUD:
             ValueError: 當更新者不存在時
         """
         # 驗證更新者是否存在
-        updater = self._validate_user_exists(db, updated_by_user_id, "更新者")
+        updater = self._validate_user_exists(db, updated_by, "更新者")
 
         # 驗證時段是否存在
         schedule = self.get_schedule_by_id(db, schedule_id)
@@ -377,8 +377,8 @@ class ScheduleCRUD:
 
         # 記錄更新操作
         self.logger.info(
-            f"時段 {schedule_id} 正在被使用者 {updated_by_user_id} "
-            f"(角色: {operator_role.value}) 更新"
+            f"時段 {schedule_id} 正在被使用者 {updated_by} "
+            f"(角色: {updated_by_role.value}) 更新"
         )
 
         # 檢查是否需要進行重疊檢查（當更新時間相關欄位時）
@@ -412,8 +412,8 @@ class ScheduleCRUD:
                 raise ValueError(error_msg)
 
         # 設定更新者資訊
-        schedule.updated_by = updated_by_user_id
-        schedule.updated_by_role = operator_role
+        schedule.updated_by = updated_by
+        schedule.updated_by_role = updated_by_role
 
         # 更新欄位
         updated_fields = []
@@ -451,8 +451,8 @@ class ScheduleCRUD:
         self,
         db: Session,
         schedule_id: int,
-        operator_user_id: int | None = None,
-        operator_role: UserRoleEnum | None = None,
+        updated_by: int | None = None,
+        updated_by_role: UserRoleEnum | None = None,
     ) -> bool:
         """
         軟刪除時段。
@@ -460,8 +460,8 @@ class ScheduleCRUD:
         Args:
             db: 資料庫會話
             schedule_id: 時段 ID
-            operator_user_id: 操作者的使用者 ID（可選，用於審計記錄）
-            operator_role: 操作者的角色（可選，用於審計記錄）
+            updated_by: 操作者的使用者 ID（可選，用於審計記錄）
+            updated_by_role: 操作者的角色（可選，用於審計記錄）
 
         Returns:
             bool: 刪除成功返回 True，否則返回 False
@@ -470,12 +470,10 @@ class ScheduleCRUD:
             ValueError: 當操作者不存在時（如果提供了操作者 ID）
         """
         # 如果提供了操作者ID，驗證操作者是否存在
-        if operator_user_id:
-            operator = self._validate_user_exists(db, operator_user_id, "操作者")
+        if updated_by:
+            operator = self._validate_user_exists(db, updated_by, "操作者")
 
-        self.logger.info(
-            f"正在軟刪除時段 ID: {schedule_id}，操作者: {operator_user_id}"
-        )
+        self.logger.info(f"正在軟刪除時段 ID: {schedule_id}，操作者: {updated_by}")
 
         schedule = self.get_schedule_by_id_including_deleted(db, schedule_id)
         if not schedule:
@@ -496,10 +494,10 @@ class ScheduleCRUD:
         )
 
         # 記錄操作者資訊
-        if operator_user_id and operator_role:
+        if updated_by and updated_by_role:
             self.logger.info(
                 f"時段 {schedule_id} ({schedule_info}) "
-                f"正在被使用者 {operator_user_id} (角色: {operator_role.value}) 軟刪除"
+                f"正在被使用者 {updated_by} (角色: {updated_by_role.value}) 軟刪除"
             )
 
         try:
@@ -509,8 +507,8 @@ class ScheduleCRUD:
 
             schedule.deleted_at = get_local_now_naive()
             schedule.updated_at = get_local_now_naive()
-            schedule.updated_by = operator_user_id
-            schedule.updated_by_role = operator_role
+            schedule.updated_by = updated_by
+            schedule.updated_by_role = updated_by_role
 
             # 將狀態改為 CANCELLED（已取消）
             schedule.status = ScheduleStatusEnum.CANCELLED

@@ -146,8 +146,8 @@
       "note": "履歷諮詢時段"
     }
   ],
-  "operator_user_id": 1,
-  "operator_role": "GIVER"
+  "updated_by": 1,
+  "updated_by_role": "GIVER"
 }
 ```
 
@@ -224,8 +224,8 @@
     "end_time": "15:00:00",
     "note": "已預約的履歷諮詢時段"
   },
-  "operator_user_id": 2,
-  "operator_role": "TAKER"
+  "updated_by": 2,
+  "updated_by_role": "TAKER"
 }
 ```
 
@@ -241,8 +241,8 @@
 
 ```json
 {
-  "operator_user_id": 1,
-  "operator_role": "GIVER"
+  "updated_by": 1,
+  "updated_by_role": "GIVER"
 }
 ```
 
@@ -462,8 +462,8 @@ curl -X POST "http://localhost:8000/api/v1/schedules" \
       "end_time": "15:00:00",
       "note": "履歷諮詢時段"
     }],
-    "operator_user_id": 1,
-    "operator_role": "GIVER"
+    "updated_by": 1,
+    "updated_by_role": "GIVER"
   }'
 ```
 
@@ -501,8 +501,8 @@ response = requests.post(
             "start_time": "14:00:00",
             "end_time": "15:00:00"
         }],
-        "operator_user_id": 1,
-        "operator_role": "GIVER"
+        "updated_by": 1,
+        "updated_by_role": "GIVER"
     }
 )
 print(response.json())
@@ -525,8 +525,8 @@ async def create_schedule():
                     "start_time": "14:00:00",
                     "end_time": "15:00:00"
                 }],
-                "operator_user_id": 1,
-                "operator_role": "GIVER"
+                "updated_by": 1,
+                "updated_by_role": "GIVER"
             }
         )
         return response.json()

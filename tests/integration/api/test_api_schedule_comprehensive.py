@@ -172,8 +172,8 @@ class TestAPIScheduleComprehensive:
                     status="AVAILABLE",
                 )
             ],
-            operator_user_id=1,
-            operator_role=UserRoleEnum.GIVER,
+            updated_by=1,
+            updated_by_role=UserRoleEnum.GIVER,
         )
 
         # 模擬 CRUD 操作
@@ -206,8 +206,8 @@ class TestAPIScheduleComprehensive:
                     status="AVAILABLE",
                 )
             ],
-            operator_user_id=1,
-            operator_role=UserRoleEnum.GIVER,
+            updated_by=1,
+            updated_by_role=UserRoleEnum.GIVER,
         )
 
         # 模擬 CRUD 操作拋出異常
@@ -286,8 +286,8 @@ class TestAPIScheduleComprehensive:
         # 準備測試資料 - 空列表（新格式：包含操作者資訊）
         schedule_data = ScheduleCreateWithOperator(
             schedules=[],
-            operator_user_id=1,
-            operator_role=UserRoleEnum.GIVER,
+            updated_by=1,
+            updated_by_role=UserRoleEnum.GIVER,
         )
 
         # 模擬 CRUD 操作
@@ -349,8 +349,8 @@ class TestAPIScheduleComprehensive:
                     status="AVAILABLE",
                 )
             ],
-            operator_user_id=1,
-            operator_role=UserRoleEnum.GIVER,
+            updated_by=1,
+            updated_by_role=UserRoleEnum.GIVER,
         )
 
         # 模擬 CRUD 操作拋出異常
@@ -406,8 +406,8 @@ class TestAPIScheduleComprehensive:
                     status="AVAILABLE",
                 )
             ],
-            operator_user_id=1,
-            operator_role=UserRoleEnum.GIVER,
+            updated_by=1,
+            updated_by_role=UserRoleEnum.GIVER,
         )
 
         # 模擬 CRUD 操作拋出異常（例如：時間衝突）
@@ -476,8 +476,8 @@ class TestAPIScheduleComprehensive:
         # 測試無效的時段資料（新格式：包含操作者資訊）
         invalid_request_data = {
             "schedules": [{"invalid": "data"}],
-            "operator_user_id": 1,
-            "operator_role": "GIVER",
+            "updated_by": 1,
+            "updated_by_role": "GIVER",
         }
         response = client.post("/api/v1/schedules", json=invalid_request_data)
         assert response.status_code == 422
@@ -503,8 +503,8 @@ class TestAPIScheduleComprehensive:
                 )
                 for i in range(100)
             ],
-            operator_user_id=1,
-            operator_role=UserRoleEnum.GIVER,
+            updated_by=1,
+            updated_by_role=UserRoleEnum.GIVER,
         )
 
         # 模擬 CRUD 操作

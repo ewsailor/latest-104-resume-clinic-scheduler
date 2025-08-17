@@ -225,8 +225,8 @@ GET /api/v1/users?page=1&per_page=20
       "note": "履歷諮詢時段"
     }
   ],
-  "operator_user_id": 1,
-  "operator_role": "GIVER"
+  "updated_by": 1,
+  "updated_by_role": "GIVER"
 }
 ```
 
@@ -363,8 +363,8 @@ GET /api/v1/schedules/1
     "end_time": "15:00:00",
     "note": "已預約的履歷諮詢時段"
   },
-  "operator_user_id": 2,
-  "operator_role": "TAKER"
+  "updated_by": 2,
+  "updated_by_role": "TAKER"
 }
 ```
 
@@ -409,8 +409,8 @@ GET /api/v1/schedules/1
 
 ```json
 {
-  "operator_user_id": 1,
-  "operator_role": "GIVER"
+  "updated_by": 1,
+  "updated_by_role": "GIVER"
 }
 ```
 
@@ -751,8 +751,8 @@ curl -X POST "http://localhost:8000/api/v1/schedules" \
       "start_time": "14:00:00",
       "end_time": "15:00:00"
     }],
-    "operator_user_id": 1,
-    "operator_role": "GIVER"
+    "updated_by": 1,
+    "updated_by_role": "GIVER"
   }'
 ```
 

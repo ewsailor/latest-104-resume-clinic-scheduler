@@ -450,8 +450,8 @@ def test_create_schedules_api():
             "start_time": "14:00:00",
             "end_time": "15:00:00"
         }],
-        "operator_user_id": 1,
-        "operator_role": "GIVER"
+        "updated_by": 1,
+        "updated_by_role": "GIVER"
     }
 
     # 執行 API 請求
@@ -495,8 +495,8 @@ async def test_complete_schedule_flow():
                 "start_time": "14:00:00",
                 "end_time": "15:00:00"
             }],
-            "operator_user_id": user_id,
-            "operator_role": "GIVER"
+            "updated_by": user_id,
+            "updated_by_role": "GIVER"
         })
         assert schedule_response.status_code == 201
 

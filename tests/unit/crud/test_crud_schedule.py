@@ -81,8 +81,8 @@ class TestScheduleCRUD:
         schedules = crud.create_schedules(
             db_session,
             schedules_data,
-            operator_user_id=user.id,
-            operator_role=UserRoleEnum.GIVER,
+            updated_by=user.id,
+            updated_by_role=UserRoleEnum.GIVER,
         )
 
         assert len(schedules) == 2
@@ -182,8 +182,8 @@ class TestScheduleCRUD:
             crud.create_schedules(
                 db_session,
                 schedules_data,
-                operator_user_id=user.id,
-                operator_role=UserRoleEnum.GIVER,
+                updated_by=user.id,
+                updated_by_role=UserRoleEnum.GIVER,
             )
 
     def test_get_schedules_all(self, db_session: Session):
@@ -421,8 +421,8 @@ class TestScheduleCRUD:
         updated_schedule = crud.update_schedule(
             db_session,
             schedule.id,
-            updated_by_user_id=user.id,
-            operator_role=UserRoleEnum.GIVER,
+            updated_by=user.id,
+            updated_by_role=UserRoleEnum.GIVER,
             schedule_date=date(2024, 1, 16),
             start_time=time(14, 0),
             end_time=time(15, 0),
@@ -448,8 +448,8 @@ class TestScheduleCRUD:
             crud.update_schedule(
                 db_session,
                 999,
-                updated_by_user_id=user.id,
-                operator_role=UserRoleEnum.SYSTEM,
+                updated_by=user.id,
+                updated_by_role=UserRoleEnum.SYSTEM,
                 note="測試備註",
             )
 
@@ -488,8 +488,8 @@ class TestScheduleCRUD:
             crud.update_schedule(
                 db_session,
                 schedule1.id,
-                updated_by_user_id=user.id,
-                operator_role=UserRoleEnum.GIVER,
+                updated_by=user.id,
+                updated_by_role=UserRoleEnum.GIVER,
                 start_time=time(9, 15),
                 end_time=time(10, 15),
             )
@@ -528,8 +528,8 @@ class TestScheduleCRUD:
         updated_schedule = crud.update_schedule(
             db_session,
             schedule1.id,
-            updated_by_user_id=user.id,
-            operator_role=UserRoleEnum.GIVER,
+            updated_by=user.id,
+            updated_by_role=UserRoleEnum.GIVER,
             start_time=time(8, 0),
             end_time=time(9, 0),
         )
@@ -564,8 +564,8 @@ class TestScheduleCRUD:
         updated_schedule = crud.update_schedule(
             db_session,
             schedule.id,
-            updated_by_user_id=user.id,
-            operator_role=UserRoleEnum.GIVER,
+            updated_by=user.id,
+            updated_by_role=UserRoleEnum.GIVER,
             note="更新備註",
             status=ScheduleStatusEnum.PENDING,
         )
@@ -672,8 +672,8 @@ class TestScheduleCRUD:
             crud.create_schedules(
                 db_session,
                 schedule_data,
-                operator_user_id=999,
-                operator_role=UserRoleEnum.GIVER,
+                updated_by=999,
+                updated_by_role=UserRoleEnum.GIVER,
             )
 
     def test_update_schedule_with_invalid_operator(self, db_session: Session):
@@ -706,8 +706,8 @@ class TestScheduleCRUD:
             crud.update_schedule(
                 db_session,
                 schedule.id,
-                updated_by_user_id=999,
-                operator_role=UserRoleEnum.GIVER,
+                updated_by=999,
+                updated_by_role=UserRoleEnum.GIVER,
                 note="更新的時段",
             )
 
@@ -737,8 +737,8 @@ class TestScheduleCRUD:
             crud.delete_schedule(
                 db_session,
                 schedule.id,
-                operator_user_id=999,  # 不存在的使用者 ID
-                operator_role=UserRoleEnum.GIVER,
+                updated_by=999,  # 不存在的使用者 ID
+                updated_by_role=UserRoleEnum.GIVER,
             )
 
     def test_format_overlap_error_message(self, db_session: Session):

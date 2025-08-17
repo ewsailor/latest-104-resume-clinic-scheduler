@@ -138,8 +138,8 @@ Content-Type: application/json
       "status": "AVAILABLE"
     }
   ],
-  "operator_user_id": 1,
-  "operator_role": "GIVER"
+  "updated_by": 1,
+  "updated_by_role": "GIVER"
 }
 ```
 
@@ -203,8 +203,8 @@ Content-Type: application/json
     "end_time": "11:00:00",
     "status": "BOOKED"
   },
-  "operator_user_id": 1,
-  "operator_role": "GIVER"
+  "updated_by": 1,
+  "updated_by_role": "GIVER"
 }
 ```
 
@@ -223,8 +223,8 @@ Content-Type: application/json
 
 ```json
 {
-  "operator_user_id": 1,
-  "operator_role": "GIVER"
+  "updated_by": 1,
+  "updated_by_role": "GIVER"
 }
 ```
 
@@ -348,8 +348,8 @@ Content-Type: application/json
       "status": "INVALID_STATUS" // 無效狀態
     }
   ],
-  "operator_user_id": 1,
-  "operator_role": "GIVER"
+  "updated_by": 1,
+  "updated_by_role": "GIVER"
 }
 ```
 
@@ -383,8 +383,8 @@ GET {{base_url}}/api/v1/schedules/999
       "status": "AVAILABLE"
     }
   ],
-  "operator_user_id": 1,
-  "operator_role": "GIVER"
+  "updated_by": 1,
+  "updated_by_role": "GIVER"
 }
 ```
 

@@ -80,7 +80,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"schedules\": [\n    {\n      \"giver_id\": 1,\n      \"date\": \"2024-01-20\",\n      \"start_time\": \"09:00:00\",\n      \"end_time\": \"10:00:00\",\n      \"status\": \"AVAILABLE\"\n    }\n  ],\n  \"operator_user_id\": 1,\n  \"operator_role\": \"GIVER\"\n}"
+              "raw": "{\n  \"schedules\": [\n    {\n      \"giver_id\": 1,\n      \"date\": \"2024-01-20\",\n      \"start_time\": \"09:00:00\",\n      \"end_time\": \"10:00:00\",\n      \"status\": \"AVAILABLE\"\n    }\n  ],\n  \"updated_by\": 1,\n  \"updated_by_role\": \"GIVER\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/schedules",
@@ -233,7 +233,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"schedule_data\": {\n    \"giver_id\": 1,\n    \"date\": \"2024-01-21\",\n    \"start_time\": \"10:00:00\",\n    \"end_time\": \"11:00:00\",\n    \"status\": \"BOOKED\"\n  },\n  \"operator_user_id\": 1,\n  \"operator_role\": \"GIVER\"\n}"
+              "raw": "{\n  \"schedule_data\": {\n    \"giver_id\": 1,\n    \"date\": \"2024-01-21\",\n    \"start_time\": \"10:00:00\",\n    \"end_time\": \"11:00:00\",\n    \"status\": \"BOOKED\"\n  },\n  \"updated_by\": 1,\n  \"updated_by_role\": \"GIVER\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/schedules/{{test_schedule_id}}",
@@ -273,7 +273,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"operator_user_id\": 1,\n  \"operator_role\": \"GIVER\"\n}"
+              "raw": "{\n  \"updated_by\": 1,\n  \"updated_by_role\": \"GIVER\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/schedules/{{test_schedule_id}}",
@@ -696,7 +696,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"schedules\": [\n    {\n      \"giver_id\": \"invalid\",\n      \"date\": \"invalid-date\",\n      \"start_time\": \"25:00:00\",\n      \"end_time\": \"10:00:00\",\n      \"status\": \"INVALID_STATUS\"\n    }\n  ],\n  \"operator_user_id\": 1,\n  \"operator_role\": \"GIVER\"\n}"
+              "raw": "{\n  \"schedules\": [\n    {\n      \"giver_id\": \"invalid\",\n      \"date\": \"invalid-date\",\n      \"start_time\": \"25:00:00\",\n      \"end_time\": \"10:00:00\",\n      \"status\": \"INVALID_STATUS\"\n    }\n  ],\n  \"updated_by\": 1,\n  \"updated_by_role\": \"GIVER\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/schedules",
@@ -769,7 +769,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"schedules\": [\n    {\n      \"giver_id\": 1,\n      \"date\": \"2024-01-20\",\n      \"start_time\": \"09:00:00\",\n      \"end_time\": \"10:00:00\",\n      \"status\": \"AVAILABLE\"\n    },\n    {\n      \"giver_id\": 1,\n      \"date\": \"2024-01-20\",\n      \"start_time\": \"09:30:00\",\n      \"end_time\": \"10:30:00\",\n      \"status\": \"AVAILABLE\"\n    }\n  ],\n  \"operator_user_id\": 1,\n  \"operator_role\": \"GIVER\"\n}"
+              "raw": "{\n  \"schedules\": [\n    {\n      \"giver_id\": 1,\n      \"date\": \"2024-01-20\",\n      \"start_time\": \"09:00:00\",\n      \"end_time\": \"10:00:00\",\n      \"status\": \"AVAILABLE\"\n    },\n    {\n      \"giver_id\": 1,\n      \"date\": \"2024-01-20\",\n      \"start_time\": \"09:30:00\",\n      \"end_time\": \"10:30:00\",\n      \"status\": \"AVAILABLE\"\n    }\n  ],\n  \"updated_by\": 1,\n  \"updated_by_role\": \"GIVER\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/schedules",

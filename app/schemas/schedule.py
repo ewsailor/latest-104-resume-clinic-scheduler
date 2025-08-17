@@ -30,8 +30,8 @@ class ScheduleCreateWithOperator(BaseModel):
     """帶有操作者資訊的建立時段請求模型"""
 
     schedules: list[ScheduleCreate] = Field(..., description="要建立的時段列表")
-    operator_user_id: int = Field(..., description="操作者的使用者 ID（必填）")
-    operator_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
+    updated_by: int = Field(..., description="操作者的使用者 ID（必填）")
+    updated_by_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
 
 
 class ScheduleUpdate(BaseModel):
@@ -52,8 +52,8 @@ class ScheduleUpdateWithOperator(BaseModel):
     schedule_data: ScheduleCreate = Field(
         ..., description="完整的時段資料（所有欄位必填）"
     )
-    operator_user_id: int = Field(..., description="操作者的使用者 ID（必填）")
-    operator_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
+    updated_by: int = Field(..., description="操作者的使用者 ID（必填）")
+    updated_by_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
 
 
 class SchedulePartialUpdateWithOperator(BaseModel):
@@ -62,15 +62,15 @@ class SchedulePartialUpdateWithOperator(BaseModel):
     schedule_data: ScheduleUpdate = Field(
         ..., description="要更新的時段資料（部分欄位）"
     )
-    operator_user_id: int = Field(..., description="操作者的使用者 ID（必填）")
-    operator_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
+    updated_by: int = Field(..., description="操作者的使用者 ID（必填）")
+    updated_by_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
 
 
 class ScheduleDeleteWithOperator(BaseModel):
     """帶有操作者資訊的刪除時段請求模型"""
 
-    operator_user_id: int = Field(..., description="操作者的使用者 ID（必填）")
-    operator_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
+    updated_by: int = Field(..., description="操作者的使用者 ID（必填）")
+    updated_by_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
 
 
 class ScheduleResponse(BaseModel):
