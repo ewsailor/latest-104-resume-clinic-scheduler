@@ -1,38 +1,72 @@
-# API 設計原則與文檔
+# API 設計原則
 
 ## 概述
 
-本專案遵循 RESTful API 設計原則，提供一致、可預測的 API 介面。API 採用分層架構設計，包含路由層、業務邏輯層和資料存取層，確保程式碼的可維護性和可擴展性。
+本專案遵循 `RESTful` 原則設計 API，採用分層架構設計，包含路由層、業務邏輯層和資料存取層，確保程式碼的可維護性、可擴展性、安全性
 
-## 設計原則
+## 組成元素
 
-### 1. RESTful 設計
+API 的核心組成元素主要分為 3 個：
+- URL 路徑
+- HTTP 方法 (`HTTP Methods`)
+- 處理邏輯（函式）
 
-#### 資源命名
+### 組成元素：URL 路徑
 
-- 使用名詞而非動詞
-- 使用複數形式
-- 使用小寫字母和連字號
+URL 路徑決定了 API 資源的位置與結構：
+- 範例：http://127.0.0.1:8000/api/v1/schedules?giver_id=123&date=2025-08-17&sort=desc&page=1&per_page=10
+- 說明：api/vi/schedules 路徑中，ID 是 123 的使用者，在 2025 年 8 月 17 日的所有行程，以倒序排列，取得第 1 頁，每頁顯示 10 筆資料
 
-```bash
-# ✅ 正確
-GET /api/v1/schedules
-POST /api/v1/users
-PUT /api/v1/givers/123
+| 元件           | 說明             | 範例                    |
+| --------------------- | -------------------------- | ------------------------------------------------------ |
+| **基礎 URL (Base URL)**   | 伺服器位址（協定 + 網域/主機 + Port）   | `https://api.example.com` <br> `http://127.0.0.1:8000` |
+| **基礎路徑 (Base Path)**    | 區分 API 與一般網頁服務             | `/api`                                                 |
+| **版本號 (API Version)**   | API 版本控制，方便升級而不影響舊版本       | `/v1`                                                  |
+| **資源名稱 (Resource)**     | 代表操作的物件，使用**名詞、複數、小寫、連字號** | `/schedules` <br> `/users` <br> `/givers`              |
+| **路徑參數 (Path Params)**  | 指定某個資源的唯一 ID，用 `{}` 表示        | `/schedules/{schedule_id}` <br> `/users/{user_id}`     |
+| **查詢參數 (Query Params)** | 用來篩選、搜尋、排序、分頁，附加在 `?` 之後，以 `&` 分隔          | `/schedules?giver_id=123&date=2025-08-17&sort=desc&page=1&per_page=10`              |
 
-# ❌ 錯誤
-GET /api/v1/get-schedules
-POST /api/v1/create-user
-PUT /api/v1/update-giver/123
-```
+### 組成元素：HTTP 方法 (HTTP Methods)
 
-#### HTTP 方法使用
+HTTP 方法決了對資源的操作類型，常用的有：
+- **`GET`**: 取得資源
+- **`POST`**: 建立資源
+- **`PUT`**: 完整更新資源
+- **`PATCH`**: 部分更新資源
+- **`DELETE`**: 刪除資源
 
-- **GET**: 取得資源
-- **POST**: 建立資源
-- **PUT**: 更新資源（完整更新）
-- **PATCH**: 部分更新資源
-- **DELETE**: 刪除資源
+### 組成元素：處理邏輯（函式）
+
+處理邏輯是 API 實際執行的核心，常見步驟如下：
+- **解析請求 (Parse Request)**：
+  - 解析傳入請求的：
+    - 標頭 (`Headers`)
+    - 請求體 (`Request Body`)
+    - 路徑參數 (`Path Params`)
+    - 查詢參數 (`Query Params`) 
+- **認證、授權、中介邏輯 (Authentication, Authorization, and Middleware)**：確保請求的合法性
+  - **認證 (Authentication)**：確認請求者是誰，例如，驗證使用者令牌
+  - **授權 (Authorization)**：確認請求者的操作權限
+  - **中介邏輯 (Middleware)**：處理一些共通的、非核心的邏輯，比如請求壓縮、速率限制、緩存等，常使用 `CORS`
+- **驗證資料 (Validate Data)**：
+  - 在 `models` 層，藉 `SQLAlchemy ORM` 設定資料表欄位的屬性，使用**小寫、底線**。如：
+    - **基本屬性**：資料型別 (`Type`)、備註 (`comment`)、別名 (`alias`) 等
+    - **約束條件**：非負 (`unsigned`)、必填 (`nullable`)、預設值 (`default`)、唯一 (`unique`) 等
+    - **關聯**：主鍵 (`Primary Key, PK`)、外鍵 (`Foreign Key, FK`)、關聯 (`relationship`) 等
+    - **審計追蹤**：建立時間 (`created_at`)、更新時間 (`updated_at`)、最後更新的使用者 ID (`updated_by`)、最後更新者角色 (`updated_by_role`)、軟刪除 (`deleted_at`) 等
+  - 在 `schema` 層，用 `Pydantic` 或自訂驗證，檢查傳入資料之正確性
+  - 驗證失敗進行錯誤處理 (`Error Handling`)、日誌 (`Logging`) 顯示錯誤
+- **執行業務邏輯 (Execute Business Logic)**：
+  - 根據請求內容，執行操作：
+    - 查詢或更新資料庫
+    - 新增一筆資料
+    - 呼叫其他服務
+- **建立與設定回應 (Create and Set Response)**：
+  - **建立回應 (Create Response)**：封裝業務邏輯的結果（如查詢到的資料），組成回傳資料的標準格式（如 JSON）
+  - **設定回應 (Set Response)**：
+    - 狀態碼 (`Status Code`)
+    - 標頭 (`Headers`)
+    - 確保回應與業務邏輯結果一致
 
 ### 2. 狀態碼使用
 

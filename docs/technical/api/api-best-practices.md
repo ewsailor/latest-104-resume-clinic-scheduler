@@ -1,40 +1,5 @@
 # API 最佳實踐指南
-
-## 概述
-
-本指南提供開發和維護 RESTful API 的最佳實踐建議，基於本專案的實際經驗和業界標準。
-
-## 設計原則
-
-### 1. RESTful 設計原則
-
-#### 資源導向設計
-
-- 使用名詞而非動詞來命名資源
-- 使用複數形式表示資源集合
-- 保持 URL 結構簡潔明瞭
-
-```bash
-# ✅ 正確
-GET /api/v1/schedules
-POST /api/v1/users
-PUT /api/v1/givers/123
-
-# ❌ 錯誤
-GET /api/v1/get-schedules
-POST /api/v1/create-user
-PUT /api/v1/update-giver/123
-```
-
-#### HTTP 方法語義
-
-- **GET**: 安全且冪等，用於取得資源
-- **POST**: 非冪等，用於建立資源
-- **PUT**: 冪等，用於完整更新資源
-- **PATCH**: 冪等，用於部分更新資源
-- **DELETE**: 冪等，用於刪除資源
-
-### 2. 狀態碼使用原則
+   
 
 #### 成功狀態碼
 
