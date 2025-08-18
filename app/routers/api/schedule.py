@@ -14,9 +14,9 @@ from sqlalchemy.orm import Session
 from app.crud import schedule_crud  # CRUD 操作
 from app.models.database import get_db  # 資料庫連接
 from app.schemas import (  # 資料模型
-    ScheduleCreateWithOperator,
-    ScheduleDeleteWithOperator,
-    SchedulePartialUpdateWithOperator,
+    ScheduleCreateRequest,
+    ScheduleDeleteRequest,
+    SchedulePartialUpdateRequest,
     ScheduleResponse,
 )
 from app.utils.error_handler import (
@@ -44,7 +44,7 @@ router = APIRouter(prefix="/api/v1", tags=["Schedules"])
     responses=get_schedule_create_responses(),
 )
 async def create_schedules(
-    request: ScheduleCreateWithOperator, db: Session = Depends(get_db)
+    request: ScheduleCreateRequest, db: Session = Depends(get_db)
 ) -> list[ScheduleResponse]:
     """
     建立多個時段。
@@ -63,12 +63,12 @@ async def create_schedules(
         HTTPException: 當建立失敗時拋出 400 錯誤
     """
     try:
-        # 使用 CRUD 層建立時段，傳遞操作者資訊
+        # 使用 CRUD 層建立時段，傳遞建立者資訊
         schedule_objects = schedule_crud.create_schedules(
             db,
             request.schedules,
-            updated_by=request.updated_by,
-            updated_by_role=request.updated_by_role,
+            created_by=request.created_by,
+            created_by_role=request.created_by_role,
         )
 
         # 轉換為回應格式
@@ -165,7 +165,7 @@ async def get_schedule(
 )
 async def update_schedule(
     schedule_id: int,
-    request: SchedulePartialUpdateWithOperator,
+    request: SchedulePartialUpdateRequest,
     db: Session = Depends(get_db),
 ) -> ScheduleResponse:
     """
@@ -187,7 +187,7 @@ async def update_schedule(
     """
     try:
         # 轉換為字典格式，只包含非 None 的欄位
-        update_data = request.schedule_data.model_dump(exclude_none=True)
+        update_data = request.schedule.model_dump(exclude_none=True)
         # 處理 date 欄位的別名 - 將 date 轉換為 schedule_date
         if "date" in update_data:
             update_data["schedule_date"] = update_data.pop("date")
@@ -220,7 +220,7 @@ async def update_schedule(
     responses=get_schedule_delete_responses(),
 )
 async def delete_schedule(
-    schedule_id: int, request: ScheduleDeleteWithOperator, db: Session = Depends(get_db)
+    schedule_id: int, request: ScheduleDeleteRequest, db: Session = Depends(get_db)
 ) -> None:
     """
     刪除時段。
@@ -240,8 +240,8 @@ async def delete_schedule(
         success = schedule_crud.delete_schedule(
             db,
             schedule_id,
-            updated_by=request.updated_by,
-            updated_by_role=request.updated_by_role,
+            deleted_by=request.deleted_by,
+            deleted_by_role=request.deleted_by_role,
         )
         if not success:
             raise HTTPException(

@@ -20,7 +20,7 @@ from app.models.enums import ScheduleStatusEnum, UserRoleEnum  # ENUM 定義
 # ===== 本地模組 =====
 from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型
-from app.schemas import ScheduleCreate  # 資料模型
+from app.schemas import ScheduleData  # 資料模型
 from app.utils.error_handler import (
     BusinessLogicError,
     DatabaseError,
@@ -191,9 +191,9 @@ class ScheduleCRUD:
     def create_schedules(
         self,
         db: Session,
-        schedules: list[ScheduleCreate],
-        updated_by: int,
-        updated_by_role: UserRoleEnum,
+        schedules: list[ScheduleData],
+        created_by: int,
+        created_by_role: UserRoleEnum,
     ) -> list[Schedule]:
         """
         建立多個時段。
@@ -201,21 +201,21 @@ class ScheduleCRUD:
         Args:
             db: 資料庫會話
             schedules: 要建立的時段列表
-            updated_by: 操作者的使用者 ID（建立者）
-            updated_by_role: 操作者的角色 (UserRoleEnum)
+            created_by: 建立者的使用者 ID
+            created_by_role: 建立者的角色 (UserRoleEnum)
 
         Returns:
             list[Schedule]: 建立成功的時段列表
 
         Raises:
-            ValueError: 當檢測到時段重疊時或操作者不存在時
+            ValueError: 當檢測到時段重疊時或建立者不存在時
         """
-        # 驗證操作者是否存在
-        operator = self._validate_user_exists(db, updated_by, "操作者")
+        # 驗證建立者是否存在
+        creator = self._validate_user_exists(db, created_by, "建立者")
 
         # 記錄建立操作
         self.logger.info(
-            f"使用者 {updated_by} (角色: {updated_by_role.value}) "
+            f"使用者 {created_by} (角色: {created_by_role.value}) "
             f"正在建立 {len(schedules)} 個時段"
         )
         # 檢查重疊時段
@@ -238,12 +238,12 @@ class ScheduleCRUD:
         # 建立時段物件列表
         schedule_objects = []
         for schedule_data in schedules:
-            # 根據操作者角色決定時段狀態
+            # 根據建立者角色決定時段狀態
             # GIVER 建立時段 -> AVAILABLE (可預約)
             # TAKER 建立時段 -> PENDING (等待 Giver 確認)
-            if updated_by_role == UserRoleEnum.TAKER:
+            if created_by_role == UserRoleEnum.TAKER:
                 status = ScheduleStatusEnum.PENDING
-            elif updated_by_role == UserRoleEnum.GIVER:
+            elif created_by_role == UserRoleEnum.GIVER:
                 status = ScheduleStatusEnum.AVAILABLE
             else:
                 # 使用傳入的狀態或預設為 DRAFT
@@ -257,10 +257,10 @@ class ScheduleCRUD:
                 end_time=schedule_data.end_time,
                 note=schedule_data.note,
                 status=status,  # 使用計算的狀態
-                created_by=updated_by,
-                created_by_role=updated_by_role,
-                updated_by=updated_by,
-                updated_by_role=updated_by_role,
+                created_by=created_by,
+                created_by_role=created_by_role,
+                updated_by=created_by,
+                updated_by_role=created_by_role,
                 deleted_by=None,
                 deleted_by_role=None,
             )
@@ -496,8 +496,8 @@ class ScheduleCRUD:
         self,
         db: Session,
         schedule_id: int,
-        updated_by: int | None = None,
-        updated_by_role: UserRoleEnum | None = None,
+        deleted_by: int | None = None,
+        deleted_by_role: UserRoleEnum | None = None,
     ) -> bool:
         """
         軟刪除時段。
@@ -505,20 +505,20 @@ class ScheduleCRUD:
         Args:
             db: 資料庫會話
             schedule_id: 時段 ID
-            updated_by: 操作者的使用者 ID（可選，用於審計記錄）
-            updated_by_role: 操作者的角色（可選，用於審計記錄）
+            deleted_by: 刪除者的使用者 ID（可選，用於審計記錄）
+            deleted_by_role: 刪除者的角色（可選，用於審計記錄）
 
         Returns:
             bool: 刪除成功返回 True，否則返回 False
 
         Raises:
-            ValueError: 當操作者不存在時（如果提供了操作者 ID）
+            ValueError: 當刪除者不存在時（如果提供了刪除者 ID）
         """
-        # 如果提供了操作者ID，驗證操作者是否存在
-        if updated_by:
-            operator = self._validate_user_exists(db, updated_by, "操作者")
+        # 如果提供了刪除者ID，驗證刪除者是否存在
+        if deleted_by:
+            deleter = self._validate_user_exists(db, deleted_by, "刪除者")
 
-        self.logger.info(f"正在軟刪除時段 ID: {schedule_id}，操作者: {updated_by}")
+        self.logger.info(f"正在軟刪除時段 ID: {schedule_id}，刪除者: {deleted_by}")
 
         schedule = self.get_schedule_by_id_including_deleted(db, schedule_id)
         if not schedule:
@@ -538,11 +538,11 @@ class ScheduleCRUD:
             f"(Giver ID: {schedule.giver_id})"
         )
 
-        # 記錄操作者資訊
-        if updated_by and updated_by_role:
+        # 記錄刪除者資訊
+        if deleted_by and deleted_by_role:
             self.logger.info(
                 f"時段 {schedule_id} ({schedule_info}) "
-                f"正在被使用者 {updated_by} (角色: {updated_by_role.value}) 軟刪除"
+                f"正在被使用者 {deleted_by} (角色: {deleted_by_role.value}) 軟刪除"
             )
 
         try:
@@ -551,11 +551,11 @@ class ScheduleCRUD:
             from app.utils.timezone import get_local_now_naive
 
             schedule.updated_at = get_local_now_naive()
-            schedule.updated_by = updated_by
-            schedule.updated_by_role = updated_by_role
+            schedule.updated_by = deleted_by
+            schedule.updated_by_role = deleted_by_role
             schedule.deleted_at = get_local_now_naive()
-            schedule.deleted_by = updated_by
-            schedule.deleted_by_role = updated_by_role
+            schedule.deleted_by = deleted_by
+            schedule.deleted_by_role = deleted_by_role
 
             # 將狀態改為 CANCELLED（已取消）
             schedule.status = ScheduleStatusEnum.CANCELLED

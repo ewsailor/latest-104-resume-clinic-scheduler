@@ -7,29 +7,29 @@
 - 資料型別安全保證
 
 包含：
-- 時段相關模式（ScheduleCreate, ScheduleResponse 等）
+- 時段相關模式（ScheduleData, ScheduleResponse 等）
 - 使用者相關模式（UserCreate, UserResponse 等）
 """
 
 from .schedule import (
-    ScheduleCreate,
-    ScheduleCreateWithOperator,
-    ScheduleDeleteWithOperator,
-    SchedulePartialUpdateWithOperator,
+    ScheduleCreateRequest,
+    ScheduleData,
+    ScheduleDeleteRequest,
+    SchedulePartialUpdateRequest,
     ScheduleResponse,
-    ScheduleUpdate,
-    ScheduleUpdateWithOperator,
+    ScheduleUpdateData,
+    ScheduleUpdateRequest,
 )
 from .user import UserCreate, UserResponse
 
 __all__ = [
     "UserCreate",
     "UserResponse",
-    "ScheduleCreate",
+    "ScheduleData",
+    "ScheduleCreateRequest",
+    "ScheduleUpdateData",
+    "ScheduleUpdateRequest",
+    "SchedulePartialUpdateRequest",
+    "ScheduleDeleteRequest",
     "ScheduleResponse",
-    "ScheduleCreateWithOperator",
-    "ScheduleDeleteWithOperator",
-    "SchedulePartialUpdateWithOperator",
-    "ScheduleUpdate",
-    "ScheduleUpdateWithOperator",
 ]

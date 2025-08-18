@@ -84,8 +84,8 @@ class TestAPIScheduleComprehensive:
             "created_by": 1,
             "created_by_role": "TAKER",
             "updated_at": schedule.updated_at.isoformat(),
-            "updated_by": 1,
-            "updated_by_role": "TAKER",
+            "created_by": 1,
+            "created_by_role": "TAKER",
             "deleted_at": None,
             "deleted_by": None,
             "deleted_by_role": None,
@@ -163,12 +163,12 @@ class TestAPIScheduleComprehensive:
     async def test_create_schedules_success_direct(self, mock_db, mock_schedule):
         """直接測試成功建立時段函數。"""
         from app.models.enums import UserRoleEnum
-        from app.schemas import ScheduleCreate, ScheduleCreateWithOperator
+        from app.schemas import ScheduleCreateRequest, ScheduleData
 
-        # 準備測試資料（新格式：包含操作者資訊）
-        schedule_data = ScheduleCreateWithOperator(
+        # 準備測試資料（新格式：包含建立者資訊）
+        schedule_data = ScheduleCreateRequest(
             schedules=[
-                ScheduleCreate(
+                ScheduleData(
                     giver_id=1,
                     date="2024-01-15",
                     start_time="09:00:00",
@@ -177,8 +177,8 @@ class TestAPIScheduleComprehensive:
                     status="AVAILABLE",
                 )
             ],
-            updated_by=1,
-            updated_by_role=UserRoleEnum.TAKER,
+            created_by=1,
+            created_by_role=UserRoleEnum.TAKER,
         )
 
         # 模擬 CRUD 操作
@@ -197,12 +197,12 @@ class TestAPIScheduleComprehensive:
     async def test_create_schedules_exception_direct(self, mock_db):
         """直接測試建立時段時拋出異常。"""
         from app.models.enums import UserRoleEnum
-        from app.schemas import ScheduleCreate, ScheduleCreateWithOperator
+        from app.schemas import ScheduleCreateRequest, ScheduleData
 
-        # 準備測試資料（新格式：包含操作者資訊）
-        schedule_data = ScheduleCreateWithOperator(
+        # 準備測試資料（新格式：包含建立者資訊）
+        schedule_data = ScheduleCreateRequest(
             schedules=[
-                ScheduleCreate(
+                ScheduleData(
                     giver_id=1,
                     date="2024-01-15",
                     start_time="09:00:00",
@@ -211,8 +211,8 @@ class TestAPIScheduleComprehensive:
                     status="AVAILABLE",
                 )
             ],
-            updated_by=1,
-            updated_by_role=UserRoleEnum.TAKER,
+            created_by=1,
+            created_by_role=UserRoleEnum.TAKER,
         )
 
         # 模擬 CRUD 操作拋出異常
@@ -286,13 +286,13 @@ class TestAPIScheduleComprehensive:
     async def test_create_schedules_empty_list_direct(self, mock_db):
         """直接測試建立空時段列表。"""
         from app.models.enums import UserRoleEnum
-        from app.schemas import ScheduleCreateWithOperator
+        from app.schemas import ScheduleCreateRequest
 
         # 準備測試資料 - 空列表（新格式：包含操作者資訊）
-        schedule_data = ScheduleCreateWithOperator(
+        schedule_data = ScheduleCreateRequest(
             schedules=[],
-            updated_by=1,
-            updated_by_role=UserRoleEnum.TAKER,
+            created_by=1,
+            created_by_role=UserRoleEnum.TAKER,
         )
 
         # 模擬 CRUD 操作
@@ -340,12 +340,12 @@ class TestAPIScheduleComprehensive:
     async def test_create_schedules_db_rollback_on_exception(self, mock_db):
         """測試建立時段時資料庫回滾。"""
         from app.models.enums import UserRoleEnum
-        from app.schemas import ScheduleCreate, ScheduleCreateWithOperator
+        from app.schemas import ScheduleCreateRequest, ScheduleData
 
         # 準備測試資料（新格式：包含操作者資訊）
-        schedule_data = ScheduleCreateWithOperator(
+        schedule_data = ScheduleCreateRequest(
             schedules=[
-                ScheduleCreate(
+                ScheduleData(
                     giver_id=1,
                     date="2024-01-15",
                     start_time="09:00:00",
@@ -354,8 +354,8 @@ class TestAPIScheduleComprehensive:
                     status="AVAILABLE",
                 )
             ],
-            updated_by=1,
-            updated_by_role=UserRoleEnum.TAKER,
+            created_by=1,
+            created_by_role=UserRoleEnum.TAKER,
         )
 
         # 模擬 CRUD 操作拋出異常
@@ -397,12 +397,12 @@ class TestAPIScheduleComprehensive:
     async def test_create_schedules_with_invalid_data(self, mock_db):
         """測試建立時段時無效資料處理。"""
         from app.models.enums import UserRoleEnum
-        from app.schemas import ScheduleCreate, ScheduleCreateWithOperator
+        from app.schemas import ScheduleCreateRequest, ScheduleData
 
         # 準備測試資料 - 使用有效的時間格式，但模擬 CRUD 層的驗證錯誤（新格式：包含操作者資訊）
-        schedule_data = ScheduleCreateWithOperator(
+        schedule_data = ScheduleCreateRequest(
             schedules=[
-                ScheduleCreate(
+                ScheduleData(
                     giver_id=1,
                     date="2024-01-15",
                     start_time="09:00:00",
@@ -411,8 +411,8 @@ class TestAPIScheduleComprehensive:
                     status="AVAILABLE",
                 )
             ],
-            updated_by=1,
-            updated_by_role=UserRoleEnum.TAKER,
+            created_by=1,
+            created_by_role=UserRoleEnum.TAKER,
         )
 
         # 模擬 CRUD 操作拋出異常（例如：時間衝突）
@@ -481,8 +481,8 @@ class TestAPIScheduleComprehensive:
         # 測試無效的時段資料（新格式：包含操作者資訊）
         invalid_request_data = {
             "schedules": [{"invalid": "data"}],
-            "updated_by": 1,
-            "updated_by_role": "TAKER",
+            "created_by": 1,
+            "created_by_role": "TAKER",
         }
         response = client.post("/api/v1/schedules", json=invalid_request_data)
         assert response.status_code == 422
@@ -493,12 +493,12 @@ class TestAPIScheduleComprehensive:
     async def test_create_schedules_large_list(self, mock_db, mock_schedule):
         """測試建立大量時段。"""
         from app.models.enums import UserRoleEnum
-        from app.schemas import ScheduleCreate, ScheduleCreateWithOperator
+        from app.schemas import ScheduleCreateRequest, ScheduleData
 
         # 準備測試資料 - 大量時段（新格式：包含操作者資訊）
-        schedule_data = ScheduleCreateWithOperator(
+        schedule_data = ScheduleCreateRequest(
             schedules=[
-                ScheduleCreate(
+                ScheduleData(
                     giver_id=1,
                     date="2024-01-15",
                     start_time="09:00:00",
@@ -508,8 +508,8 @@ class TestAPIScheduleComprehensive:
                 )
                 for i in range(100)
             ],
-            updated_by=1,
-            updated_by_role=UserRoleEnum.TAKER,
+            created_by=1,
+            created_by_role=UserRoleEnum.TAKER,
         )
 
         # 模擬 CRUD 操作

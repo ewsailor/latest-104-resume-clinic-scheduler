@@ -80,8 +80,8 @@ class TestAPIScheduleSimple:
             "created_by": 1,
             "created_by_role": "TAKER",
             "updated_at": schedule.updated_at.isoformat(),
-            "updated_by": 1,
-            "updated_by_role": "TAKER",
+            "created_by": 1,
+            "created_by_role": "TAKER",
             "deleted_at": None,
             "deleted_by": None,
             "deleted_by_role": None,
@@ -160,8 +160,8 @@ class TestAPIScheduleSimple:
                     "status": "AVAILABLE",
                 },
             ],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
 
         # 模擬 CRUD 操作
@@ -191,8 +191,8 @@ class TestAPIScheduleSimple:
                     "status": "invalid-status",
                 }
             ],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
 
         # 執行測試
@@ -305,8 +305,8 @@ class TestAPIScheduleSimple:
         # 準備空時段列表的請求資料（新格式：包含操作者資訊）
         empty_request_data = {
             "schedules": [],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
 
         # 模擬 CRUD 操作
@@ -330,8 +330,8 @@ class TestAPIScheduleSimple:
                     "note": "不完整的時段",
                 }
             ],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
 
         # 執行測試
@@ -382,8 +382,8 @@ class TestAPIScheduleSimple:
                     "status": "AVAILABLE",
                 },
             ],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
 
         # 模擬 CRUD 操作拋出重疊錯誤

@@ -83,7 +83,7 @@ class ScheduleStatusEnum(str, Enum):
 from pydantic import BaseModel, Field, field_validator
 from datetime import date, time
 
-class ScheduleCreate(BaseModel):
+class ScheduleData(BaseModel):
     giver_id: int = Field(..., gt=0, description="Giver ID")
     schedule_date: date = Field(..., description="時段日期")
     start_time: time = Field(..., description="開始時間")
@@ -346,7 +346,7 @@ import traceback
 from fastapi import HTTPException
 
 @router.post("/api/v1/schedules")
-async def create_schedules(request: ScheduleCreateWithOperator, db: Session = Depends(get_db)):
+async def create_schedules(request: ScheduleCreateRequest, db: Session = Depends(get_db)):
     try:
         return schedule_crud.create_schedules(db, request.schedules)
     except Exception as e:
@@ -405,7 +405,7 @@ from unittest.mock import Mock, patch
 def test_create_schedule_success():
     # 準備測試資料
     mock_db = Mock()
-    schedule_data = ScheduleCreate(
+    schedule_data = ScheduleData(
         giver_id=1,
         schedule_date=date(2024, 1, 20),
         start_time=time(14, 0),
@@ -540,7 +540,7 @@ async def get_schedules_v2():
 ```python
 # 支援舊版格式
 @router.post("/api/v1/schedules")
-async def create_schedules(request: Union[ScheduleCreateWithOperator, ScheduleCreateLegacy]):
+async def create_schedules(request: Union[ScheduleCreateRequest, ScheduleCreateLegacy]):
     if isinstance(request, ScheduleCreateLegacy):
         # 轉換舊版格式
         request = convert_legacy_format(request)

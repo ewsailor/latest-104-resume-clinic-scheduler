@@ -78,8 +78,8 @@ class TestScheduleAPI:
                     "status": "AVAILABLE",
                 },
             ],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
 
     def test_create_schedules_success(self, sample_schedule_list):
@@ -120,8 +120,8 @@ class TestScheduleAPI:
                     "status": "AVAILABLE",
                 }
             ],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
 
         # 執行測試
@@ -137,8 +137,8 @@ class TestScheduleAPI:
         # 空的時段列表
         empty_data = {
             "schedules": [],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
 
         # 執行測試
@@ -263,8 +263,8 @@ class TestScheduleAPI:
                     "status": "AVAILABLE",
                 }
             ],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
         create_response = client.post("/api/v1/schedules", json=schedule_data)
 
@@ -326,8 +326,8 @@ class TestScheduleAPI:
         # 先建立一個時段
         create_data = {
             "schedules": [sample_schedule_data],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
         create_response = client.post("/api/v1/schedules", json=create_data)
 
@@ -343,7 +343,7 @@ class TestScheduleAPI:
 
         # 更新資料
         update_data = {
-            "schedule_data": {
+            "schedule": {
                 "giver_id": 2,
                 "date": "2024-01-16",
                 "start_time": "10:00:00",
@@ -374,7 +374,7 @@ class TestScheduleAPI:
 
         # 更新資料
         update_data = {
-            "schedule_data": {
+            "schedule": {
                 "giver_id": 1,
                 "date": "2024-01-15",
                 "start_time": "09:00:00",
@@ -399,7 +399,7 @@ class TestScheduleAPI:
 
         # 無效的更新資料
         invalid_data = {
-            "schedule_data": {
+            "schedule": {
                 "giver_id": "invalid",  # 應該是整數
                 "date": "2024-01-15",
                 "start_time": "09:00:00",
@@ -426,8 +426,8 @@ class TestScheduleAPI:
         # 先建立一個時段
         create_data = {
             "schedules": [sample_schedule_data],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
         create_response = client.post("/api/v1/schedules", json=create_data)
 
@@ -446,7 +446,7 @@ class TestScheduleAPI:
 
         # 執行測試
         update_data = {
-            "schedule_data": sample_schedule_data,
+            "schedule": sample_schedule_data,
             "updated_by": 1,
             "updated_by_role": "GIVER",
         }
@@ -464,19 +464,26 @@ class TestScheduleAPI:
         log_test_info("測試成功刪除時段")
 
         # 使用不同的時段資料避免重疊
+        import datetime
+        import random
+
+        unique_date = datetime.date.today() + datetime.timedelta(
+            days=random.randint(300, 400)
+        )
+        unique_hour = random.randint(8, 18)
         unique_schedule_data = {
             "giver_id": 1,
-            "date": "2024-01-25",  # 使用更遠的日期
-            "start_time": "18:00:00",  # 使用不同的時間
-            "end_time": "19:00:00",
+            "date": unique_date.strftime("%Y-%m-%d"),
+            "start_time": f"{unique_hour:02d}:00:00",
+            "end_time": f"{unique_hour+1:02d}:00:00",
             "status": "AVAILABLE",
         }
 
         # 先建立一個時段
         create_request = {
             "schedules": [unique_schedule_data],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
         create_response = client.post("/api/v1/schedules", json=create_request)
 
@@ -490,7 +497,7 @@ class TestScheduleAPI:
         created_schedule = create_response.json()[0]
 
         # 執行測試
-        delete_request = {"updated_by": 1, "updated_by_role": "GIVER"}
+        delete_request = {"deleted_by": 1, "deleted_by_role": "GIVER"}
         import json
 
         response = client.request(
@@ -506,7 +513,7 @@ class TestScheduleAPI:
         log_test_info("測試刪除不存在的時段")
 
         # 執行測試
-        delete_request = {"updated_by": 1, "updated_by_role": "GIVER"}
+        delete_request = {"deleted_by": 1, "deleted_by_role": "GIVER"}
         import json
 
         response = client.request(
@@ -544,8 +551,8 @@ class TestScheduleAPI:
         # 先建立一個時段
         create_request = {
             "schedules": [unique_schedule_data],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
         create_response = client.post("/api/v1/schedules", json=create_request)
 
@@ -563,7 +570,7 @@ class TestScheduleAPI:
         mock_delete_schedule.side_effect = Exception("刪除錯誤")
 
         # 執行測試
-        delete_request = {"updated_by": 1, "updated_by_role": "GIVER"}
+        delete_request = {"deleted_by": 1, "deleted_by_role": "GIVER"}
         import json
 
         response = client.request(
@@ -582,8 +589,8 @@ class TestScheduleAPI:
         # 執行測試
         create_data = {
             "schedules": [sample_schedule_data],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
         response = client.post("/api/v1/schedules", json=create_data)
 
@@ -611,8 +618,8 @@ class TestScheduleAPI:
 
         invalid_request = {
             "schedules": [invalid_date_data],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
         response = client.post("/api/v1/schedules", json=invalid_request)
         assert response.status_code == 422
@@ -628,8 +635,8 @@ class TestScheduleAPI:
 
         invalid_request = {
             "schedules": [invalid_time_data],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
         response = client.post("/api/v1/schedules", json=invalid_request)
         assert response.status_code == 422
@@ -645,8 +652,8 @@ class TestScheduleAPI:
 
         invalid_request = {
             "schedules": [invalid_status_data],
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
         response = client.post("/api/v1/schedules", json=invalid_request)
         assert response.status_code == 422
@@ -693,8 +700,8 @@ class TestScheduleAPI:
         # 執行測試
         bulk_request = {
             "schedules": bulk_data,
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
+            "created_by": 1,
+            "created_by_role": "GIVER",
         }
         response = client.post("/api/v1/schedules", json=bulk_request)
 

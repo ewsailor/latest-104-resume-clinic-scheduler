@@ -1968,9 +1968,14 @@ const ChatStateManager = {
         giverId: schedule.giver_id,
         takerId: schedule.taker_id,
         createdAt: schedule.created_at,
+        createdBy: schedule.created_by,
+        createdByRole: schedule.created_by_role,
         updatedAt: schedule.updated_at,
         updatedBy: schedule.updated_by,
-        updatedByRole: schedule.updated_by_role
+        updatedByRole: schedule.updated_by_role,
+        deletedAt: schedule.deleted_at,
+        deletedBy: schedule.deleted_by,
+        deletedByRole: schedule.deleted_by_role
       }));
       
       console.log('ChatStateManager.loadUserSchedulesFromDatabase: 轉換後的時段', convertedSchedules);
@@ -2375,7 +2380,7 @@ const FormValidator = {
         }
       },
       NOTES: {
-        MAX_LENGTH: 500,
+        MAX_LENGTH: 255,
         ALLOWED_CHARS: /^[\s\S]*$/ // 允許所有字符
       }
     },
@@ -2411,7 +2416,7 @@ const FormValidator = {
       TIME_INVALID: '目前輸入內容非 4 位數字，請輸入 4 位數字，無需輸入":"',
       TIME_LOGIC: '結束時間必須晚於開始時間',
       TIME_BUSINESS_HOURS: `您輸入的時間是多數人的休息時間（${CONFIG.DATE_PICKER.BUSINESS_HOURS.END}-${CONFIG.DATE_PICKER.BUSINESS_HOURS.START}），請重新輸入`,
-      NOTES_TOO_LONG: '備註不能超過 500 個字符',
+      NOTES_TOO_LONG: '備註不能超過 255 個字符',
       NOTES_INVALID: '備註包含無效字符',
       DUPLICATE_SCHEDULE: '您正輸入的時段，和您之前曾輸入的「{{EXISTING_SCHEDULE}}」時段重複或重疊，請重新輸入'
     },
@@ -7579,11 +7584,11 @@ const EventManager = {
                 // GIVER 建立 -> AVAILABLE (可預約)
               }));
               
-              // 構建包含操作者資訊的請求體
+              // 構建包含建立者資訊的請求體
               const requestBody = {
                 schedules: schedulesToSubmit,
-                updated_by: 1, // 【Demo】測試 Taker 1 的 user_id  
-                updated_by_role: 'TAKER'
+                created_by: 1, // 【Demo】測試 Taker 1 的 user_id  
+                created_by_role: 'TAKER'
               };
               
               console.log('EventManager: 準備發送到後端的時段資料', { requestBody });
@@ -7820,8 +7825,8 @@ const EventManager = {
                   
                   // 發送刪除請求到後端
                   const deleteRequest = {
-                    updated_by: currentUserId,
-                    updated_by_role: scheduleToDelete.role || 'TAKER'  
+                    deleted_by: currentUserId,
+                    deleted_by_role: scheduleToDelete.role || 'TAKER'  
                   };
                   
                   console.log('EventManager: 發送刪除請求到後端', { 

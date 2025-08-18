@@ -56,7 +56,7 @@ Client Response
 ```python
 @router.post("/schedules", response_model=ScheduleResponse)
 async def create_schedules(
-    request: ScheduleCreateWithOperator,
+    request: ScheduleCreateRequest,
     db: Session = Depends(get_db)  # 依賴注入
 ):
     # 路由層：解析請求，呼叫 CRUD 層
@@ -373,7 +373,7 @@ def get_db():
 ```python
 # app/routers/api/schedule.py
 @router.post("/schedules", response_model=ScheduleResponse)
-async def create_schedules(request: ScheduleCreateWithOperator, db: Session = Depends(get_db)):
+async def create_schedules(request: ScheduleCreateRequest, db: Session = Depends(get_db)):
     try:
         schedules = schedule_crud.create_schedules(
             db=db,

@@ -11,66 +11,67 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.models.enums import ScheduleStatusEnum, UserRoleEnum
 
 
-class ScheduleCreate(BaseModel):
-    """建立時段的請求模型"""
+class ScheduleData(BaseModel):
+    """單一時段資料模型"""
 
     giver_id: int = Field(..., description="Giver ID", gt=0)
     taker_id: int | None = Field(None, description="Taker ID（可選）", gt=0)
-    status: ScheduleStatusEnum | None = Field(
-        default=None,
-        description="時段狀態（可選，後端會根據操作者角色自動決定：GIVER→AVAILABLE，TAKER→PENDING，其他→DRAFT）",
+    status: ScheduleStatusEnum = Field(
+        default=ScheduleStatusEnum.DRAFT,
+        description="時段狀態（後端會根據操作者角色自動決定：GIVER→AVAILABLE，TAKER→PENDING，其他→DRAFT）",
     )
     schedule_date: date = Field(..., description="時段日期", alias="date")
     start_time: time = Field(..., description="開始時間")
     end_time: time = Field(..., description="結束時間")
-    note: str | None = Field(None, description="備註（最多100字）", max_length=100)
+    note: str | None = Field(None, description="備註（最多255字元）", max_length=255)
 
 
-class ScheduleCreateWithOperator(BaseModel):
-    """帶有操作者資訊的建立時段請求模型"""
+class ScheduleCreateRequest(BaseModel):
+    """批量建立時段的 API 請求模型"""
 
-    schedules: list[ScheduleCreate] = Field(..., description="要建立的時段列表")
-    updated_by: int = Field(..., description="操作者的使用者 ID（必填）")
-    updated_by_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
+    schedules: list[ScheduleData] = Field(..., description="要建立的時段列表")
+    created_by: int = Field(..., description="建立者的使用者 ID（必填）")
+    created_by_role: UserRoleEnum = Field(..., description="建立者的角色（必填）")
 
 
-class ScheduleUpdate(BaseModel):
-    """部分更新時段的請求模型 - 所有欄位都是可選的"""
+class ScheduleUpdateData(BaseModel):
+    """部分更新時段的資料模型 - 所有欄位都是可選的"""
 
     giver_id: int | None = Field(None, description="Giver ID")
     taker_id: int | None = Field(None, description="Taker ID")
-    status: ScheduleStatusEnum | None = Field(None, description="時段狀態")
+    status: ScheduleStatusEnum | None = Field(
+        default=None,
+        description="時段狀態（可選，如果不傳此欄位則不更新狀態，如果傳 null 則會拋出驗證錯誤）",
+    )
     schedule_date: date | None = Field(None, description="時段日期", alias="date")
     start_time: time | None = Field(None, description="開始時間")
     end_time: time | None = Field(None, description="結束時間")
     note: str | None = Field(None, description="備註")
 
 
-class ScheduleUpdateWithOperator(BaseModel):
-    """帶有操作者資訊的完整更新時段請求模型（用於 PUT 方法）"""
+class ScheduleUpdateRequest(BaseModel):
+    """完整更新時段的 API 請求模型（用於 PUT 方法）"""
 
-    schedule_data: ScheduleCreate = Field(
-        ..., description="完整的時段資料（所有欄位必填）"
-    )
+    schedule: ScheduleData = Field(..., description="完整的時段資料（所有欄位必填）")
     updated_by: int = Field(..., description="操作者的使用者 ID（必填）")
     updated_by_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
 
 
-class SchedulePartialUpdateWithOperator(BaseModel):
-    """帶有操作者資訊的部分更新時段請求模型"""
+class SchedulePartialUpdateRequest(BaseModel):
+    """部分更新時段的 API 請求模型"""
 
-    schedule_data: ScheduleUpdate = Field(
+    schedule: ScheduleUpdateData = Field(
         ..., description="要更新的時段資料（部分欄位）"
     )
     updated_by: int = Field(..., description="操作者的使用者 ID（必填）")
     updated_by_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
 
 
-class ScheduleDeleteWithOperator(BaseModel):
-    """帶有操作者資訊的刪除時段請求模型"""
+class ScheduleDeleteRequest(BaseModel):
+    """刪除時段的 API 請求模型"""
 
-    updated_by: int = Field(..., description="操作者的使用者 ID（必填）")
-    updated_by_role: UserRoleEnum = Field(..., description="操作者的角色（必填）")
+    deleted_by: int = Field(..., description="刪除者的使用者 ID（必填）")
+    deleted_by_role: UserRoleEnum = Field(..., description="刪除者的角色（必填）")
 
 
 class ScheduleResponse(BaseModel):

@@ -196,7 +196,7 @@ def test_external_api_call(mocker):
 def test_create_schedule(db_session):
     """測試建立排程"""
     # 準備測試資料
-    schedule_data = ScheduleCreate(
+    schedule_data = ScheduleData(
         giver_id=1,
         schedule_date=date(2024, 1, 1),
         start_time=time(9, 0),

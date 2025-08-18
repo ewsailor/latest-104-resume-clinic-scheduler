@@ -16,7 +16,7 @@ from app.crud.crud_schedule import ScheduleCRUD  # CRUD 操作
 from app.models.enums import ScheduleStatusEnum, UserRoleEnum  # 角色枚舉
 from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型
-from app.schemas import ScheduleCreate, UserCreate  # 資料模型
+from app.schemas import ScheduleData, UserCreate  # 資料模型
 from app.utils.error_handler import NotFoundError  # 錯誤處理
 from tests.logger import log_test_info
 
@@ -60,7 +60,7 @@ class TestScheduleCRUD:
         db_session.commit()
 
         schedules_data = [
-            ScheduleCreate(
+            ScheduleData(
                 giver_id=user.id,
                 date=date(2024, 1, 15),
                 start_time=time(9, 0),
@@ -68,7 +68,7 @@ class TestScheduleCRUD:
                 note="測試時段1",
                 status=ScheduleStatusEnum.AVAILABLE,
             ),
-            ScheduleCreate(
+            ScheduleData(
                 giver_id=user.id,
                 date=date(2024, 1, 16),
                 start_time=time(14, 0),
@@ -81,8 +81,8 @@ class TestScheduleCRUD:
         schedules = crud.create_schedules(
             db_session,
             schedules_data,
-            updated_by=user.id,
-            updated_by_role=UserRoleEnum.GIVER,
+            created_by=user.id,
+            created_by_role=UserRoleEnum.GIVER,
         )
 
         assert len(schedules) == 2
@@ -168,7 +168,7 @@ class TestScheduleCRUD:
 
         # 嘗試建立重疊時段
         schedules_data = [
-            ScheduleCreate(
+            ScheduleData(
                 giver_id=user.id,
                 date=date(2024, 1, 15),
                 start_time=time(9, 30),
@@ -182,8 +182,8 @@ class TestScheduleCRUD:
             crud.create_schedules(
                 db_session,
                 schedules_data,
-                updated_by=user.id,
-                updated_by_role=UserRoleEnum.GIVER,
+                created_by=user.id,
+                created_by_role=UserRoleEnum.GIVER,
             )
 
     def test_get_schedules_all(self, db_session: Session):
@@ -657,7 +657,7 @@ class TestScheduleCRUD:
         """測試使用不存在的操作者建立時段。"""
         crud = ScheduleCRUD()
         schedule_data = [
-            ScheduleCreate(
+            ScheduleData(
                 giver_id=1,
                 date="2024-01-15",
                 start_time="09:00:00",
@@ -672,8 +672,8 @@ class TestScheduleCRUD:
             crud.create_schedules(
                 db_session,
                 schedule_data,
-                updated_by=999,
-                updated_by_role=UserRoleEnum.GIVER,
+                created_by=999,
+                created_by_role=UserRoleEnum.GIVER,
             )
 
     def test_update_schedule_with_invalid_operator(self, db_session: Session):
@@ -686,7 +686,7 @@ class TestScheduleCRUD:
         db_session.commit()
 
         schedule_data = [
-            ScheduleCreate(
+            ScheduleData(
                 giver_id=user.id,
                 date=date(2024, 1, 15),
                 start_time=time(9, 0),
@@ -737,8 +737,8 @@ class TestScheduleCRUD:
             crud.delete_schedule(
                 db_session,
                 schedule.id,
-                updated_by=999,  # 不存在的使用者 ID
-                updated_by_role=UserRoleEnum.GIVER,
+                deleted_by=999,  # 不存在的使用者 ID
+                deleted_by_role=UserRoleEnum.GIVER,
             )
 
     def test_format_overlap_error_message(self, db_session: Session):
