@@ -6,14 +6,14 @@
 [![Alembic](https://img.shields.io/badge/Alembic-1.16+-purple.svg)](https://alembic.sqlalchemy.org/)
 [![Poetry](https://img.shields.io/badge/Poetry-1.8+-orange.svg)](https://python-poetry.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
 [![Test Coverage](https://img.shields.io/badge/Coverage-90%25-brightgreen.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
-[![Version](https://img.shields.io/badge/Version-1.2.0-blue.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
+[![Version](https://img.shields.io/badge/Version-1.3.0-blue.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
 
 ## 目錄
 
 - [專案概述](#專案概述)
-- [核心功能](#核心功能)
+  - [使用者故事](#使用者故事)
+  - [使用者流程圖](#使用者流程圖)
 - [專案特色](#專案特色)
 - [技術架構](#技術架構)
 - [快速開始](#快速開始)
@@ -27,45 +27,49 @@
 
 ## <a name="專案概述"></a>專案概述 [返回目錄 ↑](#目錄)
 
-讓 Giver（諮詢師）與 Taker（求職者）使用 104 履歷診療室時，雙方能在平台內，設定可面談時段並完成配對媒合，同時快速發送預計回覆時間通知，以減少等待回應時的不確定與焦慮感。
+讓 Giver（診療服務提供者）與 Taker（診療服務接受者）能在平台內，方便地設定可面談時段並完成配對媒合，同時提供即時通知，以減少等待回應時的不確定與焦慮感。
 
-### 用戶流程圖
+### <a name="使用者故事"></a>使用者故事 [返回目錄 ↑](#目錄)
+
+- **Giver**
+  - 作為 Giver，我希望能查看 Taker 提供的時間並快速回覆，以利進行諮詢
+  - 作為 Giver，我希望能新增可被預約諮詢的時間，以利 Taker 能預約我的時間
+  - 作為 Giver，我希望能查看 Taker 的預約請求並快速回覆，以利進行諮詢
+  - 作為 Giver，我希望能編輯尚未公開給 Taker 預約的諮詢時間，以利因應行程變動
+  - 作為 Giver，我希望能刪除尚未公開給 Taker 預約的諮詢時間，以利取消不再方便提供的時間
+  - 作為 Giver，我希望能刪除已公開，但 Taker 尚未預約的諮詢時間，以利取消不再方便提供的時間
+  - 作為 Giver，我希望收到預約請求後，能按個鍵就發送預計回覆時間的訊息，以減少我即時回覆的壓力、Taker 等待回應時的不確定與焦慮感
+  - 作為 Giver，我希望發送預計回覆時間的訊息後，時限前一天如果我還沒回覆，系統自動發提醒訊息，以免我忘了回覆
+- **Taker**
+  - 作為 Taker，我希望能查看 Giver 已提供且未被預約的時間並進行預約，以利安排諮詢
+  - 作為 Taker，我希望能新增我方便諮詢的時間，以利 Giver 回覆是否方便安排諮詢
+  - 作為 Taker，我希望能查看 Giver 的回覆狀態並快速回覆，以利進行諮詢
+  - 作為 Taker，我希望能編輯尚未送出給 Giver 的諮詢時間，以利因應行程變動
+  - 作為 Taker，我希望能刪除尚未送出給 Giver 的諮詢時間，以利取消不再方便提供的時間
+  - 作為 Taker，我希望能刪除已送出，但 Giver 尚未回覆的諮詢時間，以利取消不再方便提供的時間
+  - 作為 Taker，我希望送出預約後，如果 Giver 3 天內未回覆，系統自動發提醒訊息，以避免我要發訊息催 Giver 回覆的尷尬
+  - 作為 Taker，我希望收到 Giver 預計回覆時間的通知，但 Giver 逾期未回，系統自動發提醒訊息，以避免我要發訊息催 Giver 回覆的尷尬
+- **系統自動化功能**
+  - 作為系統，我希望 Giver、Taker 回覆時，另一方能即時收到訊息通知，以利盡早促成諮詢時間
+  - 作為系統，我希望 Giver、Taker 收到訊息通知後，能按個鍵就發送預計何時回覆訊息，以減少收到方即時回覆的壓力、發送方等待回應時的不確定與焦慮感 
+  - 作為系統，我希望能鎖定 Giver 已公開，且有 Taker 預約的諮詢時間，以免其他人搶約相同時間
+  - 作為系統，我希望Giver、Taker 所有互動，都在平台內完成，以維護平台體驗
+- **Admin**
+  - 作為 Admin，我希望能查看每週媒合與使用數據報表，以作為營運分析參考
+  - 作為 Admin，我希望能能封鎖或解封違規或不當使用的帳號，以確保系統安全、順暢運作
+
+### <a name="使用者流程圖"></a>使用者流程圖 [返回目錄 ↑](#目錄)
+
+完整流程請詳下圖，以下簡述本專案的主要使用者流程：
+
+- **Giver 流程**
+  - Giver 查看 Taker 提供的時段，並回覆自己是否方便
+  - Giver 提供可預約的時段，讓 Taker 預約
+- **Taker 流程**
+  - Taker 查看 Giver 提供的時段，並進行預約
+  - Taker 提供方便的時段，待 Giver 回覆是否方便
 
 ![104 履歷診療室 - 平台內諮詢時間媒合系統用戶流程](./static/images/content/user-flow.png)
-
-### 專案目標
-
-- **提升媒合效率**：自動化時間配對，減少人工協調時間
-- **改善用戶體驗**：即時通知和狀態更新，降低等待焦慮
-- **標準化流程**：建立統一的諮詢預約和管理流程
-- **資料分析**：提供諮詢數據分析，優化服務品質
-
-## <a name="核心功能"></a>核心功能 [返回目錄 ↑](#目錄)
-
-### 主要功能
-
-- **時間媒合系統**：Giver 和 Taker 可以設定可面談時段並完成配對
-- **即時通知**：快速發送預計回覆時間通知，減少等待回應時的不確定感
-
-### 使用者故事 (User Stories)
-
-#### Giver（諮詢師）視角
-
-- 作為 Giver，我希望能夠設定我的可諮詢時段，讓 Taker 可以預約
-- 作為 Giver，我希望能夠查看預約請求並快速回覆
-- 作為 Giver，我希望能夠管理我的諮詢時間表
-
-#### Taker（求職者）視角
-
-- 作為 Taker，我希望能夠搜尋合適的 Giver 並預約諮詢時段
-- 作為 Taker，我希望能夠收到即時的通知和狀態更新
-- 作為 Taker，我希望能夠查看諮詢歷史記錄
-
-#### 系統自動化功能
-
-- 作為系統，我希望能夠自動媒合最佳的時間配對
-- 作為系統，我希望能夠發送預計回覆時間通知
-- 作為系統，我希望能夠追蹤諮詢完成狀態
 
 ## <a name="專案特色"></a>專案特色 [返回目錄 ↑](#目錄)
 
@@ -98,6 +102,12 @@
 - **程式碼品質**: 自動格式化、型別檢查、風格檢查
 - **除錯工具**: 完整的日誌系統和錯誤處理
 - **開發腳本**: 豐富的開發工具和腳本
+
+### 🎯 **命名規範統一**
+
+- **語義清晰**: 統一的 API 模型和審計欄位命名規範
+- **型別安全**: 優化 Pydantic v2 模型配置，支援 ORM 轉換
+- **審計追蹤**: 完整的軟刪除機制和系統自動操作支援
 
 ## <a name="技術架構"></a>技術架構 [返回目錄 ↑](#目錄)
 
@@ -222,53 +232,46 @@
 │   │   └── script.js             # 主要腳本檔案
 │   └── README.md                 # 靜態檔案管理指南
 ├── scripts/                      # 開發工具腳本
-│   ├── clear_alembic_version.py  # Alembic 版本清理工具
-│   ├── config_validator.py       # 配置驗證腳本
-│   ├── cors/                     # CORS 相關腳本
-│   ├── create_test_data.py       # 測試資料建立
-│   ├── diagnose_timestamp.py     # 時間戳診斷
-│   ├── fix_timezone.py           # 時區修復
-│   ├── health_check.py           # 健康檢查
-│   ├── migrate_to_local_time.py  # 本地時間遷移
-│   ├── migrate_to_utc.py         # UTC 遷移
-│   ├── run_tests.py              # 測試執行腳本
-│   ├── test_database_config.py   # 資料庫配置測試
-│   ├── test_database_connection.py # 資料庫連線測試
-│   ├── test_local_time.py        # 本地時間測試
-│   ├── test_settings_validators.py # 設定驗證測試
-│   └── README.md                 # 腳本說明文件
+│   ├── clear_cache.py            # Python 快取清除工具（已優化）
+│   └── __init__.py               # 腳本模組初始化
 ├── alembic/                      # 資料庫遷移管理
 │   ├── env.py                    # Alembic 環境配置
 │   ├── script.py.mako            # 遷移腳本模板
-│   ├── sql_previews/             # SQL 預覽檔案
+│   ├── README                    # Alembic 說明文件
 │   └── versions/                 # 遷移檔案目錄
+│       ├── 2025_08_17_*.py       # 2025年8月17日遷移檔案
+│       ├── 2025_08_12_*.py       # 2025年8月12日遷移檔案
+│       ├── 2025_08_10_*.py       # 2025年8月10日遷移檔案
+│       └── 2025_08_09_*.py       # 2025年8月9日遷移檔案
 ├── database/                     # 資料庫檔案
-│   ├── backups/                  # 資料庫備份
+│   ├── data_backups/             # 資料庫備份
+│   │   ├── users_backup_*.json   # 使用者資料備份
+│   │   └── users_backup_*.sql    # 使用者資料 SQL 備份
 │   ├── schema.sql                # 資料庫結構（參考用）
-│   ├── schema_utc.sql            # UTC 時區資料庫結構（參考用）
-│   └── schema_best_practice.sql  # 最佳實踐資料庫結構
+│   └── README.md                 # 資料庫管理說明
 ├── docs/                         # 文件目錄
-│   ├── collaboration/            # 團隊協作確認指標
-│   │   ├── README.md             # 協作確認指標總覽
-│   │   ├── collaboration-overview.md # 跨角色協作重點
-│   │   ├── pm-collaboration-checklist.md # PM協作確認指標
-│   │   ├── frontend-collaboration-checklist.md # 前端工程師協作確認指標
-│   │   ├── qa-collaboration-checklist.md # QA協作確認指標
-│   │   └── uiux-collaboration-checklist.md # UI/UX協作確認指標
-│   ├── alembic_guide.md          # Alembic 資料庫遷移指南
-│   ├── database_connection_best_practices.md # 資料庫連線最佳實踐
-│   ├── import_guidelines.md      # 匯入指南
-│   ├── message_optimization.md   # 訊息優化指南
-│   ├── python_multipart_migration.md # Python multipart 遷移
-│   ├── python_multipart_usage.md # Python multipart 使用
-│   ├── test_constants_guide.md   # 測試常數指南
-│   ├── test_constants_restructure.md # 測試常數重構
-│   └── timezone_solution.md      # 時區解決方案
+│   ├── technical/                # 技術文件
+│   │   ├── api/                  # API 相關文件
+│   │   │   ├── api-best-practices.md # API 最佳實踐
+│   │   │   ├── api-design.md     # API 設計指南
+│   │   │   ├── api-endpoints-reference.md # API 端點參考
+│   │   │   └── api-layered-architecture.md # API 分層架構
+│   │   └── database/             # 資料庫相關文件
+│   │       ├── alembic_guide.md  # Alembic 資料庫遷移指南
+│   │       └── database_connection_best_practices.md # 資料庫連線最佳實踐
+│   ├── guides/                   # 使用指南
+│   │   └── setup/                # 設定指南
+│   │       └── installation.md   # 安裝指南
+│   ├── testing/                  # 測試相關文件
+│   │   ├── 104_resume_clinic_api_collection.json # Postman API 集合
+│   │   └── postman_testing_guide.md # Postman 測試指南
+│   └── README.md                 # 文件目錄說明
 ├── logs/                         # 日誌檔案
 ├── .env                          # 環境變數（本地開發）
 ├── .env.example                  # 環境變數範例
-├── .gitignore                    # Git 忽略檔案
+├── .coverage                     # 測試覆蓋率報告
 ├── .flake8                       # Flake8 配置
+├── .gitignore                    # Git 忽略檔案
 ├── .pre-commit-config.yaml       # Pre-commit 配置
 ├── alembic.ini                   # Alembic 主配置檔案
 ├── pyproject.toml                # Poetry 專案配置
@@ -299,14 +302,8 @@ poetry run alembic upgrade head
 # 5. 啟動開發伺服器
 poetry run uvicorn app.main:app --reload --reload-dir app
 ```
-
-### 📖 **文檔導覽**
-
-- **[團隊協作確認指標](docs/collaboration/README.md)**: 跨角色協作檢查清單和最佳實踐
-- **[測試管理指南](tests/README.md)**: 完整的測試策略和最佳實踐
-- **[靜態檔案管理指南](static/README.md)**: 靜態資源組織和命名規範
-- **[開發腳本說明](scripts/README.md)**: 開發工具和腳本使用指南
-- **[資料庫遷移指南](docs/alembic_guide.md)**: Alembic 使用和最佳實踐
+ 
+- **[測試管理指南](tests/README.md)**: 完整的測試策略和最佳實踐 
 
 ### 🗂️ **目錄結構**
 
@@ -366,39 +363,28 @@ poetry run uvicorn app.main:app --reload --reload-dir app
 
 6. **資料庫遷移管理**
 
-   本專案使用 Alembic 進行資料庫 schema 版本控制，提供以下優勢：
-
-   - 🔄 **版本控制**: 追蹤所有資料庫結構變更
-   - 🚀 **自動遷移**: 支援向前和向後遷移
-   - 👥 **團隊協作**: 確保所有開發者資料庫同步
-   - 🛡️ **安全性**: 避免手動 SQL 操作錯誤
-
-   **基本命令：**
+   本專案使用 Alembic 進行資料庫 schema 版本控制：
 
    ```bash
+
+   # 修改模型後，自動檢測模型變更並生成遷移
+   poetry run alembic revision --autogenerate -m "描述變更"
+
+   # 升級到最新版本
+   poetry run alembic upgrade head
+
    # 查看當前資料庫版本
    poetry run alembic current
 
-   # 應用所有遷移到最新版本（首次設置）
-   poetry run alembic upgrade head
+   # 查看詳細歷史（包含分支）
+   poetry run alembic history --verbose 
 
-   # 查看遷移歷史
-   poetry run alembic history
-
-   # 創建新的遷移（修改模型後）
-   poetry run alembic revision --autogenerate -m "描述變更"
-
-   # 回滾到上一個版本
+   # 升級一個版本
+   poetry run alembic upgrade +1 
+ 
+   # 回滾一個版本
    poetry run alembic downgrade -1
    ```
-
-   **注意事項：**
-
-   - ⚠️ 生產環境應用遷移前務必備份資料庫
-   - 📝 檢查自動生成的遷移檔案是否正確
-   - 🧪 在測試環境先驗證遷移
-
-   詳細使用方法請參考：[Alembic 使用指南](docs/alembic_guide.md)
 
 ### 3. 啟動方式
 
@@ -770,6 +756,31 @@ refactor: 重構資料庫模型
 
 ## <a name="更新日誌"></a>更新日誌 [返回目錄 ↑](#目錄)
 
+### v1.3.0 (2025-01-15)
+
+- 🔧 **命名規範統一**
+  - 統一 API 模型、CRUD 層、資料庫模型和前端之間的命名規範
+  - 建立操作語義清晰的審計欄位命名（created_by, updated_by, deleted_by）
+  - 優化 Pydantic v2 模型配置，支援 ORM 轉換和欄位名稱對應
+  - 完善軟刪除機制，支援系統自動操作和審計追蹤
+  - 確保所有測試通過，達到 221 passed, 2 skipped 的測試覆蓋率
+- 🎯 **API 模型優化**
+  - 統一 `ScheduleCreateRequest`、`ScheduleUpdateRequest`、`ScheduleDeleteRequest` 的欄位命名
+  - 優化 `ScheduleData` 和 `ScheduleUpdateData` 的語義區分
+  - 完善 API 請求/回應模型的型別安全
+- 🗄️ **資料庫審計追蹤**
+  - 實現完整的軟刪除機制（deleted_at, deleted_by, deleted_by_role）
+  - 支援系統自動操作（NULL 值表示系統操作）
+  - 建立完整的審計欄位追蹤（created_by, updated_by, deleted_by）
+- 🧪 **測試架構完善**
+  - 修正所有測試中的參數名稱不一致問題
+  - 統一 CRUD 測試、API 測試和整合測試的命名規範
+  - 確保測試覆蓋率達到 90% 以上
+- 📚 **技術文檔更新**
+  - 新增 Pydantic v2 配置說明
+  - 完善審計欄位設計理念文檔
+  - 更新 API 模型命名規範指南
+
 ### v1.2.0 (2025-01-15)
 
 - 🏗️ **專案架構重構**
@@ -797,6 +808,12 @@ refactor: 重構資料庫模型
   - 提供跨角色協作檢查清單
   - 涵蓋 PM、前端工程師、QA、UI/UX 四個角色
   - 建立標準化的協作流程和品質標準
+- 🔧 **命名規範統一**
+  - 統一 API 模型、CRUD 層、資料庫模型和前端之間的命名規範
+  - 建立操作語義清晰的審計欄位命名（created_by, updated_by, deleted_by）
+  - 優化 Pydantic v2 模型配置，支援 ORM 轉換和欄位名稱對應
+  - 完善軟刪除機制，支援系統自動操作和審計追蹤
+  - 確保所有測試通過，達到 221 passed, 2 skipped 的測試覆蓋率
 
 ### v1.1.0 (2025-01-10)
 
