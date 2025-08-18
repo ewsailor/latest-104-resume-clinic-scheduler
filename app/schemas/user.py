@@ -25,5 +25,4 @@ class UserResponse(BaseModel):
     email: EmailStr
     created_at: datetime = Field(description="建立時間（本地時間）")
     updated_at: datetime = Field(description="更新時間（本地時間）")
-    updated_by: int | None = Field(None, description="最後更新者的使用者 ID")
     deleted_at: datetime | None = Field(None, description="軟刪除標記（本地時間）")
