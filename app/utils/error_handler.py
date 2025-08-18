@@ -2,6 +2,17 @@
 錯誤處理工具模組。
 
 提供統一的錯誤處理機制，包括錯誤類型定義、錯誤回應格式化和錯誤日誌記錄。
+
+架構說明：
+- 此模組作為整個應用程式的錯誤處理核心
+- 所有其他模組（routers、crud、middleware）都應該使用此模組的錯誤類型
+- 不建議在其他資料夾創建獨立的 error_handler.py
+- 如需特定業務邏輯錯誤，應在此模組中擴展，而不是創建新的錯誤處理模組
+
+使用方式：
+1. 在路由層：使用預定義的錯誤類型（如 NotFoundError、BusinessLogicError）
+2. 在業務邏輯層：使用 safe_execute 函數包裝可能出錯的操作
+3. 在中間件層：使用 format_error_response 格式化錯誤回應
 """
 
 # ===== 標準函式庫 =====
@@ -20,8 +31,12 @@ from app.utils.timezone import get_utc_timestamp
 logger = logging.getLogger(__name__)
 
 
+# ===== 錯誤代碼常數 =====
 class ErrorCode:
-    """錯誤代碼常數類別"""
+    """錯誤代碼常數類別
+
+    注意：所有錯誤代碼都應在此處定義，避免在其他模組中重複定義
+    """
 
     # 驗證錯誤
     VALIDATION_ERROR = "VALIDATION_ERROR"
@@ -51,6 +66,9 @@ class ErrorCode:
     INTERNAL_ERROR = "INTERNAL_ERROR"
     EXTERNAL_SERVICE_ERROR = "EXTERNAL_SERVICE_ERROR"
     RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED"
+
+
+# ===== 錯誤類型定義 =====
 
 
 class APIError(Exception):
