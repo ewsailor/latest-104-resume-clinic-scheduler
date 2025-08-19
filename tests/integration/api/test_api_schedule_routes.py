@@ -54,12 +54,11 @@ class TestScheduleAPI:
         # 使用更遠的日期避免重疊，並增加隨機性
         # 添加時間戳以確保每次測試都不同
         timestamp = int(time.time()) % 10000  # 使用時間戳的後4位
-        future_date = datetime.date.today() + datetime.timedelta(
-            days=random.randint(400, 500)
-            + timestamp % 100  # 使用更遠的日期和更大的隨機性
-        )
+        random_days = random.randint(600, 700) + timestamp % 100  # 使用更遠的日期
+        future_date = datetime.date.today() + datetime.timedelta(days=random_days)
+
         # 使用隨機時間避免重疊
-        hour1 = random.randint(8, 16) + (timestamp % 3)  # 額外的隨機性
+        hour1 = random.randint(8, 12) + (timestamp % 4)  # 額外的隨機性
         hour2 = hour1 + 2  # 確保不重疊
         return {
             "schedules": [
@@ -241,7 +240,7 @@ class TestScheduleAPI:
         # 驗證回應
         assert response.status_code == 500
         data = response.json()
-        assert "查詢時段失敗" in data["error"]["message"]
+        assert "查詢時段列表失敗" in data["error"]["message"]
 
     def test_get_schedule_by_id_success(self):
         """測試成功根據 ID 取得時段。"""
@@ -317,7 +316,7 @@ class TestScheduleAPI:
         # 驗證異常處理
         assert response.status_code == 500
         data = response.json()
-        assert "查詢時段失敗" in data["error"]["message"]
+        assert "查詢單一時段失敗" in data["error"]["message"]
 
     def test_update_schedule_success(self, sample_schedule_data):
         """測試成功更新時段。"""
@@ -669,30 +668,34 @@ class TestScheduleAPI:
 
         # 使用更隨機的日期範圍以避免與其他測試衝突
         timestamp = int(time.time()) % 10000
-        future_date = datetime.date.today() + datetime.timedelta(
-            days=random.randint(200, 300)
-            + timestamp % 100  # 使用更遠的日期和更大的隨機性
-        )
+        random_days = random.randint(400, 500) + timestamp % 100  # 使用更遠的日期
+        future_date = datetime.date.today() + datetime.timedelta(days=random_days)
+
+        # 使用隨機時間避免重疊
+        hour1 = random.randint(8, 12) + (timestamp % 4)
+        hour2 = hour1 + 2  # 確保不重疊
+        hour3 = random.randint(14, 18) + (timestamp % 3)
+
         bulk_data = [
             {
                 "giver_id": 1,
                 "date": future_date.strftime("%Y-%m-%d"),
-                "start_time": "09:00:00",
-                "end_time": "10:00:00",
+                "start_time": f"{hour1:02d}:00:00",
+                "end_time": f"{hour1+1:02d}:00:00",
                 "status": "AVAILABLE",
             },
             {
                 "giver_id": 1,
                 "date": future_date.strftime("%Y-%m-%d"),
-                "start_time": "10:00:00",
-                "end_time": "11:00:00",
+                "start_time": f"{hour2:02d}:00:00",
+                "end_time": f"{hour2+1:02d}:00:00",
                 "status": "AVAILABLE",
             },
             {
                 "giver_id": 2,
                 "date": (future_date + datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
-                "start_time": "14:00:00",
-                "end_time": "15:00:00",
+                "start_time": f"{hour3:02d}:00:00",
+                "end_time": f"{hour3+1:02d}:00:00",
                 "status": "AVAILABLE",
             },
         ]

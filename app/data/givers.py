@@ -4,9 +4,9 @@ Giver 資料模組。
 提供 Giver 相關的資料和常數定義。
 """
 
-from typing import Any, Optional
+from typing import Any
 
-# ===== 測試用 Giver 資料 =====
+# ===== 測試用 Giver 資料 14 筆 =====
 MOCK_GIVERS = [
     {
         "id": 1,

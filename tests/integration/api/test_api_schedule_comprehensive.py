@@ -277,7 +277,7 @@ class TestAPIScheduleComprehensive:
 
         # 驗證異常詳情
         assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert "查詢時段失敗" in str(exc_info.value.detail)
+        assert "查詢時段列表失敗" in str(exc_info.value.detail)
         assert "查詢失敗" in str(exc_info.value.detail)
 
     # ===== 邊界情況測試 =====

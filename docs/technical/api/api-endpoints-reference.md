@@ -365,16 +365,17 @@
 
 | 狀態碼 | 描述                  | 使用場景                   |
 | ------ | --------------------- | -------------------------- |
-| 200    | OK                    | 請求成功                   |
+| 200    | OK                    | 請求成功、更新成功                   |
 | 201    | Created               | 資源建立成功               |
 | 204    | No Content            | 請求成功但無回應內容       |
 | 400    | Bad Request           | 請求格式錯誤或業務邏輯錯誤 |
-| 401    | Unauthorized          | 未授權                     |
-| 403    | Forbidden             | 禁止訪問                   |
+| 401    | Unauthorized          | 未授權，如未提供 `JWT`、尚未登入    |
+| 403    | Forbidden             | 禁止訪問，如權限不足                  |
 | 404    | Not Found             | 資源不存在                 |
-| 422    | Unprocessable Entity  | 請求語義錯誤               |
-| 500    | Internal Server Error | 伺服器內部錯誤             |
-| 503    | Service Unavailable   | 服務不可用                 |
+| 409    | Conflict              | 資源衝突，如時段重疊                |
+| 422    | Unprocessable Entity  | 請求語義錯誤、Pydantic 資料驗證失敗               |
+| 500    | Internal Server Error | 伺服器內部錯誤，如資料庫錯誤             |
+| 503    | Service Unavailable   | 服務不可用，如維護或超載     |
 
 ### 常見錯誤回應
 
