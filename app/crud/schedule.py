@@ -40,6 +40,7 @@ from app.utils.error_handler import (
     safe_execute,
 )
 from app.utils.timezone import get_local_now_naive  # 時區工具
+from app.utils.validators import ParameterValidator, validate_parameters  # 參數驗證工具
 
 
 class ScheduleCRUD:
@@ -64,12 +65,7 @@ class ScheduleCRUD:
             ValueError: 當輸入參數無效時
             Exception: 當 SQLAlchemy 操作失敗時
         """
-        # 驗證輸入參數
-        if include_relations is not None and not isinstance(include_relations, list):
-            raise ValueError(
-                f"無效的 include_relations 類型: {type(include_relations).__name__}, 期望 list[str]"
-            )
-
+        # 如果沒有傳入參數，使用預設值（簡化驗證）
         if include_relations is None:
             # 預設載入所有關聯
             include_relations = [
@@ -79,6 +75,11 @@ class ScheduleCRUD:
                 'updated_by_user',
                 'deleted_by_user',
             ]
+        else:
+            # 只有在實際傳入參數時才進行驗證
+            include_relations = ParameterValidator.validate_list(
+                include_relations, "include_relations", str
+            )
 
         options = []
         relation_mapping = {
@@ -92,11 +93,6 @@ class ScheduleCRUD:
         # 驗證關聯名稱並建立選項
         invalid_relations = []
         for relation in include_relations:
-            if not isinstance(relation, str):
-                raise ValueError(
-                    f"無效的關聯名稱類型: {type(relation).__name__}, 期望 str"
-                )
-
             if relation in relation_mapping:
                 options.append(relation_mapping[relation])
             else:
@@ -129,12 +125,8 @@ class ScheduleCRUD:
             NotFoundError: 當使用者不存在時
             DatabaseError: 當資料庫操作失敗時
         """
-        # 驗證輸入參數
-        if not isinstance(user_id, int) or user_id <= 0:
-            raise ValueError(f"無效的 user_id: {user_id}")
-
-        if not isinstance(context, str):
-            raise ValueError(f"無效的 context 類型: {type(context).__name__}, 期望 str")
+        user_id = ParameterValidator.validate_positive_int(user_id, "user_id")
+        context = ParameterValidator.validate_string(context, "context")
 
         # 執行資料庫查詢
         user = db.query(User).filter(User.id == user_id).first()
@@ -175,21 +167,17 @@ class ScheduleCRUD:
             DatabaseError: 當資料庫操作失敗時
             ValueError: 當輸入參數無效時
         """
-        # 驗證輸入參數
-        if not isinstance(giver_id, int) or giver_id <= 0:
-            raise ValueError(f"無效的 giver_id: {giver_id}")
+        # 使用新的驗證工具
+        giver_id = ParameterValidator.validate_positive_int(giver_id, "giver_id")
+        schedule_date = ParameterValidator.validate_date(schedule_date, "schedule_date")
+        start_time = ParameterValidator.validate_time(start_time, "start_time")
+        end_time = ParameterValidator.validate_time(end_time, "end_time")
+        exclude_schedule_id = ParameterValidator.validate_optional_positive_int(
+            exclude_schedule_id, "exclude_schedule_id"
+        )
 
-        if not isinstance(schedule_date, date):
-            raise ValueError(f"無效的 schedule_date: {schedule_date}")
-
-        if not isinstance(start_time, time):
-            raise ValueError(f"無效的 start_time: {start_time}")
-
-        if not isinstance(end_time, time):
-            raise ValueError(f"無效的 end_time: {end_time}")
-
-        if start_time >= end_time:
-            raise ValueError(f"開始時間必須早於結束時間: {start_time} >= {end_time}")
+        # 驗證時間範圍
+        ParameterValidator.validate_time_range(start_time, end_time)
 
         # 查詢同一天同一 giver 的所有時段（排除已軟刪除的記錄）
         query = db.query(Schedule).filter(
@@ -202,8 +190,6 @@ class ScheduleCRUD:
 
         # 排除指定時段（用於更新時排除自己）
         if exclude_schedule_id is not None:
-            if not isinstance(exclude_schedule_id, int) or exclude_schedule_id <= 0:
-                raise ValueError(f"無效的 exclude_schedule_id: {exclude_schedule_id}")
             query = query.filter(Schedule.id != exclude_schedule_id)
 
         existing_schedules = query.all()
@@ -233,6 +219,12 @@ class ScheduleCRUD:
         created_by: int,
         created_by_role: UserRoleEnum,
     ) -> list[Schedule]:
+        # 使用驗證器驗證基本參數
+        ParameterValidator.validate_list(schedules, "schedules", ScheduleData)
+        created_by = ParameterValidator.validate_positive_int(created_by, "created_by")
+        ParameterValidator.validate_required(
+            created_by_role, "created_by_role", UserRoleEnum
+        )
         """
         建立多個時段。
 
@@ -356,16 +348,15 @@ class ScheduleCRUD:
             ValueError: 當輸入參數無效時
         """
         # 驗證輸入參數
-        if giver_id is not None and (not isinstance(giver_id, int) or giver_id <= 0):
-            raise ValueError(f"無效的 giver_id: {giver_id}")
-
-        if taker_id is not None and (not isinstance(taker_id, int) or taker_id <= 0):
-            raise ValueError(f"無效的 taker_id: {taker_id}")
-
-        if status_filter is not None and not isinstance(status_filter, str):
-            raise ValueError(
-                f"無效的 status_filter 類型: {type(status_filter).__name__}, 期望 str"
-            )
+        giver_id = ParameterValidator.validate_optional_positive_int(
+            giver_id, "giver_id"
+        )
+        taker_id = ParameterValidator.validate_optional_positive_int(
+            taker_id, "taker_id"
+        )
+        status_filter = ParameterValidator.validate_optional_string(
+            status_filter, "status_filter"
+        )
 
         query = db.query(Schedule).options(*self._get_schedule_query_options())
 
@@ -379,14 +370,12 @@ class ScheduleCRUD:
         if taker_id is not None:
             filters.append(Schedule.taker_id == taker_id)
         if status_filter is not None:
-            # 將字串狀態值轉換為 ENUM
-            try:
-                status_enum = ScheduleStatusEnum(status_filter)
-                filters.append(Schedule.status == status_enum)
-            except ValueError:
-                raise ValueError(
-                    f"無效的狀態值: {status_filter}，有效值為: {[e.value for e in ScheduleStatusEnum]}"
-                )
+            # 使用新的驗證工具驗證枚舉值
+            ParameterValidator.validate_enum_value(
+                status_filter, "status_filter", ScheduleStatusEnum
+            )
+            status_enum = ScheduleStatusEnum(status_filter)
+            filters.append(Schedule.status == status_enum)
 
         if filters:
             query = query.filter(and_(*filters))
@@ -400,6 +389,7 @@ class ScheduleCRUD:
 
         return schedules
 
+    @validate_parameters(schedule_id=dict(type=int, min_value=1))
     def get_schedule_by_id(self, db: Session, schedule_id: int) -> Schedule:
         """
         根據 ID 查詢單一時段（排除已軟刪除的記錄）。
@@ -414,6 +404,7 @@ class ScheduleCRUD:
         Raises:
             NotFoundError: 當時段不存在或已軟刪除時
         """
+
         schedule = (
             db.query(Schedule)
             .options(*self._get_schedule_query_options())
@@ -426,6 +417,7 @@ class ScheduleCRUD:
 
         return schedule
 
+    @validate_parameters(schedule_id=dict(type=int, min_value=1))
     def get_schedule_by_id_including_deleted(
         self, db: Session, schedule_id: int
     ) -> Schedule | None:
@@ -439,6 +431,7 @@ class ScheduleCRUD:
         Returns:
             Schedule | None: 找到的時段物件，如果不存在則返回 None
         """
+
         return (
             db.query(Schedule)
             .options(*self._get_schedule_query_options())
@@ -455,6 +448,14 @@ class ScheduleCRUD:
         updated_by_role: UserRoleEnum,
         **kwargs: Any,
     ) -> Schedule:
+        # 使用驗證器驗證基本參數
+        schedule_id = ParameterValidator.validate_positive_int(
+            schedule_id, "schedule_id"
+        )
+        updated_by = ParameterValidator.validate_positive_int(updated_by, "updated_by")
+        ParameterValidator.validate_required(
+            updated_by_role, "updated_by_role", UserRoleEnum
+        )
         """
         更新時段。
 
@@ -494,6 +495,20 @@ class ScheduleCRUD:
 
         # 如果更新了時間相關欄位，先進行重疊檢查
         if need_overlap_check:
+            # 驗證時間相關欄位
+            if "schedule_date" in kwargs:
+                kwargs["schedule_date"] = ParameterValidator.validate_date(
+                    kwargs["schedule_date"], "schedule_date"
+                )
+            if "start_time" in kwargs:
+                kwargs["start_time"] = ParameterValidator.validate_time(
+                    kwargs["start_time"], "start_time"
+                )
+            if "end_time" in kwargs:
+                kwargs["end_time"] = ParameterValidator.validate_time(
+                    kwargs["end_time"], "end_time"
+                )
+
             # 取得更新後的時間值
             new_date = kwargs.get("schedule_date", schedule.date)
             new_start_time = kwargs.get("start_time", schedule.start_time)
@@ -555,6 +570,17 @@ class ScheduleCRUD:
         deleted_by: int | None = None,
         deleted_by_role: UserRoleEnum | None = None,
     ) -> bool:
+        # 使用驗證器驗證基本參數
+        schedule_id = ParameterValidator.validate_positive_int(
+            schedule_id, "schedule_id"
+        )
+        deleted_by = ParameterValidator.validate_optional_positive_int(
+            deleted_by, "deleted_by"
+        )
+        if deleted_by_role is not None:
+            ParameterValidator.validate_required(
+                deleted_by_role, "deleted_by_role", UserRoleEnum
+            )
         """
         軟刪除時段。
 
