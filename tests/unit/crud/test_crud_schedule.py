@@ -673,7 +673,7 @@ class TestScheduleCRUD:
         ]
 
         # 嘗試使用不存在的操作者ID
-        with pytest.raises(NotFoundError, match="使用者不存在: ID=999"):
+        with pytest.raises(NotFoundError, match="建立者不存在: ID=999"):
             crud.create_schedules(
                 db_session,
                 schedule_data,
