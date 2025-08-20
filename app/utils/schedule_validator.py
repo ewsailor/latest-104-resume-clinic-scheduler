@@ -20,7 +20,7 @@ from app.errors import (
 from app.models.schedule import Schedule
 from app.models.user import User
 from app.schemas import ScheduleData
-from app.validation import ParameterValidator, validate_schedule_data_complete
+from app.validation import TypeValidators, validate_schedule_data_complete
 
 
 class ScheduleValidator:
@@ -82,8 +82,11 @@ class ScheduleValidator:
         """
         self.logger.info(f"開始驗證 {len(schedules)} 個時段")
 
-        # 驗證列表參數
-        ParameterValidator.validate_list(schedules, "schedules", ScheduleData)
+        # 驗證列表參數 - 檢查是否為列表且不為空
+        if not isinstance(schedules, list):
+            raise ValueError("schedules 必須是列表")
+        if len(schedules) == 0:
+            raise ValueError("schedules 不能為空列表")
 
         # 驗證每個時段
         for i, schedule_data in enumerate(schedules):

@@ -20,7 +20,7 @@ from app.models.schedule import Schedule
 from app.schemas import ScheduleData
 
 from .base import BaseValidator, ValidationError
-from .parameter import ParameterValidator, TypeValidators
+from .parameter import TypeValidators
 
 # 暫時移除，避免循環導入
 # from app.utils.schedule_validator import ScheduleValidator
@@ -379,11 +379,11 @@ def validate_schedule_data_basic(schedule_data: ScheduleData) -> None:
         ValueError: 當驗證失敗時
     """
     # 驗證 giver_id
-    ParameterValidator.validate_positive_int(schedule_data.giver_id, "giver_id")
+    TypeValidators.positive_int.validate(schedule_data.giver_id, "giver_id")
 
     # 驗證 taker_id（如果提供）
     if schedule_data.taker_id is not None:
-        ParameterValidator.validate_positive_int(schedule_data.taker_id, "taker_id")
+        TypeValidators.positive_int.validate(schedule_data.taker_id, "taker_id")
 
 
 def validate_schedule_data_complete(

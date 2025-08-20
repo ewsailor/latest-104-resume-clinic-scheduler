@@ -3,10 +3,6 @@
 
 提供統一的參數驗證功能，減少重複的驗證程式碼。
 這些是純邏輯驗證，不包含業務邏輯。
-
-包含兩種驗證方式：
-1. 靜態方法：適合簡單的參數驗證
-2. 類別驗證器：適合複雜的驗證場景和重複使用
 """
 
 import inspect
@@ -22,123 +18,6 @@ from .base import BaseValidator, ValidationError
 logger = logging.getLogger(__name__)
 
 T = TypeVar('T')
-
-
-class ParameterValidator:
-    """參數驗證器類別。"""
-
-    @staticmethod
-    def validate_positive_int(value: Any, param_name: str) -> int:
-        """驗證正整數。"""
-        if not isinstance(value, int) or value <= 0:
-            raise APIValidationError(f"無效的 {param_name}: {value}，必須為正整數")
-        return value
-
-    @staticmethod
-    def validate_optional_positive_int(value: Any, param_name: str) -> int | None:
-        """驗證可選的正整數。"""
-        if value is None:
-            return None
-        return ParameterValidator.validate_positive_int(value, param_name)
-
-    @staticmethod
-    def validate_string(value: Any, param_name: str, min_length: int = 0) -> str:
-        """驗證字串。"""
-        if not isinstance(value, str):
-            raise APIValidationError(
-                f"無效的 {param_name} 類型: {type(value).__name__}, 期望 str"
-            )
-        if len(value) < min_length:
-            raise APIValidationError(
-                f"{param_name} 長度不能小於 {min_length}: {len(value)}"
-            )
-        return value
-
-    @staticmethod
-    def validate_optional_string(
-        value: Any, param_name: str, min_length: int = 0
-    ) -> str | None:
-        """驗證可選的字串。"""
-        if value is None:
-            return None
-        return ParameterValidator.validate_string(value, param_name, min_length)
-
-    @staticmethod
-    def validate_list(
-        value: Any, param_name: str, item_type: Type = str, min_length: int = 0
-    ) -> list:
-        """驗證列表。"""
-        if not isinstance(value, list):
-            raise APIValidationError(
-                f"無效的 {param_name} 類型: {type(value).__name__}, 期望 list"
-            )
-        if len(value) < min_length:
-            raise APIValidationError(
-                f"{param_name} 長度不能小於 {min_length}: {len(value)}"
-            )
-        for i, item in enumerate(value):
-            if not isinstance(item, item_type):
-                raise APIValidationError(
-                    f"{param_name}[{i}] 類型錯誤: "
-                    f"{type(item).__name__}, 期望 {item_type.__name__}"
-                )
-        return value
-
-    @staticmethod
-    def validate_date(value: Any, param_name: str) -> date:
-        """驗證日期。"""
-        if not isinstance(value, date):
-            raise APIValidationError(
-                f"無效的 {param_name} 類型: {type(value).__name__}, 期望 date"
-            )
-        return value
-
-    @staticmethod
-    def validate_time(value: Any, param_name: str) -> time:
-        """驗證時間。"""
-        if not isinstance(value, time):
-            raise APIValidationError(
-                f"無效的 {param_name} 類型: {type(value).__name__}, 期望 time"
-            )
-        return value
-
-    @staticmethod
-    def validate_time_range(
-        start_time: time,
-        end_time: time,
-        start_param: str = "start_time",
-        end_param: str = "end_time",
-    ) -> None:
-        """驗證時間範圍。"""
-        if start_time >= end_time:
-            raise APIValidationError(
-                f"{start_param} 必須早於 {end_param}: {start_time} >= {end_time}"
-            )
-
-    @staticmethod
-    def validate_enum_value(
-        value: Any,
-        param_name: str,
-        enum_class: Type,
-        valid_values: list[str] | None = None,
-    ) -> str:
-        """驗證枚舉值。"""
-        result = ParameterValidator.validate_string(value, param_name)
-        try:
-            enum_class(result)
-        except ValueError:
-            if valid_values is None:
-                valid_values = [e.value for e in enum_class]
-            raise APIValidationError(
-                f"無效的 {param_name} 值: {result}，有效值為: {valid_values}"
-            )
-        return result
-
-
-# ============================================================================
-# 類別驗證器（Class-based Validators）
-# 提供更靈活的驗證方式，適合複雜的驗證場景
-# ============================================================================
 
 
 class PositiveIntValidator(BaseValidator[int]):

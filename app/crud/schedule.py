@@ -41,7 +41,7 @@ from app.utils.crud_decorators import (
 )
 from app.utils.schedule_validator import ScheduleValidator  # 時段驗證器
 from app.utils.timezone import get_local_now_naive  # 時區工具
-from app.validation import ParameterValidator, validate_parameters  # 參數驗證工具
+from app.validation import TypeValidators, validate_parameters  # 參數驗證工具
 
 
 class ScheduleCRUD:
@@ -79,9 +79,9 @@ class ScheduleCRUD:
             ]
         else:
             # 只有在實際傳入參數時才進行驗證
-            include_relations = ParameterValidator.validate_list(
-                include_relations, "include_relations", str
-            )
+            include_relations = TypeValidators.list_of(
+                TypeValidators.string, 0
+            ).validate(include_relations, "include_relations")
 
         options = []
         relation_mapping = {
@@ -127,8 +127,8 @@ class ScheduleCRUD:
             NotFoundError: 當使用者不存在時
             DatabaseError: 當資料庫操作失敗時
         """
-        user_id = ParameterValidator.validate_positive_int(user_id, "user_id")
-        context = ParameterValidator.validate_string(context, "context")
+        user_id = TypeValidators.positive_int.validate(user_id, "user_id")
+        context = TypeValidators.string.validate(context, "context")
 
         # 執行資料庫查詢
         user = db.query(User).filter(User.id == user_id).first()
@@ -170,16 +170,17 @@ class ScheduleCRUD:
             ValueError: 當輸入參數無效時
         """
         # 使用新的驗證工具
-        giver_id = ParameterValidator.validate_positive_int(giver_id, "giver_id")
-        schedule_date = ParameterValidator.validate_date(schedule_date, "schedule_date")
-        start_time = ParameterValidator.validate_time(start_time, "start_time")
-        end_time = ParameterValidator.validate_time(end_time, "end_time")
-        exclude_schedule_id = ParameterValidator.validate_optional_positive_int(
+        giver_id = TypeValidators.positive_int.validate(giver_id, "giver_id")
+        schedule_date = TypeValidators.date.validate(schedule_date, "schedule_date")
+        start_time = TypeValidators.time.validate(start_time, "start_time")
+        end_time = TypeValidators.time.validate(end_time, "end_time")
+        exclude_schedule_id = TypeValidators.optional_positive_int.validate(
             exclude_schedule_id, "exclude_schedule_id"
         )
 
         # 驗證時間範圍
-        ParameterValidator.validate_time_range(start_time, end_time)
+        if end_time <= start_time:
+            raise ValueError(f"結束時間 ({end_time}) 必須晚於開始時間 ({start_time})")
 
         # 使用 validator 中的方法進行重疊檢查
         return self.validator.check_schedule_overlap(
@@ -219,10 +220,8 @@ class ScheduleCRUD:
         )
 
         # 驗證建立者參數
-        created_by = ParameterValidator.validate_positive_int(created_by, "created_by")
-        ParameterValidator.validate_enum_value(
-            created_by_role, "created_by_role", UserRoleEnum
-        )
+        created_by = TypeValidators.positive_int.validate(created_by, "created_by")
+        TypeValidators.enum(UserRoleEnum).validate(created_by_role, "created_by_role")
 
         # 驗證建立者是否存在
         creator = self.validator.validate_user_exists(db, created_by, "建立者")
@@ -363,13 +362,9 @@ class ScheduleCRUD:
             ValueError: 當輸入參數無效時
         """
         # 驗證輸入參數
-        giver_id = ParameterValidator.validate_optional_positive_int(
-            giver_id, "giver_id"
-        )
-        taker_id = ParameterValidator.validate_optional_positive_int(
-            taker_id, "taker_id"
-        )
-        status_filter = ParameterValidator.validate_optional_string(
+        giver_id = TypeValidators.optional_positive_int.validate(giver_id, "giver_id")
+        taker_id = TypeValidators.optional_positive_int.validate(taker_id, "taker_id")
+        status_filter = TypeValidators.optional_string.validate(
             status_filter, "status_filter"
         )
 
@@ -386,8 +381,8 @@ class ScheduleCRUD:
             filters.append(Schedule.taker_id == taker_id)
         if status_filter is not None:
             # 使用新的驗證工具驗證枚舉值
-            ParameterValidator.validate_enum_value(
-                status_filter, "status_filter", ScheduleStatusEnum
+            TypeValidators.enum(ScheduleStatusEnum).validate(
+                status_filter, "status_filter"
             )
             status_enum = ScheduleStatusEnum(status_filter)
             filters.append(Schedule.status == status_enum)
@@ -464,13 +459,9 @@ class ScheduleCRUD:
         **kwargs: Any,
     ) -> Schedule:
         # 使用驗證器驗證基本參數
-        schedule_id = ParameterValidator.validate_positive_int(
-            schedule_id, "schedule_id"
-        )
-        updated_by = ParameterValidator.validate_positive_int(updated_by, "updated_by")
-        ParameterValidator.validate_enum_value(
-            updated_by_role, "updated_by_role", UserRoleEnum
-        )
+        schedule_id = TypeValidators.positive_int.validate(schedule_id, "schedule_id")
+        updated_by = TypeValidators.positive_int.validate(updated_by, "updated_by")
+        TypeValidators.enum(UserRoleEnum).validate(updated_by_role, "updated_by_role")
         """
         更新時段。
 
@@ -512,15 +503,15 @@ class ScheduleCRUD:
         if need_overlap_check:
             # 驗證時間相關欄位
             if "schedule_date" in kwargs:
-                kwargs["schedule_date"] = ParameterValidator.validate_date(
+                kwargs["schedule_date"] = TypeValidators.date.validate(
                     kwargs["schedule_date"], "schedule_date"
                 )
             if "start_time" in kwargs:
-                kwargs["start_time"] = ParameterValidator.validate_time(
+                kwargs["start_time"] = TypeValidators.time.validate(
                     kwargs["start_time"], "start_time"
                 )
             if "end_time" in kwargs:
-                kwargs["end_time"] = ParameterValidator.validate_time(
+                kwargs["end_time"] = TypeValidators.time.validate(
                     kwargs["end_time"], "end_time"
                 )
 
@@ -586,15 +577,13 @@ class ScheduleCRUD:
         deleted_by_role: UserRoleEnum | None = None,
     ) -> bool:
         # 使用驗證器驗證基本參數
-        schedule_id = ParameterValidator.validate_positive_int(
-            schedule_id, "schedule_id"
-        )
-        deleted_by = ParameterValidator.validate_optional_positive_int(
+        schedule_id = TypeValidators.positive_int.validate(schedule_id, "schedule_id")
+        deleted_by = TypeValidators.optional_positive_int.validate(
             deleted_by, "deleted_by"
         )
         if deleted_by_role is not None:
-            ParameterValidator.validate_enum_value(
-                deleted_by_role, "deleted_by_role", UserRoleEnum
+            TypeValidators.enum(UserRoleEnum).validate(
+                deleted_by_role, "deleted_by_role"
             )
         """
         軟刪除時段。
