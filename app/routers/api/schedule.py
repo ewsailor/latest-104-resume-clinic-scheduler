@@ -12,16 +12,16 @@ from sqlalchemy.orm import Session
 
 # ===== 本地模組 =====
 from app.crud import schedule_crud  # CRUD 操作
+from app.errors import (
+    APIError,
+    create_http_exception_from_api_error,
+)
 from app.models.database import get_db  # 資料庫連接
 from app.schemas import (  # 資料模型
     ScheduleCreateRequest,
     ScheduleDeleteRequest,
     SchedulePartialUpdateRequest,
     ScheduleResponse,
-)
-from app.utils.error_handler import (
-    APIError,
-    create_http_exception_from_api_error,
 )
 
 # 建立路由器

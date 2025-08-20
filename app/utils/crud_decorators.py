@@ -8,7 +8,7 @@ import logging
 from functools import wraps
 from typing import Any, Callable
 
-from app.utils.error_handler import APIError, handle_database_error
+from app.errors import APIError, handle_database_error
 
 logger = logging.getLogger(__name__)
 

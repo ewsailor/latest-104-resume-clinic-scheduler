@@ -8,12 +8,12 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from app.errors import APIError, DatabaseError
 from app.utils.crud_decorators import (
     handle_crud_errors,
     handle_crud_errors_with_rollback,
     log_crud_operation,
 )
-from app.utils.error_handler import APIError, DatabaseError
 
 
 class TestHandleCrudErrors:

@@ -16,7 +16,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.settings import settings
-from app.utils.error_handler import (
+from app.errors import (
     APIError,
     ErrorCode,
     format_error_response,

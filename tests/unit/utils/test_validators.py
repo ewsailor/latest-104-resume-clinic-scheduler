@@ -10,7 +10,7 @@ from unittest.mock import Mock
 import pytest
 
 from app.enums.models import ScheduleStatusEnum
-from app.utils.error_handler import ValidationError
+from app.errors import ValidationError
 from app.utils.validators import ParameterValidator, validate_parameters, validator
 
 

@@ -15,14 +15,14 @@ from sqlalchemy.orm import Session  # 資料庫會話
 from app.crud.schedule import ScheduleCRUD  # CRUD 操作
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum  # 角色枚舉
 from app.enums.operations import OperationContext  # 操作相關的 ENUM
-from app.models.schedule import Schedule  # 時段模型
-from app.models.user import User  # 使用者模型
-from app.schemas import ScheduleData, UserCreate  # 資料模型
-from app.utils.error_handler import NotFoundError  # 錯誤處理
-from app.utils.error_handler import (
+from app.errors import NotFoundError  # 錯誤處理
+from app.errors import (
     BusinessLogicError,
     format_schedule_overlap_error_message,
 )
+from app.models.schedule import Schedule  # 時段模型
+from app.models.user import User  # 使用者模型
+from app.schemas import ScheduleData, UserCreate  # 資料模型
 from tests.logger import log_test_info
 
 
@@ -67,7 +67,7 @@ class TestScheduleCRUD:
         schedules_data = [
             ScheduleData(
                 giver_id=user.id,
-                date=date(2024, 1, 15),
+                date=date(2025, 9, 15),
                 start_time=time(9, 0),
                 end_time=time(10, 0),
                 note="測試時段1",
@@ -75,7 +75,7 @@ class TestScheduleCRUD:
             ),
             ScheduleData(
                 giver_id=user.id,
-                date=date(2024, 1, 16),
+                date=date(2025, 9, 16),
                 start_time=time(14, 0),
                 end_time=time(15, 0),
                 note="測試時段2",
@@ -92,9 +92,9 @@ class TestScheduleCRUD:
 
         assert len(schedules) == 2
         assert schedules[0].giver_id == user.id
-        assert schedules[0].date == date(2024, 1, 15)
+        assert schedules[0].date == date(2025, 9, 15)
         assert schedules[1].giver_id == user.id
-        assert schedules[1].date == date(2024, 1, 16)
+        assert schedules[1].date == date(2025, 9, 16)
 
     def test_check_schedule_overlap_no_overlap(self, db_session: Session):
         """測試檢查時段重疊 - 無重疊。"""
@@ -108,7 +108,7 @@ class TestScheduleCRUD:
         # 建立現有時段
         existing_schedule = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
             status=ScheduleStatusEnum.AVAILABLE,
@@ -118,7 +118,7 @@ class TestScheduleCRUD:
 
         # 檢查新時段（不重疊）
         overlapping = crud.check_schedule_overlap(
-            db_session, user.id, date(2024, 1, 15), time(10, 0), time(11, 0)
+            db_session, user.id, date(2025, 9, 15), time(10, 0), time(11, 0)
         )
 
         assert len(overlapping) == 0
@@ -135,7 +135,7 @@ class TestScheduleCRUD:
         # 建立現有時段
         existing_schedule = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
             status=ScheduleStatusEnum.AVAILABLE,
@@ -145,7 +145,7 @@ class TestScheduleCRUD:
 
         # 檢查新時段（重疊）
         overlapping = crud.check_schedule_overlap(
-            db_session, user.id, date(2024, 1, 15), time(9, 30), time(10, 30)
+            db_session, user.id, date(2025, 9, 15), time(9, 30), time(10, 30)
         )
 
         assert len(overlapping) == 1
@@ -163,7 +163,7 @@ class TestScheduleCRUD:
         # 建立現有時段
         existing_schedule = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
             status=ScheduleStatusEnum.AVAILABLE,
@@ -175,7 +175,7 @@ class TestScheduleCRUD:
         schedules_data = [
             ScheduleData(
                 giver_id=user.id,
-                date=date(2024, 1, 15),
+                date=date(2025, 9, 15),
                 start_time=time(9, 30),
                 end_time=time(10, 30),
                 note="重疊時段",
@@ -203,14 +203,14 @@ class TestScheduleCRUD:
         # 建立測試時段
         schedule1 = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
             status=ScheduleStatusEnum.AVAILABLE,
         )
         schedule2 = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 16),
+            date=date(2025, 9, 16),
             start_time=time(14, 0),
             end_time=time(15, 0),
             status=ScheduleStatusEnum.PENDING,
@@ -235,14 +235,14 @@ class TestScheduleCRUD:
         # 建立測試時段
         schedule1 = Schedule(
             giver_id=user1.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
             status=ScheduleStatusEnum.AVAILABLE,
         )
         schedule2 = Schedule(
             giver_id=user2.id,
-            date=date(2024, 1, 16),
+            date=date(2025, 9, 16),
             start_time=time(14, 0),
             end_time=time(15, 0),
             status=ScheduleStatusEnum.AVAILABLE,
@@ -267,14 +267,14 @@ class TestScheduleCRUD:
         # 建立測試時段
         schedule1 = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
             status=ScheduleStatusEnum.AVAILABLE,
         )
         schedule2 = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 16),
+            date=date(2025, 9, 16),
             start_time=time(14, 0),
             end_time=time(15, 0),
             status=ScheduleStatusEnum.PENDING,
@@ -302,21 +302,21 @@ class TestScheduleCRUD:
         # 建立測試時段
         schedule1 = Schedule(
             giver_id=user1.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
             status=ScheduleStatusEnum.AVAILABLE,
         )
         schedule2 = Schedule(
             giver_id=user1.id,
-            date=date(2024, 1, 16),
+            date=date(2025, 9, 16),
             start_time=time(14, 0),
             end_time=time(15, 0),
             status=ScheduleStatusEnum.ACCEPTED,
         )
         schedule3 = Schedule(
             giver_id=user2.id,
-            date=date(2024, 1, 17),
+            date=date(2025, 9, 17),
             start_time=time(16, 0),
             end_time=time(17, 0),
             status=ScheduleStatusEnum.AVAILABLE,
@@ -344,14 +344,14 @@ class TestScheduleCRUD:
         # 建立測試時段
         schedule1 = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
             status=ScheduleStatusEnum.AVAILABLE,
         )
         schedule2 = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 16),
+            date=date(2025, 9, 16),
             start_time=time(14, 0),
             end_time=time(15, 0),
             status=ScheduleStatusEnum.AVAILABLE,
@@ -381,7 +381,7 @@ class TestScheduleCRUD:
         # 建立測試時段
         schedule = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
             status=ScheduleStatusEnum.AVAILABLE,
@@ -414,7 +414,7 @@ class TestScheduleCRUD:
         # 建立測試時段
         schedule = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
             status=ScheduleStatusEnum.AVAILABLE,
@@ -428,14 +428,14 @@ class TestScheduleCRUD:
             schedule.id,
             updated_by=user.id,
             updated_by_role=UserRoleEnum.GIVER,
-            schedule_date=date(2024, 1, 16),
+            schedule_date=date(2025, 9, 16),
             start_time=time(14, 0),
             end_time=time(15, 0),
             note="更新後的備註",
         )
 
         assert updated_schedule is not None
-        assert updated_schedule.date == date(2024, 1, 16)
+        assert updated_schedule.date == date(2025, 9, 16)
         assert updated_schedule.start_time == time(14, 0)
         assert updated_schedule.end_time == time(15, 0)
         assert updated_schedule.note == "更新後的備註"
@@ -470,7 +470,7 @@ class TestScheduleCRUD:
         # 建立第一個時段
         schedule1 = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
             status=ScheduleStatusEnum.AVAILABLE,
@@ -480,7 +480,7 @@ class TestScheduleCRUD:
         # 建立第二個時段（與第一個重疊）
         schedule2 = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 30),
             end_time=time(10, 30),
             status=ScheduleStatusEnum.AVAILABLE,
@@ -511,7 +511,7 @@ class TestScheduleCRUD:
         # 建立第一個時段
         schedule1 = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
             status=ScheduleStatusEnum.AVAILABLE,
@@ -521,7 +521,7 @@ class TestScheduleCRUD:
         # 建立第二個時段（不重疊）
         schedule2 = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(11, 0),
             end_time=time(12, 0),
             status=ScheduleStatusEnum.AVAILABLE,
@@ -557,7 +557,7 @@ class TestScheduleCRUD:
         # 建立測試時段
         schedule = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
             status=ScheduleStatusEnum.AVAILABLE,
@@ -591,7 +591,7 @@ class TestScheduleCRUD:
         # 建立測試時段
         schedule = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
             status=ScheduleStatusEnum.AVAILABLE,
@@ -635,7 +635,7 @@ class TestScheduleCRUD:
         # 建立測試時段
         schedule = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
             status=ScheduleStatusEnum.AVAILABLE,
@@ -664,7 +664,7 @@ class TestScheduleCRUD:
         schedule_data = [
             ScheduleData(
                 giver_id=1,
-                date="2024-01-15",
+                date="2025-09-15",
                 start_time="09:00:00",
                 end_time="10:00:00",
                 note="測試時段",
@@ -693,7 +693,7 @@ class TestScheduleCRUD:
         schedule_data = [
             ScheduleData(
                 giver_id=user.id,
-                date=date(2024, 1, 15),
+                date=date(2025, 9, 15),
                 start_time=time(9, 0),
                 end_time=time(10, 0),
                 note="原始時段",
@@ -728,7 +728,7 @@ class TestScheduleCRUD:
         # 建立測試時段
         schedule = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),
+            date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
             note="測試時段",
@@ -758,7 +758,7 @@ class TestScheduleCRUD:
         # 建立測試時段
         schedule = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),  # 週一
+            date=date(2025, 9, 15),  # 週一
             start_time=time(9, 0),
             end_time=time(10, 0),
             note="測試時段",
@@ -769,22 +769,22 @@ class TestScheduleCRUD:
 
         # 測試建立上下文的錯誤訊息
         create_error_msg = format_schedule_overlap_error_message(
-            [schedule], date(2024, 1, 15), "建立"
+            [schedule], date(2025, 9, 15), "建立"
         )
-        expected_create_msg = "您正輸入的時段，和您之前曾輸入的「2024/01/15（週一） 09:00-10:00」時段重複或重疊，請重新輸入"
+        expected_create_msg = "您正輸入的時段，和您之前曾輸入的「2025/09/15（週一） 09:00-10:00」時段重複或重疊，請重新輸入"
         assert create_error_msg == expected_create_msg
 
         # 測試更新上下文的錯誤訊息
         update_error_msg = format_schedule_overlap_error_message(
-            [schedule], date(2024, 1, 15), "更新"
+            [schedule], date(2025, 9, 15), "更新"
         )
-        expected_update_msg = "您正輸入的時段，和您之前曾輸入的「2024/01/15（週一） 09:00-10:00」時段重複或重疊，請重新輸入"
+        expected_update_msg = "您正輸入的時段，和您之前曾輸入的「2025/09/15（週一） 09:00-10:00」時段重複或重疊，請重新輸入"
         assert update_error_msg == expected_update_msg
 
         # 測試多個重疊時段
         schedule2 = Schedule(
             giver_id=user.id,
-            date=date(2024, 1, 15),  # 週一
+            date=date(2025, 9, 15),  # 週一
             start_time=time(14, 0),
             end_time=time(15, 0),
             note="測試時段2",
@@ -794,9 +794,9 @@ class TestScheduleCRUD:
         db_session.commit()
 
         multi_error_msg = format_schedule_overlap_error_message(
-            [schedule, schedule2], date(2024, 1, 15), "建立"
+            [schedule, schedule2], date(2025, 9, 15), "建立"
         )
-        expected_multi_msg = "您正輸入的時段，和您之前曾輸入的「2024/01/15（週一） 09:00-10:00, 2024/01/15（週一） 14:00-15:00」時段重複或重疊，請重新輸入"
+        expected_multi_msg = "您正輸入的時段，和您之前曾輸入的「2025/09/15（週一） 09:00-10:00, 2025/09/15（週一） 14:00-15:00」時段重複或重疊，請重新輸入"
         assert multi_error_msg == expected_multi_msg
 
     def test_validate_user_exists(self, db_session: Session):

@@ -8,7 +8,7 @@ import logging
 from datetime import date, time
 from typing import Any, Callable, Type, TypeVar
 
-from app.utils.error_handler import ValidationError
+from app.errors import ValidationError
 
 logger = logging.getLogger(__name__)
 

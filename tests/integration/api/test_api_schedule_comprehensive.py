@@ -57,7 +57,7 @@ class TestAPIScheduleComprehensive:
         schedule.id = 1
         schedule.giver_id = 1
         schedule.taker_id = None
-        schedule.date = "2024-01-15"
+        schedule.date = "2025-09-15"
         schedule.start_time = "09:00:00"
         schedule.end_time = "10:00:00"
         schedule.note = "測試時段"
@@ -75,7 +75,7 @@ class TestAPIScheduleComprehensive:
             "id": 1,
             "giver_id": 1,
             "taker_id": None,
-            "date": "2024-01-15",
+            "date": "2025-09-15",
             "start_time": "09:00:00",
             "end_time": "10:00:00",
             "note": "測試時段",
@@ -170,7 +170,7 @@ class TestAPIScheduleComprehensive:
             schedules=[
                 ScheduleData(
                     giver_id=1,
-                    date="2024-01-15",
+                    date="2025-09-15",
                     start_time="09:00:00",
                     end_time="10:00:00",
                     note="測試時段",
@@ -204,7 +204,7 @@ class TestAPIScheduleComprehensive:
             schedules=[
                 ScheduleData(
                     giver_id=1,
-                    date="2024-01-15",
+                    date="2025-09-15",
                     start_time="09:00:00",
                     end_time="10:00:00",
                     note="測試時段",
@@ -347,7 +347,7 @@ class TestAPIScheduleComprehensive:
             schedules=[
                 ScheduleData(
                     giver_id=1,
-                    date="2024-01-15",
+                    date="2025-09-15",
                     start_time="09:00:00",
                     end_time="10:00:00",
                     note="測試時段",
@@ -404,7 +404,7 @@ class TestAPIScheduleComprehensive:
             schedules=[
                 ScheduleData(
                     giver_id=1,
-                    date="2024-01-15",
+                    date="2025-09-15",
                     start_time="09:00:00",
                     end_time="10:00:00",
                     note="測試時段",
@@ -500,7 +500,7 @@ class TestAPIScheduleComprehensive:
             schedules=[
                 ScheduleData(
                     giver_id=1,
-                    date="2024-01-15",
+                    date="2025-09-15",
                     start_time="09:00:00",
                     end_time="10:00:00",
                     note=f"測試時段 {i}",

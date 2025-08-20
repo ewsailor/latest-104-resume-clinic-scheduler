@@ -27,12 +27,11 @@ class TestScheduleAPI:
         import random
         import time
 
-        # 使用更遠的日期避免重疊，並增加隨機性
+        # 使用未來日期避免重疊，但要在2個月內
         # 添加時間戳以確保每次測試都不同
         timestamp = int(time.time()) % 10000  # 使用時間戳的後4位
         future_date = datetime.date.today() + datetime.timedelta(
-            days=random.randint(400, 500)
-            + timestamp % 100  # 使用更遠的日期和更大的隨機性
+            days=random.randint(1, 60) + timestamp % 20  # 使用1-60天內的日期
         )
         hour = random.randint(8, 18) + (timestamp % 5)  # 額外的隨機性
         return {
@@ -51,10 +50,10 @@ class TestScheduleAPI:
         import random
         import time
 
-        # 使用更遠的日期避免重疊，並增加隨機性
+        # 使用未來日期避免重疊，但要在3個月內
         # 添加時間戳以確保每次測試都不同
         timestamp = int(time.time()) % 10000  # 使用時間戳的後4位
-        random_days = random.randint(600, 700) + timestamp % 100  # 使用更遠的日期
+        random_days = random.randint(1, 90) + timestamp % 30  # 使用1-90天內的日期
         future_date = datetime.date.today() + datetime.timedelta(days=random_days)
 
         # 使用隨機時間避免重疊
@@ -113,7 +112,7 @@ class TestScheduleAPI:
             "schedules": [
                 {
                     "giver_id": "invalid",  # 應該是整數
-                    "date": "2024-01-15",
+                    "date": "2025-09-15",
                     "start_time": "09:00:00",
                     "end_time": "10:00:00",
                     "status": "AVAILABLE",
@@ -344,7 +343,7 @@ class TestScheduleAPI:
         update_data = {
             "schedule": {
                 "giver_id": 2,
-                "date": "2024-01-16",
+                "date": "2025-09-16",
                 "start_time": "10:00:00",
                 "end_time": "11:00:00",
                 "status": "AVAILABLE",
@@ -364,7 +363,7 @@ class TestScheduleAPI:
 
         # 驗證更新結果
         assert data["giver_id"] == 2
-        assert data["date"] == "2024-01-16"
+        assert data["date"] == "2025-09-16"
         assert data["status"] == "AVAILABLE"
 
     def test_update_schedule_not_found(self):
@@ -375,7 +374,7 @@ class TestScheduleAPI:
         update_data = {
             "schedule": {
                 "giver_id": 1,
-                "date": "2024-01-15",
+                "date": "2025-09-15",
                 "start_time": "09:00:00",
                 "end_time": "10:00:00",
                 "status": "AVAILABLE",
@@ -400,7 +399,7 @@ class TestScheduleAPI:
         invalid_data = {
             "schedule": {
                 "giver_id": "invalid",  # 應該是整數
-                "date": "2024-01-15",
+                "date": "2025-09-15",
                 "start_time": "09:00:00",
                 "end_time": "10:00:00",
                 "status": "AVAILABLE",
@@ -465,11 +464,14 @@ class TestScheduleAPI:
         # 使用不同的時段資料避免重疊
         import datetime
         import random
+        import time
 
+        # 使用時間戳確保唯一性，但限制在2個月內
+        timestamp = int(time.time()) % 10000
         unique_date = datetime.date.today() + datetime.timedelta(
-            days=random.randint(300, 400)
+            days=random.randint(1, 60) + timestamp % 20
         )
-        unique_hour = random.randint(8, 18)
+        unique_hour = random.randint(8, 18) + timestamp % 5
         unique_schedule_data = {
             "giver_id": 1,
             "date": unique_date.strftime("%Y-%m-%d"),
@@ -626,7 +628,7 @@ class TestScheduleAPI:
         # 測試無效的時間格式
         invalid_time_data = {
             "giver_id": 1,
-            "date": "2024-01-15",
+            "date": "2025-09-15",
             "start_time": "invalid-time",
             "end_time": "10:00:00",
             "status": "AVAILABLE",
@@ -643,7 +645,7 @@ class TestScheduleAPI:
         # 測試無效的狀態 - Pydantic 會拒絕無效狀態，返回 422 錯誤
         invalid_status_data = {
             "giver_id": 1,
-            "date": "2024-01-15",
+            "date": "2025-09-15",
             "start_time": "09:00:00",
             "end_time": "10:00:00",
             "status": "INVALID_STATUS",
@@ -666,9 +668,9 @@ class TestScheduleAPI:
         import random
         import time
 
-        # 使用更隨機的日期範圍以避免與其他測試衝突
+        # 使用更隨機的日期範圍以避免與其他測試衝突，但要在2個月內
         timestamp = int(time.time()) % 10000
-        random_days = random.randint(800, 1000) + timestamp % 100  # 使用更遠的日期
+        random_days = random.randint(1, 60) + timestamp % 20  # 使用1-60天內的日期
         future_date = datetime.date.today() + datetime.timedelta(days=random_days)
 
         # 使用更分散的時間避免重疊

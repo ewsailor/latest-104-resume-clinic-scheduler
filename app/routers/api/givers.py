@@ -19,7 +19,7 @@ from app.data.givers import (
     get_givers_by_topic,
     get_givers_count,
 )
-from app.utils.error_handler import (
+from app.errors import (
     APIError,
     create_http_exception_from_api_error,
 )

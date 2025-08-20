@@ -6,8 +6,8 @@
 
 from sqlalchemy.orm import Session
 
+from app.errors import NotFoundError
 from app.models.user import User
-from app.utils.error_handler import NotFoundError
 
 from .base import BaseValidator
 

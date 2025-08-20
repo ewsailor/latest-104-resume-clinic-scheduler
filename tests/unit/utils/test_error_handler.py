@@ -8,15 +8,15 @@ import pytest
 from fastapi import HTTPException, status
 from pydantic import ValidationError
 
-from app.utils.error_handler import (
+from app.errors import (
     APIError,
     BusinessLogicError,
     DatabaseError,
     ErrorCode,
     NotFoundError,
 )
-from app.utils.error_handler import ValidationError as CustomValidationError
-from app.utils.error_handler import (
+from app.errors import ValidationError as CustomValidationError
+from app.errors import (
     create_http_exception_from_api_error,
     create_schedule_not_found_error,
     create_user_not_found_error,

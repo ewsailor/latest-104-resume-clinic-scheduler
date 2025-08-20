@@ -53,7 +53,7 @@ class TestAPIScheduleSimple:
         schedule.id = 1
         schedule.giver_id = 1
         schedule.taker_id = None
-        schedule.date = "2024-01-15"
+        schedule.date = "2025-09-15"
         schedule.start_time = "09:00:00"
         schedule.end_time = "10:00:00"
         schedule.note = "測試時段"
@@ -71,7 +71,7 @@ class TestAPIScheduleSimple:
             "id": 1,
             "giver_id": 1,
             "taker_id": None,
-            "date": "2024-01-15",
+            "date": "2025-09-15",
             "start_time": "09:00:00",
             "end_time": "10:00:00",
             "note": "測試時段",
@@ -145,7 +145,7 @@ class TestAPIScheduleSimple:
             "schedules": [
                 {
                     "giver_id": 1,
-                    "date": "2024-01-20",
+                    "date": "2025-09-20",
                     "start_time": "14:00:00",
                     "end_time": "15:00:00",
                     "note": "測試時段1",
@@ -153,7 +153,7 @@ class TestAPIScheduleSimple:
                 },
                 {
                     "giver_id": 1,
-                    "date": "2024-01-21",
+                    "date": "2025-09-21",
                     "start_time": "16:00:00",
                     "end_time": "17:00:00",
                     "note": "測試時段2",
@@ -367,7 +367,7 @@ class TestAPIScheduleSimple:
             "schedules": [
                 {
                     "giver_id": 1,
-                    "date": "2024-01-20",
+                    "date": "2025-09-20",
                     "start_time": "14:00:00",
                     "end_time": "15:00:00",
                     "note": "現有時段",
@@ -375,7 +375,7 @@ class TestAPIScheduleSimple:
                 },
                 {
                     "giver_id": 1,
-                    "date": "2024-01-20",
+                    "date": "2025-09-20",
                     "start_time": "14:30:00",
                     "end_time": "15:30:00",
                     "note": "重疊時段",
@@ -390,7 +390,7 @@ class TestAPIScheduleSimple:
         with patch(
             'app.crud.schedule_crud.create_schedules',
             side_effect=ValueError(
-                "您正輸入的時段，和您之前曾輸入的「2024/01/20（週六）14:00~15:00」時段重複或重疊，請重新輸入"
+                "您正輸入的時段，和您之前曾輸入的「2025/09/20（週六）14:00~15:00」時段重複或重疊，請重新輸入"
             ),
         ):
             # 執行測試

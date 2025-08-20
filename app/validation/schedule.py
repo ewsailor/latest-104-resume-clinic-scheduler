@@ -11,9 +11,9 @@ from typing import Any
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
+from app.errors import BusinessLogicError, ErrorCode
 from app.models.schedule import Schedule
 from app.schemas import ScheduleData
-from app.utils.error_handler import BusinessLogicError, ErrorCode
 
 from .base import BaseValidator, ValidationError
 from .types import TypeValidators
@@ -152,7 +152,7 @@ class ScheduleOverlapValidator(BaseValidator[None]):
                 overlapping_schedules.append(existing_schedule)
 
         if overlapping_schedules:
-            from app.utils.error_handler import format_schedule_overlap_error_message
+            from app.errors import format_schedule_overlap_error_message
 
             error_msg = format_schedule_overlap_error_message(
                 overlapping_schedules, schedule_date, "建立"

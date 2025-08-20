@@ -12,12 +12,12 @@ from sqlalchemy.orm import Session
 
 # ===== 本地模組 =====
 from app.crud import user_crud  # CRUD 操作
-from app.models.database import get_db  # 資料庫連接
-from app.schemas import UserCreate  # 資料模型
-from app.utils.error_handler import (
+from app.errors import (
     APIError,
     create_http_exception_from_api_error,
 )
+from app.models.database import get_db  # 資料庫連接
+from app.schemas import UserCreate  # 資料模型
 
 # 建立路由器
 router = APIRouter(prefix="/api/v1", tags=["Users"])

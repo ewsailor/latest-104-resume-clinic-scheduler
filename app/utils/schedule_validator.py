@@ -11,14 +11,14 @@ from typing import Any, List
 from sqlalchemy import and_
 
 from app.enums.models import UserRoleEnum
-from app.models.schedule import Schedule
-from app.schemas import ScheduleData
-from app.utils.error_handler import (
+from app.errors import (
     BusinessLogicError,
     ErrorCode,
     NotFoundError,
     format_schedule_overlap_error_message,
 )
+from app.models.schedule import Schedule
+from app.schemas import ScheduleData
 from app.utils.validators import ParameterValidator
 
 
