@@ -29,9 +29,9 @@ class ScheduleValidator:
         """初始化驗證器，設定日誌器。"""
         self.logger = logging.getLogger(__name__)
 
-        # 營業時間設定
-        self.BUSINESS_START_TIME = time(9, 0)  # 09:00
-        self.BUSINESS_END_TIME = time(22, 0)  # 22:00
+        # 休息時間設定
+        self.REST_START_TIME = time(0, 0)  # 00:00
+        self.REST_END_TIME = time(8, 0)  # 08:00
 
         # 其他限制
         self.MAX_NOTE_LENGTH = 265
@@ -183,26 +183,37 @@ class ScheduleValidator:
 
     def _validate_business_hours(self, start_time: time, end_time: time) -> None:
         """
-        驗證營業時間。
+        驗證營業時間（排除休息時間）。
 
         Args:
             start_time: 開始時間
             end_time: 結束時間
 
         Raises:
-            ValueError: 當時間不在營業時間內時
+            ValueError: 當時間在休息時間內時
         """
-        # 檢查開始時間是否在營業時間內
-        if start_time < self.BUSINESS_START_TIME:
+        # 檢查開始時間是否在休息時間內
+        if self._is_in_rest_period(start_time):
             raise ValueError(
-                f"開始時間 ({start_time}) 早於營業時間 ({self.BUSINESS_START_TIME})"
+                f"開始時間 ({start_time}) 在休息時間內 ({self.REST_START_TIME}-{self.REST_END_TIME})"
             )
 
-        # 檢查結束時間是否在營業時間內
-        if end_time > self.BUSINESS_END_TIME:
+        # 檢查結束時間是否在休息時間內
+        if self._is_in_rest_period(end_time):
             raise ValueError(
-                f"結束時間 ({end_time}) 晚於營業時間 ({self.BUSINESS_END_TIME})"
+                f"結束時間 ({end_time}) 在休息時間內 ({self.REST_START_TIME}-{self.REST_END_TIME})"
             )
+
+    def _is_in_rest_period(self, check_time: time) -> bool:
+        """檢查時間是否在休息時間內。"""
+        # 休息時間跨越午夜 (例如: 22:00-06:00 或 00:00-08:00)
+        if self.REST_START_TIME <= self.REST_END_TIME:
+            # 正常情況：休息時間在同一天內
+            return self.REST_START_TIME <= check_time < self.REST_END_TIME
+        else:
+            # 跨越午夜：休息時間跨越到隔天
+            # 例如：22:00-06:00 表示 22:00-23:59 和 00:00-05:59
+            return check_time >= self.REST_START_TIME or check_time < self.REST_END_TIME
 
     def _validate_note(self, note: str | None) -> None:
         """
