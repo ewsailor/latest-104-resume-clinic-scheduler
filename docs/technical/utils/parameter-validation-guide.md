@@ -62,20 +62,18 @@ def create_user(db: Session, user_id: int, name: str, age: int | None = None):
 
 ### 基本驗證方法
 
-| 方法                               | 說明           | 範例                                                                  |
-| ---------------------------------- | -------------- | --------------------------------------------------------------------- |
-| `validate_required()`              | 驗證必需參數   | `validator.validate_required(value, "param_name", int, min_value=1)`  |
-| `validate_optional()`              | 驗證可選參數   | `validator.validate_optional(value, "param_name", str)`               |
-| `validate_positive_int()`          | 驗證正整數     | `validator.validate_positive_int(user_id, "user_id")`                 |
-| `validate_optional_positive_int()` | 驗證可選正整數 | `validator.validate_optional_positive_int(age, "age")`                |
-| `validate_string()`                | 驗證字串       | `validator.validate_string(name, "name", min_length=1)`               |
-| `validate_optional_string()`       | 驗證可選字串   | `validator.validate_optional_string(description, "description")`      |
-| `validate_list()`                  | 驗證列表       | `validator.validate_list(items, "items", str)`                        |
-| `validate_optional_list()`         | 驗證可選列表   | `validator.validate_optional_list(tags, "tags", str)`                 |
-| `validate_date()`                  | 驗證日期       | `validator.validate_date(schedule_date, "schedule_date")`             |
-| `validate_time()`                  | 驗證時間       | `validator.validate_time(start_time, "start_time")`                   |
-| `validate_time_range()`            | 驗證時間範圍   | `validator.validate_time_range(start_time, end_time)`                 |
-| `validate_enum_value()`            | 驗證枚舉值     | `validator.validate_enum_value(status, "status", ScheduleStatusEnum)` |
+| 方法                               | 說明           | 範例                                                             |
+| ---------------------------------- | -------------- | ---------------------------------------------------------------- |
+| `validate_positive_int()`          | 驗證正整數     | `validator.validate_positive_int(user_id, "user_id")`            |
+| `validate_optional_positive_int()` | 驗證可選正整數 | `validator.validate_optional_positive_int(age, "age")`           |
+| `validate_string()`                | 驗證字串       | `validator.validate_string(name, "name", min_length=1)`          |
+| `validate_optional_string()`       | 驗證可選字串   | `validator.validate_optional_string(description, "description")` |
+| `validate_list()`                  | 驗證列表       | `validator.validate_list(items, "items", str)`                   |
+
+| `validate_date()` | 驗證日期 | `validator.validate_date(schedule_date, "schedule_date")` |
+| `validate_time()` | 驗證時間 | `validator.validate_time(start_time, "start_time")` |
+| `validate_time_range()` | 驗證時間範圍 | `validator.validate_time_range(start_time, end_time)` |
+| `validate_enum_value()` | 驗證枚舉值 | `validator.validate_enum_value(status, "status", ScheduleStatusEnum)` |
 
 ### 裝飾器驗證規則
 

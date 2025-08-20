@@ -222,7 +222,7 @@ class ScheduleCRUD:
         # 使用驗證器驗證基本參數
         ParameterValidator.validate_list(schedules, "schedules", ScheduleData)
         created_by = ParameterValidator.validate_positive_int(created_by, "created_by")
-        ParameterValidator.validate_required(
+        ParameterValidator.validate_enum_value(
             created_by_role, "created_by_role", UserRoleEnum
         )
         """
@@ -453,7 +453,7 @@ class ScheduleCRUD:
             schedule_id, "schedule_id"
         )
         updated_by = ParameterValidator.validate_positive_int(updated_by, "updated_by")
-        ParameterValidator.validate_required(
+        ParameterValidator.validate_enum_value(
             updated_by_role, "updated_by_role", UserRoleEnum
         )
         """
@@ -578,7 +578,7 @@ class ScheduleCRUD:
             deleted_by, "deleted_by"
         )
         if deleted_by_role is not None:
-            ParameterValidator.validate_required(
+            ParameterValidator.validate_enum_value(
                 deleted_by_role, "deleted_by_role", UserRoleEnum
             )
         """

@@ -24,13 +24,15 @@ class TestParameterValidator:
 
     def test_validate_positive_int_failure(self):
         """測試正整數驗證失敗"""
-        with pytest.raises(ValidationError, match="無效的 test_param 類型"):
+        with pytest.raises(ValidationError, match="無效的 test_param: 5，必須為正整數"):
             validator.validate_positive_int("5", "test_param")
 
-        with pytest.raises(ValidationError, match="test_param 不能小於 1"):
+        with pytest.raises(ValidationError, match="無效的 test_param: 0，必須為正整數"):
             validator.validate_positive_int(0, "test_param")
 
-        with pytest.raises(ValidationError, match="test_param 不能小於 1"):
+        with pytest.raises(
+            ValidationError, match="無效的 test_param: -1，必須為正整數"
+        ):
             validator.validate_positive_int(-1, "test_param")
 
     def test_validate_optional_positive_int_success(self):
@@ -238,7 +240,7 @@ class TestRealWorldScenario:
 
     def test_schedule_validation_failure_simulation(self):
         """模擬時段驗證失敗場景"""
-        with pytest.raises(ValidationError, match="無效的 giver_id 類型"):
+        with pytest.raises(ValidationError, match="無效的 giver_id: 1，必須為正整數"):
             validator.validate_positive_int("1", "giver_id")
 
         with pytest.raises(ValidationError, match="start_time 必須早於 end_time"):
