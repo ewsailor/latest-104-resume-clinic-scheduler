@@ -17,7 +17,7 @@ from app.models.enums import ScheduleStatusEnum, UserRoleEnum  # 角色枚舉
 from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型
 from app.schemas import ScheduleData, UserCreate  # 資料模型
-from app.utils.error_handler import NotFoundError  # 錯誤處理
+from app.utils.error_handler import BusinessLogicError, NotFoundError  # 錯誤處理
 from tests.logger import log_test_info
 
 
@@ -178,7 +178,7 @@ class TestScheduleCRUD:
             )
         ]
 
-        with pytest.raises(ValueError, match="時段重複或重疊"):
+        with pytest.raises(BusinessLogicError, match="時段重複或重疊"):
             crud.create_schedules(
                 db_session,
                 schedules_data,
@@ -484,7 +484,7 @@ class TestScheduleCRUD:
         db_session.commit()
 
         # 嘗試更新第一個時段，使其與第二個時段重疊
-        with pytest.raises(ValueError, match="時段重疊"):
+        with pytest.raises(BusinessLogicError, match="時段重疊"):
             crud.update_schedule(
                 db_session,
                 schedule1.id,

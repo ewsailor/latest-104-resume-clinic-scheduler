@@ -233,7 +233,7 @@ class ScheduleCRUD:
                 error_msg = self._format_overlap_error_message(
                     overlapping_schedules, schedule_data.schedule_date, "建立"
                 )
-                raise ValueError(error_msg)
+                raise BusinessLogicError(error_msg, ErrorCode.SCHEDULE_OVERLAP)
 
         # 建立時段物件列表
         schedule_objects = []
@@ -394,7 +394,7 @@ class ScheduleCRUD:
         updated_by: int,
         updated_by_role: UserRoleEnum,
         **kwargs: Any,
-    ) -> Schedule | None:
+    ) -> Schedule:
         """
         更新時段。
 
@@ -406,10 +406,11 @@ class ScheduleCRUD:
             **kwargs: 要更新的欄位
 
         Returns:
-            Schedule | None: 更新後的時段物件，如果不存在則返回 None
+            Schedule: 更新後的時段物件
 
         Raises:
             ValueError: 當更新者不存在時
+            NotFoundError: 當時段不存在時
         """
         # 驗證更新者是否存在
         updater = self._validate_user_exists(db, updated_by, "更新者")
@@ -418,7 +419,7 @@ class ScheduleCRUD:
         schedule = self.get_schedule_by_id(db, schedule_id)
         if not schedule:
             self.logger.warning(f"嘗試更新不存在的時段: schedule_id={schedule_id}")
-            return None
+            raise create_schedule_not_found_error(schedule_id)
 
         # 記錄更新操作
         self.logger.info(
@@ -454,7 +455,7 @@ class ScheduleCRUD:
                     overlapping_schedules, new_date, "更新"
                 )
                 self.logger.warning(f"更新時段 {schedule_id} 時檢測到重疊: {error_msg}")
-                raise ValueError(error_msg)
+                raise BusinessLogicError(error_msg, ErrorCode.SCHEDULE_OVERLAP)
 
         # 設定更新者資訊
         schedule.updated_by = updated_by
@@ -520,6 +521,7 @@ class ScheduleCRUD:
 
         self.logger.info(f"正在軟刪除時段 ID: {schedule_id}，刪除者: {deleted_by}")
 
+        # 查詢時段（包含已刪除的記錄，因為需要檢查是否已經被刪除）
         schedule = self.get_schedule_by_id_including_deleted(db, schedule_id)
         if not schedule:
             self.logger.warning(f"嘗試刪除不存在的時段: schedule_id={schedule_id}")

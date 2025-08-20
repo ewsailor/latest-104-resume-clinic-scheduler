@@ -206,9 +206,9 @@ async def update_schedule(
         HTTPException: 當時段不存在或更新失敗時拋出錯誤
     """
     try:
-        # 轉換為字典格式，只包含非 None 的欄位
+        # 將 Pydantic 模型的物件，轉換為字典格式，只包含非 None 的欄位，避免把「空值」也更新到資料庫
         update_data = request.schedule.model_dump(exclude_none=True)
-        # 處理 date 欄位的別名 - 將 date 轉換為 schedule_date
+        # 處理 date 欄位的別名 - 將 date 轉換為 schedule_date，以符合資料庫或後端函式期望的欄位名稱
         if "date" in update_data:
             update_data["schedule_date"] = update_data.pop("date")
 
@@ -219,14 +219,11 @@ async def update_schedule(
             updated_by_role=request.updated_by_role,
             **update_data,  # 字典解包：傳遞更新資料
         )
-        if not updated_schedule:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="時段不存在"
-            )
         return ScheduleResponse.model_validate(updated_schedule)
 
-    except HTTPException:
-        raise
+    except APIError as e:
+        # 自定義業務錯誤：時段不存在、時段重疊等
+        raise create_http_exception_from_api_error(e)
     except Exception as e:
         db.rollback()
         raise HTTPException(
@@ -271,10 +268,13 @@ async def delete_schedule(
         )
         if not success:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="時段不存在"
+                status_code=status.HTTP_404_NOT_FOUND, detail="時段不存在或無法刪除"
             )
 
+    except APIError as e:
+        raise create_http_exception_from_api_error(e)
     except HTTPException:
+        # 重新拋出 HTTPException，避免被 Exception 捕獲
         raise
     except Exception as e:
         db.rollback()

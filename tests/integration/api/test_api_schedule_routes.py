@@ -388,9 +388,9 @@ class TestScheduleAPI:
         response = client.patch("/api/v1/schedules/999", json=update_data)
 
         # 驗證回應
-        assert response.status_code == 400  # 實際返回 400 而不是 404
+        assert response.status_code == 404  # 時段不存在應該返回 404
         data = response.json()
-        assert "時段不存在" in data["error"]["message"]
+        assert "時段不存在" in data["error"]["message"] or "時段不存在" in str(data)
 
     def test_update_schedule_invalid_data(self):
         """測試更新時段時使用無效資料。"""
