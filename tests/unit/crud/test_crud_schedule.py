@@ -183,9 +183,7 @@ class TestScheduleCRUD:
             )
         ]
 
-        with pytest.raises(
-            BusinessLogicError, match="您正輸入的時段，和您之前曾輸入的"
-        ):
+        with pytest.raises(BusinessLogicError, match="時段重複或重疊"):
             crud.create_schedules(
                 db_session,
                 schedules_data,
@@ -491,9 +489,7 @@ class TestScheduleCRUD:
         db_session.commit()
 
         # 嘗試更新第一個時段，使其與第二個時段重疊
-        with pytest.raises(
-            BusinessLogicError, match="您正輸入的時段，和您之前曾輸入的"
-        ):
+        with pytest.raises(BusinessLogicError, match="時段重複或重疊"):
             crud.update_schedule(
                 db_session,
                 schedule1.id,

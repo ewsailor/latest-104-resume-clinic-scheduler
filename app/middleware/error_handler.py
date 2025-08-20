@@ -20,8 +20,6 @@ from app.utils.error_handler import (
     APIError,
     ErrorCode,
     format_error_response,
-    log_error,
-    safe_execute,
 )
 from app.utils.timezone import get_utc_timestamp
 
@@ -115,17 +113,17 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
         # 根據異常類型處理
         if isinstance(exc, APIError):
             # 處理自定義 API 錯誤
-            error_response = format_error_response(exc, request_id=request_id)
+            error_response = format_error_response(exc)
             status_code = exc.status_code
 
         elif isinstance(exc, HTTPException):
             # 處理 FastAPI HTTPException
-            error_response = format_error_response(exc, request_id=request_id)
+            error_response = format_error_response(exc)
             status_code = exc.status_code
 
         elif isinstance(exc, StarletteHTTPException):
             # 處理 Starlette HTTPException
-            error_response = format_error_response(exc, request_id=request_id)
+            error_response = format_error_response(exc)
             status_code = exc.status_code
 
         elif isinstance(exc, RequestValidationError):
@@ -136,7 +134,6 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                     "message": "請求資料驗證失敗",
                     "status_code": status.HTTP_422_UNPROCESSABLE_ENTITY,
                     "timestamp": get_utc_timestamp(),
-                    "request_id": request_id,
                     "details": exc.errors(),
                 }
             }
@@ -150,7 +147,6 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                     "message": "內部伺服器錯誤",
                     "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
                     "timestamp": get_utc_timestamp(),
-                    "request_id": request_id,
                 }
             }
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -164,7 +160,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                 }
 
         # 記錄錯誤
-        log_error(exc, context="中間件", request_info=request_info)
+        logger.error(f"中間件錯誤: {str(exc)}", exc_info=True)
 
         # 返回標準化的錯誤回應
         return JSONResponse(status_code=status_code, content=error_response)
@@ -197,18 +193,10 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     """
     request_id = getattr(request.state, 'request_id', str(uuid.uuid4()))
 
-    error_response = format_error_response(exc, request_id=request_id)
+    error_response = format_error_response(exc)
 
     # 記錄錯誤
-    log_error(
-        exc,
-        context="HTTPException",
-        request_info={
-            "method": request.method,
-            "url": str(request.url),
-            "request_id": request_id,
-        },
-    )
+    logger.error(f"HTTPException: {str(exc)}", exc_info=True)
 
     return JSONResponse(status_code=exc.status_code, content=error_response)
 
@@ -233,22 +221,13 @@ async def validation_exception_handler(
             "code": ErrorCode.VALIDATION_ERROR,
             "message": "請求資料驗證失敗",
             "status_code": status.HTTP_422_UNPROCESSABLE_ENTITY,
-            "timestamp": request_id,  # 簡化，實際應使用時間戳
-            "request_id": request_id,
+            "timestamp": get_utc_timestamp(),
             "details": exc.errors(),
         }
     }
 
     # 記錄錯誤
-    log_error(
-        exc,
-        context="ValidationError",
-        request_info={
-            "method": request.method,
-            "url": str(request.url),
-            "request_id": request_id,
-        },
-    )
+    logger.error(f"ValidationError: {str(exc)}", exc_info=True)
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=error_response
@@ -273,8 +252,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
             "code": ErrorCode.INTERNAL_ERROR,
             "message": "內部伺服器錯誤",
             "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
-            "timestamp": request_id,  # 簡化，實際應使用時間戳
-            "request_id": request_id,
+            "timestamp": get_utc_timestamp(),
         }
     }
 
@@ -287,15 +265,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
         }
 
     # 記錄錯誤
-    log_error(
-        exc,
-        context="GeneralException",
-        request_info={
-            "method": request.method,
-            "url": str(request.url),
-            "request_id": request_id,
-        },
-    )
+    logger.error(f"GeneralException: {str(exc)}", exc_info=True)
 
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=error_response

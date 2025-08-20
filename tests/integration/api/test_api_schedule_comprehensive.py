@@ -131,7 +131,7 @@ class TestAPIScheduleComprehensive:
                 await create_user(user_data, mock_db)
 
         # 驗證異常詳情
-        assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert exc_info.value.status_code == status.HTTP_409_CONFLICT
         assert "此電子信箱已被使用" in str(exc_info.value.detail)
 
     @pytest.mark.asyncio
@@ -390,7 +390,7 @@ class TestAPIScheduleComprehensive:
                 await create_user(user_data, mock_db)
 
         # 驗證異常詳情
-        assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert exc_info.value.status_code == status.HTTP_409_CONFLICT
         assert "無效的電子信箱格式" in str(exc_info.value.detail)
 
     @pytest.mark.asyncio

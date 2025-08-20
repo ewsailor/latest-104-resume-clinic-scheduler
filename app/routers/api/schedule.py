@@ -21,14 +21,7 @@ from app.schemas import (  # 資料模型
 )
 from app.utils.error_handler import (
     APIError,
-    ErrorMessages,
     create_http_exception_from_api_error,
-    get_schedule_create_responses,
-    get_schedule_delete_responses,
-    get_schedule_detail_responses,
-    get_schedule_list_responses,
-    get_schedule_update_responses,
-    safe_execute,
 )
 
 # 建立路由器
@@ -44,7 +37,6 @@ router = APIRouter(prefix="/api/v1", tags=["Schedules"])
     status_code=status.HTTP_201_CREATED,
     summary="建立多個時段",
     description="Giver 新增自己的可預約時間，供 Taker 選擇預約。支援批量建立多個時段。",
-    responses=get_schedule_create_responses(),
 )
 async def create_schedules(
     request: ScheduleCreateRequest, db: Session = Depends(get_db)
@@ -84,13 +76,20 @@ async def create_schedules(
         # 自定義業務錯誤：時段重疊、使用者不存在等
         # 不需要回滾，因為還沒開始修改資料庫
         raise create_http_exception_from_api_error(e)
+    except ValueError as e:
+        # 處理驗證錯誤，如時段重疊等
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e),
+        )
     except Exception as e:
         # 其他未預期的系統錯誤，如資料庫連線失敗、記憶體不足等
         # 需要回滾，因為可能已經部分修改了資料庫
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"{ErrorMessages.SCHEDULE_CREATE_FAILED}: {str(e)}",
+            detail=f"建立時段時發生內部錯誤: {str(e)}",
         )
 
 
@@ -100,7 +99,6 @@ async def create_schedules(
     status_code=status.HTTP_200_OK,
     summary="取得時段列表",
     description="取得時段列表，可選擇性地根據 giver_id、taker_id 和 status 進行篩選。支援多種篩選條件組合查詢。",
-    responses=get_schedule_list_responses(),
 )
 async def get_schedules(
     giver_id: int | None = None,
@@ -134,7 +132,7 @@ async def get_schedules(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"{ErrorMessages.SCHEDULE_LIST_QUERY_FAILED}: {str(e)}",
+            detail=f"查詢時段列表失敗: {str(e)}",
         )
 
 
@@ -144,7 +142,6 @@ async def get_schedules(
     status_code=status.HTTP_200_OK,
     summary="取得單一時段",
     description="根據時段 ID 取得單一時段的詳細資料。",
-    responses=get_schedule_detail_responses(),
 )
 async def get_schedule(
     schedule_id: int, db: Session = Depends(get_db)
@@ -171,7 +168,7 @@ async def get_schedule(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"{ErrorMessages.SCHEDULE_DETAIL_QUERY_FAILED}: {str(e)}",
+            detail=f"查詢單一時段失敗: {str(e)}",
         )
 
 
@@ -181,7 +178,6 @@ async def get_schedule(
     status_code=status.HTTP_200_OK,
     summary="更新時段",
     description="部分更新指定的時段資料，只需要提供要更新的欄位。所有的時段更新操作都需要提供操作者資訊以確保安全性和審計追蹤。",
-    responses=get_schedule_update_responses(),
 )
 async def update_schedule(
     schedule_id: int,
@@ -228,7 +224,7 @@ async def update_schedule(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"{ErrorMessages.SCHEDULE_UPDATE_FAILED}: {str(e)}",
+            detail=f"更新時段失敗: {str(e)}",
         )
 
 
@@ -237,7 +233,6 @@ async def update_schedule(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="刪除時段",
     description="刪除指定的時段。所有的時段刪除操作都需要提供操作者資訊以確保安全性和審計追蹤。",
-    responses=get_schedule_delete_responses(),
 )
 async def delete_schedule(
     schedule_id: int, request: ScheduleDeleteRequest, db: Session = Depends(get_db)
@@ -280,5 +275,5 @@ async def delete_schedule(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"{ErrorMessages.SCHEDULE_DELETE_FAILED}: {str(e)}",
+            detail=f"刪除時段失敗: {str(e)}",
         )

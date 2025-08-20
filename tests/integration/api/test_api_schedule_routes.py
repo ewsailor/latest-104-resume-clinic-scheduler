@@ -58,8 +58,8 @@ class TestScheduleAPI:
         future_date = datetime.date.today() + datetime.timedelta(days=random_days)
 
         # 使用隨機時間避免重疊
-        hour1 = random.randint(8, 12) + (timestamp % 4)  # 額外的隨機性
-        hour2 = hour1 + 2  # 確保不重疊
+        hour1 = random.randint(8, 9)  # 限制範圍
+        hour2 = hour1 + 4  # 確保不重疊，間隔4小時
         return {
             "schedules": [
                 {

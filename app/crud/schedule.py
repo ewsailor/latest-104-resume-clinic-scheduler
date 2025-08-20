@@ -37,7 +37,6 @@ from app.utils.error_handler import (
     create_user_not_found_error,
     format_schedule_overlap_error_message,
     handle_database_error,
-    safe_execute,
 )
 from app.utils.timezone import get_local_now_naive  # 時區工具
 from app.utils.validators import ParameterValidator, validate_parameters  # 參數驗證工具

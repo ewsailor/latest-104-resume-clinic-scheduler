@@ -22,7 +22,6 @@ from app.data.givers import (
 from app.utils.error_handler import (
     APIError,
     create_http_exception_from_api_error,
-    safe_execute,
 )
 
 # 建立路由器

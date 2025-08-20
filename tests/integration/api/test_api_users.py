@@ -102,8 +102,8 @@ class TestUsersAPI:
         }
 
         response = client.post("/api/v1/users", json=user_data)
-        # 修正：實際返回 500 錯誤，因為 ValueError 被當作一般異常處理
-        assert response.status_code == 500
+        # 修正：ValueError 現在返回 409 錯誤
+        assert response.status_code == 409
 
         data = response.json()
         # 修正：使用 error.message 欄位

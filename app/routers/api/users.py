@@ -17,7 +17,6 @@ from app.schemas import UserCreate  # 資料模型
 from app.utils.error_handler import (
     APIError,
     create_http_exception_from_api_error,
-    safe_execute,
 )
 
 # 建立路由器
@@ -90,6 +89,13 @@ async def create_user(
     except APIError as e:
         # 處理自定義 API 錯誤
         raise create_http_exception_from_api_error(e)
+    except ValueError as e:
+        # 處理驗證錯誤
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e),
+        )
     except Exception as e:
         # 處理其他未預期的錯誤
         db.rollback()
