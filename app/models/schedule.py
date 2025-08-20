@@ -20,9 +20,10 @@ from sqlalchemy import (  # 資料庫欄位類型
 from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import relationship
 
+from app.enums.models import ScheduleStatusEnum, UserRoleEnum
+
 # ===== 本地模組 =====
 from app.models.database import Base  # 資料庫基類
-from app.models.enums import ScheduleStatusEnum, UserRoleEnum
 from app.utils.model_helpers import format_datetime, safe_getattr  # 模型輔助工具
 from app.utils.timezone import get_local_now_naive  # 本地時間函數
 

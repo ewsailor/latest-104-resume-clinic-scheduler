@@ -15,12 +15,18 @@ from sqlalchemy import and_  # SQL 條件組合
 # ===== 第三方套件 =====
 from sqlalchemy.orm import Session, joinedload  # 資料庫會話
 
-from app.models.enums import ScheduleStatusEnum, UserRoleEnum  # ENUM 定義
+from app.enums.models import ScheduleStatusEnum, UserRoleEnum  # ENUM 定義
 
 # ===== 本地模組 =====
+from app.enums.operations import OperationContext  # 操作相關的 ENUM
 from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型
 from app.schemas import ScheduleData  # 資料模型
+from app.utils.crud_decorators import (
+    handle_crud_errors,
+    handle_crud_errors_with_rollback,
+    log_crud_operation,
+)
 from app.utils.error_handler import (
     BusinessLogicError,
     DatabaseError,
@@ -29,9 +35,11 @@ from app.utils.error_handler import (
     create_schedule_not_found_error,
     create_schedule_overlap_error,
     create_user_not_found_error,
+    format_schedule_overlap_error_message,
     handle_database_error,
     safe_execute,
 )
+from app.utils.timezone import get_local_now_naive  # 時區工具
 
 
 class ScheduleCRUD:
@@ -41,6 +49,7 @@ class ScheduleCRUD:
         """初始化 CRUD 實例，設定日誌器。"""
         self.logger = logging.getLogger(__name__)
 
+    @handle_crud_errors("建立查詢選項")
     def _get_schedule_query_options(self, include_relations: list[str] | None = None):
         """
         取得時段查詢的選項設定。
@@ -50,7 +59,17 @@ class ScheduleCRUD:
 
         Returns:
             list: joinedload 選項列表
+
+        Raises:
+            ValueError: 當輸入參數無效時
+            Exception: 當 SQLAlchemy 操作失敗時
         """
+        # 驗證輸入參數
+        if include_relations is not None and not isinstance(include_relations, list):
+            raise ValueError(
+                f"無效的 include_relations 類型: {type(include_relations).__name__}, 期望 list[str]"
+            )
+
         if include_relations is None:
             # 預設載入所有關聯
             include_relations = [
@@ -70,12 +89,27 @@ class ScheduleCRUD:
             'deleted_by_user': joinedload(Schedule.deleted_by_user),
         }
 
+        # 驗證關聯名稱並建立選項
+        invalid_relations = []
         for relation in include_relations:
+            if not isinstance(relation, str):
+                raise ValueError(
+                    f"無效的關聯名稱類型: {type(relation).__name__}, 期望 str"
+                )
+
             if relation in relation_mapping:
                 options.append(relation_mapping[relation])
+            else:
+                invalid_relations.append(relation)
 
+        # 如果有無效的關聯名稱，記錄警告
+        if invalid_relations:
+            self.logger.warning(f"忽略無效的關聯名稱: {invalid_relations}")
+
+        self.logger.debug(f"建立查詢選項: {len(options)} 個關聯載入選項")
         return options
 
+    @handle_crud_errors("驗證使用者存在")
     def _validate_user_exists(
         self, db: Session, user_id: int, context: str = "操作者"
     ) -> User:
@@ -91,54 +125,29 @@ class ScheduleCRUD:
             User: 使用者物件
 
         Raises:
+            ValueError: 當輸入參數無效時
             NotFoundError: 當使用者不存在時
+            DatabaseError: 當資料庫操作失敗時
         """
+        # 驗證輸入參數
+        if not isinstance(user_id, int) or user_id <= 0:
+            raise ValueError(f"無效的 user_id: {user_id}")
+
+        if not isinstance(context, str):
+            raise ValueError(f"無效的 context 類型: {type(context).__name__}, 期望 str")
+
+        # 執行資料庫查詢
         user = db.query(User).filter(User.id == user_id).first()
+
         if not user:
             error_msg = f"{context}不存在: user_id={user_id}"
             self.logger.error(error_msg)
             raise create_user_not_found_error(user_id)
+
+        self.logger.debug(f"驗證使用者存在成功: user_id={user_id}, context={context}")
         return user
 
-    def _format_overlap_error_message(
-        self,
-        overlapping_schedules: list[Schedule],
-        schedule_date: date,
-        context: str = "建立",
-    ) -> str:
-        """
-        格式化重疊時段的錯誤訊息。
-
-        Args:
-            overlapping_schedules: 重疊的時段列表
-            schedule_date: 時段日期
-            context: 操作上下文（"建立" 或 "更新"）
-
-        Returns:
-            str: 格式化後的錯誤訊息
-        """
-        overlapping_info = []
-        for overlap_schedule in overlapping_schedules:
-            weekday_names = ['週一', '週二', '週三', '週四', '週五', '週六', '週日']
-            weekday = weekday_names[schedule_date.weekday()]
-            formatted_date = f"{schedule_date.strftime('%Y/%m/%d')}（{weekday}）"
-
-            if context == "建立":
-                # 建立時使用 ~ 分隔符
-                overlapping_info.append(
-                    f"{formatted_date} {overlap_schedule.start_time.strftime('%H:%M')}~{overlap_schedule.end_time.strftime('%H:%M')}"
-                )
-            else:
-                # 更新時使用 - 分隔符
-                overlapping_info.append(
-                    f"{formatted_date} {overlap_schedule.start_time.strftime('%H:%M')}-{overlap_schedule.end_time.strftime('%H:%M')}"
-                )
-
-        if context == "建立":
-            return f"您正輸入的時段，和您之前曾輸入的「{', '.join(overlapping_info)}」時段重複或重疊，請重新輸入"
-        else:
-            return f"時段重疊：與以下時段衝突 - {', '.join(overlapping_info)}"
-
+    @handle_crud_errors("檢查時段重疊")
     def check_schedule_overlap(
         self,
         db: Session,
@@ -161,7 +170,27 @@ class ScheduleCRUD:
 
         Returns:
             list[Schedule]: 重疊的時段列表（排除已軟刪除的記錄）
+
+        Raises:
+            DatabaseError: 當資料庫操作失敗時
+            ValueError: 當輸入參數無效時
         """
+        # 驗證輸入參數
+        if not isinstance(giver_id, int) or giver_id <= 0:
+            raise ValueError(f"無效的 giver_id: {giver_id}")
+
+        if not isinstance(schedule_date, date):
+            raise ValueError(f"無效的 schedule_date: {schedule_date}")
+
+        if not isinstance(start_time, time):
+            raise ValueError(f"無效的 start_time: {start_time}")
+
+        if not isinstance(end_time, time):
+            raise ValueError(f"無效的 end_time: {end_time}")
+
+        if start_time >= end_time:
+            raise ValueError(f"開始時間必須早於結束時間: {start_time} >= {end_time}")
+
         # 查詢同一天同一 giver 的所有時段（排除已軟刪除的記錄）
         query = db.query(Schedule).filter(
             and_(
@@ -173,6 +202,8 @@ class ScheduleCRUD:
 
         # 排除指定時段（用於更新時排除自己）
         if exclude_schedule_id is not None:
+            if not isinstance(exclude_schedule_id, int) or exclude_schedule_id <= 0:
+                raise ValueError(f"無效的 exclude_schedule_id: {exclude_schedule_id}")
             query = query.filter(Schedule.id != exclude_schedule_id)
 
         existing_schedules = query.all()
@@ -186,8 +217,15 @@ class ScheduleCRUD:
             ):
                 overlapping_schedules.append(existing_schedule)
 
+        self.logger.debug(
+            f"時段重疊檢查完成: giver_id={giver_id}, date={schedule_date}, "
+            f"time={start_time}-{end_time}, 找到 {len(overlapping_schedules)} 個重疊時段"
+        )
+
         return overlapping_schedules
 
+    @handle_crud_errors_with_rollback("建立時段")
+    @log_crud_operation("建立時段", log_args=False)
     def create_schedules(
         self,
         db: Session,
@@ -218,6 +256,7 @@ class ScheduleCRUD:
             f"使用者 {created_by} (角色: {created_by_role.value}) "
             f"正在建立 {len(schedules)} 個時段"
         )
+
         # 檢查重疊時段
         for schedule_data in schedules:
             overlapping_schedules = self.check_schedule_overlap(
@@ -230,8 +269,10 @@ class ScheduleCRUD:
 
             if overlapping_schedules:
                 # 格式化重疊時段的錯誤訊息
-                error_msg = self._format_overlap_error_message(
-                    overlapping_schedules, schedule_data.schedule_date, "建立"
+                error_msg = format_schedule_overlap_error_message(
+                    overlapping_schedules,
+                    schedule_data.schedule_date,
+                    OperationContext.CREATE,
                 )
                 raise BusinessLogicError(error_msg, ErrorCode.SCHEDULE_OVERLAP)
 
@@ -276,25 +317,21 @@ class ScheduleCRUD:
             schedule_details.append(detail)
         self.logger.info(f"建立時段詳情: {', '.join(schedule_details)}")
 
-        try:
-            # 批量新增到資料庫
-            db.add_all(schedule_objects)
-            db.commit()
+        # 批量新增到資料庫
+        db.add_all(schedule_objects)
+        db.commit()
 
-            # 重新整理物件以取得 ID
-            for schedule in schedule_objects:
-                db.refresh(schedule)
+        # 重新整理物件以取得 ID
+        for schedule in schedule_objects:
+            db.refresh(schedule)
 
-            self.logger.info(
-                f"成功建立 {len(schedule_objects)} 個時段，"
-                f"ID範圍: {[s.id for s in schedule_objects]}"
-            )
-            return schedule_objects
+        self.logger.info(
+            f"成功建立 {len(schedule_objects)} 個時段，"
+            f"ID範圍: {[s.id for s in schedule_objects]}"
+        )
+        return schedule_objects
 
-        except Exception as e:
-            db.rollback()
-            raise handle_database_error(e, "建立時段")
-
+    @handle_crud_errors("查詢時段列表")
     def get_schedules(
         self,
         db: Session,
@@ -313,7 +350,23 @@ class ScheduleCRUD:
 
         Returns:
             list[Schedule]: 符合條件的時段列表（排除已軟刪除的記錄）
+
+        Raises:
+            DatabaseError: 當資料庫操作失敗時
+            ValueError: 當輸入參數無效時
         """
+        # 驗證輸入參數
+        if giver_id is not None and (not isinstance(giver_id, int) or giver_id <= 0):
+            raise ValueError(f"無效的 giver_id: {giver_id}")
+
+        if taker_id is not None and (not isinstance(taker_id, int) or taker_id <= 0):
+            raise ValueError(f"無效的 taker_id: {taker_id}")
+
+        if status_filter is not None and not isinstance(status_filter, str):
+            raise ValueError(
+                f"無效的 status_filter 類型: {type(status_filter).__name__}, 期望 str"
+            )
+
         query = db.query(Schedule).options(*self._get_schedule_query_options())
 
         # 排除已軟刪除的記錄
@@ -331,15 +384,21 @@ class ScheduleCRUD:
                 status_enum = ScheduleStatusEnum(status_filter)
                 filters.append(Schedule.status == status_enum)
             except ValueError:
-                # 如果狀態值無效，記錄警告但不拋出異常
-                self.logger.warning(f"無效的狀態值: {status_filter}")
-                # 可以選擇拋出異常或忽略此篩選條件
-                # raise ValueError(f"無效的狀態值: {status_filter}")
+                raise ValueError(
+                    f"無效的狀態值: {status_filter}，有效值為: {[e.value for e in ScheduleStatusEnum]}"
+                )
 
         if filters:
             query = query.filter(and_(*filters))
 
-        return query.all()
+        schedules = query.all()
+
+        self.logger.debug(
+            f"查詢時段列表完成: giver_id={giver_id}, taker_id={taker_id}, "
+            f"status_filter={status_filter}, 找到 {len(schedules)} 個時段"
+        )
+
+        return schedules
 
     def get_schedule_by_id(self, db: Session, schedule_id: int) -> Schedule:
         """
@@ -387,6 +446,7 @@ class ScheduleCRUD:
             .first()
         )
 
+    @handle_crud_errors_with_rollback("更新時段")
     def update_schedule(
         self,
         db: Session,
@@ -451,8 +511,8 @@ class ScheduleCRUD:
 
             if overlapping_schedules:
                 # 格式化重疊時段的錯誤訊息
-                error_msg = self._format_overlap_error_message(
-                    overlapping_schedules, new_date, "更新"
+                error_msg = format_schedule_overlap_error_message(
+                    overlapping_schedules, new_date, OperationContext.UPDATE
                 )
                 self.logger.warning(f"更新時段 {schedule_id} 時檢測到重疊: {error_msg}")
                 raise BusinessLogicError(error_msg, ErrorCode.SCHEDULE_OVERLAP)
@@ -482,17 +542,12 @@ class ScheduleCRUD:
                 f"時段 {schedule_id} 更新欄位: {', '.join(updated_fields)}"
             )
 
-        try:
-            db.commit()
-            db.refresh(schedule)
-            self.logger.info(f"時段 {schedule_id} 更新成功")
-            return schedule
-        except Exception as e:
-            db.rollback()
-            error_msg = f"更新時段 {schedule_id} 失敗: {str(e)}"
-            self.logger.error(error_msg)
-            raise
+        db.commit()
+        db.refresh(schedule)
+        self.logger.info(f"時段 {schedule_id} 更新成功")
+        return schedule
 
+    @handle_crud_errors_with_rollback("軟刪除時段")
     def delete_schedule(
         self,
         db: Session,
@@ -547,31 +602,22 @@ class ScheduleCRUD:
                 f"正在被使用者 {deleted_by} (角色: {deleted_by_role.value}) 軟刪除"
             )
 
-        try:
-            # 實作軟刪除：設定 deleted_at 時間戳記和更新狀態
-            from app.models.enums import ScheduleStatusEnum
-            from app.utils.timezone import get_local_now_naive
+        # 實作軟刪除：設定 deleted_at 時間戳記和更新狀態
+        schedule.updated_at = get_local_now_naive()
+        schedule.updated_by = deleted_by
+        schedule.updated_by_role = deleted_by_role
+        schedule.deleted_at = get_local_now_naive()
+        schedule.deleted_by = deleted_by
+        schedule.deleted_by_role = deleted_by_role
 
-            schedule.updated_at = get_local_now_naive()
-            schedule.updated_by = deleted_by
-            schedule.updated_by_role = deleted_by_role
-            schedule.deleted_at = get_local_now_naive()
-            schedule.deleted_by = deleted_by
-            schedule.deleted_by_role = deleted_by_role
+        # 將狀態改為 CANCELLED（已取消）
+        schedule.status = ScheduleStatusEnum.CANCELLED
 
-            # 將狀態改為 CANCELLED（已取消）
-            schedule.status = ScheduleStatusEnum.CANCELLED
-
-            db.commit()
-            self.logger.info(
-                f"時段 {schedule_id} ({schedule_info}) 已成功軟刪除，狀態改為 CANCELLED，刪除時間: {schedule.deleted_at}"
-            )
-            return True
-        except Exception as e:
-            db.rollback()
-            error_msg = f"軟刪除時段 {schedule_id} 失敗: {str(e)}"
-            self.logger.error(error_msg)
-            raise
+        db.commit()
+        self.logger.info(
+            f"時段 {schedule_id} ({schedule_info}) 已成功軟刪除，狀態改為 CANCELLED，刪除時間: {schedule.deleted_at}"
+        )
+        return True
 
 
 # 建立 CRUD 實例

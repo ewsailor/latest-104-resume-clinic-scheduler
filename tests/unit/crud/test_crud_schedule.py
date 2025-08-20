@@ -12,12 +12,17 @@ import pytest  # 測試框架
 from sqlalchemy.orm import Session  # 資料庫會話
 
 # ===== 本地模組 =====
-from app.crud.crud_schedule import ScheduleCRUD  # CRUD 操作
-from app.models.enums import ScheduleStatusEnum, UserRoleEnum  # 角色枚舉
+from app.crud.schedule import ScheduleCRUD  # CRUD 操作
+from app.enums.models import ScheduleStatusEnum, UserRoleEnum  # 角色枚舉
+from app.enums.operations import OperationContext  # 操作相關的 ENUM
 from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型
 from app.schemas import ScheduleData, UserCreate  # 資料模型
-from app.utils.error_handler import BusinessLogicError, NotFoundError  # 錯誤處理
+from app.utils.error_handler import NotFoundError  # 錯誤處理
+from app.utils.error_handler import (
+    BusinessLogicError,
+    format_schedule_overlap_error_message,
+)
 from tests.logger import log_test_info
 
 
@@ -178,7 +183,9 @@ class TestScheduleCRUD:
             )
         ]
 
-        with pytest.raises(BusinessLogicError, match="時段重複或重疊"):
+        with pytest.raises(
+            BusinessLogicError, match="您正輸入的時段，和您之前曾輸入的"
+        ):
             crud.create_schedules(
                 db_session,
                 schedules_data,
@@ -484,7 +491,9 @@ class TestScheduleCRUD:
         db_session.commit()
 
         # 嘗試更新第一個時段，使其與第二個時段重疊
-        with pytest.raises(BusinessLogicError, match="時段重疊"):
+        with pytest.raises(
+            BusinessLogicError, match="您正輸入的時段，和您之前曾輸入的"
+        ):
             crud.update_schedule(
                 db_session,
                 schedule1.id,
@@ -763,19 +772,17 @@ class TestScheduleCRUD:
         db_session.commit()
 
         # 測試建立上下文的錯誤訊息
-        create_error_msg = crud._format_overlap_error_message(
+        create_error_msg = format_schedule_overlap_error_message(
             [schedule], date(2024, 1, 15), "建立"
         )
-        expected_create_msg = "您正輸入的時段，和您之前曾輸入的「2024/01/15（週一） 09:00~10:00」時段重複或重疊，請重新輸入"
+        expected_create_msg = "您正輸入的時段，和您之前曾輸入的「2024/01/15（週一） 09:00-10:00」時段重複或重疊，請重新輸入"
         assert create_error_msg == expected_create_msg
 
         # 測試更新上下文的錯誤訊息
-        update_error_msg = crud._format_overlap_error_message(
+        update_error_msg = format_schedule_overlap_error_message(
             [schedule], date(2024, 1, 15), "更新"
         )
-        expected_update_msg = (
-            "時段重疊：與以下時段衝突 - 2024/01/15（週一） 09:00-10:00"
-        )
+        expected_update_msg = "您正輸入的時段，和您之前曾輸入的「2024/01/15（週一） 09:00-10:00」時段重複或重疊，請重新輸入"
         assert update_error_msg == expected_update_msg
 
         # 測試多個重疊時段
@@ -790,10 +797,10 @@ class TestScheduleCRUD:
         db_session.add(schedule2)
         db_session.commit()
 
-        multi_error_msg = crud._format_overlap_error_message(
+        multi_error_msg = format_schedule_overlap_error_message(
             [schedule, schedule2], date(2024, 1, 15), "建立"
         )
-        expected_multi_msg = "您正輸入的時段，和您之前曾輸入的「2024/01/15（週一） 09:00~10:00, 2024/01/15（週一） 14:00~15:00」時段重複或重疊，請重新輸入"
+        expected_multi_msg = "您正輸入的時段，和您之前曾輸入的「2024/01/15（週一） 09:00-10:00, 2024/01/15（週一） 14:00-15:00」時段重複或重疊，請重新輸入"
         assert multi_error_msg == expected_multi_msg
 
     def test_validate_user_exists(self, db_session: Session):

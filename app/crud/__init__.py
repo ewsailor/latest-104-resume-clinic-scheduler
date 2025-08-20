@@ -8,9 +8,22 @@ CRUD 操作模組。
 - 使用者 CRUD 操作（user_crud）
 """
 
-# 匯入所有 CRUD 模組
-from .crud_schedule import schedule_crud
-from .crud_user import user_crud
+# 絕對路徑導入（跨模組）
+from app.enums.operations import (  # 避免循環導入
+    AuditAction,
+    OperationContext,
+    ValidationContext,
+)
 
-# 匯出所有 CRUD 實例
-__all__ = ["schedule_crud", "user_crud"]
+# 相對路徑導入（同模組）
+from .schedule import schedule_crud
+from .user import user_crud
+
+# 匯出所有 CRUD 實例和 ENUM
+__all__ = [
+    "schedule_crud",
+    "user_crud",
+    "OperationContext",
+    "ValidationContext",
+    "AuditAction",
+]

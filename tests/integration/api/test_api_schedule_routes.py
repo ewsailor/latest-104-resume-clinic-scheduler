@@ -668,13 +668,13 @@ class TestScheduleAPI:
 
         # 使用更隨機的日期範圍以避免與其他測試衝突
         timestamp = int(time.time()) % 10000
-        random_days = random.randint(400, 500) + timestamp % 100  # 使用更遠的日期
+        random_days = random.randint(800, 1000) + timestamp % 100  # 使用更遠的日期
         future_date = datetime.date.today() + datetime.timedelta(days=random_days)
 
-        # 使用隨機時間避免重疊
-        hour1 = random.randint(8, 12) + (timestamp % 4)
-        hour2 = hour1 + 2  # 確保不重疊
-        hour3 = random.randint(14, 18) + (timestamp % 3)
+        # 使用更分散的時間避免重疊
+        hour1 = 9 + (timestamp % 2)  # 9-10 點
+        hour2 = 14 + (timestamp % 2)  # 14-15 點
+        hour3 = 16 + (timestamp % 2)  # 16-17 點
 
         bulk_data = [
             {

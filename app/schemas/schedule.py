@@ -8,7 +8,7 @@ from datetime import date, datetime, time
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.enums import ScheduleStatusEnum, UserRoleEnum
+from app.enums.models import ScheduleStatusEnum, UserRoleEnum
 
 
 class ScheduleData(BaseModel):

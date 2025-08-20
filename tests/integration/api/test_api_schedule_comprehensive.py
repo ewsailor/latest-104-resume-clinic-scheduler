@@ -162,7 +162,7 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_success_direct(self, mock_db, mock_schedule):
         """直接測試成功建立時段函數。"""
-        from app.models.enums import UserRoleEnum
+        from app.enums.models import UserRoleEnum
         from app.schemas import ScheduleCreateRequest, ScheduleData
 
         # 準備測試資料（新格式：包含建立者資訊）
@@ -196,7 +196,7 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_exception_direct(self, mock_db):
         """直接測試建立時段時拋出異常。"""
-        from app.models.enums import UserRoleEnum
+        from app.enums.models import UserRoleEnum
         from app.schemas import ScheduleCreateRequest, ScheduleData
 
         # 準備測試資料（新格式：包含建立者資訊）
@@ -285,7 +285,7 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_empty_list_direct(self, mock_db):
         """直接測試建立空時段列表。"""
-        from app.models.enums import UserRoleEnum
+        from app.enums.models import UserRoleEnum
         from app.schemas import ScheduleCreateRequest
 
         # 準備測試資料 - 空列表（新格式：包含操作者資訊）
@@ -339,7 +339,7 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_db_rollback_on_exception(self, mock_db):
         """測試建立時段時資料庫回滾。"""
-        from app.models.enums import UserRoleEnum
+        from app.enums.models import UserRoleEnum
         from app.schemas import ScheduleCreateRequest, ScheduleData
 
         # 準備測試資料（新格式：包含操作者資訊）
@@ -396,7 +396,7 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_with_invalid_data(self, mock_db):
         """測試建立時段時無效資料處理。"""
-        from app.models.enums import UserRoleEnum
+        from app.enums.models import UserRoleEnum
         from app.schemas import ScheduleCreateRequest, ScheduleData
 
         # 準備測試資料 - 使用有效的時間格式，但模擬 CRUD 層的驗證錯誤（新格式：包含操作者資訊）
@@ -492,7 +492,7 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_large_list(self, mock_db, mock_schedule):
         """測試建立大量時段。"""
-        from app.models.enums import UserRoleEnum
+        from app.enums.models import UserRoleEnum
         from app.schemas import ScheduleCreateRequest, ScheduleData
 
         # 準備測試資料 - 大量時段（新格式：包含操作者資訊）

@@ -17,7 +17,6 @@ from app.utils.error_handler import (
 )
 from app.utils.error_handler import ValidationError as CustomValidationError
 from app.utils.error_handler import (
-    create_giver_not_found_error,
     create_http_exception_from_api_error,
     create_schedule_not_found_error,
     create_user_not_found_error,
@@ -123,14 +122,6 @@ class TestErrorFactoryFunctions:
 
         assert isinstance(error, NotFoundError)
         assert error.error_code == "時段_NOT_FOUND"
-        assert error.status_code == 404
-
-    def test_create_giver_not_found_error(self):
-        """測試創建諮詢師不存在錯誤"""
-        error = create_giver_not_found_error(789)
-
-        assert isinstance(error, NotFoundError)
-        assert error.error_code == "諮詢師_NOT_FOUND"
         assert error.status_code == 404
 
 

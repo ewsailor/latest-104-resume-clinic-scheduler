@@ -460,6 +460,120 @@ def create_schedule_overlap_error(
     )
 
 
+def format_schedule_overlap_error_message(
+    overlapping_schedules: list,
+    schedule_date,
+    context: str = "建立",
+) -> str:
+    """
+    格式化重疊時段的錯誤訊息。
+
+    Args:
+        overlapping_schedules: 重疊的時段列表
+        schedule_date: 時段日期
+        context: 操作上下文（建立、更新或複製）
+
+    Returns:
+        str: 格式化後的錯誤訊息
+
+    Raises:
+        ValueError: 當輸入參數無效時
+        Exception: 當格式化操作失敗時
+    """
+    import logging
+
+    from app.utils.constants import (
+        DateTimeFormats,
+        ErrorMessages,
+        ScheduleConstants,
+        WeekdayNames,
+    )
+
+    logger = logging.getLogger(__name__)
+
+    try:
+        # 驗證輸入參數
+        if not isinstance(overlapping_schedules, list):
+            raise ValueError(
+                f"無效的 overlapping_schedules 類型: {type(overlapping_schedules).__name__}, 期望 list"
+            )
+
+        if not hasattr(schedule_date, 'weekday'):
+            raise ValueError(
+                f"無效的 schedule_date 類型: {type(schedule_date).__name__}, 期望 date"
+            )
+
+        if not isinstance(context, str):
+            raise ValueError(f"無效的 context 類型: {type(context).__name__}, 期望 str")
+
+        overlapping_info = []
+        for i, overlap_schedule in enumerate(overlapping_schedules):
+            try:
+                # 驗證時段物件
+                if not hasattr(overlap_schedule, 'start_time') or not hasattr(
+                    overlap_schedule, 'end_time'
+                ):
+                    raise ValueError(f"時段物件缺少必要屬性: start_time 或 end_time")
+
+                # 使用常數中定義的週名稱
+                weekday_index = schedule_date.weekday()
+                if weekday_index >= len(WeekdayNames.CHINESE_WEEKDAYS):
+                    raise ValueError(f"無效的週索引: {weekday_index}")
+
+                weekday = WeekdayNames.CHINESE_WEEKDAYS[weekday_index]
+
+                # 格式化日期（含週資訊），例如 "2024/01/15（週一）"
+                formatted_date = ScheduleConstants.DATE_WITH_WEEKDAY_TEMPLATE.format(
+                    date=schedule_date.strftime(DateTimeFormats.DATE_FORMAT),
+                    weekday=weekday,
+                )
+
+                # 格式化時間範圍，例如 "09:00-10:00"
+                time_range = ScheduleConstants.TIME_RANGE_TEMPLATE.format(
+                    start_time=overlap_schedule.start_time.strftime(
+                        DateTimeFormats.TIME_FORMAT
+                    ),
+                    end_time=overlap_schedule.end_time.strftime(
+                        DateTimeFormats.TIME_FORMAT
+                    ),
+                    separator=DateTimeFormats.SCHEDULE_SEPARATOR,
+                )
+
+                # 組合完整的時段資訊，例如 "2024/01/15（週一） 09:00-10:00"
+                full_schedule_info = ScheduleConstants.FULL_SCHEDULE_TEMPLATE.format(
+                    date_with_weekday=formatted_date, time_range=time_range
+                )
+
+                overlapping_info.append(full_schedule_info)
+
+            except (ValueError, AttributeError, IndexError) as e:
+                # 記錄個別時段格式化錯誤，但繼續處理其他時段
+                logger.warning(f"格式化時段 {i} 時發生錯誤: {e}")
+                # 使用簡化的錯誤訊息作為備用
+                overlapping_info.append(f"時段 {i+1} (格式化錯誤)")
+
+        # 如果沒有任何有效的時段資訊，使用預設訊息
+        if not overlapping_info:
+            return "時段重疊，但無法格式化詳細資訊"
+
+        logger.debug(f"格式化重疊錯誤訊息完成: {len(overlapping_info)} 個時段")
+        return ErrorMessages.SCHEDULE_OVERLAP_TEMPLATE.format(
+            overlapping_info=', '.join(overlapping_info)
+        )
+
+    except ValueError as e:
+        # 記錄參數驗證錯誤
+        logger.error(f"格式化重疊錯誤訊息參數錯誤: {e}")
+        raise
+
+    except Exception as e:
+        # 記錄格式化操作錯誤
+        error_msg = f"格式化重疊錯誤訊息時發生錯誤: overlapping_schedules={len(overlapping_schedules)}, schedule_date={schedule_date}, context={context}, error={str(e)}"
+        logger.error(error_msg, exc_info=True)
+        # 返回簡化的錯誤訊息作為備用
+        return "時段重疊，請檢查時間安排"
+
+
 def create_user_not_found_error(user_id: int) -> NotFoundError:
     """創建使用者不存在錯誤"""
     return NotFoundError("使用者", user_id)
@@ -468,11 +582,6 @@ def create_user_not_found_error(user_id: int) -> NotFoundError:
 def create_schedule_not_found_error(schedule_id: int) -> NotFoundError:
     """創建時段不存在錯誤"""
     return NotFoundError("時段", schedule_id)
-
-
-def create_giver_not_found_error(giver_id: int) -> NotFoundError:
-    """創建諮詢師不存在錯誤"""
-    return NotFoundError("諮詢師", giver_id)
 
 
 def create_invalid_status_transition_error(
