@@ -144,7 +144,7 @@ class EnumValidator(BaseValidator[T]):
         if isinstance(value, str):
             try:
                 # 嘗試將字串轉換為枚舉值
-                return self.enum_class(value)
+                return self.enum_class(value)  # type: ignore
             except (ValueError, TypeError):
                 pass
 

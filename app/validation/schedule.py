@@ -1,21 +1,19 @@
 """
-業務邏輯驗證器模組。
+時段驗證器模組。
 
-提供特定業務邏輯的驗證器，如時段驗證、使用者驗證等。
+提供時段相關的驗證器，如時段重疊檢查、營業時間驗證等。
 """
 
 import logging
 from datetime import date, time
-from typing import Any, List
+from typing import Any
 
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
-from app.enums.models import UserRoleEnum
 from app.models.schedule import Schedule
-from app.models.user import User
 from app.schemas import ScheduleData
-from app.utils.error_handler import BusinessLogicError, ErrorCode, NotFoundError
+from app.utils.error_handler import BusinessLogicError, ErrorCode
 
 from .base import BaseValidator, ValidationError
 from .types import TypeValidators
@@ -105,19 +103,6 @@ class DateRangeValidator(BaseValidator[date]):
         return value
 
 
-class UserExistsValidator(BaseValidator[User]):
-    """使用者存在驗證器。"""
-
-    def __init__(self, db: Session):
-        self.db = db
-
-    def validate(self, value: int, field_name: str = "使用者ID") -> User:
-        user = self.db.query(User).filter(User.id == value).first()
-        if not user:
-            raise NotFoundError(field_name, value)
-        return user
-
-
 class ScheduleOverlapValidator(BaseValidator[None]):
     """時段重疊驗證器。"""
 
@@ -198,7 +183,6 @@ class ScheduleDataValidator(BaseValidator[ScheduleData]):
         self.business_hours_validator = BusinessHoursValidator()
         self.time_range_validator = TimeRangeValidator()
         self.date_range_validator = DateRangeValidator()
-        self.user_exists_validator = UserExistsValidator(db)
         self.schedule_overlap_validator = ScheduleOverlapValidator(db)
 
     def validate(
@@ -236,8 +220,8 @@ class ScheduleDataValidator(BaseValidator[ScheduleData]):
         return value
 
 
-class BusinessValidators:
-    """業務邏輯驗證器集合。"""
+class ScheduleValidators:
+    """時段驗證器集合。"""
 
     @staticmethod
     def business_hours(
@@ -252,10 +236,6 @@ class BusinessValidators:
     @staticmethod
     def date_range(max_months_ahead: int = 3) -> DateRangeValidator:
         return DateRangeValidator(max_months_ahead)
-
-    @staticmethod
-    def user_exists(db: Session) -> UserExistsValidator:
-        return UserExistsValidator(db)
 
     @staticmethod
     def schedule_overlap(db: Session) -> ScheduleOverlapValidator:
