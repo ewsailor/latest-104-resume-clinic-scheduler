@@ -211,7 +211,7 @@ class ScheduleCRUD:
         return overlapping_schedules
 
     @handle_crud_errors_with_rollback("建立時段")
-    @log_crud_operation("建立時段", log_args=False)
+    @log_crud_operation("建立時段")
     def create_schedules(
         self,
         db: Session,
