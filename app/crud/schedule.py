@@ -15,6 +15,7 @@ from sqlalchemy import and_  # SQL 條件組合
 # ===== 第三方套件 =====
 from sqlalchemy.orm import Session, joinedload  # 資料庫會話
 
+from app.core.settings import settings  # 應用程式設定
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum  # ENUM 定義
 
 # ===== 本地模組 =====
@@ -40,7 +41,7 @@ from app.utils.crud_decorators import (
 )
 from app.utils.schedule_validator import ScheduleValidator  # 時段驗證器
 from app.utils.timezone import get_local_now_naive  # 時區工具
-from app.utils.validators import ParameterValidator, validate_parameters  # 參數驗證工具
+from app.validation import ParameterValidator, validate_parameters  # 參數驗證工具
 
 
 class ScheduleCRUD:
@@ -54,7 +55,7 @@ class ScheduleCRUD:
     @handle_crud_errors("建立查詢選項")
     def _get_schedule_query_options(self, include_relations: list[str] | None = None):
         """
-        取得時段查詢的選項設定。
+        取得時段查詢的選項設定，避免 N+1 問題。
 
         Args:
             include_relations: 要載入的關聯列表，如果為 None 則載入所有關聯
@@ -180,36 +181,10 @@ class ScheduleCRUD:
         # 驗證時間範圍
         ParameterValidator.validate_time_range(start_time, end_time)
 
-        # 查詢同一天同一 giver 的所有時段（排除已軟刪除的記錄）
-        query = db.query(Schedule).filter(
-            and_(
-                Schedule.giver_id == giver_id,
-                Schedule.date == schedule_date,
-                Schedule.deleted_at.is_(None),
-            )
+        # 使用 validator 中的方法進行重疊檢查
+        return self.validator.check_schedule_overlap(
+            db, giver_id, schedule_date, start_time, end_time, exclude_schedule_id
         )
-
-        # 排除指定時段（用於更新時排除自己）
-        if exclude_schedule_id is not None:
-            query = query.filter(Schedule.id != exclude_schedule_id)
-
-        existing_schedules = query.all()
-        overlapping_schedules = []
-
-        for existing_schedule in existing_schedules:
-            # 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
-            if (
-                start_time < existing_schedule.end_time
-                and end_time > existing_schedule.start_time
-            ):
-                overlapping_schedules.append(existing_schedule)
-
-        self.logger.debug(
-            f"時段重疊檢查完成: giver_id={giver_id}, date={schedule_date}, "
-            f"time={start_time}-{end_time}, 找到 {len(overlapping_schedules)} 個重疊時段"
-        )
-
-        return overlapping_schedules
 
     @handle_crud_errors_with_rollback("建立時段")
     @log_crud_operation("建立時段")
@@ -238,9 +213,7 @@ class ScheduleCRUD:
         """
         # 使用驗證器進行全面驗證
         # 在測試環境中跳過日期驗證，因為測試可能使用過去的日期
-        import os
-
-        skip_date_validation = os.getenv("TESTING", "false").lower() == "true"
+        skip_date_validation = settings.testing
         self.validator.validate_schedules_list(
             schedules, db, check_overlap=True, skip_date_validation=skip_date_validation
         )

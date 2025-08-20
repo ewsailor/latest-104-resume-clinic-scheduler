@@ -4,6 +4,7 @@
 定義時段相關的資料庫模型和結構。
 """
 
+import logging
 from typing import Any
 
 # ===== 第三方套件 =====
@@ -210,8 +211,6 @@ class Schedule(Base):  # type: ignore[misc]
             }
         except Exception as e:
             # 記錄錯誤但不中斷程式執行
-            import logging
-
             logger = logging.getLogger(__name__)
             logger.error(f"Schedule.to_dict() 錯誤: {e}", exc_info=True)
 

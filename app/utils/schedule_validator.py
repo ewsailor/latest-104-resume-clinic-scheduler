@@ -18,8 +18,9 @@ from app.errors import (
     format_schedule_overlap_error_message,
 )
 from app.models.schedule import Schedule
+from app.models.user import User
 from app.schemas import ScheduleData
-from app.utils.validators import ParameterValidator
+from app.validation import ParameterValidator, validate_schedule_data_complete
 
 
 class ScheduleValidator:
@@ -51,21 +52,13 @@ class ScheduleValidator:
         """
         self.logger.debug(f"開始驗證時段資料: {schedule_data}")
 
-        # 基本參數驗證
-        self._validate_basic_parameters(schedule_data)
-
-        # 日期驗證（可選跳過）
-        if not skip_date_validation:
-            self._validate_schedule_date(schedule_data.schedule_date)
-
-        # 時間驗證
-        self._validate_time_range(schedule_data.start_time, schedule_data.end_time)
-
-        # 營業時間驗證
-        self._validate_business_hours(schedule_data.start_time, schedule_data.end_time)
-
-        # 備註驗證
-        self._validate_note(schedule_data.note)
+        # 使用新的驗證函數
+        validate_schedule_data_complete(
+            schedule_data,
+            skip_date_validation=skip_date_validation,
+            max_months_ahead=self.MAX_MONTHS_AHEAD,
+            max_note_length=self.MAX_NOTE_LENGTH,
+        )
 
         self.logger.debug("時段資料驗證通過")
 
@@ -107,128 +100,6 @@ class ScheduleValidator:
 
         self.logger.info("所有時段驗證通過")
 
-    def _validate_basic_parameters(self, schedule_data: ScheduleData) -> None:
-        """驗證基本參數。"""
-        # 驗證 giver_id
-        ParameterValidator.validate_positive_int(schedule_data.giver_id, "giver_id")
-
-        # 驗證 taker_id（如果提供）
-        if schedule_data.taker_id is not None:
-            ParameterValidator.validate_positive_int(schedule_data.taker_id, "taker_id")
-
-    def _validate_schedule_date(self, schedule_date: date) -> None:
-        """
-        驗證時段日期。
-
-        Args:
-            schedule_date: 要驗證的日期
-
-        Raises:
-            ValueError: 當日期無效時
-        """
-        today = date.today()
-
-        # 不能新增以前的日期
-        if schedule_date < today:
-            raise ValueError(f"不能新增過去的日期: {schedule_date}")
-
-        # 不能預約超過 3 個月的日期
-        max_date = today.replace(month=today.month + self.MAX_MONTHS_AHEAD)
-        if schedule_date > max_date:
-            raise ValueError(
-                f"不能預約超過 {self.MAX_MONTHS_AHEAD} 個月的日期: {schedule_date}"
-            )
-
-    def _validate_time_range(self, start_time: time, end_time: time) -> None:
-        """
-        驗證時間範圍。
-
-        Args:
-            start_time: 開始時間
-            end_time: 結束時間
-
-        Raises:
-            ValueError: 當時間範圍無效時
-        """
-        # 驗證時間格式
-        self._validate_time_format(start_time, "start_time")
-        self._validate_time_format(end_time, "end_time")
-
-        # 結束時間必須晚於開始時間
-        if end_time <= start_time:
-            raise ValueError(f"結束時間 ({end_time}) 必須晚於開始時間 ({start_time})")
-
-    def _validate_time_format(self, time_obj: time, field_name: str) -> None:
-        """
-        驗證時間格式。
-
-        Args:
-            time_obj: 要驗證的時間物件
-            field_name: 欄位名稱
-
-        Raises:
-            ValueError: 當時間格式無效時
-        """
-        # 檢查小時範圍 (00-23)
-        if not (0 <= time_obj.hour <= 23):
-            raise ValueError(
-                f"「{field_name}」時數「{time_obj.hour}」超過 23，請輸入00-23之間的數字"
-            )
-
-        # 檢查分鐘範圍 (00-59)
-        if not (0 <= time_obj.minute <= 59):
-            raise ValueError(
-                f"「{field_name}」分數「{time_obj.minute}」超過 59，請輸入00-59之間的數字"
-            )
-
-    def _validate_business_hours(self, start_time: time, end_time: time) -> None:
-        """
-        驗證營業時間（排除休息時間）。
-
-        Args:
-            start_time: 開始時間
-            end_time: 結束時間
-
-        Raises:
-            ValueError: 當時間在休息時間內時
-        """
-        # 檢查開始時間是否在休息時間內
-        if self._is_in_rest_period(start_time):
-            raise ValueError(
-                f"開始時間 ({start_time}) 在休息時間內 ({self.REST_START_TIME}-{self.REST_END_TIME})"
-            )
-
-        # 檢查結束時間是否在休息時間內
-        if self._is_in_rest_period(end_time):
-            raise ValueError(
-                f"結束時間 ({end_time}) 在休息時間內 ({self.REST_START_TIME}-{self.REST_END_TIME})"
-            )
-
-    def _is_in_rest_period(self, check_time: time) -> bool:
-        """檢查時間是否在休息時間內。"""
-        # 休息時間跨越午夜 (例如: 22:00-06:00 或 00:00-08:00)
-        if self.REST_START_TIME <= self.REST_END_TIME:
-            # 正常情況：休息時間在同一天內
-            return self.REST_START_TIME <= check_time < self.REST_END_TIME
-        else:
-            # 跨越午夜：休息時間跨越到隔天
-            # 例如：22:00-06:00 表示 22:00-23:59 和 00:00-05:59
-            return check_time >= self.REST_START_TIME or check_time < self.REST_END_TIME
-
-    def _validate_note(self, note: str | None) -> None:
-        """
-        驗證備註。
-
-        Args:
-            note: 要驗證的備註
-
-        Raises:
-            ValueError: 當備註無效時
-        """
-        if note is not None:
-            if len(note) > self.MAX_NOTE_LENGTH:
-                raise ValueError(f"備註不能超過 {self.MAX_NOTE_LENGTH} 個字符")
-
     def _validate_schedule_overlaps(
         self, schedules: List[ScheduleData], db: Any
     ) -> None:
@@ -262,6 +133,82 @@ class ScheduleValidator:
                 )
                 raise BusinessLogicError(error_msg, ErrorCode.SCHEDULE_OVERLAP)
 
+    def check_schedule_overlap(
+        self,
+        db: Any,
+        giver_id: int,
+        schedule_date: date,
+        start_time: time,
+        end_time: time,
+        exclude_schedule_id: int | None = None,
+    ) -> List[Schedule]:
+        """
+        檢查時段重疊（排除已軟刪除的記錄）。
+
+        Args:
+            db: 資料庫會話
+            giver_id: Giver ID
+            schedule_date: 時段日期
+            start_time: 開始時間
+            end_time: 結束時間
+            exclude_schedule_id: 要排除的時段 ID（用於更新時排除自己）
+
+        Returns:
+            List[Schedule]: 重疊的時段列表（排除已軟刪除的記錄）
+        """
+        return self.check_schedule_overlap_static(
+            db, giver_id, schedule_date, start_time, end_time, exclude_schedule_id
+        )
+
+    @staticmethod
+    def check_schedule_overlap_static(
+        db: Any,
+        giver_id: int,
+        schedule_date: date,
+        start_time: time,
+        end_time: time,
+        exclude_schedule_id: int | None = None,
+    ) -> List[Schedule]:
+        """
+        檢查時段重疊（靜態方法，排除已軟刪除的記錄）。
+
+        Args:
+            db: 資料庫會話
+            giver_id: Giver ID
+            schedule_date: 時段日期
+            start_time: 開始時間
+            end_time: 結束時間
+            exclude_schedule_id: 要排除的時段 ID（用於更新時排除自己）
+
+        Returns:
+            List[Schedule]: 重疊的時段列表（排除已軟刪除的記錄）
+        """
+        # 查詢同一天同一 giver 的所有時段（排除已軟刪除的記錄）
+        query = db.query(Schedule).filter(
+            and_(
+                Schedule.giver_id == giver_id,
+                Schedule.date == schedule_date,
+                Schedule.deleted_at.is_(None),
+            )
+        )
+
+        # 排除指定時段（用於更新時排除自己）
+        if exclude_schedule_id is not None:
+            query = query.filter(Schedule.id != exclude_schedule_id)
+
+        existing_schedules = query.all()
+        overlapping_schedules = []
+
+        for existing_schedule in existing_schedules:
+            # 檢查時間重疊：新時段的開始時間 < 現有時段的結束時間 且 新時段的結束時間 > 現有時段的開始時間
+            if (
+                start_time < existing_schedule.end_time
+                and end_time > existing_schedule.start_time
+            ):
+                overlapping_schedules.append(existing_schedule)
+
+        return overlapping_schedules
+
     def _check_schedule_overlap(
         self,
         db: Any,
@@ -271,7 +218,7 @@ class ScheduleValidator:
         end_time: time,
     ) -> List[Schedule]:
         """
-        檢查時段重疊。
+        檢查時段重疊（內部方法，用於驗證）。
 
         Args:
             db: 資料庫會話
@@ -283,31 +230,10 @@ class ScheduleValidator:
         Returns:
             List[Schedule]: 重疊的時段列表
         """
-        # 查詢同一天、同一 Giver 的時段
-        existing_schedules = (
-            db.query(Schedule)
-            .filter(
-                and_(
-                    Schedule.giver_id == giver_id,
-                    Schedule.date == schedule_date,
-                    Schedule.deleted_at.is_(None),  # 排除已刪除的時段
-                )
-            )
-            .all()
+        # 使用公開方法進行檢查
+        return self.check_schedule_overlap(
+            db, giver_id, schedule_date, start_time, end_time
         )
-
-        overlapping_schedules = []
-        for existing_schedule in existing_schedules:
-            # 檢查時間重疊
-            if self._is_time_overlapping(
-                start_time,
-                end_time,
-                existing_schedule.start_time,
-                existing_schedule.end_time,
-            ):
-                overlapping_schedules.append(existing_schedule)
-
-        return overlapping_schedules
 
     def _is_time_overlapping(
         self,
@@ -345,8 +271,6 @@ class ScheduleValidator:
         Raises:
             NotFoundError: 當使用者不存在時
         """
-        from app.models.user import User
-
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise NotFoundError(f"{role_name}", user_id)

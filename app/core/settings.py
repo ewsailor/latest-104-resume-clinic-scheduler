@@ -6,6 +6,8 @@
 """
 
 # ===== 標準函式庫 =====
+import logging
+import re
 import tomllib  # Python 3.11+ 內建，解析 TOML 格式檔案
 from pathlib import Path  # 現代化的路徑處理
 from typing import Any  # 保留 Any，因為它沒有內建替代
@@ -29,8 +31,6 @@ def get_project_version() -> str:
             return str(pyproject_data["tool"]["poetry"]["version"])
     except (FileNotFoundError, KeyError, tomllib.TOMLDecodeError) as e:
         # 使用 logging 而不是 print，避免在生產環境中輸出
-        import logging
-
         logging.warning(f"無法從 pyproject.toml 讀取專案版本號。錯誤: {e}")
         return "0.1.0"  # 預設版本號
 
@@ -86,6 +86,7 @@ class Settings(BaseSettings):
     # 如果 .env 或系統中結果是小寫字串 "true"，就回傳 True，開啟「除錯模式（debug mode）」
     # 如果 .env 或系統中沒有 DEBUG，預設回傳 False（布林值）
     debug: bool = Field(default=False, description="是否啟用除錯模式")
+    testing: bool = Field(default=False, description="是否處於測試環境")
     secret_key: SecretStr | None = Field(default=None, description="應用程式密鑰")
 
     # ===== API 文件配置 =====
@@ -243,8 +244,6 @@ class Settings(BaseSettings):
             raise ValueError("至少需要一個有效的 CORS 來源")
 
         # 檢查每個來源的格式
-        import re
-
         for origin in origins:
             if not re.match(r"^https?://[a-zA-Z0-9.-]+(:\d+)?$", origin):
                 raise ValueError(f"無效的 CORS 來源格式：{origin}")
@@ -272,8 +271,6 @@ class Settings(BaseSettings):
             raise ValueError("AWS 區域不能為空")
 
         # 檢查 AWS 區域格式 (例如: us-east-1, ap-northeast-1)
-        import re
-
         if not re.match(r"^[a-z]{2}-[a-z]+-\d+$", v):
             raise ValueError(f"無效的 AWS 區域格式：{v}")
 

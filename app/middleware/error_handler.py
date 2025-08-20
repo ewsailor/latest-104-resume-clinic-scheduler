@@ -46,8 +46,6 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
         request.state.request_id = request_id
 
         # 記錄請求開始 - 根據配置決定是否記錄
-        from app.core.settings import settings
-
         if request.url.path.startswith("/api/"):
             if settings.log_api_requests:
                 logger.info(
