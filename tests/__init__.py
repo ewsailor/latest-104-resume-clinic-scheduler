@@ -4,8 +4,8 @@
 設定 Python 路徑以確保測試可以正確導入 app 模組。
 """
 
-import sys
 from pathlib import Path
+import sys
 
 # 添加專案根目錄到 Python 路徑
 project_root = Path(__file__).parent.parent

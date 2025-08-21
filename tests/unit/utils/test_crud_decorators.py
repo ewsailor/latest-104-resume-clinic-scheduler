@@ -56,7 +56,6 @@ class TestHandleCrudErrors:
     def test_logging_disabled(self):
         """測試日誌記錄被禁用（簡化後不再支援）"""
         # 簡化後的裝飾器總是記錄日誌，不再支援禁用
-        pass
 
 
 class TestHandleCrudErrorsWithRollback:
@@ -121,7 +120,6 @@ class TestHandleCrudErrorsWithRollback:
     def test_db_parameter_detection(self):
         """測試資料庫參數的自動檢測（簡化後不再支援自定義參數名）"""
         # 簡化後的裝飾器假設第一個參數是 db
-        pass
 
     def test_db_from_positional_args(self):
         """測試從位置參數中取得資料庫會話"""

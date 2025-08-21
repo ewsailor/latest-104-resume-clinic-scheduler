@@ -4,7 +4,7 @@
 提供共用的模型相關工具函式，避免重複代碼。
 """
 
-from typing import Any, Optional
+from typing import Any
 
 
 def format_datetime(dt) -> str | None:

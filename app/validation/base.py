@@ -38,7 +38,6 @@ class BaseValidator(ABC, Generic[T]):
         Raises:
             ValidationError: 當驗證失敗時
         """
-        pass
 
     def __call__(self, value: Any, field_name: str = "value") -> T:
         """讓驗證器可以像函式一樣被調用。"""

@@ -16,9 +16,9 @@
 """
 
 import argparse  # 解析命令行參數
+from pathlib import Path
 import shutil  # 刪除目錄和文件
 import sys  # 退出腳本
-from pathlib import Path
 
 
 def clear_python_cache(include_venv=False, quiet=False):
@@ -213,7 +213,7 @@ def clear_python_cache(include_venv=False, quiet=False):
                         failed_items.append(('file', pyo_file, error_msg))
 
     # 顯示統計結果
-    total_processed = removed_dirs + removed_files + skipped_items
+    removed_dirs + removed_files + skipped_items
 
     if not quiet:
         print(f"\n✅ 清除完成！")

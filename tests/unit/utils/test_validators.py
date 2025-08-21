@@ -5,13 +5,12 @@
 """
 
 from datetime import date, time
-from unittest.mock import Mock
 
 import pytest
 
 from app.enums.models import ScheduleStatusEnum
 from app.errors import ValidationError
-from app.utils.validators import ParameterValidator, validate_parameters, validator
+from app.utils.validators import validate_parameters, validator
 
 
 class TestParameterValidator:

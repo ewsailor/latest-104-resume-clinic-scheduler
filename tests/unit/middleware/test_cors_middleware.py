@@ -7,9 +7,9 @@ CORS 中間件測試模組。
 
 from unittest.mock import Mock
 
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+import pytest
 
 from app.core.settings import Settings
 from app.middleware.cors import (
@@ -20,7 +20,6 @@ from app.middleware.cors import (
     setup_cors_middleware,
     validate_cors_origins,
 )
-from tests.logger import log_test_info
 
 
 class TestCorsMiddleware:

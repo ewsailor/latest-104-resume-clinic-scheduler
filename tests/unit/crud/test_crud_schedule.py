@@ -15,15 +15,14 @@ from sqlalchemy.orm import Session  # 資料庫會話
 from app.crud.schedule import ScheduleCRUD  # CRUD 操作
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum  # 角色枚舉
 from app.enums.operations import OperationContext  # 操作相關的 ENUM
-from app.errors import NotFoundError  # 錯誤處理
 from app.errors import (
     BusinessLogicError,
     format_schedule_overlap_error_message,
 )
+from app.errors import NotFoundError  # 錯誤處理
 from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型
 from app.schemas import ScheduleData, UserCreate  # 資料模型
-from tests.logger import log_test_info
 
 
 class TestScheduleCRUD:
@@ -748,7 +747,7 @@ class TestScheduleCRUD:
 
     def test_format_overlap_error_message(self, db_session: Session):
         """測試格式化重疊時段錯誤訊息。"""
-        crud = ScheduleCRUD()
+        ScheduleCRUD()
 
         # 建立測試使用者
         user = User(name="測試 Giver", email="giver@example.com")

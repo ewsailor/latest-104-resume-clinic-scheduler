@@ -65,6 +65,7 @@ docs/
 ### 開發最佳實踐
 
 - **[匯入指南](best-practices/import_guidelines.md)** - Python 模組匯入規範
+- **[Import 自動修復](technical/utils/import-fix-guide.md)** - 函式內部 import 語句自動修復
 - **[訊息優化](best-practices/message_optimization.md)** - 訊息處理優化技巧
 - **[測試常數指南](best-practices/test_constants_guide.md)** - 測試常數管理
 - **[測試常數重構](best-practices/test_constants_restructure.md)** - 測試常數重構說明

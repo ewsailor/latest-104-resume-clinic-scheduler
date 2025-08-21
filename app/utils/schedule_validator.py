@@ -4,8 +4,8 @@
 提供時段相關的驗證功能，包括日期、時間、重疊檢查等。
 """
 
+from datetime import date, time
 import logging
-from datetime import date, datetime, time
 from typing import Any, List
 
 from sqlalchemy import and_
@@ -20,7 +20,7 @@ from app.errors import (
 from app.models.schedule import Schedule
 from app.models.user import User
 from app.schemas import ScheduleData
-from app.validation import TypeValidators, validate_schedule_data_complete
+from app.validation import validate_schedule_data_complete
 
 
 class ScheduleValidator:

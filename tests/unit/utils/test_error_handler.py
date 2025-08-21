@@ -4,9 +4,9 @@
 測試錯誤處理機制的各種功能。
 """
 
-import pytest
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 from pydantic import ValidationError
+import pytest
 
 from app.errors import (
     APIError,
@@ -15,7 +15,6 @@ from app.errors import (
     ErrorCode,
     NotFoundError,
 )
-from app.errors import ValidationError as CustomValidationError
 from app.errors import (
     create_http_exception_from_api_error,
     create_schedule_not_found_error,
@@ -23,7 +22,7 @@ from app.errors import (
     format_error_response,
     handle_database_error,
 )
-from tests.logger import log_test_info
+from app.errors import ValidationError as CustomValidationError
 
 
 class TestErrorCode:

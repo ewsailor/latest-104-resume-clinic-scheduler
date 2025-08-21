@@ -5,10 +5,9 @@
 這些是純邏輯驗證，不包含業務邏輯。
 """
 
+from datetime import date, datetime, time
 import inspect
 import logging
-from datetime import date, datetime, time
-from enum import Enum
 from typing import Any, Callable, List, Optional, Type, TypeVar
 
 from app.errors import ValidationError as APIValidationError

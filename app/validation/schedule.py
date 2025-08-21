@@ -4,9 +4,8 @@
 提供時段相關的驗證器，如時段重疊檢查、營業時間驗證等。
 """
 
-import logging
 from datetime import date, time
-from typing import Any
+import logging
 
 from sqlalchemy import and_
 from sqlalchemy.orm import Session

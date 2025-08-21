@@ -1,4 +1,7 @@
 """
+
+from datetime import datetime
+
 簡化的 API 路由層測試。
 
 使用模擬（mock）來測試 API 端點，避免資料庫執行緒問題。
@@ -6,15 +9,14 @@
 
 from unittest.mock import Mock, patch
 
-# ===== 標準函式庫 =====
-import pytest
-
 # ===== 第三方套件 =====
 from fastapi.testclient import TestClient
 
+# ===== 標準函式庫 =====
+import pytest
+
 # ===== 本地模組 =====
 from app.main import app
-from tests.logger import log_test_info
 
 
 class TestAPIScheduleSimple:
@@ -47,8 +49,6 @@ class TestAPIScheduleSimple:
     @pytest.fixture
     def mock_schedule(self):
         """模擬時段資料。"""
-        from datetime import datetime
-
         schedule = Mock()
         schedule.id = 1
         schedule.giver_id = 1

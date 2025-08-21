@@ -7,9 +7,9 @@
 
 # ===== 標準函式庫 =====
 import logging
+from pathlib import Path  # 現代化的路徑處理
 import re
 import tomllib  # Python 3.11+ 內建，解析 TOML 格式檔案
-from pathlib import Path  # 現代化的路徑處理
 from typing import Any  # 保留 Any，因為它沒有內建替代
 
 # ===== 第三方套件 =====

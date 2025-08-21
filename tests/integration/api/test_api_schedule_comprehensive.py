@@ -7,18 +7,17 @@
 from datetime import datetime
 from unittest.mock import Mock, patch
 
-# ===== 標準函式庫 =====
-import pytest
-
 # ===== 第三方套件 =====
 from fastapi import HTTPException, status
 from fastapi.testclient import TestClient
+
+# ===== 標準函式庫 =====
+import pytest
 
 # ===== 本地模組 =====
 from app.main import app
 from app.routers.api.schedule import create_schedules, get_schedules
 from app.routers.api.users import create_user
-from tests.logger import log_test_info
 
 
 class TestAPIScheduleComprehensive:

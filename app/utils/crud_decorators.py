@@ -4,8 +4,8 @@ CRUD 操作裝飾器模組。
 提供統一的錯誤處理裝飾器，減少重複的 try-except 程式碼。
 """
 
-import logging
 from functools import wraps
+import logging
 from typing import Any, Callable
 
 from app.errors import APIError, handle_database_error

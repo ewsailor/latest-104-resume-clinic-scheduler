@@ -1,4 +1,7 @@
 """
+
+import time
+
 測試 app/routers/api/v1/users.py 模組。
 
 測試使用者相關的 API 端點，包括查詢和建立功能。
@@ -9,7 +12,6 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from app.main import app
-from tests.logger import log_test_info
 
 # 建立測試客戶端
 client = TestClient(app)
@@ -78,8 +80,6 @@ class TestUsersAPI:
     def test_create_user_success(self):
         """測試成功建立使用者。"""
         # 使用時間戳來確保每次測試都使用唯一的 email
-        import time
-
         timestamp = int(time.time())
         user_data = {
             "name": "測試使用者",

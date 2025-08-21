@@ -4,15 +4,14 @@
 測試首頁、健康檢查等基礎路由功能。
 """
 
-# ===== 標準函式庫 =====
-import pytest  # 測試框架
-
 # ===== 第三方套件 =====
 from httpx import ASGITransport, AsyncClient  # 非同步 HTTP 客戶端
 
+# ===== 標準函式庫 =====
+import pytest  # 測試框架
+
 # ===== 本地模組 =====
 from app.main import app  # FastAPI 應用程式
-from tests.logger import log_test_info
 
 
 @pytest.mark.asyncio

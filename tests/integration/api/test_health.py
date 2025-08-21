@@ -1,8 +1,8 @@
-import re
 from datetime import datetime, timezone
+import re
 
-import pytest
 from fastapi.testclient import TestClient
+import pytest
 
 from app.core import get_project_version, settings
 from app.main import app
@@ -22,7 +22,6 @@ from tests.constants import (
     HTTP_503_SERVICE_UNAVAILABLE,
     SIMULATED_VERSION_CHECK_ERROR,
 )
-from tests.logger import log_test_info
 
 # 使用 FastAPI 的 TestClient 來模擬 HTTP 請求
 client = TestClient(app)

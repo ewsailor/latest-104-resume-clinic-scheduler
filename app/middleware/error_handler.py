@@ -7,7 +7,6 @@
 import logging
 import traceback
 import uuid
-from typing import Any
 
 from fastapi import Request, Response, status
 from fastapi.exceptions import HTTPException, RequestValidationError
@@ -189,7 +188,7 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     Returns:
         JSONResponse: 標準化的錯誤回應
     """
-    request_id = getattr(request.state, 'request_id', str(uuid.uuid4()))
+    getattr(request.state, 'request_id', str(uuid.uuid4()))
 
     error_response = format_error_response(exc)
 
@@ -212,7 +211,7 @@ async def validation_exception_handler(
     Returns:
         JSONResponse: 標準化的錯誤回應
     """
-    request_id = getattr(request.state, 'request_id', str(uuid.uuid4()))
+    getattr(request.state, 'request_id', str(uuid.uuid4()))
 
     error_response = {
         "error": {
@@ -243,7 +242,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     Returns:
         JSONResponse: 標準化的錯誤回應
     """
-    request_id = getattr(request.state, 'request_id', str(uuid.uuid4()))
+    getattr(request.state, 'request_id', str(uuid.uuid4()))
 
     error_response = {
         "error": {

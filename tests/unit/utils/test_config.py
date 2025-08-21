@@ -5,12 +5,11 @@
 """
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
 from app.core import Settings, get_project_version
-from tests.logger import log_test_info
 
 
 class TestSettings:

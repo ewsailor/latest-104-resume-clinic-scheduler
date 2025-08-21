@@ -6,11 +6,11 @@
 
 from unittest.mock import Mock, patch
 
-# ===== 標準函式庫 =====
-import pytest
-
 # ===== 第三方套件 =====
 from fastapi import HTTPException
+
+# ===== 標準函式庫 =====
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import sessionmaker
@@ -25,7 +25,6 @@ from app.models.database import (
     get_db,
     get_healthy_db,
 )
-from tests.logger import log_test_info
 
 
 # ===== 測試設定 =====

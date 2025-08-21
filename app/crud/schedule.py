@@ -4,8 +4,8 @@
 提供時段相關的資料庫操作，包括建立、查詢、更新和刪除時段。
 """
 
-import logging  # 日誌記錄
 from datetime import date, time  # 日期和時間處理
+import logging  # 日誌記錄
 
 # ===== 標準函式庫 =====
 from typing import Any  # 型別提示
@@ -22,14 +22,10 @@ from app.enums.models import ScheduleStatusEnum, UserRoleEnum  # ENUM 定義
 from app.enums.operations import OperationContext  # 操作相關的 ENUM
 from app.errors import (
     BusinessLogicError,
-    DatabaseError,
     ErrorCode,
-    NotFoundError,
     create_schedule_not_found_error,
-    create_schedule_overlap_error,
     create_user_not_found_error,
     format_schedule_overlap_error_message,
-    handle_database_error,
 )
 from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型
@@ -224,7 +220,7 @@ class ScheduleCRUD:
         TypeValidators.enum(UserRoleEnum).validate(created_by_role, "created_by_role")
 
         # 驗證建立者是否存在
-        creator = self.validator.validate_user_exists(db, created_by, "建立者")
+        self.validator.validate_user_exists(db, created_by, "建立者")
 
         # 驗證建立者權限
         self.validator.validate_creator_permissions(created_by, created_by_role)
@@ -480,7 +476,8 @@ class ScheduleCRUD:
             NotFoundError: 當時段不存在時
         """
         # 驗證更新者是否存在
-        updater = self._validate_user_exists(db, updated_by, "更新者")
+        self._validate_user_exists(db, updated_by, "更新者")
+        self.validator.validate_user_exists(db, updated_by, "更新者")
 
         # 驗證時段是否存在
         schedule = self.get_schedule_by_id(db, schedule_id)
@@ -602,7 +599,7 @@ class ScheduleCRUD:
         """
         # 如果提供了刪除者ID，驗證刪除者是否存在
         if deleted_by:
-            deleter = self._validate_user_exists(db, deleted_by, "刪除者")
+            self._validate_user_exists(db, deleted_by, "刪除者")
 
         self.logger.info(f"正在軟刪除時段 ID: {schedule_id}，刪除者: {deleted_by}")
 

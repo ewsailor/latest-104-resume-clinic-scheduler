@@ -7,15 +7,12 @@
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
-import pytest
-
 # ===== 本地模組 =====
 from app.utils.timezone import (
     TAIWAN_TIMEZONE,
     get_local_now_naive,
     get_utc_timestamp,
 )
-from tests.logger import log_test_info
 
 
 class TestTimezoneModule:

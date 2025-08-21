@@ -13,7 +13,6 @@ from app.main import app
 
 # 導入新式物件結構常數
 from tests.constants import EXPECTED, HTTP, SIMULATED, TEST
-from tests.logger import log_test_info
 
 # 使用 FastAPI 的 TestClient 來模擬 HTTP 請求
 client = TestClient(app)

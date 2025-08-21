@@ -27,7 +27,6 @@ from .schedule import (
     validate_schedule_time_range,
     validate_time_format,
 )
-from .users import UserValidators
 
 __all__ = [
     "BaseValidator",

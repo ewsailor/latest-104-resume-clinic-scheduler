@@ -1,4 +1,21 @@
 """
+
+import datetime
+import random
+import time
+import datetime
+import random
+import time
+import datetime
+import datetime
+import random
+import time
+import datetime
+import random
+import datetime
+import random
+import time
+
 測試 app/routers/api/schedule.py 模組。
 
 測試時段相關的 API 端點，包括建立、查詢、更新和刪除時段。
@@ -6,8 +23,8 @@
 
 from unittest.mock import patch
 
-import pytest
 from fastapi.testclient import TestClient
+import pytest
 
 from app.main import app
 from tests.logger import log_test_info
@@ -23,10 +40,6 @@ class TestScheduleAPI:
     def sample_schedule_data(self):
         """提供測試用的時段資料。"""
         log_test_info("建立測試用的時段資料")
-        import datetime
-        import random
-        import time
-
         # 使用未來日期避免重疊，但要在2個月內
         # 添加時間戳以確保每次測試都不同
         timestamp = int(time.time()) % 10000  # 使用時間戳的後4位
@@ -46,10 +59,6 @@ class TestScheduleAPI:
     def sample_schedule_list(self):
         """提供測試用的時段列表資料。"""
         log_test_info("建立測試用的時段列表資料")
-        import datetime
-        import random
-        import time
-
         # 使用未來日期避免重疊，但要在3個月內
         # 添加時間戳以確保每次測試都不同
         timestamp = int(time.time()) % 10000  # 使用時間戳的後4位
@@ -246,8 +255,6 @@ class TestScheduleAPI:
         log_test_info("測試成功根據 ID 取得時段")
 
         # 先建立一個時段
-        import datetime
-
         future_date = datetime.date.today() + datetime.timedelta(
             days=11
         )  # 使用 11 天後避免重疊
@@ -462,10 +469,6 @@ class TestScheduleAPI:
         log_test_info("測試成功刪除時段")
 
         # 使用不同的時段資料避免重疊
-        import datetime
-        import random
-        import time
-
         # 使用時間戳確保唯一性，但限制在2個月內
         timestamp = int(time.time()) % 10000
         unique_date = datetime.date.today() + datetime.timedelta(
@@ -499,7 +502,6 @@ class TestScheduleAPI:
 
         # 執行測試
         delete_request = {"deleted_by": 1, "deleted_by_role": "GIVER"}
-        import json
 
         response = client.request(
             "DELETE", f"/api/v1/schedules/{created_schedule['id']}", json=delete_request
@@ -515,7 +517,6 @@ class TestScheduleAPI:
 
         # 執行測試
         delete_request = {"deleted_by": 1, "deleted_by_role": "GIVER"}
-        import json
 
         response = client.request(
             "DELETE", "/api/v1/schedules/999", json=delete_request
@@ -534,9 +535,6 @@ class TestScheduleAPI:
         log_test_info("測試刪除時段時的異常處理")
 
         # 使用不同的時段資料避免重疊
-        import datetime
-        import random
-
         unique_date = datetime.date.today() + datetime.timedelta(
             days=5
         )  # 使用更遠的日期
@@ -572,7 +570,6 @@ class TestScheduleAPI:
 
         # 執行測試
         delete_request = {"deleted_by": 1, "deleted_by_role": "GIVER"}
-        import json
 
         response = client.request(
             "DELETE", f"/api/v1/schedules/{created_schedule['id']}", json=delete_request
@@ -664,10 +661,6 @@ class TestScheduleAPI:
         log_test_info("測試時段批量操作")
 
         # 建立多個時段
-        import datetime
-        import random
-        import time
-
         # 使用更隨機的日期範圍以避免與其他測試衝突，但要在2個月內
         timestamp = int(time.time()) % 10000
         random_days = random.randint(1, 60) + timestamp % 20  # 使用1-60天內的日期
