@@ -6,10 +6,9 @@
 import ast
 from pathlib import Path
 import sys
-from typing import List, Tuple
 
 
-def extract_imports_from_functions(file_path: str) -> Tuple[List[str], List[str]]:
+def extract_imports_from_functions(file_path: str) -> tuple[list[str], list[str]]:
     """
     從檔案中提取函式內部的 import 語句
 

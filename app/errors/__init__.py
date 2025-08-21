@@ -11,6 +11,7 @@ from .exceptions import (
     DatabaseError,
     NotFoundError,
     ValidationError,
+    handle_database_error,
 )
 from .formatters import format_error_response, format_schedule_overlap_error_message
 from .handlers import (
@@ -18,7 +19,6 @@ from .handlers import (
     create_schedule_not_found_error,
     create_schedule_overlap_error,
     create_user_not_found_error,
-    handle_database_error,
 )
 
 __all__ = [

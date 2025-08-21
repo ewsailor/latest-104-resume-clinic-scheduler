@@ -9,17 +9,8 @@ from typing import Any
 from fastapi import HTTPException
 
 from .constants import ErrorCode
-from .exceptions import BusinessLogicError, DatabaseError, NotFoundError
+from .exceptions import BusinessLogicError, NotFoundError
 from .formatters import format_error_response
-
-
-def handle_database_error(error: Exception, operation: str) -> DatabaseError:
-    """處理資料庫錯誤"""
-    error_message = f"資料庫操作失敗 ({operation}): {str(error)}"
-    return DatabaseError(
-        error_message,
-        {"operation": operation, "original_error": str(error)},
-    )
 
 
 def create_http_exception_from_api_error(error: Any) -> HTTPException:
