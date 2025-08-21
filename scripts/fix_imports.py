@@ -54,7 +54,17 @@ def extract_imports_from_functions(file_path: str) -> Tuple[List[str], List[str]
                     if node.lineno - 1 < len(lines):
                         import_line = lines[node.lineno - 1].strip()
                         if import_line.startswith(('import ', 'from ')):
-                            function_imports.append(import_line)
+                            # 處理包含多個語句的行（如 import pdb; pdb.set_trace()）
+                            if ';' in import_line:
+                                # 分割多個語句
+                                statements = [s.strip() for s in import_line.split(';')]
+                                for stmt in statements:
+                                    if stmt.startswith(('import ', 'from ')):
+                                        function_imports.append(stmt)
+                                # 記錄需要移除的原始行
+                                function_imports.append(import_line)
+                            else:
+                                function_imports.append(import_line)
                 else:
                     # 提取頂層 import 語句
                     lines = content.split('\n')
@@ -109,10 +119,29 @@ def fix_imports_in_file(file_path: str) -> bool:
 
     # 在檔案頂部添加 import 語句
     if function_imports:
-        # 找到第一個非 import 語句的位置
+        # 找到第一個非 import 語句的位置，但要跳過 docstring
         insert_pos = 0
+        in_docstring = False
+        docstring_started = False
+
         for i, line in enumerate(new_lines):
             stripped = line.strip()
+
+            # 檢查是否進入 docstring
+            if stripped.startswith('"""') or stripped.startswith("'''"):
+                if not docstring_started:
+                    docstring_started = True
+                    in_docstring = True
+                else:
+                    in_docstring = False
+                    docstring_started = False
+                continue
+
+            # 如果在 docstring 內，跳過
+            if in_docstring:
+                continue
+
+            # 找到第一個非 import 語句的位置
             if (
                 stripped
                 and not stripped.startswith(('import ', 'from ', '#', '"""', "'''"))

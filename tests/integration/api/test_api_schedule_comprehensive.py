@@ -14,10 +14,13 @@ from fastapi.testclient import TestClient
 # ===== 標準函式庫 =====
 import pytest
 
+from app.enums.models import UserRoleEnum
+
 # ===== 本地模組 =====
 from app.main import app
 from app.routers.api.schedule import create_schedules, get_schedules
 from app.routers.api.users import create_user
+from app.schemas import ScheduleCreateRequest, ScheduleData, UserCreate
 
 
 class TestAPIScheduleComprehensive:
@@ -96,8 +99,6 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_user_success_direct(self, mock_db, mock_user):
         """直接測試成功建立使用者函數。"""
-        from app.schemas import UserCreate
-
         # 準備測試資料
         user_data = UserCreate(name="新使用者", email="newuser@example.com")
 
@@ -115,8 +116,6 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_user_value_error_direct(self, mock_db):
         """直接測試建立使用者時拋出 ValueError。"""
-        from app.schemas import UserCreate
-
         # 準備測試資料
         user_data = UserCreate(name="重複使用者", email="existing@example.com")
 
@@ -136,8 +135,6 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_user_general_exception_direct(self, mock_db):
         """直接測試建立使用者時拋出一般異常。"""
-        from app.schemas import UserCreate
-
         # 準備測試資料
         user_data = UserCreate(name="測試使用者", email="test@example.com")
 
@@ -161,9 +158,6 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_success_direct(self, mock_db, mock_schedule):
         """直接測試成功建立時段函數。"""
-        from app.enums.models import UserRoleEnum
-        from app.schemas import ScheduleCreateRequest, ScheduleData
-
         # 準備測試資料（新格式：包含建立者資訊）
         schedule_data = ScheduleCreateRequest(
             schedules=[
@@ -195,9 +189,6 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_exception_direct(self, mock_db):
         """直接測試建立時段時拋出異常。"""
-        from app.enums.models import UserRoleEnum
-        from app.schemas import ScheduleCreateRequest, ScheduleData
-
         # 準備測試資料（新格式：包含建立者資訊）
         schedule_data = ScheduleCreateRequest(
             schedules=[
@@ -284,9 +275,6 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_empty_list_direct(self, mock_db):
         """直接測試建立空時段列表。"""
-        from app.enums.models import UserRoleEnum
-        from app.schemas import ScheduleCreateRequest
-
         # 準備測試資料 - 空列表（新格式：包含操作者資訊）
         schedule_data = ScheduleCreateRequest(
             schedules=[],
@@ -318,8 +306,6 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_user_db_rollback_on_exception(self, mock_db):
         """測試建立使用者時資料庫回滾。"""
-        from app.schemas import UserCreate
-
         # 準備測試資料
         user_data = UserCreate(name="測試使用者", email="test@example.com")
 
@@ -338,9 +324,6 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_db_rollback_on_exception(self, mock_db):
         """測試建立時段時資料庫回滾。"""
-        from app.enums.models import UserRoleEnum
-        from app.schemas import ScheduleCreateRequest, ScheduleData
-
         # 準備測試資料（新格式：包含操作者資訊）
         schedule_data = ScheduleCreateRequest(
             schedules=[
@@ -374,8 +357,6 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_user_with_invalid_data(self, mock_db):
         """測試建立使用者時無效資料處理。"""
-        from app.schemas import UserCreate
-
         # 準備測試資料 - 使用有效的 email 格式，但模擬 CRUD 層的驗證錯誤
         user_data = UserCreate(name="測試使用者", email="test@example.com")
 
@@ -395,9 +376,6 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_with_invalid_data(self, mock_db):
         """測試建立時段時無效資料處理。"""
-        from app.enums.models import UserRoleEnum
-        from app.schemas import ScheduleCreateRequest, ScheduleData
-
         # 準備測試資料 - 使用有效的時間格式，但模擬 CRUD 層的驗證錯誤（新格式：包含操作者資訊）
         schedule_data = ScheduleCreateRequest(
             schedules=[
@@ -491,9 +469,6 @@ class TestAPIScheduleComprehensive:
     @pytest.mark.asyncio
     async def test_create_schedules_large_list(self, mock_db, mock_schedule):
         """測試建立大量時段。"""
-        from app.enums.models import UserRoleEnum
-        from app.schemas import ScheduleCreateRequest, ScheduleData
-
         # 準備測試資料 - 大量時段（新格式：包含操作者資訊）
         schedule_data = ScheduleCreateRequest(
             schedules=[

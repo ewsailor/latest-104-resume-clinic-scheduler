@@ -1,8 +1,4 @@
 """
-
-from datetime import date, time  # 日期和時間處理
-import math
-
 使用者 CRUD 操作模組。
 
 提供使用者相關的資料庫操作，包括建立、查詢、更新和刪除使用者。
@@ -10,13 +6,8 @@ import math
 
 import logging  # 日誌記錄
 
-# ===== 標準函式庫 =====
-from typing import Optional  # 型別提示
-
-# ===== 第三方套件 =====
 from sqlalchemy.orm import Session  # 資料庫會話
 
-# ===== 本地模組 =====
 from app.models.user import User  # 使用者模型
 from app.schemas import UserCreate  # 資料模型
 
@@ -50,7 +41,6 @@ class UserCRUD:
             error_msg = f"電子信箱已被使用: {user.email}"
             self.logger.warning(error_msg)
             raise ValueError("此電子信箱已被使用")
-
         try:
             # 建立新使用者
             new_user = User(name=user.name, email=user.email)

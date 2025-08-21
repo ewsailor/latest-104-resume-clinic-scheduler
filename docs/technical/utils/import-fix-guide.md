@@ -20,9 +20,14 @@
 **修復前：**
 
 ```python
+"""
+模組說明文件。
+"""
+
 def my_function():
     import json
     from datetime import datetime
+    import pdb; pdb.set_trace()
 
     data = {"test": "value"}
     return json.dumps(data)
@@ -31,10 +36,17 @@ def my_function():
 **修復後：**
 
 ```python
-import json
+"""
+模組說明文件。
+"""
+
 from datetime import datetime
+import json
+import pdb
 
 def my_function():
+    pdb.set_trace()
+
     data = {"test": "value"}
     return json.dumps(data)
 ```
@@ -95,6 +107,9 @@ poetry run pre-commit run --all-files
 - `import module_name`
 - `from module_name import item`
 - `from module_name import item as alias`
+- 複雜語句（如 `import pdb; pdb.set_trace()`）會被正確分離：
+  - `import pdb` 移到檔案頂部
+  - `pdb.set_trace()` 保留在函式內部
 
 ### 不支援的情況
 
@@ -145,6 +160,16 @@ poetry run pre-commit run --all-files
 2. 測試修改後的腳本
 3. 更新本文檔
 4. 提交變更
+
+## 總結
+
+這個自動化工具能夠：
+
+1. **正確處理 docstring**：import 語句會被放在 docstring 之後，而不是內部
+2. **智能排序**：與 isort 配合，自動排序 import 語句
+3. **處理複雜語句**：正確分離 `import pdb; pdb.set_trace()` 這樣的複雜語句
+4. **移除未使用的 import**：與 autoflake 配合，自動移除未使用的 import
+5. **保持程式碼整潔**：確保所有 import 語句都在檔案頂部，符合 PEP 8 規範
 
 ## 相關連結
 
