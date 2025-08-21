@@ -141,7 +141,7 @@ class TestLogCrudOperation:
 
     def test_successful_execution_with_args(self):
         """測試成功執行並記錄參數（簡化後不再支援參數記錄）"""
-        with patch('app.utils.crud_decorators.logger') as mock_logger:
+        with patch('app.utils.decorators.crud_decorators.logger') as mock_logger:
 
             @log_crud_operation("測試操作")
             def test_func(arg1, arg2):
@@ -158,7 +158,7 @@ class TestLogCrudOperation:
 
     def test_successful_execution_without_args(self):
         """測試成功執行但不記錄參數（簡化後不再支援結果記錄）"""
-        with patch('app.utils.crud_decorators.logger') as mock_logger:
+        with patch('app.utils.decorators.crud_decorators.logger') as mock_logger:
 
             @log_crud_operation("測試操作")
             def test_func():
@@ -175,7 +175,7 @@ class TestLogCrudOperation:
 
     def test_failed_execution(self):
         """測試執行失敗的情況"""
-        with patch('app.utils.crud_decorators.logger') as mock_logger:
+        with patch('app.utils.decorators.crud_decorators.logger') as mock_logger:
 
             @log_crud_operation("測試操作")
             def test_func():

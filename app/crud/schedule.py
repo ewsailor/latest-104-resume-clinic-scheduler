@@ -30,7 +30,7 @@ from app.errors import (
 from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型
 from app.schemas import ScheduleData  # 資料模型
-from app.utils.crud_decorators import (
+from app.utils.decorators import (
     handle_crud_errors,
     handle_crud_errors_with_rollback,
     log_crud_operation,

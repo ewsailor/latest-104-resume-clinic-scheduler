@@ -1,5 +1,5 @@
 """
-CRUD 操作裝飾器模組。
+錯誤處理裝飾器模組。
 
 提供統一的錯誤處理裝飾器，減少重複的 try-except 程式碼。
 """
@@ -14,7 +14,14 @@ logger = logging.getLogger(__name__)
 
 
 def handle_crud_errors(error_context: str):
-    """CRUD 錯誤處理裝飾器。"""
+    """
+    CRUD 錯誤處理裝飾器。
+
+    提供統一的錯誤處理邏輯，自動記錄錯誤並轉換為 APIError。
+
+    Args:
+        error_context: 錯誤上下文描述，用於日誌記錄
+    """
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
@@ -33,7 +40,14 @@ def handle_crud_errors(error_context: str):
 
 
 def handle_crud_errors_with_rollback(error_context: str):
-    """帶回滾功能的 CRUD 錯誤處理裝飾器。"""
+    """
+    帶回滾功能的 CRUD 錯誤處理裝飾器。
+
+    提供統一的錯誤處理邏輯，包含資料庫事務回滾功能。
+
+    Args:
+        error_context: 錯誤上下文描述，用於日誌記錄
+    """
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
@@ -56,27 +70,6 @@ def handle_crud_errors_with_rollback(error_context: str):
 
                 logger.error(f"{error_context}時發生錯誤: {str(e)}", exc_info=True)
                 raise handle_database_error(e, error_context)
-
-        return wrapper
-
-    return decorator
-
-
-def log_crud_operation(operation_name: str):
-    """CRUD 操作日誌裝飾器。"""
-
-    def decorator(func: Callable) -> Callable:
-        @wraps(func)
-        def wrapper(*args, **kwargs) -> Any:
-            logger.info(f"開始{operation_name}")
-
-            try:
-                result = func(*args, **kwargs)
-                logger.info(f"{operation_name}成功")
-                return result
-            except Exception as e:
-                logger.error(f"{operation_name}失敗: {str(e)}")
-                raise e
 
         return wrapper
 
