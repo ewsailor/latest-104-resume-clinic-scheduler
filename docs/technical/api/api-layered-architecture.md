@@ -7,23 +7,23 @@
 ### 資料流向
 
 ```
-Client Request
+Client Request 客戶端發送 HTTP 請求
     ↓
-Router Layer (第一層：路由層)
+Router Layer (路由層) routers/
     ↓
-Middleware Layer (第二層：中介層)
+Middleware Layer (中介層) middleware/
     ↓
-Validation Layer (第三層：驗證層)
+Validation & Dependency Layer (驗證 & 依賴注入) schemas/ dependencies/ utils/
     ↓
-Service Layer (第四層：服務層)
+Service Layer (業務邏輯層) services/
     ↓
-CRUD Layer (第五層：CRUD 層)
+CRUD Layer (資料存取層) repositories/ crud/
     ↓
-Model Layer (第六層：模型層)
+Model Layer (模型層) models/
     ↓
-Database Layer (第七層：資料庫層)
+Database Layer (資料庫層)
     ↓
-Response Layer (第八層：回應層)
+Response Layer (回應層) response_models/ exceptions/
     ↓
 Client Response
 ```
@@ -130,6 +130,8 @@ app.add_middleware(
   - 請求資料序列化 (`Serialization`)：收到請求時，將前端送來的非 `Python` 格式（如 `JSON` 字串）資料，轉換成 `Python` 物件
   - 回應資料反序列化 (`Deserialization`)：送出回應前，資料庫查詢出的 `Python` 物件，轉換成可傳輸格式（如 `JSON` 字串）
 
+Dependencies：例如 FastAPI Depends()，注入 DB session、目前使用者資訊。
+
 #### 範例程式碼
 
 ```python
@@ -150,6 +152,21 @@ class ScheduleCreate(BaseModel):
         if start_time and v <= start_time:
             raise ValueError('結束時間必須晚於開始時間')
         return v
+
+class ScheduleCreateRequest(BaseModel):
+    schedules: list[ScheduleCreate] = Field(..., description="要建立的時段列表")
+    updated_by: int = Field(..., description="操作者 ID")
+    updated_by_role: str = Field(..., description="操作者角色")
+
+class ScheduleResponse(BaseModel):
+    id: int
+    giver_id: int
+    schedule_date: date
+    start_time: time
+    end_time: time
+    created_at: datetime
+    created_by: int
+    created_by_role: str
 ```
 
 ---
@@ -161,6 +178,9 @@ class ScheduleCreate(BaseModel):
 **本專案中檔案**：【後續擴充】`app/services`
 
 #### 核心功能
+
+Service Layer → 處理規則、檢查權限、組合多個 CRUD。
+「新增預約」流程：Service 檢查時間是否衝突 → 呼叫 CRUD 插入資料 → 呼叫通知系統寄信。
 
 - **業務邏輯 (`Business Logic`)**：處理應用程式核心的規則與流程
 
@@ -185,21 +205,40 @@ class ScheduleService:
     def create_schedule_with_notification(self, schedule_data, user_id):
         # 業務邏輯：建立時段並發送通知
         with db.transaction():
-            # 1. 建立時段
+            # 1. 檢查時段衝突
+            self._check_schedule_conflicts(schedule_data)
+
+            # 2. 建立時段
             schedule = self.crud.create_schedule(schedule_data)
 
-            # 2. 發送通知
+            # 3. 發送通知
             self.notification_service.send_schedule_created_notification(schedule)
 
-            # 3. 更新統計資料
+            # 4. 更新統計資料
             self.stats_service.update_user_stats(user_id)
 
         return schedule
+
+    def _check_schedule_conflicts(self, schedule_data):
+        # 檢查時段是否與現有時段衝突
+        existing_schedules = self.crud.get_schedules_by_giver_and_date(
+            giver_id=schedule_data.giver_id,
+            date=schedule_data.schedule_date
+        )
+
+        for existing in existing_schedules:
+            if self._has_time_conflict(schedule_data, existing):
+                raise ValueError(f"時段衝突：{existing.start_time} - {existing.end_time}")
 ```
 
 ---
 
 ### **第五層：CRUD 層 (CRUD Layer)**
+
+CRUD Layer → 單純呼叫 ORM 做 Create/Read/Update/Delete。
+- 專注資料庫操作。
+- 只做單純的 `db.query(User).filter(...).all()` 或 `db.add(instance)`。
+- 不含商業邏輯。
 
 **職責**：資料庫操作
 
@@ -222,30 +261,43 @@ class ScheduleService:
 #### 範例程式碼
 
 ```python
-# app/crud/crud_schedule.py
+# app/crud/schedule.py
+from sqlalchemy.orm import Session, joinedload
+from app.models.schedule import Schedule
+from app.schemas.schedule import ScheduleCreate
+
 class ScheduleCRUD:
-    def get_schedules(self, db: Session, giver_id: int | None = None) -> list[Schedule]:
-        query = db.query(Schedule).options(
-            *self._get_schedule_query_options()  # 使用 joinedload 優化
-        )
+    def create_schedules(
+        self,
+        db: Session,
+        schedules: list[ScheduleCreate],
+        created_by: int,
+        created_by_role: str
+    ) -> list[Schedule]:
+        """建立多個時段"""
+        created_schedules = []
 
-        if giver_id:
-            query = query.filter(Schedule.giver_id == giver_id)
+        for schedule_data in schedules:
+            db_schedule = Schedule(
+                giver_id=schedule_data.giver_id,
+                schedule_date=schedule_data.schedule_date,
+                start_time=schedule_data.start_time,
+                end_time=schedule_data.end_time,
+                created_by=updated_by,
+                created_by_role=updated_by_role
+            )
+            db.add(db_schedule)
+            created_schedules.append(db_schedule)
 
-        return query.all()
+        db.commit()
 
-    def _get_schedule_query_options(self, include_relations: list[str] | None = None):
-        """統一的關聯載入選項管理"""
-        if include_relations is None:
-            include_relations = ['giver', 'taker', 'created_by_user']
+        # 重新載入關聯資料
+        for schedule in created_schedules:
+            db.refresh(schedule)
 
-        relation_mapping = {
-            'giver': joinedload(Schedule.giver),
-            'taker': joinedload(Schedule.taker),
-            'created_by_user': joinedload(Schedule.created_by_user),
-        }
+        return created_schedules
 
-        return [relation_mapping[rel] for rel in include_relations if rel in relation_mapping]
+
 ```
 
 ---
@@ -280,15 +332,24 @@ class ScheduleCRUD:
 
 ```python
 # app/models/schedule.py
+from sqlalchemy import Column, Integer, Date, Time, DateTime, ForeignKey, Enum
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+from app.models.database import Base
+from app.enums.models import UserRoleEnum
+
 class Schedule(Base):
     __tablename__ = "schedules"
 
     id = Column(Integer, primary_key=True, index=True)
     giver_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     taker_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    schedule_date = Column(Date, nullable=False)
+    start_time = Column(Time, nullable=False)
+    end_time = Column(Time, nullable=False)
 
     # 審計追蹤欄位
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=func.now(), nullable=False)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_by_role = Column(Enum(UserRoleEnum), nullable=True)
 
@@ -323,30 +384,58 @@ class Schedule(Base):
 
 ```python
 # app/models/database.py
+from typing import Generator  
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker, Session 
+from sqlalchemy.engine import Engine  
+from app.core.settings import settings 
 
-# 資料庫連線設定
-DATABASE_URL = "mysql+pymysql://user:password@localhost/dbname"
+# 建立基礎類別：所有資料表模型，都會繼承這個類別，避免重複的程式碼
+Base = declarative_base()
 
-engine = create_engine(
-    DATABASE_URL,
-    pool_size=20,  # 連線池大小
-    max_overflow=30,  # 最大溢出連線數
-    pool_pre_ping=True,  # 連線前檢查
-    pool_recycle=3600,  # 連線回收時間
-)
+def create_database_engine() -> tuple[Engine, sessionmaker]:
+    """
+    建立並初始化資料庫引擎和相關組件
+    """
+ 
+    DATABASE_URL = settings.mysql_connection_string
+    
+    # 建立資料庫引擎連線
+    engine = create_engine(
+        DATABASE_URL, # MySQL 連接字串
+        echo=False, # 關閉 SQL 查詢日誌
+        pool_pre_ping=True, # 啟用連線檢查，確保連線有效性
+        pool_size=10, # 連線池大小
+        max_overflow=10, # 最大溢出連線數（通常是 pool_size 的 1-2 倍）
+        pool_timeout=30, # 連線超時時間（30秒）
+        pool_recycle=3600, # 連線池回收時間（1小時）
+        connect_args={ # pymysql 特定參數
+            "charset": "utf8mb4", # 使用 utf8mb4 字符集
+        },
+    )
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    # 建立 session 工廠：每次呼叫 SessionLocal()，就生成一個新 Session 實例，確保每個請求，都有一個獨立的資料庫連線，避免共用連線，導致資料庫操作錯亂
+    SessionLocal = sessionmaker(
+        bind=engine,  # 指定 Session 連線的資料庫引擎（engine）
+        autocommit=False,  # 不自動提交，手動呼叫 .commit() 才會儲存資料
+        autoflush=False,  # 不自動刷新、不自動將未提交的改動同步到資料庫，需手動呼叫 flush()
+    )
+     
+    return engine, SessionLocal
 
-def get_db():
+# 程式啟動時，立即建立引擎和會話工廠
+engine, SessionLocal = create_database_engine()
+
+def get_db() -> Generator[Session, None, None]:
+    """
+    依賴注入：取得資料庫連線
+    """
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 ```
-
 ---
 
 ### **第八層：回應層 (Response Layer)**
@@ -372,8 +461,20 @@ def get_db():
 
 ```python
 # app/routers/api/schedule.py
-@router.post("/schedules", response_model=ScheduleResponse)
-async def create_schedules(request: ScheduleCreateRequest, db: Session = Depends(get_db)):
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.models.database import get_db
+from app.crud.schedule import ScheduleCRUD
+from app.schemas.schedule import ScheduleCreateRequest, ScheduleResponse
+
+router = APIRouter()
+schedule_crud = ScheduleCRUD()
+
+@router.post("/schedules", response_model=ScheduleResponse, status_code=201)
+async def create_schedules(
+    request: ScheduleCreateRequest,
+    db: Session = Depends(get_db)
+):
     try:
         schedules = schedule_crud.create_schedules(
             db=db,
@@ -396,6 +497,16 @@ async def create_schedules(request: ScheduleCreateRequest, db: Session = Depends
             detail={
                 "error": "VALIDATION_ERROR",
                 "message": str(e),
+                "status": "error"
+            }
+        )
+    except Exception as e:
+        # 系統錯誤處理
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "INTERNAL_SERVER_ERROR",
+                "message": "建立時段時發生系統錯誤",
                 "status": "error"
             }
         )
