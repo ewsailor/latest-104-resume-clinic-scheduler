@@ -4,26 +4,23 @@
 提供時段相關的 API 端點，包括建立、查詢、更新和刪除時段。
 """
 
-# 移除 List import，因為 Python 3.9+ 可以直接使用 list[]
-
 # ===== 第三方套件 =====
-from fastapi import APIRouter, Depends, HTTPException, status  # 路由和錯誤處理
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 # ===== 本地模組 =====
-from app.crud import schedule_crud  # CRUD 操作
 from app.errors import (
     APIError,
     create_http_exception_from_api_error,
 )
-from app.models.database import get_db  # 資料庫連接
-from app.schemas import (  # 資料模型
+from app.models.database import get_db
+from app.schemas import (
     ScheduleCreateRequest,
     ScheduleDeleteRequest,
     SchedulePartialUpdateRequest,
     ScheduleResponse,
 )
-from app.services import schedule_service  # SERVICE 層
+from app.services import schedule_service
 
 # 建立路由器
 router = APIRouter(prefix="/api/v1", tags=["Schedules"])

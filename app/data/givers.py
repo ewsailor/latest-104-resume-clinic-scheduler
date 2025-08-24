@@ -6,7 +6,6 @@ Giver 資料模組。
 
 from typing import Any
 
-# ===== 測試用 Giver 資料 14 筆 =====
 MOCK_GIVERS = [
     {
         "id": 1,
@@ -260,77 +259,3 @@ def get_giver_by_id(giver_id: int) -> dict[str, Any] | None:
         if giver["id"] == giver_id:
             return giver
     return None
-
-
-def get_givers_by_topic(topic: str) -> list[dict[str, Any]]:
-    """
-    根據服務項目篩選 Giver。
-
-    Args:
-        topic: 服務項目名稱
-
-    Returns:
-        list: 符合條件的 Giver 列表
-    """
-    return [
-        giver
-        for giver in MOCK_GIVERS
-        if topic in giver.get("giverCard__topic", [])  # type: ignore
-    ]
-
-
-def get_givers_by_industry(industry: str) -> list[dict[str, Any]]:
-    """
-    根據產業篩選 Giver。
-
-    Args:
-        industry: 產業名稱
-
-    Returns:
-        list: 符合條件的 Giver 列表
-    """
-    return [giver for giver in MOCK_GIVERS if giver.get("industry") == industry]
-
-
-def get_givers_count() -> int:
-    """
-    取得 Giver 總數。
-
-    Returns:
-        int: Giver 總數
-    """
-    return len(MOCK_GIVERS)
-
-
-def get_all_topics() -> list[str]:
-    """
-    取得所有可用的服務項目列表。
-
-    Returns:
-        list[str]: 所有可用的服務項目列表（去重）
-    """
-    topics_set: set[str] = set()
-    for giver in MOCK_GIVERS:
-        giver_topics = giver.get("giverCard__topic", [])
-        if isinstance(giver_topics, list):
-            topics_set.update(giver_topics)
-
-    # 轉換為列表並排序
-    return sorted(list(topics_set))
-
-
-def get_all_industries() -> list[str]:
-    """
-    取得所有可用的產業列表。
-
-    Returns:
-        list[str]: 所有可用的產業列表（去重）
-    """
-    industries_set: set[str] = set()
-    for giver in MOCK_GIVERS:
-        industry = giver.get("industry")
-        if industry and isinstance(industry, str):
-            industries_set.add(industry)
-
-    # 轉換為列表並排序
-    return sorted(list(industries_set))

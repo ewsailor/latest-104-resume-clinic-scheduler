@@ -4,13 +4,10 @@
 測試 Giver 資料相關的功能，包括查詢、篩選和統計功能。
 """
 
-from app.data.givers import (
+from app.routers.api.givers import (
     MOCK_GIVERS,
     get_all_givers,
     get_giver_by_id,
-    get_givers_by_industry,
-    get_givers_by_topic,
-    get_givers_count,
 )
 from tests.logger import log_test_info
 
@@ -37,7 +34,6 @@ class TestGiversData:
             assert "title" in giver
             assert "company" in giver
             assert "giverCard__topic" in giver
-            assert "industry" in giver
 
     def test_get_giver_by_id_existing(self):
         """測試根據 ID 取得存在的 Giver。"""
@@ -64,100 +60,6 @@ class TestGiversData:
         # 驗證結果
         assert result is None
 
-    def test_get_givers_by_topic_existing(self):
-        """測試根據服務項目篩選存在的 Giver。"""
-        log_test_info("測試根據服務項目篩選存在的 Giver")
-
-        # 測試篩選有履歷健診服務的 Giver
-        topic = "履歷健診"
-        result = get_givers_by_topic(topic)
-
-        # 驗證結果
-        assert isinstance(result, list)
-        assert len(result) > 0
-
-        # 驗證所有結果都包含該服務項目
-        for giver in result:
-            assert topic in giver["giverCard__topic"]
-
-    def test_get_givers_by_topic_not_existing(self):
-        """測試根據不存在的服務項目篩選 Giver。"""
-        log_test_info("測試根據不存在的服務項目篩選 Giver")
-
-        # 測試篩選不存在的服務項目
-        topic = "不存在的服務"
-        result = get_givers_by_topic(topic)
-
-        # 驗證結果
-        assert isinstance(result, list)
-        assert len(result) == 0
-
-    def test_get_givers_by_topic_empty_string(self):
-        """測試根據空字串篩選 Giver。"""
-        log_test_info("測試根據空字串篩選 Giver")
-
-        # 測試空字串
-        topic = ""
-        result = get_givers_by_topic(topic)
-
-        # 驗證結果
-        assert isinstance(result, list)
-        # 空字串不會匹配任何服務項目
-        assert len(result) == 0
-
-    def test_get_givers_by_industry_existing(self):
-        """測試根據產業篩選存在的 Giver。"""
-        log_test_info("測試根據產業篩選存在的 Giver")
-
-        # 測試篩選特定產業的 Giver
-        industry = "電子資訊／軟體／半導體相關業"
-        result = get_givers_by_industry(industry)
-
-        # 驗證結果
-        assert isinstance(result, list)
-        assert len(result) > 0
-
-        # 驗證所有結果都屬於該產業
-        for giver in result:
-            assert giver["industry"] == industry
-
-    def test_get_givers_by_industry_not_existing(self):
-        """測試根據不存在的產業篩選 Giver。"""
-        log_test_info("測試根據不存在的產業篩選 Giver")
-
-        # 測試篩選不存在的產業
-        industry = "不存在的產業"
-        result = get_givers_by_industry(industry)
-
-        # 驗證結果
-        assert isinstance(result, list)
-        assert len(result) == 0
-
-    def test_get_givers_by_industry_empty_string(self):
-        """測試根據空字串篩選產業。"""
-        log_test_info("測試根據空字串篩選產業")
-
-        # 測試空字串
-        industry = ""
-        result = get_givers_by_industry(industry)
-
-        # 驗證結果
-        assert isinstance(result, list)
-        # 空字串不會匹配任何產業
-        assert len(result) == 0
-
-    def test_get_givers_count(self):
-        """測試取得 Giver 總數。"""
-        log_test_info("測試取得 Giver 總數")
-
-        # 執行測試
-        result = get_givers_count()
-
-        # 驗證結果
-        assert isinstance(result, int)
-        assert result > 0
-        assert result == len(MOCK_GIVERS)
-
     def test_mock_givers_data_structure(self):
         """測試 MOCK_GIVERS 資料結構的完整性。"""
         log_test_info("測試 MOCK_GIVERS 資料結構的完整性")
@@ -174,7 +76,6 @@ class TestGiversData:
             assert "title" in giver, f"Giver {i} 缺少 title 欄位"
             assert "company" in giver, f"Giver {i} 缺少 company 欄位"
             assert "giverCard__topic" in giver, f"Giver {i} 缺少 giverCard__topic 欄位"
-            assert "industry" in giver, f"Giver {i} 缺少 industry 欄位"
 
             # 驗證 giverCard__topic 是列表
             assert isinstance(
