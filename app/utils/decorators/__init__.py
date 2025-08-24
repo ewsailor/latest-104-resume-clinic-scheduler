@@ -9,11 +9,11 @@ from .error_handlers import (
     handle_crud_errors_with_rollback,
 )
 from .logging import (
-    log_crud_operation,
+    log_operation,
 )
 
 __all__ = [
     "handle_crud_errors",
     "handle_crud_errors_with_rollback",
-    "log_crud_operation",
+    "log_operation",
 ]

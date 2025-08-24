@@ -7,7 +7,7 @@
 [![Poetry](https://img.shields.io/badge/Poetry-1.8+-orange.svg)](https://python-poetry.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Test Coverage](https://img.shields.io/badge/Coverage-90%25-brightgreen.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
-[![Version](https://img.shields.io/badge/Version-1.3.0-blue.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
+[![Version](https://img.shields.io/badge/Version-1.4.0-blue.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
 
 ## 目錄
 
@@ -78,7 +78,8 @@
 
 ### 🏗️ **現代化架構設計**
 
-- **分層架構**: 清晰的 MVC 模式，易於維護和擴展
+- **分層架構**: 清晰的 API → Service → CRUD → Model 分層架構，易於維護和擴展
+- **業務邏輯分離**: Service 層處理業務邏輯，CRUD 層專注資料庫操作
 - **依賴注入**: 使用 FastAPI 的依賴注入系統，提高可測試性
 - **工廠模式**: 應用程式工廠模式，便於配置和測試
 - **模組化設計**: 功能模組化，便於團隊協作
@@ -119,6 +120,7 @@
 - **框架**: FastAPI (現代、快速、基於 Python 3.7+ 的 Web 框架)
 - **ASGI 伺服器**: Uvicorn (輕量級 ASGI 伺服器)
 - **配置管理**: Pydantic Settings (型別安全的配置管理)
+- **架構模式**: 分層架構 (API → Service → CRUD → Model)
 - **資料庫**:
   - **MySQL/MariaDB**: 核心業務資料儲存
 - **ORM**: SQLAlchemy (Python 最強大的 ORM)
@@ -180,6 +182,10 @@
 │   │   │   └── givers.py         # 諮詢師管理 API
 │   │   ├── health.py             # 健康檢查端點
 │   │   └── main.py               # 主要路由
+│   ├── services/                 # 業務邏輯層
+│   │   ├── __init__.py           # 服務層模組初始化
+│   │   ├── schedule_service.py   # 時段業務邏輯服務
+│   │   └── user_service.py       # 使用者業務邏輯服務
 │   ├── crud/                     # 資料庫操作
 │   │   ├── __init__.py           # CRUD 模組初始化
 │   │   ├── schedule.py           # 時段 CRUD 操作
@@ -825,6 +831,28 @@ refactor: 重構資料庫模型
 **Oscar Chung** - [GitHub](https://github.com/ewsailor)
 
 ## <a name="更新日誌"></a>更新日誌 [返回目錄 ↑](#目錄)
+
+### v1.4.0 (2025-01-15)
+
+- 🏗️ **Service 層架構完善**
+  - 新增 `app/services/` 業務邏輯層，實現完整的分層架構
+  - 建立 `ScheduleService` 和 `UserService` 類別，處理業務邏輯
+  - 統一 Service 層的錯誤處理、日誌記錄和裝飾器使用
+  - 實現 API → Service → CRUD → Model 的完整分層架構
+- 🔧 **架構對應關係統一**
+  - 確保 SQL、Model、Schema、Route、Service、CRUD 六層完整對應
+  - 修正 User 模組缺少 Service 層的問題
+  - 統一所有模組的命名規範和程式碼結構
+  - 實現職責分離：Route 處理 API、Service 處理業務邏輯、CRUD 處理資料庫
+- 🎯 **業務邏輯分離**
+  - 將業務邏輯從 CRUD 層移至 Service 層
+  - 實現時段重疊檢查、狀態決定、時間驗證等業務邏輯
+  - 統一審計追蹤檢查和錯誤處理機制
+  - 提供可重用和可測試的業務邏輯方法
+- 📚 **文檔架構更新**
+  - 更新 README.md 專案結構，加入 Service 層說明
+  - 完善分層架構設計理念文檔
+  - 更新技術架構說明，強調業務邏輯分離
 
 ### v1.3.0 (2025-01-15)
 

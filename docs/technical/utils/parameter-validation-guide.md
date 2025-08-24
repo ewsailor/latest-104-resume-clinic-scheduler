@@ -183,7 +183,7 @@ except ValidationError as e:
 
 ```python
 @handle_crud_errors_with_rollback("建立時段")
-@log_crud_operation("建立時段", log_args=False)
+@log_operation("建立時段", log_args=False)
 @validate_parameters(
     giver_id=dict(type=int, min_value=1),
     schedule_date=dict(type=date),

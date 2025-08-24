@@ -11,11 +11,11 @@ from typing import Any, Callable
 logger = logging.getLogger(__name__)
 
 
-def log_crud_operation(operation_name: str):
+def log_operation(operation_name: str):
     """
-    CRUD 操作日誌裝飾器。
+    操作日誌裝飾器。
 
-    記錄 CRUD 操作的開始、成功和失敗狀態。
+    記錄操作的開始、成功和失敗狀態，適用於 CRUD 層和 Service 層。
 
     Args:
         operation_name: 操作名稱，用於日誌記錄

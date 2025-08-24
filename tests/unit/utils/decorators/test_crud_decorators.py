@@ -12,7 +12,7 @@ from app.errors import APIError, DatabaseError
 from app.utils.decorators import (
     handle_crud_errors,
     handle_crud_errors_with_rollback,
-    log_crud_operation,
+    log_operation,
 )
 
 
@@ -137,13 +137,13 @@ class TestHandleCrudErrorsWithRollback:
 
 
 class TestLogCrudOperation:
-    """測試 log_crud_operation 裝飾器"""
+    """測試 log_operation 裝飾器"""
 
     def test_successful_execution_with_args(self):
         """測試成功執行並記錄參數（簡化後不再支援參數記錄）"""
         with patch('app.utils.decorators.crud_decorators.logger') as mock_logger:
 
-            @log_crud_operation("測試操作")
+            @log_operation("測試操作")
             def test_func(arg1, arg2):
                 return "success"
 
@@ -160,7 +160,7 @@ class TestLogCrudOperation:
         """測試成功執行但不記錄參數（簡化後不再支援結果記錄）"""
         with patch('app.utils.decorators.crud_decorators.logger') as mock_logger:
 
-            @log_crud_operation("測試操作")
+            @log_operation("測試操作")
             def test_func():
                 return "success"
 
@@ -177,7 +177,7 @@ class TestLogCrudOperation:
         """測試執行失敗的情況"""
         with patch('app.utils.decorators.crud_decorators.logger') as mock_logger:
 
-            @log_crud_operation("測試操作")
+            @log_operation("測試操作")
             def test_func():
                 raise ValueError("操作失敗")
 
@@ -199,7 +199,7 @@ class TestDecoratorCombination:
         mock_db = Mock()
 
         @handle_crud_errors_with_rollback("測試操作")
-        @log_crud_operation("測試操作")
+        @log_operation("測試操作")
         def test_func(db):
             return "success"
 
@@ -213,7 +213,7 @@ class TestDecoratorCombination:
         mock_db = Mock()
 
         @handle_crud_errors_with_rollback("測試操作")
-        @log_crud_operation("測試操作")
+        @log_operation("測試操作")
         def test_func(db):
             raise ValueError("參數錯誤")
 
@@ -231,7 +231,7 @@ class TestRealWorldScenario:
         """模擬真實的 CRUD 方法"""
         mock_db = Mock()
 
-        @log_crud_operation("建立時段")
+        @log_operation("建立時段")
         @handle_crud_errors_with_rollback("建立時段")
         def create_schedule(db, schedule_data):
             # 模擬業務邏輯

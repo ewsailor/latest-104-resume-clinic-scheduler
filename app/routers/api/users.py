@@ -18,6 +18,7 @@ from app.errors import (
 )
 from app.models.database import get_db  # 資料庫連接
 from app.schemas import UserCreate  # 資料模型
+from app.services import user_service  # SERVICE 層
 
 # 建立路由器
 router = APIRouter(prefix="/api/v1", tags=["Users"])
@@ -44,9 +45,9 @@ async def get_users(
         dict: 包含使用者列表和分頁資訊的回應
     """
     try:
-        # 使用 CRUD 層取得使用者列表
-        users = user_crud.get_users(db, skip=(page - 1) * per_page, limit=per_page)
-        total = user_crud.get_users_count(db)
+        # 使用 SERVICE 層取得使用者列表
+        users = user_service.get_users(db, skip=(page - 1) * per_page, limit=per_page)
+        total = user_service.get_users_count(db)
 
         return {
             "results": [user.to_dict() for user in users],
@@ -82,8 +83,8 @@ async def create_user(
         dict: 建立成功的使用者資訊
     """
     try:
-        # 使用 CRUD 層建立使用者
-        new_user = user_crud.create_user(db, user)
+        # 使用 SERVICE 層建立使用者
+        new_user = user_service.create_user(db, user)
         return {"message": "使用者建立成功", "user": new_user.to_dict()}
 
     except APIError as e:

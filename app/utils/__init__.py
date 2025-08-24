@@ -12,7 +12,7 @@
 from .decorators import (
     handle_crud_errors,
     handle_crud_errors_with_rollback,
-    log_crud_operation,
+    log_operation,
 )
 from .timezone import (
     TAIWAN_TIMEZONE,
@@ -27,5 +27,5 @@ __all__ = [
     # 裝飾器
     "handle_crud_errors",
     "handle_crud_errors_with_rollback",
-    "log_crud_operation",
+    "log_operation",
 ]

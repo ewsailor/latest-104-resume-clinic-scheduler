@@ -23,6 +23,7 @@ from app.schemas import (  # 資料模型
     SchedulePartialUpdateRequest,
     ScheduleResponse,
 )
+from app.services import schedule_service  # SERVICE 層
 
 # 建立路由器
 router = APIRouter(prefix="/api/v1", tags=["Schedules"])
@@ -59,8 +60,8 @@ async def create_schedules(
     """
     try:
         # 業務邏輯
-        # 使用 CRUD 層建立時段，傳遞建立者資訊
-        schedule_objects = schedule_crud.create_schedules(
+        # 使用 SERVICE 層建立時段，傳遞建立者資訊
+        schedule_objects = schedule_service.create_schedules(
             db,
             request.schedules,
             created_by=request.created_by,
@@ -124,7 +125,9 @@ async def get_schedules(
         HTTPException: 當查詢失敗時拋出對應的 HTTP 錯誤
     """
     try:
-        schedules = schedule_crud.get_schedules(db, giver_id, taker_id, status_filter)
+        schedules = schedule_service.get_schedules(
+            db, giver_id, taker_id, status_filter
+        )
         return [ScheduleResponse.model_validate(schedule) for schedule in schedules]
 
     except APIError as e:
@@ -160,7 +163,7 @@ async def get_schedule(
         HTTPException: 當時段不存在時拋出 404 錯誤
     """
     try:
-        schedule = schedule_crud.get_schedule_by_id(db, schedule_id)
+        schedule = schedule_service.get_schedule_by_id(db, schedule_id)
         return ScheduleResponse.model_validate(schedule)
 
     except APIError as e:
@@ -208,7 +211,7 @@ async def update_schedule(
         if "date" in update_data:
             update_data["schedule_date"] = update_data.pop("date")
 
-        updated_schedule = schedule_crud.update_schedule(
+        updated_schedule = schedule_service.update_schedule(
             db,
             schedule_id,
             updated_by=request.updated_by,
@@ -255,7 +258,7 @@ async def delete_schedule(
         HTTPException: 當時段不存在或刪除失敗時拋出錯誤
     """
     try:
-        success = schedule_crud.delete_schedule(
+        success = schedule_service.delete_schedule(
             db,
             schedule_id,
             deleted_by=request.deleted_by,

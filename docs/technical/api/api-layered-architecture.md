@@ -59,12 +59,12 @@ async def create_schedules(
     request: ScheduleCreateRequest,
     db: Session = Depends(get_db)  # 依賴注入
 ):
-    # 路由層：解析請求，呼叫 CRUD 層
-    return schedule_crud.create_schedules(
+    # 路由層：解析請求，呼叫 Service 層
+    return schedule_service.create_schedules(
         db=db,
         schedules=request.schedules,
-        updated_by=request.updated_by,
-        updated_by_role=request.updated_by_role
+        created_by=request.created_by,
+        created_by_role=request.created_by_role
     )
 ```
 
@@ -171,11 +171,11 @@ class ScheduleResponse(BaseModel):
 
 ---
 
-### **【後續擴充】第四層：服務層 (Service Layer)**
+### **第四層：服務層 (Service Layer)**
 
 **職責**：業務邏輯處理
 
-**本專案中檔案**：【後續擴充】`app/services`
+**本專案中檔案**：`app/services`
 
 #### 核心功能
 
@@ -184,14 +184,16 @@ Service Layer → 處理規則、檢查權限、組合多個 CRUD。
 
 - **業務邏輯 (`Business Logic`)**：處理應用程式核心的規則與流程
 
-  - 複雜業務規則處理：如預約衝突檢查
+  - 複雜業務規則處理：如預約衝突檢查、時段重疊驗證
   - 多個 `CRUD` 操作的協調：如建立一個預約時，需同時更新 `schedules` 表、`notifications` 表等多個資料表
   - 外部服務整合：呼叫第三方 `API`、發送郵件、訊息推播等
+  - 狀態管理：根據建立者角色決定時段狀態（GIVER → AVAILABLE，TAKER → PENDING）
 
 - **事務管理 (`Transaction Management`)**：確保資料庫操作的一致性，避免部分操作成功、部分失敗造成資料不完整
 
   - 資料庫事務控制：將多個 CRUD 操作包成一個交易 (`Transaction`)，確保原子性
   - 回滾機制 (`Rollback`)：若中途有錯誤，整個事務自動回退，避免資料不一致
+  - 錯誤處理：統一的錯誤處理和日誌記錄機制
 
 - **快取管理 (`Cache Management`)**：提高查詢效能，減少資料庫負載
   - 查詢結果快取：將常用查詢結果暫存到快取系統（如 Redis），下次直接取快取
@@ -200,35 +202,47 @@ Service Layer → 處理規則、檢查權限、組合多個 CRUD。
 #### 範例程式碼
 
 ```python
-# app/services/schedule_service.py (待建立)
+# app/services/schedule_service.py
+from app.crud.schedule import ScheduleCRUD
+from app.schemas import ScheduleData
+from app.enums.models import UserRoleEnum, ScheduleStatusEnum
+from app.utils.decorators import handle_crud_errors_with_rollback, log_operation
+
 class ScheduleService:
-    def create_schedule_with_notification(self, schedule_data, user_id):
-        # 業務邏輯：建立時段並發送通知
-        with db.transaction():
-            # 1. 檢查時段衝突
-            self._check_schedule_conflicts(schedule_data)
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+        self.schedule_crud = ScheduleCRUD()
 
-            # 2. 建立時段
-            schedule = self.crud.create_schedule(schedule_data)
-
-            # 3. 發送通知
-            self.notification_service.send_schedule_created_notification(schedule)
-
-            # 4. 更新統計資料
-            self.stats_service.update_user_stats(user_id)
-
-        return schedule
-
-    def _check_schedule_conflicts(self, schedule_data):
-        # 檢查時段是否與現有時段衝突
-        existing_schedules = self.crud.get_schedules_by_giver_and_date(
-            giver_id=schedule_data.giver_id,
-            date=schedule_data.schedule_date
+    @handle_crud_errors_with_rollback("建立時段")
+    @log_operation("建立時段")
+    def create_schedules(
+        self,
+        db: Session,
+        schedules: List[ScheduleData],
+        created_by: int,
+        created_by_role: UserRoleEnum,
+    ) -> List[Schedule]:
+        """建立多個時段（業務邏輯層）"""
+        # 記錄建立操作
+        self.logger.info(
+            f"使用者 {created_by} (角色: {created_by_role.value}) "
+            f"正在建立 {len(schedules)} 個時段"
         )
 
-        for existing in existing_schedules:
-            if self._has_time_conflict(schedule_data, existing):
-                raise ValueError(f"時段衝突：{existing.start_time} - {existing.end_time}")
+        # 建立時段物件列表
+        schedule_objects = self.create_schedule_objects(
+            schedules, created_by, created_by_role
+        )
+
+        # 使用 CRUD 層建立時段
+        created_schedules = self.schedule_crud.create_schedules(db, schedule_objects)
+
+        self.logger.info(
+            f"成功建立 {len(created_schedules)} 個時段，"
+            f"ID範圍: {[s.id for s in created_schedules]}"
+        )
+
+        return created_schedules
 ```
 
 ---
@@ -236,9 +250,11 @@ class ScheduleService:
 ### **第五層：CRUD 層 (CRUD Layer)**
 
 CRUD Layer → 單純呼叫 ORM 做 Create/Read/Update/Delete。
+
 - 專注資料庫操作。
 - 只做單純的 `db.query(User).filter(...).all()` 或 `db.add(instance)`。
 - 不含商業邏輯。
+- 提供資料庫查詢優化工具。
 
 **職責**：資料庫操作
 
@@ -270,34 +286,22 @@ class ScheduleCRUD:
     def create_schedules(
         self,
         db: Session,
-        schedules: list[ScheduleCreate],
-        created_by: int,
-        created_by_role: str
+        schedule_objects: list[Schedule],
     ) -> list[Schedule]:
         """建立多個時段"""
-        created_schedules = []
-
-        for schedule_data in schedules:
-            db_schedule = Schedule(
-                giver_id=schedule_data.giver_id,
-                schedule_date=schedule_data.schedule_date,
-                start_time=schedule_data.start_time,
-                end_time=schedule_data.end_time,
-                created_by=updated_by,
-                created_by_role=updated_by_role
-            )
-            db.add(db_schedule)
-            created_schedules.append(db_schedule)
-
+        # 批量新增到資料庫
+        db.add_all(schedule_objects)
         db.commit()
 
-        # 重新載入關聯資料
-        for schedule in created_schedules:
+        # 重新整理物件以取得 ID
+        for schedule in schedule_objects:
             db.refresh(schedule)
 
-        return created_schedules
-
-
+        self.logger.info(
+            f"成功建立 {len(schedule_objects)} 個時段，"
+            f"ID範圍: {[s.id for s in schedule_objects]}"
+        )
+        return schedule_objects
 ```
 
 ---
@@ -380,15 +384,15 @@ class Schedule(Base):
   - 查詢優化：調整 `SQL` 語法、使用 `JOIN`、子查詢或 `ORM` 預載入策略，減少不必要的資料庫存取
   - 資料庫分片：將大表分散到不同資料庫或表中，提高擴展性與效能，適用於超大規模資料
 
-#### 範例程式碼
+#### 範例程式碼（以下為範例，完整版請見）
 
 ```python
 # app/models/database.py
-from typing import Generator  
+from typing import Generator
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker, Session 
-from sqlalchemy.engine import Engine  
-from app.core.settings import settings 
+from sqlalchemy.orm import declarative_base, sessionmaker, Session
+from sqlalchemy.engine import Engine
+from app.core.settings import settings
 
 # 建立基礎類別：所有資料表模型，都會繼承這個類別，避免重複的程式碼
 Base = declarative_base()
@@ -397,9 +401,9 @@ def create_database_engine() -> tuple[Engine, sessionmaker]:
     """
     建立並初始化資料庫引擎和相關組件
     """
- 
+
     DATABASE_URL = settings.mysql_connection_string
-    
+
     # 建立資料庫引擎連線
     engine = create_engine(
         DATABASE_URL, # MySQL 連接字串
@@ -420,7 +424,7 @@ def create_database_engine() -> tuple[Engine, sessionmaker]:
         autocommit=False,  # 不自動提交，手動呼叫 .commit() 才會儲存資料
         autoflush=False,  # 不自動刷新、不自動將未提交的改動同步到資料庫，需手動呼叫 flush()
     )
-     
+
     return engine, SessionLocal
 
 # 程式啟動時，立即建立引擎和會話工廠
@@ -436,6 +440,7 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()
 ```
+
 ---
 
 ### **第八層：回應層 (Response Layer)**
@@ -464,11 +469,10 @@ def get_db() -> Generator[Session, None, None]:
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.models.database import get_db
-from app.crud.schedule import ScheduleCRUD
+from app.services import schedule_service
 from app.schemas.schedule import ScheduleCreateRequest, ScheduleResponse
 
 router = APIRouter()
-schedule_crud = ScheduleCRUD()
 
 @router.post("/schedules", response_model=ScheduleResponse, status_code=201)
 async def create_schedules(
@@ -476,11 +480,11 @@ async def create_schedules(
     db: Session = Depends(get_db)
 ):
     try:
-        schedules = schedule_crud.create_schedules(
+        schedules = schedule_service.create_schedules(
             db=db,
             schedules=request.schedules,
-            updated_by=request.updated_by,
-            updated_by_role=request.updated_by_role
+            created_by=request.created_by,
+            created_by_role=request.created_by_role
         )
 
         # 回應格式化

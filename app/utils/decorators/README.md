@@ -42,14 +42,14 @@ def update_user(self, db: Session, user_id: int, user_data: dict):
     pass
 ```
 
-#### `log_crud_operation(operation_name: str)`
+#### `log_operation(operation_name: str)`
 
 CRUD 操作日誌記錄裝飾器。
 
 ```python
-from app.utils.decorators import log_crud_operation
+from app.utils.decorators import log_operation
 
-@log_crud_operation("查詢使用者")
+@log_operation("查詢使用者")
 def get_user(self, db: Session, user_id: int):
     # 您的查詢邏輯
     pass
