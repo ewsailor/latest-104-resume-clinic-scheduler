@@ -14,11 +14,9 @@ from sqlalchemy.orm import Session
 from app.crud.schedule import ScheduleCRUD
 from app.crud.user import UserCRUD
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
-from app.enums.operations import OperationContext
 from app.errors import (
     BusinessLogicError,
     ErrorCode,
-    format_schedule_overlap_error_message,
 )
 from app.models.schedule import Schedule
 from app.schemas import ScheduleData
@@ -386,9 +384,7 @@ class ScheduleService:
             )
 
             if overlapping_schedules:
-                error_msg = format_schedule_overlap_error_message(
-                    overlapping_schedules, new_date, OperationContext.UPDATE
-                )
+                error_msg = f"時段重疊：檢測到 {len(overlapping_schedules)} 個重疊時段"
                 self.logger.warning(f"更新時段 {schedule_id} 時檢測到重疊: {error_msg}")
                 raise BusinessLogicError(error_msg, ErrorCode.SCHEDULE_OVERLAP)
 

@@ -26,9 +26,7 @@ from app.errors import (
 from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型
 from app.schemas import ScheduleData  # 資料模型
-from app.utils.schedule_validator import ScheduleValidator  # 時段驗證器
 from app.utils.timezone import get_local_now_naive  # 時區工具
-from app.validation import TypeValidators, validate_parameters  # 參數驗證工具
 
 
 class ScheduleCRUD:
@@ -37,7 +35,6 @@ class ScheduleCRUD:
     def __init__(self):
         """初始化 CRUD 實例，設定日誌器。"""
         self.logger = logging.getLogger(__name__)
-        self.validator = ScheduleValidator()  # 初始化時段驗證器
 
     def get_schedule_query_options(self, include_relations: list[str] | None = None):
         """
@@ -67,10 +64,12 @@ class ScheduleCRUD:
                 'deleted_by_user',
             ]
         else:
-            # 只有在實際傳入參數時才進行驗證
-            include_relations = TypeValidators.list_of(
-                TypeValidators.string, 0
-            ).validate(include_relations, "include_relations")
+            # 驗證輸入參數
+            if not isinstance(include_relations, list):
+                raise ValueError("include_relations 必須是列表")
+            for relation in include_relations:
+                if not isinstance(relation, str):
+                    raise ValueError("include_relations 中的每個元素必須是字串")
 
         options = []
         relation_mapping = {

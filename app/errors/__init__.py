@@ -11,14 +11,16 @@ from .exceptions import (
     DatabaseError,
     NotFoundError,
     ValidationError,
-    handle_database_error,
 )
-from .formatters import format_error_response, format_schedule_overlap_error_message
+from .formatters import format_error_response
 from .handlers import (
     create_http_exception_from_api_error,
     create_schedule_not_found_error,
     create_schedule_overlap_error,
     create_user_not_found_error,
+    handle_business_logic_error,
+    handle_database_error,
+    handle_validation_error,
 )
 
 __all__ = [
@@ -32,11 +34,12 @@ __all__ = [
     "NotFoundError",
     # 錯誤處理函式
     "handle_database_error",
+    "handle_business_logic_error",
+    "handle_validation_error",
     "create_http_exception_from_api_error",
     "create_user_not_found_error",
     "create_schedule_not_found_error",
     "create_schedule_overlap_error",
     # 錯誤格式化
     "format_error_response",
-    "format_schedule_overlap_error_message",
 ]

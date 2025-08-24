@@ -17,7 +17,6 @@ from app.enums.models import ScheduleStatusEnum, UserRoleEnum  # 角色枚舉
 from app.enums.operations import OperationContext  # 操作相關的 ENUM
 from app.errors import (
     BusinessLogicError,
-    format_schedule_overlap_error_message,
 )
 from app.errors import NotFoundError  # 錯誤處理
 from app.models.schedule import Schedule  # 時段模型
@@ -767,16 +766,10 @@ class TestScheduleCRUD:
         db_session.commit()
 
         # 測試建立上下文的錯誤訊息
-        create_error_msg = format_schedule_overlap_error_message(
-            [schedule], date(2025, 9, 15), "建立"
-        )
         expected_create_msg = "您正輸入的時段，和您之前曾輸入的「2025/09/15（週一） 09:00-10:00」時段重複或重疊，請重新輸入"
         assert create_error_msg == expected_create_msg
 
         # 測試更新上下文的錯誤訊息
-        update_error_msg = format_schedule_overlap_error_message(
-            [schedule], date(2025, 9, 15), "更新"
-        )
         expected_update_msg = "您正輸入的時段，和您之前曾輸入的「2025/09/15（週一） 09:00-10:00」時段重複或重疊，請重新輸入"
         assert update_error_msg == expected_update_msg
 
@@ -792,9 +785,6 @@ class TestScheduleCRUD:
         db_session.add(schedule2)
         db_session.commit()
 
-        multi_error_msg = format_schedule_overlap_error_message(
-            [schedule, schedule2], date(2025, 9, 15), "建立"
-        )
         expected_multi_msg = "您正輸入的時段，和您之前曾輸入的「2025/09/15（週一） 09:00-10:00, 2025/09/15（週一） 14:00-15:00」時段重複或重疊，請重新輸入"
         assert multi_error_msg == expected_multi_msg
 

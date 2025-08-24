@@ -8,7 +8,7 @@ from functools import wraps
 import logging
 from typing import Any, Callable
 
-from app.errors import APIError, handle_database_error
+from app.errors.exceptions import APIError, DatabaseError
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,11 @@ def handle_crud_errors(error_context: str):
                 raise
             except Exception as e:
                 logger.error(f"{error_context}時發生錯誤: {str(e)}", exc_info=True)
-                raise handle_database_error(e, error_context)
+                error_message = f"資料庫操作失敗 ({error_context}): {str(e)}"
+                raise DatabaseError(
+                    error_message,
+                    {"operation": error_context, "original_error": str(e)},
+                )
 
         return wrapper
 
@@ -69,7 +73,11 @@ def handle_crud_errors_with_rollback(error_context: str):
                         logger.error(f"回滾資料庫事務失敗: {str(rollback_error)}")
 
                 logger.error(f"{error_context}時發生錯誤: {str(e)}", exc_info=True)
-                raise handle_database_error(e, error_context)
+                error_message = f"資料庫操作失敗 ({error_context}): {str(e)}"
+                raise DatabaseError(
+                    error_message,
+                    {"operation": error_context, "original_error": str(e)},
+                )
 
         return wrapper
 

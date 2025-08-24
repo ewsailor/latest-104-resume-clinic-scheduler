@@ -81,23 +81,3 @@ class NotFoundError(APIError):
             error_code=f"{resource_type.upper()}_NOT_FOUND",
             status_code=status.HTTP_404_NOT_FOUND,
         )
-
-
-def handle_database_error(error: Exception, operation: str) -> DatabaseError:
-    """
-    處理資料庫錯誤
-
-    將一般異常轉換為 DatabaseError，並記錄操作上下文。
-
-    Args:
-        error: 原始錯誤
-        operation: 操作描述
-
-    Returns:
-        DatabaseError: 格式化的資料庫錯誤
-    """
-    error_message = f"資料庫操作失敗 ({operation}): {str(error)}"
-    return DatabaseError(
-        error_message,
-        {"operation": operation, "original_error": str(error)},
-    )

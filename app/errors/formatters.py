@@ -99,26 +99,3 @@ def format_error_response(error: Exception) -> dict[str, Any]:
             "details": {"error": str(error)},
         }
     }
-
-
-def format_schedule_overlap_error_message(
-    overlapping_schedules: list[Any],
-    schedule_date: Any,
-    context: str = "建立",
-) -> str:
-    """格式化重疊時段的錯誤訊息"""
-    try:
-        # 格式化日期為中文格式
-        weekday_names = ["週一", "週二", "週三", "週四", "週五", "週六", "週日"]
-        weekday = weekday_names[schedule_date.weekday()]
-        date_str = schedule_date.strftime("%Y/%m/%d")
-
-        overlapping_info = []
-        for schedule in overlapping_schedules:
-            time_info = f"{schedule.start_time.strftime('%H:%M')}-{schedule.end_time.strftime('%H:%M')}"
-            overlapping_info.append(f"{date_str}（{weekday}） {time_info}")
-
-        return f"您正輸入的時段，和您之前曾輸入的「{', '.join(overlapping_info)}」時段重複或重疊，請重新輸入"
-    except Exception as e:
-        logger.warning(f"格式化重疊錯誤訊息失敗: {e}")
-        return "時段重疊，請檢查時間安排"
