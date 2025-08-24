@@ -33,8 +33,6 @@ router = APIRouter(prefix="/api/v1", tags=["Schedules"])
     "/schedules",
     response_model=list[ScheduleResponse],
     status_code=status.HTTP_201_CREATED,
-    summary="建立多個時段",
-    description="Giver 新增自己的可預約時間，供 Taker 選擇預約。支援批量建立多個時段。",
 )
 async def create_schedules(
     request: ScheduleCreateRequest, db: Session = Depends(get_db)
@@ -95,8 +93,6 @@ async def create_schedules(
     "/schedules",
     response_model=list[ScheduleResponse],
     status_code=status.HTTP_200_OK,
-    summary="取得時段列表",
-    description="取得時段列表，可選擇性地根據 giver_id、taker_id 和 status 進行篩選。支援多種篩選條件組合查詢。",
 )
 async def get_schedules(
     giver_id: int | None = None,
@@ -140,8 +136,6 @@ async def get_schedules(
     "/schedules/{schedule_id}",
     response_model=ScheduleResponse,
     status_code=status.HTTP_200_OK,
-    summary="取得單一時段",
-    description="根據時段 ID 取得單一時段的詳細資料。",
 )
 async def get_schedule(
     schedule_id: int, db: Session = Depends(get_db)
@@ -176,8 +170,6 @@ async def get_schedule(
     "/schedules/{schedule_id}",
     response_model=ScheduleResponse,
     status_code=status.HTTP_200_OK,
-    summary="更新時段",
-    description="部分更新指定的時段資料，只需要提供要更新的欄位。所有的時段更新操作都需要提供操作者資訊以確保安全性和審計追蹤。",
 )
 async def update_schedule(
     schedule_id: int,
@@ -231,8 +223,6 @@ async def update_schedule(
 @router.delete(
     "/schedules/{schedule_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="刪除時段",
-    description="刪除指定的時段。所有的時段刪除操作都需要提供操作者資訊以確保安全性和審計追蹤。",
 )
 async def delete_schedule(
     schedule_id: int, request: ScheduleDeleteRequest, db: Session = Depends(get_db)
