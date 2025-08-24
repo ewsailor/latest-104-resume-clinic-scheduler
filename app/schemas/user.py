@@ -5,7 +5,6 @@
 """
 
 from datetime import datetime
-from typing import Optional  # 保留 Optional，因為它沒有內建替代
 
 from pydantic import BaseModel, EmailStr, Field
 

@@ -6,7 +6,7 @@
 
 from datetime import date, time
 import logging
-from typing import Any, List
+from typing import Any
 
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
@@ -44,7 +44,7 @@ class ScheduleService:
         start_time: time,
         end_time: time,
         exclude_schedule_id: int | None = None,
-    ) -> List[Schedule]:
+    ) -> list[Schedule]:
         """
         檢查時段重疊（業務邏輯層）。
 
@@ -57,7 +57,7 @@ class ScheduleService:
             exclude_schedule_id: 要排除的時段 ID（用於更新時排除自己）
 
         Returns:
-            List[Schedule]: 重疊的時段列表
+            list[Schedule]: 重疊的時段列表
 
         Raises:
             BusinessLogicError: 當檢測到重疊時
@@ -122,7 +122,7 @@ class ScheduleService:
             # 使用傳入的狀態或預設為 DRAFT
             return schedule_data.status or ScheduleStatusEnum.DRAFT
 
-    def log_schedule_details(self, schedules: List[ScheduleData]) -> None:
+    def log_schedule_details(self, schedules: list[ScheduleData]) -> None:
         """
         記錄時段詳情。
 
@@ -140,10 +140,10 @@ class ScheduleService:
 
     def create_schedule_objects(
         self,
-        schedules: List[ScheduleData],
+        schedules: list[ScheduleData],
         created_by: int,
         created_by_role: UserRoleEnum,
-    ) -> List[Schedule]:
+    ) -> list[Schedule]:
         """
         建立時段物件列表。
 
@@ -156,7 +156,7 @@ class ScheduleService:
             created_by_role: 建立者角色
 
         Returns:
-            List[Schedule]: 時段物件列表
+            list[Schedule]: 時段物件列表
         """
         schedule_objects = []
         for schedule_data in schedules:
@@ -187,10 +187,10 @@ class ScheduleService:
     def create_schedules(
         self,
         db: Session,
-        schedules: List[ScheduleData],
+        schedules: list[ScheduleData],
         created_by: int,
         created_by_role: UserRoleEnum,
-    ) -> List[Schedule]:
+    ) -> list[Schedule]:
         """
         建立多個時段（業務邏輯層）。
 
@@ -201,7 +201,7 @@ class ScheduleService:
             created_by_role: 建立者的角色
 
         Returns:
-            List[Schedule]: 建立成功的時段列表
+            list[Schedule]: 建立成功的時段列表
 
         Raises:
             BusinessLogicError: 當檢測到時段重疊時
@@ -238,7 +238,7 @@ class ScheduleService:
         giver_id: int | None = None,
         taker_id: int | None = None,
         status_filter: str | None = None,
-    ) -> List[Schedule]:
+    ) -> list[Schedule]:
         """
         查詢時段列表（業務邏輯層）。
 
@@ -249,7 +249,7 @@ class ScheduleService:
             status_filter: 可選的狀態篩選條件
 
         Returns:
-            List[Schedule]: 符合條件的時段列表
+            list[Schedule]: 符合條件的時段列表
 
         Raises:
             DatabaseError: 當資料庫操作失敗時

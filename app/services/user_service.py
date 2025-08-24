@@ -5,7 +5,6 @@
 """
 
 import logging
-from typing import List
 
 from sqlalchemy.orm import Session
 
@@ -62,7 +61,7 @@ class UserService:
         db: Session,
         skip: int = 0,
         limit: int = 100,
-    ) -> List[User]:
+    ) -> list[User]:
         """
         查詢使用者列表（業務邏輯層）。
 
@@ -72,7 +71,7 @@ class UserService:
             limit: 限制返回的記錄數（用於分頁）
 
         Returns:
-            List[User]: 使用者列表
+            list[User]: 使用者列表
 
         Raises:
             DatabaseError: 當資料庫操作失敗時

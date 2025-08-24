@@ -9,7 +9,7 @@
 ```
 Client Request 客戶端發送 HTTP 請求
     ↓
-Router Layer (路由層) routers/
+Router Layer (路由層) routers/api/
     ↓
 Middleware Layer (中介層) middleware/
     ↓
@@ -54,18 +54,30 @@ Client Response
 #### 範例程式碼
 
 ```python
-@router.post("/schedules", response_model=ScheduleResponse)
+@router.post(
+    "/schedules",
+    response_model=list[ScheduleResponse],
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_schedules(
-    request: ScheduleCreateRequest,
-    db: Session = Depends(get_db)  # 依賴注入
-):
-    # 路由層：解析請求，呼叫 Service 層
-    return schedule_service.create_schedules(
-        db=db,
-        schedules=request.schedules,
+    request: ScheduleCreateRequest, db: Session = Depends(get_db)
+) -> list[ScheduleResponse]:
+    """
+    建立多個時段
+    """
+    # 業務邏輯
+    # 使用 SERVICE 層建立時段，傳遞建立者資訊
+    schedule_objects = schedule_service.create_schedules(
+        db,
+        request.schedules,
         created_by=request.created_by,
-        created_by_role=request.created_by_role
+        created_by_role=request.created_by_role,
     )
+
+    # 格式轉換：將 Python 物件（如 SQLAlchemy 模型）轉換為 Pydantic 模型
+    return [
+        ScheduleResponse.model_validate(schedule) for schedule in schedule_objects
+    ]
 ```
 
 ---

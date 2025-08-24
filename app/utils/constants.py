@@ -4,14 +4,12 @@
 集中管理系統中使用的常數，包括日期格式、週名稱、錯誤訊息等。
 """
 
-from typing import List
-
 
 class WeekdayNames:
     """週名稱常數"""
 
     # Python datetime.weekday() 對應 (週一=0, 週日=6)
-    CHINESE_WEEKDAYS: List[str] = [
+    CHINESE_WEEKDAYS: list[str] = [
         '週一',
         '週二',
         '週三',
@@ -22,10 +20,10 @@ class WeekdayNames:
     ]
 
     # 簡短版本
-    CHINESE_WEEKDAYS_SHORT: List[str] = ['一', '二', '三', '四', '五', '六', '日']
+    CHINESE_WEEKDAYS_SHORT: list[str] = ['一', '二', '三', '四', '五', '六', '日']
 
     # JavaScript Date.getDay() 對應 (週日=0, 週六=6)
-    CHINESE_WEEKDAYS_JS_ORDER: List[str] = [
+    CHINESE_WEEKDAYS_JS_ORDER: list[str] = [
         '週日',
         '週一',
         '週二',

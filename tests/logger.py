@@ -7,14 +7,13 @@
 
 import logging
 import os
-from typing import Optional
 
 
 class TestLogger:
     """測試專用日誌記錄器"""
 
-    _instance: Optional['TestLogger'] = None
-    _logger: Optional[logging.Logger] = None
+    _instance = None
+    _logger: logging.Logger | None = None
 
     def __new__(cls):
         if cls._instance is None:

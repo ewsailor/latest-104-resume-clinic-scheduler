@@ -16,7 +16,7 @@ def extract_imports_from_functions(file_path: str) -> tuple[list[str], list[str]
         file_path: 檔案路徑
 
     Returns:
-        Tuple[List[str], List[str]]: (頂部 imports, 函式內部 imports)
+        tuple[list[str], list[str]]: (頂部 imports, 函式內部 imports)
     """
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
