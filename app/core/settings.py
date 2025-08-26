@@ -7,10 +7,10 @@
 
 # ===== 標準函式庫 =====
 import logging
-from pathlib import Path  # 現代化的路徑處理
+from pathlib import Path
 import re
-import tomllib  # Python 3.11+ 內建，解析 TOML 格式檔案
-from typing import Any  # 保留 Any，因為它沒有內建替代
+import tomllib
+from typing import Any
 
 # ===== 第三方套件 =====
 from pydantic import Field, SecretStr, field_validator  # Pydantic v2 驗證和欄位定義
