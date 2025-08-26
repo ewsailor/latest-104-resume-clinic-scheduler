@@ -18,6 +18,8 @@ from .exceptions import (
     BusinessLogicError,
     ConflictError,
     DatabaseError,
+    LivenessCheckError,
+    ReadinessCheckError,
     ScheduleNotFoundError,
     ServiceUnavailableError,
     UserNotFoundError,
@@ -26,8 +28,12 @@ from .exceptions import (
 from .formatters import format_error_response
 from .handlers import (
     create_business_logic_error,
+    create_database_error,
+    create_liveness_check_error,
+    create_readiness_check_error,
     create_schedule_not_found_error,
     create_schedule_overlap_error,
+    create_service_unavailable_error,
     create_user_not_found_error,
 )
 
@@ -49,11 +55,20 @@ __all__ = [
     "AuthorizationError",
     "ConflictError",
     "ServiceUnavailableError",
+    "LivenessCheckError",
+    "ReadinessCheckError",
     # 錯誤處理函式
-    "create_user_not_found_error",
+    # Service 層級
     "create_schedule_not_found_error",
+    "create_user_not_found_error",
     "create_schedule_overlap_error",
     "create_business_logic_error",
+    # CRUD 層級
+    "create_database_error",
+    # System 層級
+    "create_liveness_check_error",
+    "create_readiness_check_error",
+    "create_service_unavailable_error",
     # 錯誤格式化
     "format_error_response",
 ]

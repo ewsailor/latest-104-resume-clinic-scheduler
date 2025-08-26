@@ -177,3 +177,35 @@ class ServiceUnavailableError(APIError):
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             details=details,
         )
+
+
+class LivenessCheckError(APIError):
+    """存活檢查錯誤"""
+
+    def __init__(
+        self,
+        message: str = "存活檢查失敗",
+        details: dict[str, Any] | None = None,
+    ):
+        super().__init__(
+            message=message,
+            error_code=SystemErrorCode.LIVENESS_CHECK_ERROR,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            details=details,
+        )
+
+
+class ReadinessCheckError(APIError):
+    """準備就緒檢查錯誤"""
+
+    def __init__(
+        self,
+        message: str = "準備就緒檢查失敗",
+        details: dict[str, Any] | None = None,
+    ):
+        super().__init__(
+            message=message,
+            error_code=SystemErrorCode.READINESS_CHECK_ERROR,
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            details=details,
+        )

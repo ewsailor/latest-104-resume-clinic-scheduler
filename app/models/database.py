@@ -9,39 +9,22 @@ import logging
 from typing import Generator
 
 # ===== 第三方套件 =====
-from fastapi import HTTPException, status
 from sqlalchemy import create_engine, text
-from sqlalchemy.engine import Engine
-from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 # ===== 本地模組 =====
 from app.core import settings
-from app.utils.timezone import get_utc_timestamp
+from app.errors import create_database_error, create_service_unavailable_error
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
 # 建立基礎類別：所有資料表模型，都會繼承這個類別，避免重複的程式碼
 Base = declarative_base()
 
 
-def create_database_engine() -> tuple[Engine, sessionmaker]:
-    """
-    建立並初始化資料庫引擎和相關組件。
-
-    包含：
-    - 建立 SQLAlchemy 資料庫引擎連線
-    - 測試資料庫引擎連線
-    - 建立 session 工廠
-
-    Returns:
-        tuple: (engine, SessionLocal) 資料庫引擎、會話工廠
-
-    Raises:
-        Exception: 當資料庫引擎連線失敗時拋出異常
-    """
+def create_database_engine() -> tuple[create_engine, sessionmaker]:
+    """建立資料庫引擎和會話工廠"""
     logger.info("create_database_engine() called: 開始建立資料庫引擎")
 
     DATABASE_URL = settings.mysql_connection_string
@@ -80,18 +63,9 @@ def create_database_engine() -> tuple[Engine, sessionmaker]:
         logger.info("create_database_engine() success: 資料庫引擎建立成功")
         return engine, SessionLocal
 
-    except OperationalError as e:
-        logger.error(f"create_database_engine() error: 資料庫連線失敗 - {str(e)}")
-        raise
-
     except Exception as e:
         logger.error(f"create_database_engine() error: 連結到資料庫失敗 - {str(e)}")
-        logger.error("請檢查以下項目：")
-        logger.error("   1. MySQL 服務是否正在運行")
-        logger.error("   2. 資料庫連線設定是否正確")
-        logger.error("   3. 使用者權限是否足夠")
-        logger.error("   4. 防火牆設定是否允許連線")
-        raise
+        raise create_service_unavailable_error(f"資料庫引擎建立失敗：{str(e)}")
 
 
 # 程式啟動時，立即建立引擎和會話工廠
@@ -99,6 +73,7 @@ try:
     engine, SessionLocal = create_database_engine()
 except Exception as e:
     logger.error(f"資料庫初始化失敗：{str(e)}")
+    # 這裡不重新拋出，因為程式啟動失敗應該直接終止
     raise
 
 
@@ -111,11 +86,6 @@ def get_db() -> Generator[Session, None, None]:
 
     Yields:
         Session: SQLAlchemy 資料庫會話實例
-
-    Example:
-        @app.get("/users")
-        def get_users(db: Session = Depends(get_db)):
-            return db.query(User).all()
     """
     logger.info("get_db() called: 建立資料庫連線")
     # db 是實際的 Session 實例，用來進行 add()、query()、commit()、close() 等操作
@@ -136,78 +106,20 @@ def get_db() -> Generator[Session, None, None]:
         logger.info("get_db() yield: 傳遞資料庫連線給處理函式")
         yield db
     except Exception as e:
-        logger.error(f"get_db() error: 資料庫操作發生錯誤 - {str(e)}")
-        db.rollback()  # 發生錯誤時回滾事務
-        raise
+        logger.error(f"get_db() error: 資料庫操作錯誤 - {str(e)}")
+        db.rollback()
+        raise create_database_error(f"資料庫會話建立失敗：{str(e)}")
     finally:
         logger.info("get_db() cleanup: 關閉資料庫連線")
         db.close()
 
 
-def check_db_connection() -> bool:
-    """
-    檢查資料庫連線狀態。
-
-    執行簡單的 SQL 查詢來驗證資料庫連線是否正常。
-    用於健康檢查和監控系統。
-
-    Returns:
-        bool: True 表示連線正常，False 表示連線失敗
-
-    Example:
-        if check_db_connection():
-            print("資料庫連線正常")
-        else:
-            print("資料庫連線失敗")
-    """
-    logger.info("check_db_connection() called: 檢查資料庫連線狀態")
+def check_db_connection() -> None:
+    """檢查資料庫連線狀態"""
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))  # 執行簡單的查詢來測試連線
             logger.info("check_db_connection() success: 資料庫連線正常")
-            return True
-    except OperationalError as e:
-        logger.error(f"check_db_connection() error: 資料庫連線失敗 - {str(e)}")
-        return False
     except Exception as e:
-        logger.error(
-            f"check_db_connection() error: 檢查連線時發生未預期錯誤 - {str(e)}"
-        )
-        return False
-
-
-def get_healthy_db() -> bool:
-    """
-    健康檢查專用的資料庫依賴。
-
-    用於 readiness probe，如果資料庫連線失敗會拋出 HTTPException。
-    這讓健康檢查端點可以專注於業務邏輯，而不需要處理連線錯誤。
-
-    Returns:
-        bool: True 表示資料庫連線正常
-
-    Raises:
-        HTTPException: 當資料庫連線失敗時拋出 503 錯誤
-
-    Example:
-        @router.get("/readyz")
-        async def readiness_probe(db_healthy: bool = Depends(get_healthy_db)):
-            return {"status": "healthy"}
-    """
-    logger.info("get_healthy_db() called: 健康檢查資料庫連線")
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-            logger.info("get_healthy_db() success: 資料庫連線正常")
-            return True
-    except Exception as e:
-        logger.error(f"get_healthy_db() error: 資料庫連線失敗 - {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail={
-                "status": "error",
-                "database": "disconnected",
-                "message": "Database connection failed. Application is not ready.",
-                "timestamp": get_utc_timestamp(),
-            },
-        )
+        logger.error(f"check_db_connection() error: 資料庫連線檢查失敗 - {str(e)}")
+        raise create_service_unavailable_error(f"資料庫連線失敗：{str(e)}")

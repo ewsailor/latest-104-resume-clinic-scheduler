@@ -55,6 +55,7 @@ def format_error_response(error: Exception) -> dict[str, Any]:
                 "status_code": error.status_code,
                 "code": f"HTTP_{error.status_code}",
                 "timestamp": get_utc_timestamp(),
+                "details": {"detail": error.detail} if error.detail else {},
             }
         }
 
@@ -65,5 +66,6 @@ def format_error_response(error: Exception) -> dict[str, Any]:
             "status_code": 500,
             "code": "INTERNAL_ERROR",
             "timestamp": get_utc_timestamp(),
+            "details": {"error": str(error)},
         }
     }

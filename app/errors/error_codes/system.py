@@ -13,3 +13,9 @@ class SystemErrorCode:
 
     # 503 Service Unavailable - 通用服務錯誤
     SERVICE_UNAVAILABLE = "SERVICE_UNAVAILABLE"  # 503 - 服務不可用
+
+    # 500 Internal Server Error - 存活檢查錯誤
+    LIVENESS_CHECK_ERROR = "LIVENESS_CHECK_ERROR"  # 500 - 存活檢查失敗
+
+    # 503 Service Unavailable - 準備就緒檢查錯誤
+    READINESS_CHECK_ERROR = "READINESS_CHECK_ERROR"  # 503 - 準備就緒檢查失敗

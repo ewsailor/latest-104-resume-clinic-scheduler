@@ -23,7 +23,6 @@ from app.services import schedule_service
 router = APIRouter(prefix="/api/v1", tags=["Schedules"])
 
 
-# ===== API 端點 =====
 @router.post(
     "/schedules",
     response_model=list[ScheduleResponse],
