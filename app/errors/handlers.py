@@ -30,24 +30,24 @@ def create_http_exception_from_api_error(error: Any) -> HTTPException:
 
 
 def create_user_not_found_error(user_id: int) -> BusinessLogicError:
-    """創建使用者不存在錯誤"""
+    """創建使用者不存在錯誤 (Service 層級)"""
     message = f"使用者不存在: ID={user_id}"
-    return BusinessLogicError(message, ErrorCode.USER_NOT_FOUND)
+    return BusinessLogicError(message, ErrorCode.SERVICE.USER_NOT_FOUND)
 
 
 def create_schedule_not_found_error(schedule_id: int) -> BusinessLogicError:
-    """創建時段不存在錯誤"""
+    """創建時段不存在錯誤 (Service 層級)"""
     message = f"時段不存在: ID={schedule_id}"
-    return BusinessLogicError(message, ErrorCode.SCHEDULE_NOT_FOUND)
+    return BusinessLogicError(message, ErrorCode.SERVICE.SCHEDULE_NOT_FOUND)
 
 
 def create_schedule_overlap_error(
     overlapping_schedules: list[Any], schedule_date: str
 ) -> BusinessLogicError:
-    """創建時段重疊錯誤"""
+    """創建時段重疊錯誤 (Service 層級)"""
     return BusinessLogicError(
         message="時段重疊",
-        error_code=ErrorCode.SCHEDULE_OVERLAP,
+        error_code=ErrorCode.SERVICE.SCHEDULE_OVERLAP,
         details={
             "overlapping_schedules": overlapping_schedules,
             "schedule_date": schedule_date,

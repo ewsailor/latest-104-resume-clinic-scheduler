@@ -1,7 +1,7 @@
 """
 錯誤類別模組。
 
-定義系統中使用的所有錯誤類別。
+定義系統中使用的所有錯誤類別，按架構層級分類。
 """
 
 # ===== 標準函式庫 =====
@@ -32,39 +32,47 @@ class APIError(Exception):
 
 
 class ValidationError(APIError):
-    """資料驗證錯誤"""
+    """資料驗證錯誤 (Router 層級)"""
 
-    def __init__(self, message: str, details: dict[str, Any] | None = None):
+    def __init__(
+        self,
+        message: str,
+        details: dict[str, Any] | None = None,
+        error_code: str = ErrorCode.ROUTER.VALIDATION_ERROR,
+    ):
         super().__init__(
             message=message,
-            error_code=ErrorCode.VALIDATION_ERROR,
+            error_code=error_code,  # 使用 Router 層級錯誤代碼
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             details=details,
         )
 
 
 class BusinessLogicError(APIError):
-    """業務邏輯錯誤"""
+    """業務邏輯錯誤 (Service 層級)"""
 
     def __init__(
-        self, message: str, error_code: str, details: dict[str, Any] | None = None
+        self,
+        message: str,
+        error_code: str = ErrorCode.SERVICE.BUSINESS_LOGIC_ERROR,
+        details: dict[str, Any] | None = None,
     ):
         super().__init__(
             message=message,
-            error_code=error_code,
+            error_code=error_code,  # 預設使用 Service 層級業務邏輯錯誤代碼
             status_code=status.HTTP_400_BAD_REQUEST,
             details=details,
         )
 
 
 class DatabaseError(APIError):
-    """資料庫錯誤"""
+    """資料庫錯誤 (CRUD 層級)"""
 
     def __init__(
         self,
         message: str,
         details: dict[str, Any] | None = None,
-        error_code: str = ErrorCode.DATABASE_ERROR,
+        error_code: str = ErrorCode.CRUD.DATABASE_ERROR,  # 使用 CRUD 層級錯誤代碼
     ):
         super().__init__(
             message=message,
@@ -75,66 +83,76 @@ class DatabaseError(APIError):
 
 
 class NotFoundError(APIError):
-    """資源不存在錯誤"""
+    """資源不存在錯誤 (Service 層級)"""
 
     def __init__(self, resource_type: str, resource_id: int | str):
         message = f"{resource_type}不存在: ID={resource_id}"
+        # 根據資源類型選擇對應的錯誤代碼
+        if resource_type.lower() == "user":
+            error_code = ErrorCode.SERVICE.USER_NOT_FOUND
+        elif resource_type.lower() == "schedule":
+            error_code = ErrorCode.SERVICE.SCHEDULE_NOT_FOUND
+        else:
+            error_code = (
+                ErrorCode.SERVICE.USER_NOT_FOUND
+            )  # 預設使用使用者不存在錯誤代碼
+
         super().__init__(
             message=message,
-            error_code=f"{resource_type.upper()}_NOT_FOUND",
+            error_code=error_code,  # 使用 Service 層級錯誤代碼
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
 
 class AuthenticationError(APIError):
-    """認證錯誤"""
+    """認證錯誤 (Router 層級)"""
 
     def __init__(
         self, message: str = "認證失敗", details: dict[str, Any] | None = None
     ):
         super().__init__(
             message=message,
-            error_code=ErrorCode.AUTHENTICATION_ERROR,
+            error_code=ErrorCode.ROUTER.AUTHENTICATION_ERROR,  # 使用 Router 層級錯誤代碼
             status_code=status.HTTP_401_UNAUTHORIZED,
             details=details,
         )
 
 
 class AuthorizationError(APIError):
-    """權限錯誤"""
+    """權限錯誤 (Router 層級)"""
 
     def __init__(
         self, message: str = "權限不足", details: dict[str, Any] | None = None
     ):
         super().__init__(
             message=message,
-            error_code=ErrorCode.AUTHORIZATION_ERROR,
+            error_code=ErrorCode.ROUTER.AUTHORIZATION_ERROR,  # 使用 Router 層級錯誤代碼
             status_code=status.HTTP_403_FORBIDDEN,
             details=details,
         )
 
 
 class ConflictError(APIError):
-    """資源衝突錯誤"""
+    """資源衝突錯誤 (Service 層級)"""
 
     def __init__(self, message: str, details: dict[str, Any] | None = None):
         super().__init__(
             message=message,
-            error_code=ErrorCode.CONFLICT,
+            error_code=ErrorCode.SERVICE.CONFLICT,  # 使用 Service 層級錯誤代碼
             status_code=status.HTTP_409_CONFLICT,
             details=details,
         )
 
 
 class ServiceUnavailableError(APIError):
-    """服務不可用錯誤"""
+    """服務不可用錯誤 (System 層級)"""
 
     def __init__(
         self, message: str = "服務暫時不可用", details: dict[str, Any] | None = None
     ):
         super().__init__(
             message=message,
-            error_code=ErrorCode.SYSTEM.SERVICE_UNAVAILABLE,
+            error_code=ErrorCode.SYSTEM.SERVICE_UNAVAILABLE,  # 使用 System 層級錯誤代碼
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             details=details,
         )
