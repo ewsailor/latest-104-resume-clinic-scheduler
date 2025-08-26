@@ -15,14 +15,12 @@ from sqlalchemy.orm import Session
 
 # ===== 本地模組 =====
 from app.crud.schedule import ScheduleCRUD
-from app.crud.user import UserCRUD
 from app.decorators import (
     handle_service_errors,
     log_operation,
 )
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
 from app.errors import (
-    BusinessLogicError,
     ConflictError,
 )
 from app.models.schedule import Schedule
@@ -36,7 +34,6 @@ class ScheduleService:
         """初始化服務實例。"""
         self.logger = logging.getLogger(__name__)
         self.schedule_crud = ScheduleCRUD()
-        self.user_crud = UserCRUD()
 
     @log_operation("檢查時段重疊")
     def check_schedule_overlap(
@@ -49,29 +46,11 @@ class ScheduleService:
         exclude_schedule_id: int | None = None,
     ) -> list[Schedule]:
         """
-        檢查時段重疊（業務邏輯層）。
-
-        Args:
-            db: 資料庫會話
-            giver_id: Giver ID
-            schedule_date: 時段日期
-            start_time: 開始時間
-            end_time: 結束時間
-            exclude_schedule_id: 要排除的時段 ID（用於更新時排除自己）
-
-        Returns:
-            list[Schedule]: 重疊的時段列表
-
-        Raises:
-            BusinessLogicError: 當檢測到重疊時
-            DatabaseError: 當資料庫操作失敗時
+        檢查時段重疊。
         """
-
         # 驗證時間範圍
         if end_time <= start_time:
-            raise BusinessLogicError(
-                f"結束時間 ({end_time}) 必須晚於開始時間 ({start_time})"
-            )
+            raise ValueError(f"結束時間 ({end_time}) 必須晚於開始時間 ({start_time})")
 
         # 建立查詢條件
         query = (
@@ -89,7 +68,6 @@ class ScheduleService:
             query = query.filter(Schedule.id != exclude_schedule_id)
 
         # 檢查時間重疊
-        # 重疊條件：新時段的開始時間 < 現有時段的結束時間 AND 新時段的結束時間 > 現有時段的開始時間
         overlapping_schedules = query.filter(
             and_(start_time < Schedule.end_time, end_time > Schedule.start_time)
         ).all()
@@ -108,13 +86,6 @@ class ScheduleService:
     ) -> ScheduleStatusEnum:
         """
         根據建立者角色決定時段狀態。
-
-        Args:
-            created_by_role: 建立者角色
-            schedule_data: 時段資料
-
-        Returns:
-            ScheduleStatusEnum: 時段狀態
         """
         if created_by_role == UserRoleEnum.TAKER:
             return ScheduleStatusEnum.PENDING
@@ -127,9 +98,6 @@ class ScheduleService:
     def log_schedule_details(self, schedules: list[ScheduleData]) -> None:
         """
         記錄時段詳情。
-
-        Args:
-            schedules: 時段資料列表
         """
         schedule_details = []
         for i, schedule_data in enumerate(schedules):
@@ -140,6 +108,7 @@ class ScheduleService:
             schedule_details.append(detail)
         self.logger.info(f"建立時段詳情: {', '.join(schedule_details)}")
 
+    @log_operation("建立時段物件列表")
     def create_schedule_objects(
         self,
         schedules: list[ScheduleData],
@@ -148,17 +117,6 @@ class ScheduleService:
     ) -> list[Schedule]:
         """
         建立時段物件列表。
-
-        此方法只負責建立時段物件，不執行資料庫操作。
-        如果需要完整的建立流程，請使用 create_schedules 方法。
-
-        Args:
-            schedules: 時段資料列表
-            created_by: 建立者 ID
-            created_by_role: 建立者角色
-
-        Returns:
-            list[Schedule]: 時段物件列表
         """
         schedule_objects = []
         for schedule_data in schedules:
@@ -184,8 +142,8 @@ class ScheduleService:
 
         return schedule_objects
 
-    @handle_service_errors("建立時段")
-    @log_operation("建立時段")
+    @handle_service_errors("建立多個時段")
+    @log_operation("建立多個時段")
     def create_schedules(
         self,
         db: Session,
@@ -194,19 +152,7 @@ class ScheduleService:
         created_by_role: UserRoleEnum,
     ) -> list[Schedule]:
         """
-        建立多個時段（業務邏輯層）。
-
-        Args:
-            db: 資料庫會話
-            schedules: 要建立的時段列表
-            created_by: 建立者的使用者 ID
-            created_by_role: 建立者的角色
-
-        Returns:
-            list[Schedule]: 建立成功的時段列表
-
-        Raises:
-            BusinessLogicError: 當檢測到時段重疊時
+        建立多個時段。
         """
         # 記錄建立操作
         self.logger.info(
@@ -261,20 +207,7 @@ class ScheduleService:
         status_filter: str | None = None,
     ) -> list[Schedule]:
         """
-        查詢時段列表（業務邏輯層）。
-
-        Args:
-            db: 資料庫會話
-            giver_id: 可選的 Giver ID 篩選條件
-            taker_id: 可選的 Taker ID 篩選條件
-            status_filter: 可選的狀態篩選條件
-
-        Returns:
-            list[Schedule]: 符合條件的時段列表
-
-        Raises:
-            DatabaseError: 當資料庫操作失敗時
-            ValueError: 當輸入參數無效時
+        查詢時段列表。
         """
         # 記錄查詢操作
         self.logger.info(
@@ -294,17 +227,7 @@ class ScheduleService:
     @log_operation("查詢單一時段")
     def get_schedule_by_id(self, db: Session, schedule_id: int) -> Schedule:
         """
-        根據 ID 查詢單一時段（業務邏輯層）。
-
-        Args:
-            db: 資料庫會話
-            schedule_id: 時段 ID
-
-        Returns:
-            Schedule: 找到的時段物件
-
-        Raises:
-            NotFoundError: 當時段不存在或已軟刪除時
+        根據 ID 查詢單一時段。
         """
         # 記錄查詢操作
         self.logger.info(f"查詢時段: schedule_id={schedule_id}")
@@ -313,39 +236,6 @@ class ScheduleService:
         schedule = self.schedule_crud.get_schedule_by_id(db, schedule_id)
 
         self.logger.info(f"時段 {schedule_id} 查詢成功")
-        return schedule
-
-    @handle_service_errors("查詢單一時段（包含已刪除）")
-    @log_operation("查詢單一時段（包含已刪除）")
-    def get_schedule_by_id_including_deleted(
-        self, db: Session, schedule_id: int
-    ) -> Schedule | None:
-        """
-        根據 ID 查詢單一時段（包含已軟刪除的記錄）（業務邏輯層）。
-
-        Args:
-            db: 資料庫會話
-            schedule_id: 時段 ID
-
-        Returns:
-            Schedule | None: 找到的時段物件，如果不存在則返回 None
-
-        Raises:
-            DatabaseError: 當資料庫操作失敗時
-        """
-        # 記錄查詢操作
-        self.logger.info(f"查詢時段（包含已刪除）: schedule_id={schedule_id}")
-
-        # 使用 CRUD 層查詢時段
-        schedule = self.schedule_crud.get_schedule_by_id_including_deleted(
-            db, schedule_id
-        )
-
-        if schedule:
-            self.logger.info(f"時段 {schedule_id} 查詢成功（包含已刪除記錄）")
-        else:
-            self.logger.info(f"時段 {schedule_id} 不存在")
-
         return schedule
 
     @handle_service_errors("更新時段")
@@ -359,20 +249,7 @@ class ScheduleService:
         **kwargs: Any,
     ) -> Schedule:
         """
-        更新時段（業務邏輯層）。
-
-        Args:
-            db: 資料庫會話
-            schedule_id: 時段 ID
-            updated_by: 更新者的使用者 ID
-            updated_by_role: 更新者的角色
-            **kwargs: 要更新的欄位
-
-        Returns:
-            Schedule: 更新後的時段物件
-
-        Raises:
-            BusinessLogicError: 當檢測到時段重疊時
+        更新時段。
         """
         # 記錄更新操作
         self.logger.info(
@@ -427,19 +304,7 @@ class ScheduleService:
         deleted_by_role: UserRoleEnum | None = None,
     ) -> bool:
         """
-        軟刪除時段（業務邏輯層）。
-
-        Args:
-            db: 資料庫會話
-            schedule_id: 時段 ID
-            deleted_by: 刪除者的使用者 ID
-            deleted_by_role: 刪除者的角色
-
-        Returns:
-            bool: 刪除成功返回 True，否則返回 False
-
-        Raises:
-            DatabaseError: 當資料庫操作失敗時
+        軟刪除時段。
         """
         # 記錄刪除操作
         if deleted_by and deleted_by_role:

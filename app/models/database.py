@@ -9,12 +9,14 @@ import logging
 from typing import Generator
 
 # ===== 第三方套件 =====
+from fastapi import HTTPException
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 # ===== 本地模組 =====
 from app.core import settings
 from app.errors import create_database_error, create_service_unavailable_error
+from app.errors.exceptions import APIError
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -105,7 +107,18 @@ def get_db() -> Generator[Session, None, None]:
         db.execute(text("SELECT 1"))
         logger.info("get_db() yield: 傳遞資料庫連線給處理函式")
         yield db
+    except APIError as e:
+        # APIError 類型直接向上傳遞，不要包裝
+        logger.error(f"get_db() error: API 錯誤 - {str(e)}")
+        db.rollback()
+        raise
+    except HTTPException as e:
+        # HTTPException 類型直接向上傳遞，不要包裝
+        logger.error(f"get_db() error: HTTP 錯誤 - {str(e)}")
+        db.rollback()
+        raise
     except Exception as e:
+        # 其他異常包裝成 DatabaseError
         logger.error(f"get_db() error: 資料庫操作錯誤 - {str(e)}")
         db.rollback()
         raise create_database_error(f"資料庫會話建立失敗：{str(e)}")

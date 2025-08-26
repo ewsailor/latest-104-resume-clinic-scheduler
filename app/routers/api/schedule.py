@@ -48,8 +48,6 @@ async def create_schedules(
     Raises:
         HTTPException: 當建立失敗時拋出對應的 HTTP 錯誤
     """
-    # 業務邏輯
-    # 使用 SERVICE 層建立時段，傳遞建立者資訊
     schedule_objects = schedule_service.create_schedules(
         db,
         request.schedules,
@@ -91,6 +89,7 @@ async def get_schedules(
         HTTPException: 當查詢失敗時拋出對應的 HTTP 錯誤
     """
     schedules = schedule_service.get_schedules(db, giver_id, taker_id, status_filter)
+
     return [ScheduleResponse.model_validate(schedule) for schedule in schedules]
 
 
@@ -117,6 +116,7 @@ async def get_schedule(
         HTTPException: 當時段不存在時拋出 404 錯誤
     """
     schedule = schedule_service.get_schedule_by_id(db, schedule_id)
+
     return ScheduleResponse.model_validate(schedule)
 
 
@@ -161,6 +161,7 @@ async def update_schedule(
         updated_by_role=request.updated_by_role,
         **update_data,  # 字典解包：傳遞更新資料
     )
+
     return ScheduleResponse.model_validate(updated_schedule)
 
 
