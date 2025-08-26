@@ -11,11 +11,12 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
+from app.decorators import handle_api_errors
+
 # ===== 本地模組 =====
 from app.models.database import get_db
 from app.schemas import UserCreate
 from app.services import user_service
-from app.utils.decorators import handle_api_errors
 
 router = APIRouter(prefix="/api/v1", tags=["Users"])
 

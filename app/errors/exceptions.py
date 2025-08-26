@@ -84,3 +84,57 @@ class NotFoundError(APIError):
             error_code=f"{resource_type.upper()}_NOT_FOUND",
             status_code=status.HTTP_404_NOT_FOUND,
         )
+
+
+class AuthenticationError(APIError):
+    """認證錯誤"""
+
+    def __init__(
+        self, message: str = "認證失敗", details: dict[str, Any] | None = None
+    ):
+        super().__init__(
+            message=message,
+            error_code=ErrorCode.AUTHENTICATION_ERROR,
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            details=details,
+        )
+
+
+class AuthorizationError(APIError):
+    """權限錯誤"""
+
+    def __init__(
+        self, message: str = "權限不足", details: dict[str, Any] | None = None
+    ):
+        super().__init__(
+            message=message,
+            error_code=ErrorCode.AUTHORIZATION_ERROR,
+            status_code=status.HTTP_403_FORBIDDEN,
+            details=details,
+        )
+
+
+class ConflictError(APIError):
+    """資源衝突錯誤"""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
+        super().__init__(
+            message=message,
+            error_code=ErrorCode.CONFLICT,
+            status_code=status.HTTP_409_CONFLICT,
+            details=details,
+        )
+
+
+class ServiceUnavailableError(APIError):
+    """服務不可用錯誤"""
+
+    def __init__(
+        self, message: str = "服務暫時不可用", details: dict[str, Any] | None = None
+    ):
+        super().__init__(
+            message=message,
+            error_code=ErrorCode.SYSTEM.SERVICE_UNAVAILABLE,
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            details=details,
+        )

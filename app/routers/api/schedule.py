@@ -8,6 +8,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.decorators import handle_api_errors
+
 # ===== 本地模組 =====
 from app.models.database import get_db
 from app.schemas import (
@@ -17,7 +19,6 @@ from app.schemas import (
     ScheduleResponse,
 )
 from app.services import schedule_service
-from app.utils.decorators import handle_api_errors
 
 # 建立路由器
 router = APIRouter(prefix="/api/v1", tags=["Schedules"])

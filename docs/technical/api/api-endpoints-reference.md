@@ -363,19 +363,131 @@
 
 ### HTTP 狀態碼
 
-| 狀態碼 | 描述                  | 使用場景                   |
-| ------ | --------------------- | -------------------------- |
-| 200    | OK                    | 請求成功、更新成功                   |
-| 201    | Created               | 資源建立成功               |
-| 204    | No Content            | 請求成功但無回應內容       |
-| 400    | Bad Request           | 請求格式錯誤或業務邏輯錯誤 |
-| 401    | Unauthorized          | 未授權，如未提供 `JWT`、尚未登入    |
-| 403    | Forbidden             | 禁止訪問，如權限不足                  |
-| 404    | Not Found             | 資源不存在                 |
-| 409    | Conflict              | 資源衝突，如時段重疊                |
-| 422    | Unprocessable Entity  | 請求語義錯誤、Pydantic 資料驗證失敗               |
-| 500    | Internal Server Error | 伺服器內部錯誤，如資料庫錯誤             |
+#### 成功狀態碼 (2xx)
+
+| 狀態碼 | 描述       | 使用場景             |
+| ------ | ---------- | -------------------- |
+| 200    | OK         | 請求成功、更新成功   |
+| 201    | Created    | 資源建立成功         |
+| 204    | No Content | 請求成功但無回應內容 |
+
+#### 客戶端錯誤 (4xx)
+
+| 狀態碼 | 描述                 | 使用場景                            |
+| ------ | -------------------- | ----------------------------------- |
+| 400    | Bad Request          | 請求格式錯誤或業務邏輯錯誤          |
+| 401    | Unauthorized         | 未授權，如未提供 `JWT`、尚未登入    |
+| 403    | Forbidden            | 禁止訪問，如權限不足                |
+| 404    | Not Found            | 資源不存在                          |
+| 409    | Conflict             | 資源衝突，如時段重疊                |
+| 422    | Unprocessable Entity | 請求語義錯誤、Pydantic 資料驗證失敗 |
+
+#### 伺服器錯誤 (5xx)
+
+| 狀態碼 | 描述                  | 使用場景                     |
+| ------ | --------------------- | ---------------------------- |
+| 500    | Internal Server Error | 伺服器內部錯誤，如資料庫錯誤 |
 | 503    | Service Unavailable   | 服務不可用，如維護或超載     |
+
+### 錯誤代碼常數對應表 (按架構層級分類)
+
+#### RouterErrorCode (API 路由層)
+
+| 錯誤代碼常數                           | HTTP 狀態碼 | 描述               | 使用場景               |
+| -------------------------------------- | ----------- | ------------------ | ---------------------- |
+| `RouterErrorCode.BAD_REQUEST`          | 400         | 路由參數格式錯誤   | 請求參數格式不正確     |
+| `RouterErrorCode.INVALID_METHOD`       | 400         | 不支援的 HTTP 方法 | 使用不支援的 HTTP 方法 |
+| `RouterErrorCode.AUTHENTICATION_ERROR` | 401         | 路由層認證失敗     | 未提供或無效的認證資訊 |
+| `RouterErrorCode.AUTHORIZATION_ERROR`  | 403         | 路由層權限不足     | 已認證但無權限執行操作 |
+| `RouterErrorCode.ENDPOINT_NOT_FOUND`   | 404         | API 端點不存在     | 訪問不存在的 API 端點  |
+| `RouterErrorCode.VALIDATION_ERROR`     | 422         | 路由層資料驗證失敗 | Pydantic 驗證錯誤      |
+
+#### ServiceErrorCode (業務邏輯層)
+
+| 錯誤代碼常數                            | HTTP 狀態碼 | 描述         | 使用場景                 |
+| --------------------------------------- | ----------- | ------------ | ------------------------ |
+| `ServiceErrorCode.BUSINESS_LOGIC_ERROR` | 400         | 業務邏輯錯誤 | 時段重疊、無效操作等     |
+| `ServiceErrorCode.SCHEDULE_OVERLAP`     | 400         | 時段重疊     | 預約時段與現有時段衝突   |
+| `ServiceErrorCode.INVALID_OPERATION`    | 400         | 無效操作     | 不允許的業務操作         |
+| `ServiceErrorCode.USER_NOT_FOUND`       | 404         | 使用者不存在 | 查詢不存在的使用者       |
+| `ServiceErrorCode.SCHEDULE_NOT_FOUND`   | 404         | 時段不存在   | 查詢不存在的時段         |
+| `ServiceErrorCode.CONFLICT`             | 409         | 業務邏輯衝突 | 重複的 email、資源衝突等 |
+
+#### CRUDErrorCode (資料存取層)
+
+| 錯誤代碼常數                         | HTTP 狀態碼 | 描述              | 使用場景                 |
+| ------------------------------------ | ----------- | ----------------- | ------------------------ |
+| `CRUDErrorCode.BAD_REQUEST`          | 400         | CRUD 操作參數錯誤 | 資料庫操作參數不正確     |
+| `CRUDErrorCode.RECORD_NOT_FOUND`     | 404         | 資料庫記錄不存在  | 查詢不存在的資料庫記錄   |
+| `CRUDErrorCode.CONSTRAINT_VIOLATION` | 409         | 資料庫約束違反    | 唯一性約束、外鍵約束違反 |
+| `CRUDErrorCode.DATABASE_ERROR`       | 500         | 資料庫操作失敗    | 資料庫連線或查詢錯誤     |
+| `CRUDErrorCode.CONNECTION_ERROR`     | 500         | 資料庫連線錯誤    | 資料庫連線中斷或超時     |
+
+#### CORSErrorCode (跨域請求層)
+
+| 錯誤代碼常數                       | HTTP 狀態碼 | 描述              | 使用場景                   |
+| ---------------------------------- | ----------- | ----------------- | -------------------------- |
+| `CORSErrorCode.ORIGIN_NOT_ALLOWED` | 403         | 來源網域不被允許  | 來自不被允許的網域         |
+| `CORSErrorCode.METHOD_NOT_ALLOWED` | 403         | HTTP 方法不被允許 | 跨域請求使用不被允許的方法 |
+| `CORSErrorCode.HEADER_NOT_ALLOWED` | 403         | 請求標頭不被允許  | 跨域請求包含不被允許的標頭 |
+
+#### SystemErrorCode (通用錯誤)
+
+| 錯誤代碼常數                          | HTTP 狀態碼 | 描述           | 使用場景                 |
+| ------------------------------------- | ----------- | -------------- | ------------------------ |
+| `SystemErrorCode.INTERNAL_ERROR`      | 500         | 內部伺服器錯誤 | 未預期的系統錯誤         |
+| `SystemErrorCode.SERVICE_UNAVAILABLE` | 503         | 服務不可用     | 系統維護或外部服務不可用 |
+
+### 錯誤代碼使用範例
+
+#### 1. 按層級使用錯誤代碼
+
+```python
+from app.errors import (
+    RouterErrorCode,
+    ServiceErrorCode,
+    CRUDErrorCode,
+    CORSErrorCode,
+    SystemErrorCode
+)
+
+# Router 層錯誤
+raise ValidationError("參數驗證失敗", error_code=RouterErrorCode.VALIDATION_ERROR)
+
+# Service 層錯誤
+raise BusinessLogicError("時段重疊", error_code=ServiceErrorCode.SCHEDULE_OVERLAP)
+
+# CRUD 層錯誤
+raise DatabaseError("資料庫連線失敗", error_code=CRUDErrorCode.CONNECTION_ERROR)
+
+# CORS 層錯誤
+raise AuthorizationError("來源網域不被允許", error_code=CORSErrorCode.ORIGIN_NOT_ALLOWED)
+
+# 系統層錯誤
+raise ServiceUnavailableError("服務暫時不可用", error_code=SystemErrorCode.SERVICE_UNAVAILABLE)
+```
+
+#### 2. 使用整合的 ErrorCode 類別
+
+```python
+from app.errors import ErrorCode
+
+# 透過整合類別訪問各層級錯誤代碼
+raise ValidationError("參數驗證失敗", error_code=ErrorCode.ROUTER.VALIDATION_ERROR)
+raise BusinessLogicError("時段重疊", error_code=ErrorCode.SERVICE.SCHEDULE_OVERLAP)
+raise DatabaseError("資料庫連線失敗", error_code=ErrorCode.CRUD.CONNECTION_ERROR)
+```
+
+#### 3. 向後相容性使用
+
+```python
+from app.errors import ErrorCode
+
+# 舊的錯誤代碼仍然可用
+raise ValidationError("參數驗證失敗", error_code=ErrorCode.VALIDATION_ERROR)
+raise BusinessLogicError("時段重疊", error_code=ErrorCode.SCHEDULE_OVERLAP)
+raise DatabaseError("資料庫連線失敗", error_code=ErrorCode.DATABASE_ERROR)
+```
 
 ### 常見錯誤回應
 

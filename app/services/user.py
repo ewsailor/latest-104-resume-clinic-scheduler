@@ -12,12 +12,12 @@ from sqlalchemy.orm import Session
 
 # ===== 本地模組 =====
 from app.crud import user_crud
-from app.models.user import User
-from app.schemas import UserCreate
-from app.utils.decorators import (
+from app.decorators import (
     handle_crud_errors_with_rollback,
     log_operation,
 )
+from app.models.user import User
+from app.schemas import UserCreate
 
 
 class UserService:

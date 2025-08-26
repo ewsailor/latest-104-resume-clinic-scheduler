@@ -15,7 +15,7 @@ from app.data.givers import (
     get_all_givers,
     get_giver_by_id,
 )
-from app.utils.decorators import handle_api_errors
+from app.decorators import handle_api_errors
 
 # 建立路由器
 router = APIRouter(prefix="/api/v1", tags=["Givers"])

@@ -5,12 +5,23 @@
 """
 
 # ===== 本地模組 =====
-from .constants import ErrorCode
+from .constants import (
+    CORSErrorCode,
+    CRUDErrorCode,
+    ErrorCode,
+    RouterErrorCode,
+    ServiceErrorCode,
+    SystemErrorCode,
+)
 from .exceptions import (
     APIError,
+    AuthenticationError,
+    AuthorizationError,
     BusinessLogicError,
+    ConflictError,
     DatabaseError,
     NotFoundError,
+    ServiceUnavailableError,
     ValidationError,
 )
 from .formatters import format_error_response
@@ -27,12 +38,21 @@ from .handlers import (
 __all__ = [
     # 錯誤代碼
     "ErrorCode",
+    "RouterErrorCode",
+    "ServiceErrorCode",
+    "CRUDErrorCode",
+    "CORSErrorCode",
+    "SystemErrorCode",
     # 錯誤類別
     "APIError",
     "ValidationError",
     "BusinessLogicError",
     "DatabaseError",
     "NotFoundError",
+    "AuthenticationError",
+    "AuthorizationError",
+    "ConflictError",
+    "ServiceUnavailableError",
     # 錯誤處理函式
     "handle_database_error",
     "handle_business_logic_error",

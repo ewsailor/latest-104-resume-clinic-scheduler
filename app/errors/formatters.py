@@ -87,7 +87,7 @@ def format_error_response(error: Exception) -> dict[str, Any]:
         elif error.status_code == 400:
             error_code = ErrorCode.BAD_REQUEST
         else:
-            error_code = ErrorCode.INTERNAL_ERROR
+            error_code = ErrorCode.SYSTEM.INTERNAL_ERROR
 
         return {
             "error": {
@@ -116,7 +116,7 @@ def format_error_response(error: Exception) -> dict[str, Any]:
     logger.warning(f"format_error_response: 處理未知錯誤類型: {type(error).__name__}")
     return {
         "error": {
-            "code": ErrorCode.INTERNAL_ERROR,
+            "code": ErrorCode.SYSTEM.INTERNAL_ERROR,
             "message": "內部伺服器錯誤",
             "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
             "timestamp": get_utc_timestamp(),
