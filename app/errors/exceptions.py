@@ -10,8 +10,12 @@ from typing import Any
 # ===== 第三方套件 =====
 from fastapi import status
 
+from .error_codes.crud import CRUDErrorCode
+
 # ===== 本地模組 =====
-from .constants import ErrorCode
+from .error_codes.router import RouterErrorCode
+from .error_codes.service import ServiceErrorCode
+from .error_codes.system import SystemErrorCode
 
 
 class APIError(Exception):
@@ -42,7 +46,7 @@ class ValidationError(APIError):
     ):
         super().__init__(
             message=message,
-            error_code=ErrorCode.ROUTER.VALIDATION_ERROR,
+            error_code=RouterErrorCode.VALIDATION_ERROR,
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             details=details,
         )
@@ -56,7 +60,7 @@ class AuthenticationError(APIError):
     ):
         super().__init__(
             message=message,
-            error_code=ErrorCode.ROUTER.AUTHENTICATION_ERROR,
+            error_code=RouterErrorCode.AUTHENTICATION_ERROR,
             status_code=status.HTTP_401_UNAUTHORIZED,
             details=details,
         )
@@ -70,7 +74,7 @@ class AuthorizationError(APIError):
     ):
         super().__init__(
             message=message,
-            error_code=ErrorCode.ROUTER.AUTHORIZATION_ERROR,
+            error_code=RouterErrorCode.AUTHORIZATION_ERROR,
             status_code=status.HTTP_403_FORBIDDEN,
             details=details,
         )
@@ -87,7 +91,7 @@ class BusinessLogicError(APIError):
     ):
         super().__init__(
             message=message,
-            error_code=ErrorCode.SERVICE.BUSINESS_LOGIC_ERROR,
+            error_code=ServiceErrorCode.BUSINESS_LOGIC_ERROR,
             status_code=status.HTTP_400_BAD_REQUEST,
             details=details,
         )
@@ -104,7 +108,7 @@ class ScheduleNotFoundError(APIError):
         message = f"時段不存在: ID={schedule_id}"
         super().__init__(
             message=message,
-            error_code=ErrorCode.SERVICE.SCHEDULE_NOT_FOUND,
+            error_code=ServiceErrorCode.SCHEDULE_NOT_FOUND,
             status_code=status.HTTP_404_NOT_FOUND,
             details=details,
         )
@@ -121,7 +125,7 @@ class UserNotFoundError(APIError):
         message = f"使用者不存在: ID={user_id}"
         super().__init__(
             message=message,
-            error_code=ErrorCode.SERVICE.USER_NOT_FOUND,
+            error_code=ServiceErrorCode.USER_NOT_FOUND,
             status_code=status.HTTP_404_NOT_FOUND,
             details=details,
         )
@@ -137,7 +141,7 @@ class ConflictError(APIError):
     ):
         super().__init__(
             message=message,
-            error_code=ErrorCode.SERVICE.CONFLICT,
+            error_code=ServiceErrorCode.CONFLICT,
             status_code=status.HTTP_409_CONFLICT,
             details=details,
         )
@@ -154,7 +158,7 @@ class DatabaseError(APIError):
     ):
         super().__init__(
             message=message,
-            error_code=ErrorCode.CRUD.DATABASE_ERROR,
+            error_code=CRUDErrorCode.DATABASE_ERROR,
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             details=details,
         )
@@ -169,7 +173,7 @@ class ServiceUnavailableError(APIError):
     ):
         super().__init__(
             message=message,
-            error_code=ErrorCode.SYSTEM.SERVICE_UNAVAILABLE,
+            error_code=SystemErrorCode.SERVICE_UNAVAILABLE,
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             details=details,
         )

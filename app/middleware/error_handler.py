@@ -20,7 +20,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.settings import settings
 from app.errors import (
     APIError,
-    ErrorCode,
+    RouterErrorCode,
+    SystemErrorCode,
     format_error_response,
 )
 from app.utils.timezone import get_utc_timestamp
@@ -129,7 +130,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             # 處理請求驗證錯誤
             error_response = {
                 "error": {
-                    "code": ErrorCode.VALIDATION_ERROR,
+                    "code": RouterErrorCode.VALIDATION_ERROR,
                     "message": "請求資料驗證失敗",
                     "status_code": status.HTTP_422_UNPROCESSABLE_ENTITY,
                     "timestamp": get_utc_timestamp(),
@@ -142,7 +143,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             # 處理未預期的錯誤
             error_response = {
                 "error": {
-                    "code": ErrorCode.INTERNAL_ERROR,
+                    "code": SystemErrorCode.INTERNAL_ERROR,
                     "message": "內部伺服器錯誤",
                     "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
                     "timestamp": get_utc_timestamp(),
@@ -217,7 +218,7 @@ async def validation_exception_handler(
 
     error_response = {
         "error": {
-            "code": ErrorCode.VALIDATION_ERROR,
+            "code": RouterErrorCode.VALIDATION_ERROR,
             "message": "請求資料驗證失敗",
             "status_code": status.HTTP_422_UNPROCESSABLE_ENTITY,
             "timestamp": get_utc_timestamp(),
@@ -248,7 +249,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
 
     error_response = {
         "error": {
-            "code": ErrorCode.INTERNAL_ERROR,
+            "code": SystemErrorCode.INTERNAL_ERROR,
             "message": "內部伺服器錯誤",
             "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
             "timestamp": get_utc_timestamp(),

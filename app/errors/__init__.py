@@ -4,15 +4,13 @@
 提供統一的錯誤處理機制，包括錯誤類型定義、錯誤處理函式和格式化功能。
 """
 
+from .error_codes.cors import CORSErrorCode
+from .error_codes.crud import CRUDErrorCode
+
 # ===== 本地模組 =====
-from .constants import (
-    CORSErrorCode,
-    CRUDErrorCode,
-    ErrorCode,
-    RouterErrorCode,
-    ServiceErrorCode,
-    SystemErrorCode,
-)
+from .error_codes.router import RouterErrorCode
+from .error_codes.service import ServiceErrorCode
+from .error_codes.system import SystemErrorCode
 from .exceptions import (
     APIError,
     AuthenticationError,
@@ -38,7 +36,6 @@ from .handlers import (
 
 __all__ = [
     # 錯誤代碼
-    "ErrorCode",
     "RouterErrorCode",
     "ServiceErrorCode",
     "CRUDErrorCode",
