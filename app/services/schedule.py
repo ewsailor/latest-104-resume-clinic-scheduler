@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from app.crud.schedule import ScheduleCRUD
 from app.crud.user import UserCRUD
 from app.decorators import (
-    handle_crud_errors_with_rollback,
+    handle_service_errors,
     log_operation,
 )
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
@@ -184,7 +184,7 @@ class ScheduleService:
 
         return schedule_objects
 
-    @handle_crud_errors_with_rollback("建立時段")
+    @handle_service_errors("建立時段")
     @log_operation("建立時段")
     def create_schedules(
         self,
@@ -251,7 +251,7 @@ class ScheduleService:
 
         return created_schedules
 
-    @handle_crud_errors_with_rollback("查詢時段列表")
+    @handle_service_errors("查詢時段列表")
     @log_operation("查詢時段列表")
     def get_schedules(
         self,
@@ -290,7 +290,7 @@ class ScheduleService:
         self.logger.info(f"查詢完成，找到 {len(schedules)} 個時段")
         return schedules
 
-    @handle_crud_errors_with_rollback("查詢單一時段")
+    @handle_service_errors("查詢單一時段")
     @log_operation("查詢單一時段")
     def get_schedule_by_id(self, db: Session, schedule_id: int) -> Schedule:
         """
@@ -315,7 +315,7 @@ class ScheduleService:
         self.logger.info(f"時段 {schedule_id} 查詢成功")
         return schedule
 
-    @handle_crud_errors_with_rollback("查詢單一時段（包含已刪除）")
+    @handle_service_errors("查詢單一時段（包含已刪除）")
     @log_operation("查詢單一時段（包含已刪除）")
     def get_schedule_by_id_including_deleted(
         self, db: Session, schedule_id: int
@@ -348,7 +348,7 @@ class ScheduleService:
 
         return schedule
 
-    @handle_crud_errors_with_rollback("更新時段")
+    @handle_service_errors("更新時段")
     @log_operation("更新時段")
     def update_schedule(
         self,
@@ -417,7 +417,7 @@ class ScheduleService:
         self.logger.info(f"時段 {schedule_id} 更新成功")
         return updated_schedule
 
-    @handle_crud_errors_with_rollback("軟刪除時段")
+    @handle_service_errors("軟刪除時段")
     @log_operation("軟刪除時段")
     def delete_schedule(
         self,

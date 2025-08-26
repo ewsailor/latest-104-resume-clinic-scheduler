@@ -26,9 +26,9 @@ def create_http_exception_from_api_error(error: Any) -> HTTPException:
     # 直接創建錯誤回應格式，避免循環導入
     error_detail = {
         "error": {
-            "code": error.error_code,
             "message": error.message,
             "status_code": error.status_code,
+            "code": error.error_code,
             "details": error.details,
         }
     }

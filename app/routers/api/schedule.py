@@ -20,19 +20,16 @@ from app.schemas import (
 )
 from app.services import schedule_service
 
-# 建立路由器
 router = APIRouter(prefix="/api/v1", tags=["Schedules"])
 
 
 # ===== API 端點 =====
-
-
 @router.post(
     "/schedules",
     response_model=list[ScheduleResponse],
     status_code=status.HTTP_201_CREATED,
 )
-@handle_api_errors()  # 自動檢測為 POST 方法，使用 201 狀態碼
+@handle_api_errors()
 async def create_schedules(
     request: ScheduleCreateRequest, db: Session = Depends(get_db)
 ) -> list[ScheduleResponse]:
@@ -70,7 +67,7 @@ async def create_schedules(
     response_model=list[ScheduleResponse],
     status_code=status.HTTP_200_OK,
 )
-@handle_api_errors()  # 自動檢測為 GET 方法，使用 200 狀態碼
+@handle_api_errors()
 async def get_schedules(
     giver_id: int | None = None,
     taker_id: int | None = None,
@@ -103,7 +100,7 @@ async def get_schedules(
     response_model=ScheduleResponse,
     status_code=status.HTTP_200_OK,
 )
-@handle_api_errors()  # 自動檢測為 GET 方法，使用 200 狀態碼
+@handle_api_errors()
 async def get_schedule(
     schedule_id: int, db: Session = Depends(get_db)
 ) -> ScheduleResponse:
@@ -129,7 +126,7 @@ async def get_schedule(
     response_model=ScheduleResponse,
     status_code=status.HTTP_200_OK,
 )
-@handle_api_errors()  # 自動檢測為 PATCH 方法，使用 200 狀態碼
+@handle_api_errors()
 async def update_schedule(
     schedule_id: int,
     request: SchedulePartialUpdateRequest,
@@ -172,7 +169,7 @@ async def update_schedule(
     "/schedules/{schedule_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-@handle_api_errors()  # 自動檢測為 DELETE 方法，使用 204 狀態碼
+@handle_api_errors()
 async def delete_schedule(
     schedule_id: int, request: ScheduleDeleteRequest, db: Session = Depends(get_db)
 ) -> None:

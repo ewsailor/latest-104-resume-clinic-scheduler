@@ -249,9 +249,6 @@ class ScheduleCRUD:
 
         # 驗證時段是否存在
         schedule = self.get_schedule_by_id(db, schedule_id)
-        if not schedule:
-            self.logger.warning(f"嘗試更新不存在的時段: schedule_id={schedule_id}")
-            raise create_schedule_not_found_error(schedule_id)
 
         # 設定更新者資訊
         schedule.updated_by = updated_by

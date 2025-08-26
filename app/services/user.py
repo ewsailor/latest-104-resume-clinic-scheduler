@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 # ===== 本地模組 =====
 from app.crud import user_crud
 from app.decorators import (
-    handle_crud_errors_with_rollback,
+    handle_service_errors,
     log_operation,
 )
 from app.models.user import User
@@ -27,7 +27,7 @@ class UserService:
         """初始化服務實例。"""
         self.logger = logging.getLogger(__name__)
 
-    @handle_crud_errors_with_rollback("建立使用者")
+    @handle_service_errors("建立使用者")
     @log_operation("建立使用者")
     def create_user(
         self,
@@ -63,7 +63,7 @@ class UserService:
         self.logger.info(f"使用者建立成功: ID={user.id}, 名稱={user.name}")
         return user
 
-    @handle_crud_errors_with_rollback("查詢使用者列表")
+    @handle_service_errors("查詢使用者列表")
     @log_operation("查詢使用者列表")
     def get_users(
         self,
@@ -94,7 +94,7 @@ class UserService:
         self.logger.info(f"查詢完成，找到 {len(users)} 個使用者")
         return users
 
-    @handle_crud_errors_with_rollback("查詢單一使用者")
+    @handle_service_errors("查詢單一使用者")
     @log_operation("查詢單一使用者")
     def get_user_by_id(self, db: Session, user_id: int) -> User | None:
         """
@@ -123,7 +123,7 @@ class UserService:
 
         return user
 
-    @handle_crud_errors_with_rollback("查詢使用者數量")
+    @handle_service_errors("查詢使用者數量")
     @log_operation("查詢使用者數量")
     def get_users_count(self, db: Session) -> int:
         """

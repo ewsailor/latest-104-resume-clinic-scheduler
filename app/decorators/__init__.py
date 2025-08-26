@@ -7,8 +7,7 @@ Decorators 模組。
 # ===== 本地模組 =====
 from .error_handlers import (
     handle_api_errors,
-    handle_crud_errors,
-    handle_crud_errors_with_rollback,
+    handle_service_errors,
 )
 from .logging import (
     log_operation,
@@ -17,8 +16,7 @@ from .logging import (
 __all__ = [
     # 錯誤處理裝飾器
     "handle_api_errors",
-    "handle_crud_errors",
-    "handle_crud_errors_with_rollback",
+    "handle_service_errors",
     # 日誌記錄裝飾器
     "log_operation",
 ]
