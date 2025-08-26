@@ -8,7 +8,7 @@
 - 裝飾器功能
 """
 
-# 重新導出裝飾器模組
+# ===== 本地模組 =====
 from .decorators import (
     handle_crud_errors,
     handle_crud_errors_with_rollback,
@@ -21,6 +21,7 @@ from .timezone import (
 )
 
 __all__ = [
+    # 時區轉換工具
     "get_local_now_naive",
     "get_utc_timestamp",
     "TAIWAN_TIMEZONE",

@@ -4,10 +4,13 @@
 提供各種錯誤處理和轉換功能。
 """
 
+# ===== 標準函式庫 =====
 from typing import Any
 
+# ===== 第三方套件 =====
 from fastapi import HTTPException
 
+# ===== 本地模組 =====
 from .constants import ErrorCode
 from .exceptions import BusinessLogicError, DatabaseError, ValidationError
 

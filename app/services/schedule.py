@@ -4,13 +4,16 @@
 提供時段相關的業務邏輯處理，包括時段重疊檢查、時段管理等。
 """
 
+# ===== 標準函式庫 =====
 from datetime import date, time
 import logging
 from typing import Any
 
+# ===== 第三方套件 =====
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
+# ===== 本地模組 =====
 from app.crud.schedule import ScheduleCRUD
 from app.crud.user import UserCRUD
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum

@@ -1,31 +1,20 @@
 """
-
-import datetime
-import random
-import time
-import datetime
-import random
-import time
-import datetime
-import datetime
-import random
-import time
-import datetime
-import random
-import datetime
-import random
-import time
-
 測試 app/routers/api/schedule.py 模組。
 
 測試時段相關的 API 端點，包括建立、查詢、更新和刪除時段。
 """
 
+# ===== 標準函式庫 =====
+import datetime
+import random
+import time
 from unittest.mock import patch
 
+# ===== 第三方套件 =====
 from fastapi.testclient import TestClient
 import pytest
 
+# ===== 本地模組 =====
 from app.main import app
 from tests.logger import log_test_info
 

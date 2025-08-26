@@ -4,6 +4,7 @@
 設定 Python 路徑以確保測試可以正確導入 app 模組。
 """
 
+# ===== 標準函式庫 =====
 from pathlib import Path
 import sys
 

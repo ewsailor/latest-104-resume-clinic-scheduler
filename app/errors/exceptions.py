@@ -4,10 +4,13 @@
 定義系統中使用的所有錯誤類別。
 """
 
+# ===== 標準函式庫 =====
 from typing import Any
 
+# ===== 第三方套件 =====
 from fastapi import status
 
+# ===== 本地模組 =====
 from .constants import ErrorCode
 
 

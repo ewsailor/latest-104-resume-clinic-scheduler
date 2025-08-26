@@ -4,21 +4,21 @@
 提供使用者相關的 API 端點，包括建立、查詢、更新和刪除使用者。
 """
 
+# ===== 標準函式庫 =====
 from typing import Any
 
 # ===== 第三方套件 =====
-from fastapi import APIRouter, Depends, HTTPException, Query, status  # 路由和錯誤處理
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 # ===== 本地模組 =====
-from app.crud import user_crud  # CRUD 操作
 from app.errors import (
     APIError,
     create_http_exception_from_api_error,
 )
-from app.models.database import get_db  # 資料庫連接
-from app.schemas import UserCreate  # 資料模型
-from app.services import user_service  # SERVICE 層
+from app.models.database import get_db
+from app.schemas import UserCreate
+from app.services import user_service
 
 # 建立路由器
 router = APIRouter(prefix="/api/v1", tags=["Users"])

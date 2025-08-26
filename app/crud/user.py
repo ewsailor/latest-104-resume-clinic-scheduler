@@ -4,12 +4,15 @@
 提供使用者相關的資料庫操作，包括建立、查詢、更新和刪除使用者。
 """
 
-import logging  # 日誌記錄
+# ===== 標準函式庫 =====
+import logging
 
-from sqlalchemy.orm import Session  # 資料庫會話
+# ===== 第三方套件 =====
+from sqlalchemy.orm import Session
 
-from app.models.user import User  # 使用者模型
-from app.schemas import UserCreate  # 資料模型
+# ===== 本地模組 =====
+from app.models.user import User
+from app.schemas import UserCreate
 
 
 class UserCRUD:

@@ -4,15 +4,18 @@
 包含資料庫連線、會話管理等功能。
 """
 
+# ===== 標準函式庫 =====
 import logging
 from typing import Generator
 
+# ===== 第三方套件 =====
 from fastapi import HTTPException, status
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
+# ===== 本地模組 =====
 from app.core import settings
 from app.utils.timezone import get_utc_timestamp
 

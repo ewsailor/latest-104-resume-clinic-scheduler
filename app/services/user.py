@@ -4,10 +4,13 @@
 提供使用者相關的業務邏輯處理，包括使用者管理、驗證等。
 """
 
+# ===== 標準函式庫 =====
 import logging
 
+# ===== 第三方套件 =====
 from sqlalchemy.orm import Session
 
+# ===== 本地模組 =====
 from app.crud.user import UserCRUD
 from app.models.user import User
 from app.schemas import UserCreate

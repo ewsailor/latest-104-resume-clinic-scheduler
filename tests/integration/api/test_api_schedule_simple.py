@@ -1,18 +1,15 @@
 """
-
-from datetime import datetime
-
 簡化的 API 路由層測試。
 
 使用模擬（mock）來測試 API 端點，避免資料庫執行緒問題。
 """
 
+# ===== 標準函式庫 =====
+from datetime import datetime
 from unittest.mock import Mock, patch
 
 # ===== 第三方套件 =====
 from fastapi.testclient import TestClient
-
-# ===== 標準函式庫 =====
 import pytest
 
 # ===== 本地模組 =====

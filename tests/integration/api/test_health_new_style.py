@@ -4,10 +4,13 @@
 展示如何使用重構後的物件結構常數。
 """
 
+# ===== 標準函式庫 =====
 import re
 
+# ===== 第三方套件 =====
 from fastapi.testclient import TestClient
 
+# ===== 本地模組 =====
 from app.core import get_project_version, settings
 from app.main import app
 

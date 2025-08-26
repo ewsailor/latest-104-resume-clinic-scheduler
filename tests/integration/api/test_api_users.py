@@ -1,16 +1,17 @@
 """
-
-import time
-
 測試 app/routers/api/v1/users.py 模組。
 
 測試使用者相關的 API 端點，包括查詢和建立功能。
 """
 
+# ===== 標準函式庫 =====
+import time
 from unittest.mock import patch
 
+# ===== 第三方套件 =====
 from fastapi.testclient import TestClient
 
+# ===== 本地模組 =====
 from app.main import app
 
 # 建立測試客戶端

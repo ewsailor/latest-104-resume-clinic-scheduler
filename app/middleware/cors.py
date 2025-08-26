@@ -7,16 +7,15 @@ CORS 中間件模組。
 
 # ===== 標準函式庫 =====
 import logging
-from typing import Any  # 型別註解支援
+from typing import Any
 
 # ===== 第三方套件 =====
-from fastapi import FastAPI  # Web 框架核心
-from fastapi.middleware.cors import CORSMiddleware  # CORS 中間件
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 # ===== 本地模組 =====
-from app.core.settings import Settings  # 應用程式設定
+from app.core.settings import Settings
 
-# 設定日誌
 logger = logging.getLogger(__name__)
 
 

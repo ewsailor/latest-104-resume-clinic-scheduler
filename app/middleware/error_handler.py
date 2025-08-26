@@ -4,16 +4,19 @@
 提供統一的錯誤處理機制，捕獲所有未處理的異常並返回標準化的錯誤回應。
 """
 
+# ===== 標準函式庫 =====
 import logging
 import traceback
 import uuid
 
+# ===== 第三方套件 =====
 from fastapi import Request, Response, status
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
+# ===== 本地模組 =====
 from app.core.settings import settings
 from app.errors import (
     APIError,
@@ -22,7 +25,6 @@ from app.errors import (
 )
 from app.utils.timezone import get_utc_timestamp
 
-# 設定 logger
 logger = logging.getLogger(__name__)
 
 

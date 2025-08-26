@@ -4,10 +4,13 @@
 測試參數驗證工具的各種功能。
 """
 
+# ===== 標準函式庫 =====
 from datetime import date, time
 
+# ===== 第三方套件 =====
 import pytest
 
+# ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum
 from app.errors import ValidationError
 from app.utils.validators import validate_parameters, validator

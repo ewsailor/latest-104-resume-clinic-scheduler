@@ -4,10 +4,13 @@
 定義時段管理相關的請求和回應模型。
 """
 
+# ===== 標準函式庫 =====
 from datetime import date, datetime, time
 
+# ===== 第三方套件 =====
 from pydantic import BaseModel, ConfigDict, Field
 
+# ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
 
 

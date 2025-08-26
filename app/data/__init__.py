@@ -6,6 +6,7 @@
 - Giver 查詢和篩選功能
 """
 
+# ===== 本地模組 =====
 from .givers import (
     MOCK_GIVERS,
     get_all_givers,
@@ -13,7 +14,9 @@ from .givers import (
 )
 
 __all__ = [
+    # Giver 資料
     'MOCK_GIVERS',
+    # Giver 查詢函式
     'get_all_givers',
     'get_giver_by_id',
 ]

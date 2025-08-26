@@ -4,6 +4,7 @@ Decorators 模組。
 提供各種裝飾器功能，包括錯誤處理、日誌記錄等。
 """
 
+# ===== 本地模組 =====
 from .error_handlers import (
     handle_crud_errors,
     handle_crud_errors_with_rollback,
@@ -13,7 +14,9 @@ from .logging import (
 )
 
 __all__ = [
+    # 錯誤處理裝飾器
     "handle_crud_errors",
     "handle_crud_errors_with_rollback",
+    # 日誌記錄裝飾器
     "log_operation",
 ]

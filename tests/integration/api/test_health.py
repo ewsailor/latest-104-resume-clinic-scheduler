@@ -1,9 +1,12 @@
+# ===== 標準函式庫 =====
 from datetime import datetime, timezone
 import re
 
+# ===== 第三方套件 =====
 from fastapi.testclient import TestClient
 import pytest
 
+# ===== 本地模組 =====
 from app.core import get_project_version, settings
 from app.main import app
 

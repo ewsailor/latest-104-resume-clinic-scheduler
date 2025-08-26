@@ -4,6 +4,7 @@
 提供統一的錯誤處理機制，包括錯誤類型定義、錯誤處理函式和格式化功能。
 """
 
+# ===== 本地模組 =====
 from .constants import ErrorCode
 from .exceptions import (
     APIError,

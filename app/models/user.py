@@ -4,6 +4,7 @@
 定義使用者資料表對應的 SQLAlchemy 模型。
 """
 
+# ===== 標準函式庫 =====
 import logging
 from typing import Any
 
@@ -12,9 +13,12 @@ from sqlalchemy import Column, DateTime, Index, String
 from sqlalchemy.dialects.mysql import INTEGER
 
 # ===== 本地模組 =====
-from app.models.database import Base
-from app.utils.model_helpers import format_datetime, safe_getattr  # 模型輔助工具
-from app.utils.timezone import get_local_now_naive  # 本地時間函數
+# 絕對路徑導入（跨模組）
+from app.utils.model_helpers import format_datetime, safe_getattr
+from app.utils.timezone import get_local_now_naive
+
+# 相對路徑導入（同模組）
+from .database import Base
 
 
 class User(Base):  # type: ignore[misc]

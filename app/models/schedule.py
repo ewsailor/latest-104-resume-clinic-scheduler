@@ -4,11 +4,12 @@
 定義時段相關的資料庫模型和結構。
 """
 
+# ===== 標準函式庫 =====
 import logging
 from typing import Any
 
 # ===== 第三方套件 =====
-from sqlalchemy import (  # 資料庫欄位類型
+from sqlalchemy import (
     Column,
     Date,
     DateTime,
@@ -21,12 +22,14 @@ from sqlalchemy import (  # 資料庫欄位類型
 from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import relationship
 
-from app.enums.models import ScheduleStatusEnum, UserRoleEnum
-
 # ===== 本地模組 =====
-from app.models.database import Base  # 資料庫基類
-from app.utils.model_helpers import format_datetime, safe_getattr  # 模型輔助工具
-from app.utils.timezone import get_local_now_naive  # 本地時間函數
+# 絕對路徑導入（跨模組）
+from app.enums.models import ScheduleStatusEnum, UserRoleEnum
+from app.utils.model_helpers import format_datetime, safe_getattr
+from app.utils.timezone import get_local_now_naive
+
+# 相對路徑導入（同模組）
+from .database import Base
 
 
 class Schedule(Base):  # type: ignore[misc]

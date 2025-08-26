@@ -4,13 +4,18 @@
 提供錯誤訊息的格式化功能。
 """
 
+# ===== 標準函式庫 =====
 import logging
 from typing import Any
 
+# ===== 第三方套件 =====
 from fastapi import HTTPException, status
 
+# ===== 本地模組 =====
+# 絕對路徑導入（跨模組）
 from app.utils.timezone import get_utc_timestamp
 
+# 相對路徑導入（同模組）
 from .constants import ErrorCode
 from .exceptions import APIError
 

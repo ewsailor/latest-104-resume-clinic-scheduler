@@ -4,29 +4,21 @@
 提供時段相關的資料庫操作，包括建立、查詢、更新和刪除時段。
 """
 
-from datetime import date, time  # 日期和時間處理
-import logging  # 日誌記錄
-
 # ===== 標準函式庫 =====
-from typing import Any  # 型別提示
-
-from sqlalchemy import and_  # SQL 條件組合
+import logging
+from typing import Any
 
 # ===== 第三方套件 =====
-from sqlalchemy.orm import Session, joinedload  # 資料庫會話
-
-from app.core.settings import settings  # 應用程式設定
-from app.enums.models import ScheduleStatusEnum, UserRoleEnum  # ENUM 定義
+from sqlalchemy import and_
+from sqlalchemy.orm import Session, joinedload
 
 # ===== 本地模組 =====
-from app.enums.operations import OperationContext  # 操作相關的 ENUM
+from app.enums.models import ScheduleStatusEnum, UserRoleEnum
 from app.errors import (
     create_schedule_not_found_error,
 )
-from app.models.schedule import Schedule  # 時段模型
-from app.models.user import User  # 使用者模型
-from app.schemas import ScheduleData  # 資料模型
-from app.utils.timezone import get_local_now_naive  # 時區工具
+from app.models.schedule import Schedule
+from app.utils.timezone import get_local_now_naive
 
 
 class ScheduleCRUD:

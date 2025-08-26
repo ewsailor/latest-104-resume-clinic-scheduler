@@ -11,11 +11,12 @@
 - 內部模組使用：from .settings import Settings
 """
 
-# 使用相對匯入，保持模組獨立性和重構友好性
+# ===== 本地模組 =====
 from .settings import Settings, get_project_version, settings
 
 __all__ = [
-    "Settings",  # 設定類別，用於建立自訂設定實例
-    "settings",  # 全域設定實例，用於應用程式配置
-    "get_project_version",  # 版本號取得函數
+    # 設定管理
+    "Settings",
+    "settings",
+    "get_project_version",
 ]

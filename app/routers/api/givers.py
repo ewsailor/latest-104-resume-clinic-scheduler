@@ -4,17 +4,17 @@ Giver 管理 API 路由模組。
 提供 Giver 相關的 API 端點，包括查詢 Giver 列表和詳細資訊。
 """
 
-from typing import Any  # 型別提示
+# ===== 標準函式庫 =====
+from typing import Any
 
 # ===== 第三方套件 =====
-from fastapi import APIRouter, HTTPException, Query, status  # 路由和錯誤處理
+from fastapi import APIRouter, HTTPException, Query, status
 
+# ===== 本地模組 =====
 from app.data.givers import (
     get_all_givers,
     get_giver_by_id,
 )
-
-# ===== 本地模組 =====
 from app.errors import (
     APIError,
     create_http_exception_from_api_error,

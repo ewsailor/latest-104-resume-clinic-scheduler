@@ -4,8 +4,10 @@
 定義使用者管理相關的請求和回應模型。
 """
 
+# ===== 標準函式庫 =====
 from datetime import datetime
 
+# ===== 第三方套件 =====
 from pydantic import BaseModel, EmailStr, Field
 
 

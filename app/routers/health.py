@@ -5,21 +5,20 @@
 """
 
 # ===== 標準函式庫 =====
-import logging  # 日誌記錄
-from typing import Any  # 型別註解支援
+import logging
+from typing import Any
 
 # ===== 第三方套件 =====
-from fastapi import APIRouter, Depends, HTTPException, status  # 路由物件
+from fastapi import APIRouter, Depends, HTTPException, status
 
 # ===== 本地模組 =====
-from app.core import get_project_version, settings  # 應用程式配置
-from app.models.database import get_healthy_db  # 資料庫引擎
-from app.utils.timezone import get_utc_timestamp  # 時間戳記工具
+# 絕對路徑導入（跨模組）
+from app.core import get_project_version, settings
+from app.models.database import get_healthy_db
+from app.utils.timezone import get_utc_timestamp
 
-# 設定 logger
 logger = logging.getLogger(__name__)
 
-# 建立路由器
 router = APIRouter(tags=["health"])
 
 
@@ -41,7 +40,7 @@ async def liveness_probe() -> dict[str, Any]:
             "status": "healthy",
             "app_name": settings.app_name,
             "version": get_project_version(),
-            "uptime": "running",  # 可以進一步實作實際的運行時間計算
+            "uptime": "running",
             "timestamp": get_utc_timestamp(),
         }
 
@@ -50,7 +49,6 @@ async def liveness_probe() -> dict[str, Any]:
 
     except Exception as e:
         logger.error(f"liveness_probe() error: 存活探測檢查失敗 - {str(e)}")
-        # 存活探測失敗時，返回 500 錯誤
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={

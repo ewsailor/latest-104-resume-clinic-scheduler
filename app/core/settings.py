@@ -13,8 +13,8 @@ import tomllib
 from typing import Any
 
 # ===== 第三方套件 =====
-from pydantic import Field, SecretStr, field_validator  # Pydantic v2 驗證和欄位定義
-from pydantic_settings import BaseSettings, SettingsConfigDict  # Pydantic v2 設定管理
+from pydantic import Field, SecretStr, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def get_project_version() -> str:

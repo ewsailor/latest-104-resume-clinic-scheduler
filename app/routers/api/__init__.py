@@ -10,12 +10,12 @@ API 路由模組集中匯入點。
 """
 
 # ===== 第三方套件 =====
-from fastapi import APIRouter  # 路由物件
+from fastapi import APIRouter
 
 # ===== 本地模組 =====
-from .givers import router as givers_router  # Giver API 路由
-from .schedule import router as schedule_router  # 時段 API 路由
-from .users import router as users_router  # 使用者 API 路由
+from .givers import router as givers_router
+from .schedule import router as schedule_router
+from .users import router as users_router
 
 # 建立 API 路由器
 api_router = APIRouter()

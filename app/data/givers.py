@@ -4,6 +4,7 @@ Giver 資料模組。
 提供 Giver 相關的資料和常數定義。
 """
 
+# ===== 標準函式庫 =====
 from typing import Any
 
 MOCK_GIVERS = [

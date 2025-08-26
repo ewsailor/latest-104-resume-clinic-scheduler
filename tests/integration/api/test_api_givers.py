@@ -4,10 +4,13 @@
 測試 Giver 相關的 API 端點，包括查詢、篩選和統計功能。
 """
 
+# ===== 標準函式庫 =====
 from unittest.mock import patch
 
+# ===== 第三方套件 =====
 from fastapi.testclient import TestClient
 
+# ===== 本地模組 =====
 from app.main import app
 from app.routers.api.givers import MOCK_GIVERS
 from tests.logger import log_test_info

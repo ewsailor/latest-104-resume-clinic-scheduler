@@ -4,8 +4,10 @@
 測試共用的模型相關工具函式。
 """
 
+# ===== 標準函式庫 =====
 from datetime import date, datetime, time
 
+# ===== 本地模組 =====
 from app.utils.model_helpers import format_datetime, safe_getattr
 
 

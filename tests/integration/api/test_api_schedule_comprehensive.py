@@ -4,19 +4,17 @@
 測試所有 API 端點，包括成功和失敗情況，提升測試覆蓋率。
 """
 
+# ===== 標準函式庫 =====
 from datetime import datetime
 from unittest.mock import Mock, patch
 
 # ===== 第三方套件 =====
 from fastapi import HTTPException, status
 from fastapi.testclient import TestClient
-
-# ===== 標準函式庫 =====
 import pytest
 
-from app.enums.models import UserRoleEnum
-
 # ===== 本地模組 =====
+from app.enums.models import UserRoleEnum
 from app.main import app
 from app.routers.api.schedule import create_schedules, get_schedules
 from app.routers.api.users import create_user

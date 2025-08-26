@@ -4,10 +4,12 @@
 提供統一的錯誤處理裝飾器，減少重複的 try-except 程式碼。
 """
 
+# ===== 標準函式庫 =====
 from functools import wraps
 import logging
 from typing import Any, Callable
 
+# ===== 本地模組 =====
 from app.errors.exceptions import APIError, DatabaseError
 
 logger = logging.getLogger(__name__)

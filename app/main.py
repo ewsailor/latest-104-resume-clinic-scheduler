@@ -5,12 +5,10 @@ FastAPI 應用程式主入口。
 """
 
 # ===== 本地模組 =====
-from app.core import settings  # 應用程式配置
-from app.factory import create_app, create_templates  # 應用程式工廠
-from app.middleware.error_handler import setup_error_handlers  # 錯誤處理器
-from app.routers.api import api_router  # API 路由集中匯入
-from app.routers.health import router as health_router  # 健康檢查路由
-from app.routers.main import router as main_router  # 主要路由
+from app.core import settings
+from app.factory import create_app, create_templates
+from app.middleware.error_handler import setup_error_handlers
+from app.routers import api_router, health_router, main_router
 
 # ===== 應用程式初始化 =====
 # 建立應用程式實例
