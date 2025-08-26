@@ -23,7 +23,7 @@ from app.decorators import (
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
 from app.errors import (
     BusinessLogicError,
-    ErrorCode,
+    ConflictError,
 )
 from app.models.schedule import Schedule
 from app.schemas import ScheduleData
@@ -70,8 +70,7 @@ class ScheduleService:
         # 驗證時間範圍
         if end_time <= start_time:
             raise BusinessLogicError(
-                f"結束時間 ({end_time}) 必須晚於開始時間 ({start_time})",
-                ErrorCode.BUSINESS_LOGIC_ERROR,
+                f"結束時間 ({end_time}) 必須晚於開始時間 ({start_time})"
             )
 
         # 建立查詢條件
@@ -217,6 +216,25 @@ class ScheduleService:
 
         # 記錄即將建立的時段詳情
         self.log_schedule_details(schedules)
+
+        # 檢查時段重疊
+        all_overlapping_schedules = []
+        for schedule_data in schedules:
+            overlapping_schedules = self.check_schedule_overlap(
+                db=db,
+                giver_id=schedule_data.giver_id,
+                schedule_date=schedule_data.schedule_date,
+                start_time=schedule_data.start_time,
+                end_time=schedule_data.end_time,
+            )
+            if overlapping_schedules:
+                all_overlapping_schedules.extend(overlapping_schedules)
+
+        # 如果檢測到重疊，拋出錯誤
+        if all_overlapping_schedules:
+            error_msg = f"時段重疊：檢測到 {len(all_overlapping_schedules)} 個重疊時段"
+            self.logger.warning(f"建立時段時檢測到重疊: {error_msg}")
+            raise ConflictError(error_msg)
 
         # 建立時段物件列表
         schedule_objects = self.create_schedule_objects(
@@ -389,7 +407,7 @@ class ScheduleService:
             if overlapping_schedules:
                 error_msg = f"時段重疊：檢測到 {len(overlapping_schedules)} 個重疊時段"
                 self.logger.warning(f"更新時段 {schedule_id} 時檢測到重疊: {error_msg}")
-                raise BusinessLogicError(error_msg, ErrorCode.SCHEDULE_OVERLAP)
+                raise ConflictError(error_msg)
 
         # 使用 CRUD 層更新時段
         updated_schedule = self.schedule_crud.update_schedule(

@@ -11,8 +11,14 @@ from typing import Any
 from fastapi import HTTPException
 
 # ===== 本地模組 =====
-from .constants import ErrorCode
-from .exceptions import BusinessLogicError, DatabaseError, ValidationError
+from .exceptions import (
+    BusinessLogicError,
+    ConflictError,
+    DatabaseError,
+    ScheduleNotFoundError,
+    UserNotFoundError,
+    ValidationError,
+)
 
 
 def create_http_exception_from_api_error(error: Any) -> HTTPException:
@@ -29,25 +35,22 @@ def create_http_exception_from_api_error(error: Any) -> HTTPException:
     return HTTPException(status_code=error.status_code, detail=error_detail)
 
 
-def create_user_not_found_error(user_id: int) -> BusinessLogicError:
+def create_user_not_found_error(user_id: int) -> UserNotFoundError:
     """創建使用者不存在錯誤 (Service 層級)"""
-    message = f"使用者不存在: ID={user_id}"
-    return BusinessLogicError(message, ErrorCode.SERVICE.USER_NOT_FOUND)
+    return UserNotFoundError(user_id)
 
 
-def create_schedule_not_found_error(schedule_id: int) -> BusinessLogicError:
+def create_schedule_not_found_error(schedule_id: int) -> ScheduleNotFoundError:
     """創建時段不存在錯誤 (Service 層級)"""
-    message = f"時段不存在: ID={schedule_id}"
-    return BusinessLogicError(message, ErrorCode.SERVICE.SCHEDULE_NOT_FOUND)
+    return ScheduleNotFoundError(schedule_id)
 
 
 def create_schedule_overlap_error(
     overlapping_schedules: list[Any], schedule_date: str
-) -> BusinessLogicError:
+) -> ConflictError:
     """創建時段重疊錯誤 (Service 層級)"""
-    return BusinessLogicError(
+    return ConflictError(
         message="時段重疊",
-        error_code=ErrorCode.SERVICE.SCHEDULE_OVERLAP,
         details={
             "overlapping_schedules": overlapping_schedules,
             "schedule_date": schedule_date,
@@ -75,9 +78,7 @@ def handle_database_error(error: Exception, operation: str) -> DatabaseError:
     )
 
 
-def handle_business_logic_error(
-    error: Exception, context: str, error_code: str | None = None
-) -> BusinessLogicError:
+def handle_business_logic_error(error: Exception, context: str) -> BusinessLogicError:
     """
     處理業務邏輯錯誤
 
@@ -86,7 +87,6 @@ def handle_business_logic_error(
     Args:
         error: 原始錯誤
         context: 操作上下文
-        error_code: 錯誤代碼（可選）
 
     Returns:
         BusinessLogicError: 格式化的業務邏輯錯誤
@@ -94,7 +94,6 @@ def handle_business_logic_error(
     error_message = f"業務邏輯錯誤 ({context}): {str(error)}"
     return BusinessLogicError(
         error_message,
-        error_code or "BUSINESS_LOGIC_ERROR",
         {"context": context, "original_error": str(error)},
     )
 

@@ -10,7 +10,7 @@ class ServiceErrorCode:
 
     # 400 Bad Request - 服務層業務錯誤
     BUSINESS_LOGIC_ERROR = "SERVICE_BUSINESS_LOGIC_ERROR"  # 400 - 業務邏輯錯誤
-    SCHEDULE_OVERLAP = "SERVICE_SCHEDULE_OVERLAP"  # 400 - 時段重疊
+    SCHEDULE_OVERLAP = "SERVICE_SCHEDULE_OVERLAP"  # 409 - 時段重疊
     INVALID_OPERATION = "SERVICE_INVALID_OPERATION"  # 400 - 無效操作
 
     # 404 Not Found - 服務層資源錯誤

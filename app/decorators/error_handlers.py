@@ -14,7 +14,6 @@ from fastapi import HTTPException
 
 # ===== 本地模組 =====
 from app.errors.exceptions import APIError, DatabaseError
-from app.errors.handlers import create_http_exception_from_api_error
 
 logger = logging.getLogger(__name__)
 
@@ -118,8 +117,8 @@ def handle_api_errors(
             try:
                 return await func(*args, **kwargs)
             except APIError as e:
-                # 處理自定義 API 錯誤
-                raise create_http_exception_from_api_error(e)
+                # 直接向上傳遞 APIError，讓中間件處理
+                raise
             except ValueError as e:
                 # 處理驗證錯誤（如重複 email）
                 logger.warning(f"驗證錯誤: {str(e)}")

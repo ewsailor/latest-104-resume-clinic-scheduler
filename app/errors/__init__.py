@@ -20,8 +20,9 @@ from .exceptions import (
     BusinessLogicError,
     ConflictError,
     DatabaseError,
-    NotFoundError,
+    ScheduleNotFoundError,
     ServiceUnavailableError,
+    UserNotFoundError,
     ValidationError,
 )
 from .formatters import format_error_response
@@ -48,7 +49,8 @@ __all__ = [
     "ValidationError",
     "BusinessLogicError",
     "DatabaseError",
-    "NotFoundError",
+    "ScheduleNotFoundError",
+    "UserNotFoundError",
     "AuthenticationError",
     "AuthorizationError",
     "ConflictError",

@@ -107,8 +107,10 @@ http://localhost:8000
 ```json
 {
   "status": "healthy",
-  "timestamp": "2024-01-15T10:30:00Z",
-  "version": "0.1.0"
+  "app_name": "104 Resume Clinic Scheduler",
+  "version": "0.1.0",
+  "uptime": "running",
+  "timestamp": "2025-08-26T12:08:04Z"
 }
 ```
 

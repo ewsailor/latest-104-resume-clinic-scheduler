@@ -46,9 +46,9 @@ def format_error_response(error: Exception) -> dict[str, Any]:
         )
         return {
             "error": {
-                "code": error.error_code,
                 "message": error.message,
                 "status_code": error.status_code,
+                "code": error.error_code,
                 "timestamp": get_utc_timestamp(),
                 "details": error.details,
             }
@@ -91,9 +91,9 @@ def format_error_response(error: Exception) -> dict[str, Any]:
 
         return {
             "error": {
-                "code": error_code,
                 "message": detail_message,
                 "status_code": error.status_code,
+                "code": error_code,
                 "timestamp": get_utc_timestamp(),
                 "details": {"detail": error.detail} if error.detail else {},
             }
@@ -104,9 +104,9 @@ def format_error_response(error: Exception) -> dict[str, Any]:
         logger.debug(f"format_error_response: 處理 ValueError")
         return {
             "error": {
-                "code": ErrorCode.VALIDATION_ERROR,
                 "message": str(error),
                 "status_code": status.HTTP_400_BAD_REQUEST,
+                "code": ErrorCode.VALIDATION_ERROR,
                 "timestamp": get_utc_timestamp(),
                 "details": {"validation_error": str(error)},
             }
@@ -116,9 +116,9 @@ def format_error_response(error: Exception) -> dict[str, Any]:
     logger.warning(f"format_error_response: 處理未知錯誤類型: {type(error).__name__}")
     return {
         "error": {
-            "code": ErrorCode.SYSTEM.INTERNAL_ERROR,
             "message": "內部伺服器錯誤",
             "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            "code": ErrorCode.SYSTEM.INTERNAL_ERROR,
             "timestamp": get_utc_timestamp(),
             "details": {"error": str(error)},
         }
