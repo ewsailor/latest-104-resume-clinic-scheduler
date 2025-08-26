@@ -9,10 +9,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 # ===== 本地模組 =====
-from app.errors import (
-    APIError,
-    create_http_exception_from_api_error,
-)
 from app.models.database import get_db
 from app.schemas import (
     ScheduleCreateRequest,
@@ -21,6 +17,7 @@ from app.schemas import (
     ScheduleResponse,
 )
 from app.services import schedule_service
+from app.utils.decorators import handle_api_errors
 
 # 建立路由器
 router = APIRouter(prefix="/api/v1", tags=["Schedules"])
@@ -34,6 +31,7 @@ router = APIRouter(prefix="/api/v1", tags=["Schedules"])
     response_model=list[ScheduleResponse],
     status_code=status.HTTP_201_CREATED,
 )
+@handle_api_errors()  # 自動檢測為 POST 方法，使用 201 狀態碼
 async def create_schedules(
     request: ScheduleCreateRequest, db: Session = Depends(get_db)
 ) -> list[ScheduleResponse]:
@@ -53,40 +51,17 @@ async def create_schedules(
     Raises:
         HTTPException: 當建立失敗時拋出對應的 HTTP 錯誤
     """
-    try:
-        # 業務邏輯
-        # 使用 SERVICE 層建立時段，傳遞建立者資訊
-        schedule_objects = schedule_service.create_schedules(
-            db,
-            request.schedules,
-            created_by=request.created_by,
-            created_by_role=request.created_by_role,
-        )
+    # 業務邏輯
+    # 使用 SERVICE 層建立時段，傳遞建立者資訊
+    schedule_objects = schedule_service.create_schedules(
+        db,
+        request.schedules,
+        created_by=request.created_by,
+        created_by_role=request.created_by_role,
+    )
 
-        # 格式轉換：將 Python 物件（如 SQLAlchemy 模型）轉換為 Pydantic 模型
-        return [
-            ScheduleResponse.model_validate(schedule) for schedule in schedule_objects
-        ]
-
-    except APIError as e:
-        # 自定義業務錯誤：時段重疊、使用者不存在等
-        # 不需要回滾，因為還沒開始修改資料庫
-        raise create_http_exception_from_api_error(e)
-    except ValueError as e:
-        # 處理驗證錯誤，如時段重疊等
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=str(e),
-        )
-    except Exception as e:
-        # 其他未預期的系統錯誤，如資料庫連線失敗、記憶體不足等
-        # 需要回滾，因為可能已經部分修改了資料庫
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"建立時段時發生內部錯誤: {str(e)}",
-        )
+    # 格式轉換：將 Python 物件（如 SQLAlchemy 模型）轉換為 Pydantic 模型
+    return [ScheduleResponse.model_validate(schedule) for schedule in schedule_objects]
 
 
 @router.get(
@@ -94,6 +69,7 @@ async def create_schedules(
     response_model=list[ScheduleResponse],
     status_code=status.HTTP_200_OK,
 )
+@handle_api_errors()  # 自動檢測為 GET 方法，使用 200 狀態碼
 async def get_schedules(
     giver_id: int | None = None,
     taker_id: int | None = None,
@@ -117,19 +93,8 @@ async def get_schedules(
     Raises:
         HTTPException: 當查詢失敗時拋出對應的 HTTP 錯誤
     """
-    try:
-        schedules = schedule_service.get_schedules(
-            db, giver_id, taker_id, status_filter
-        )
-        return [ScheduleResponse.model_validate(schedule) for schedule in schedules]
-
-    except APIError as e:
-        raise create_http_exception_from_api_error(e)
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"查詢時段列表失敗: {str(e)}",
-        )
+    schedules = schedule_service.get_schedules(db, giver_id, taker_id, status_filter)
+    return [ScheduleResponse.model_validate(schedule) for schedule in schedules]
 
 
 @router.get(
@@ -137,6 +102,7 @@ async def get_schedules(
     response_model=ScheduleResponse,
     status_code=status.HTTP_200_OK,
 )
+@handle_api_errors()  # 自動檢測為 GET 方法，使用 200 狀態碼
 async def get_schedule(
     schedule_id: int, db: Session = Depends(get_db)
 ) -> ScheduleResponse:
@@ -153,17 +119,8 @@ async def get_schedule(
     Raises:
         HTTPException: 當時段不存在時拋出 404 錯誤
     """
-    try:
-        schedule = schedule_service.get_schedule_by_id(db, schedule_id)
-        return ScheduleResponse.model_validate(schedule)
-
-    except APIError as e:
-        raise create_http_exception_from_api_error(e)
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"查詢單一時段失敗: {str(e)}",
-        )
+    schedule = schedule_service.get_schedule_by_id(db, schedule_id)
+    return ScheduleResponse.model_validate(schedule)
 
 
 @router.patch(
@@ -171,6 +128,7 @@ async def get_schedule(
     response_model=ScheduleResponse,
     status_code=status.HTTP_200_OK,
 )
+@handle_api_errors()  # 自動檢測為 PATCH 方法，使用 200 狀態碼
 async def update_schedule(
     schedule_id: int,
     request: SchedulePartialUpdateRequest,
@@ -193,37 +151,27 @@ async def update_schedule(
     Raises:
         HTTPException: 當時段不存在或更新失敗時拋出錯誤
     """
-    try:
-        # 將 Pydantic 模型的物件，轉換為字典格式，只包含非 None 的欄位，避免把「空值」也更新到資料庫
-        update_data = request.schedule.model_dump(exclude_none=True)
-        # 處理 date 欄位的別名 - 將 date 轉換為 schedule_date，以符合資料庫或後端函式期望的欄位名稱
-        if "date" in update_data:
-            update_data["schedule_date"] = update_data.pop("date")
+    # 將 Pydantic 模型的物件，轉換為字典格式，只包含非 None 的欄位，避免把「空值」也更新到資料庫
+    update_data = request.schedule.model_dump(exclude_none=True)
+    # 處理 date 欄位的別名 - 將 date 轉換為 schedule_date，以符合資料庫或後端函式期望的欄位名稱
+    if "date" in update_data:
+        update_data["schedule_date"] = update_data.pop("date")
 
-        updated_schedule = schedule_service.update_schedule(
-            db,
-            schedule_id,
-            updated_by=request.updated_by,
-            updated_by_role=request.updated_by_role,
-            **update_data,  # 字典解包：傳遞更新資料
-        )
-        return ScheduleResponse.model_validate(updated_schedule)
-
-    except APIError as e:
-        # 自定義業務錯誤：時段不存在、時段重疊等
-        raise create_http_exception_from_api_error(e)
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"更新時段失敗: {str(e)}",
-        )
+    updated_schedule = schedule_service.update_schedule(
+        db,
+        schedule_id,
+        updated_by=request.updated_by,
+        updated_by_role=request.updated_by_role,
+        **update_data,  # 字典解包：傳遞更新資料
+    )
+    return ScheduleResponse.model_validate(updated_schedule)
 
 
 @router.delete(
     "/schedules/{schedule_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
+@handle_api_errors()  # 自動檢測為 DELETE 方法，使用 204 狀態碼
 async def delete_schedule(
     schedule_id: int, request: ScheduleDeleteRequest, db: Session = Depends(get_db)
 ) -> None:
@@ -244,26 +192,13 @@ async def delete_schedule(
     Raises:
         HTTPException: 當時段不存在或刪除失敗時拋出錯誤
     """
-    try:
-        success = schedule_service.delete_schedule(
-            db,
-            schedule_id,
-            deleted_by=request.deleted_by,
-            deleted_by_role=request.deleted_by_role,
-        )
-        if not success:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="時段不存在或無法刪除"
-            )
-
-    except APIError as e:
-        raise create_http_exception_from_api_error(e)
-    except HTTPException:
-        # 重新拋出 HTTPException，避免被 Exception 捕獲
-        raise
-    except Exception as e:
-        db.rollback()
+    success = schedule_service.delete_schedule(
+        db,
+        schedule_id,
+        deleted_by=request.deleted_by,
+        deleted_by_role=request.deleted_by_role,
+    )
+    if not success:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"刪除時段失敗: {str(e)}",
+            status_code=status.HTTP_404_NOT_FOUND, detail="時段不存在或無法刪除"
         )

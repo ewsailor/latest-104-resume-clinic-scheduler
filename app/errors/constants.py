@@ -16,6 +16,8 @@ class ErrorCode:
     SCHEDULE_OVERLAP = "SCHEDULE_OVERLAP"  # 400 - 時段重疊
     USER_NOT_FOUND = "USER_NOT_FOUND"  # 404 - 使用者不存在
     SCHEDULE_NOT_FOUND = "SCHEDULE_NOT_FOUND"  # 404 - 時段不存在
+    CONFLICT = "CONFLICT"  # 409 - 資源衝突（如重複 email）
+    BAD_REQUEST = "BAD_REQUEST"  # 400 - 請求錯誤
 
     # 資料庫錯誤
     DATABASE_ERROR = "DATABASE_ERROR"  # 500 - 資料庫操作失敗

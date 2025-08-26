@@ -70,11 +70,30 @@ def format_error_response(error: Exception) -> dict[str, Any]:
         else:
             detail_message = "內部伺服器錯誤"
 
+        # 根據狀態碼和錯誤訊息決定錯誤代碼
+        if error.status_code == 409:
+            # 409 通常是資源衝突
+            error_code = ErrorCode.CONFLICT
+        elif error.status_code == 404:
+            # 404 需要根據錯誤訊息判斷是使用者還是時段
+            if "使用者" in str(error.detail):
+                error_code = ErrorCode.USER_NOT_FOUND
+            elif "時段" in str(error.detail):
+                error_code = ErrorCode.SCHEDULE_NOT_FOUND
+            else:
+                error_code = ErrorCode.USER_NOT_FOUND  # 預設
+        elif error.status_code == 422:
+            error_code = ErrorCode.VALIDATION_ERROR
+        elif error.status_code == 400:
+            error_code = ErrorCode.BAD_REQUEST
+        else:
+            error_code = ErrorCode.INTERNAL_ERROR
+
         return {
             "error": {
-                "code": ErrorCode.INTERNAL_ERROR,
+                "code": error_code,
                 "message": detail_message,
-                "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "status_code": error.status_code,
                 "timestamp": get_utc_timestamp(),
                 "details": {"detail": error.detail} if error.detail else {},
             }

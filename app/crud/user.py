@@ -34,16 +34,10 @@ class UserCRUD:
             User: 建立的使用者物件
 
         Raises:
-            ValueError: 當 email 已存在時
+            Exception: 當資料庫操作失敗時
         """
         self.logger.info(f"正在建立使用者: {user.name} ({user.email})")
 
-        # 檢查 email 是否已存在
-        existing_user = db.query(User).filter(User.email == user.email).first()
-        if existing_user:
-            error_msg = f"電子信箱已被使用: {user.email}"
-            self.logger.warning(error_msg)
-            raise ValueError("此電子信箱已被使用")
         try:
             # 建立新使用者
             new_user = User(name=user.name, email=user.email)

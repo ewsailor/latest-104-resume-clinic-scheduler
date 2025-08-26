@@ -11,7 +11,7 @@ import logging
 from sqlalchemy.orm import Session
 
 # ===== 本地模組 =====
-from app.crud.user import UserCRUD
+from app.crud import user_crud
 from app.models.user import User
 from app.schemas import UserCreate
 from app.utils.decorators import (
@@ -26,7 +26,6 @@ class UserService:
     def __init__(self):
         """初始化服務實例。"""
         self.logger = logging.getLogger(__name__)
-        self.user_crud = UserCRUD()
 
     @handle_crud_errors_with_rollback("建立使用者")
     @log_operation("建立使用者")
@@ -51,8 +50,15 @@ class UserService:
         # 記錄建立操作
         self.logger.info(f"正在建立使用者: {user_data.name} ({user_data.email})")
 
+        # 業務邏輯：檢查 email 是否已存在
+        existing_user = user_crud.get_user_by_email(db, user_data.email)
+        if existing_user:
+            error_msg = f"電子信箱已被使用: {user_data.email}"
+            self.logger.warning(error_msg)
+            raise ValueError("此電子信箱已被使用")
+
         # 使用 CRUD 層建立使用者
-        user = self.user_crud.create_user(db, user_data)
+        user = user_crud.create_user(db, user_data)
 
         self.logger.info(f"使用者建立成功: ID={user.id}, 名稱={user.name}")
         return user
@@ -83,7 +89,7 @@ class UserService:
         self.logger.info(f"查詢使用者列表: skip={skip}, limit={limit}")
 
         # 使用 CRUD 層查詢使用者
-        users = self.user_crud.get_users(db, skip, limit)
+        users = user_crud.get_users(db, skip, limit)
 
         self.logger.info(f"查詢完成，找到 {len(users)} 個使用者")
         return users
@@ -108,7 +114,7 @@ class UserService:
         self.logger.info(f"查詢使用者: user_id={user_id}")
 
         # 使用 CRUD 層查詢使用者
-        user = self.user_crud.get_user_by_id(db, user_id)
+        user = user_crud.get_user_by_id(db, user_id)
 
         if user:
             self.logger.info(f"使用者 {user_id} 查詢成功")
@@ -136,7 +142,7 @@ class UserService:
         self.logger.info("查詢使用者總數")
 
         # 使用 CRUD 層查詢使用者數量
-        count = self.user_crud.get_users_count(db)
+        count = user_crud.get_users_count(db)
 
         self.logger.info(f"使用者總數: {count}")
         return count
