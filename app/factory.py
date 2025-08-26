@@ -65,7 +65,7 @@ def create_app(settings: Settings) -> FastAPI:
     )
 
     # ===== CORS 中間件設定 =====
-    setup_cors_middleware(app, settings)
+    setup_cors_middleware(app)
 
     # 掛載靜態檔案服務
     app.mount(
