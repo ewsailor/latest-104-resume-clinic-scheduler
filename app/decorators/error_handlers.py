@@ -72,7 +72,7 @@ def handle_service_errors(error_context: str):
                 raise
             except Exception as e:
                 # 回滾資料庫事務
-                if db and hasattr(db, 'rollback'):
+                if db and hasattr(db, "rollback"):
                     try:
                         db.rollback()
                         logger.debug(f"{error_context}時發生錯誤，已回滾資料庫事務")
