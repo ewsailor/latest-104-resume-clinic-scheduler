@@ -32,7 +32,7 @@ from app.utils.timezone import get_local_now_naive
 from .database import Base
 
 
-class Schedule(Base):  # type: ignore[misc]
+class Schedule(Base):
     """
     諮詢時段資料模型。
 

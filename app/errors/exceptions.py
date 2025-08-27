@@ -1,5 +1,4 @@
-"""
-錯誤類別模組。
+"""錯誤類別模組。
 
 定義系統中使用的所有錯誤類別，按架構層級分類。
 """
@@ -19,7 +18,7 @@ from .error_codes.system import SystemErrorCode
 
 
 class APIError(Exception):
-    """API 錯誤基礎類別"""
+    """API 錯誤基礎類別."""
 
     def __init__(
         self,
@@ -37,13 +36,9 @@ class APIError(Exception):
 
 # ===== Router 層級錯誤 =====
 class ValidationError(APIError):
-    """資料驗證錯誤"""
+    """資料驗證錯誤."""
 
-    def __init__(
-        self,
-        message: str,
-        details: dict[str, Any] | None = None,
-    ):
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
         super().__init__(
             message=message,
             error_code=RouterErrorCode.VALIDATION_ERROR,
@@ -53,7 +48,7 @@ class ValidationError(APIError):
 
 
 class AuthenticationError(APIError):
-    """認證錯誤"""
+    """認證錯誤."""
 
     def __init__(
         self, message: str = "認證失敗", details: dict[str, Any] | None = None
@@ -67,7 +62,7 @@ class AuthenticationError(APIError):
 
 
 class AuthorizationError(APIError):
-    """權限錯誤"""
+    """權限錯誤."""
 
     def __init__(
         self, message: str = "權限不足", details: dict[str, Any] | None = None
@@ -82,13 +77,9 @@ class AuthorizationError(APIError):
 
 # ===== Service 層級錯誤 =====
 class BusinessLogicError(APIError):
-    """業務邏輯錯誤"""
+    """業務邏輯錯誤."""
 
-    def __init__(
-        self,
-        message: str,
-        details: dict[str, Any] | None = None,
-    ):
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
         super().__init__(
             message=message,
             error_code=ServiceErrorCode.BUSINESS_LOGIC_ERROR,
@@ -98,13 +89,9 @@ class BusinessLogicError(APIError):
 
 
 class ScheduleNotFoundError(APIError):
-    """時段不存在錯誤"""
+    """時段不存在錯誤."""
 
-    def __init__(
-        self,
-        schedule_id: int | str,
-        details: dict[str, Any] | None = None,
-    ):
+    def __init__(self, schedule_id: int | str, details: dict[str, Any] | None = None):
         message = f"時段不存在: ID={schedule_id}"
         super().__init__(
             message=message,
@@ -115,13 +102,9 @@ class ScheduleNotFoundError(APIError):
 
 
 class UserNotFoundError(APIError):
-    """使用者不存在錯誤"""
+    """使用者不存在錯誤."""
 
-    def __init__(
-        self,
-        user_id: int | str,
-        details: dict[str, Any] | None = None,
-    ):
+    def __init__(self, user_id: int | str, details: dict[str, Any] | None = None):
         message = f"使用者不存在: ID={user_id}"
         super().__init__(
             message=message,
@@ -132,13 +115,9 @@ class UserNotFoundError(APIError):
 
 
 class ConflictError(APIError):
-    """資源衝突錯誤"""
+    """資源衝突錯誤."""
 
-    def __init__(
-        self,
-        message: str,
-        details: dict[str, Any] | None = None,
-    ):
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
         super().__init__(
             message=message,
             error_code=ServiceErrorCode.CONFLICT,
@@ -149,13 +128,9 @@ class ConflictError(APIError):
 
 # ===== CRUD 層級錯誤 =====
 class DatabaseError(APIError):
-    """資料庫錯誤"""
+    """資料庫錯誤."""
 
-    def __init__(
-        self,
-        message: str,
-        details: dict[str, Any] | None = None,
-    ):
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
         super().__init__(
             message=message,
             error_code=CRUDErrorCode.DATABASE_ERROR,
@@ -166,7 +141,7 @@ class DatabaseError(APIError):
 
 # ===== System 層級 =====
 class ServiceUnavailableError(APIError):
-    """服務不可用錯誤"""
+    """服務不可用錯誤."""
 
     def __init__(
         self, message: str = "服務暫時不可用", details: dict[str, Any] | None = None
@@ -180,12 +155,10 @@ class ServiceUnavailableError(APIError):
 
 
 class LivenessCheckError(APIError):
-    """存活檢查錯誤"""
+    """存活檢查錯誤."""
 
     def __init__(
-        self,
-        message: str = "存活檢查失敗",
-        details: dict[str, Any] | None = None,
+        self, message: str = "存活檢查失敗", details: dict[str, Any] | None = None
     ):
         super().__init__(
             message=message,
@@ -196,12 +169,10 @@ class LivenessCheckError(APIError):
 
 
 class ReadinessCheckError(APIError):
-    """準備就緒檢查錯誤"""
+    """準備就緒檢查錯誤."""
 
     def __init__(
-        self,
-        message: str = "準備就緒檢查失敗",
-        details: dict[str, Any] | None = None,
+        self, message: str = "準備就緒檢查失敗", details: dict[str, Any] | None = None
     ):
         super().__init__(
             message=message,

@@ -28,12 +28,11 @@ class ScheduleCRUD:
         self.logger = logging.getLogger(__name__)
 
     def get_schedule_query_options(
-        self,
-        include_relations: list[str] | None = None,
+        self, include_relations: list[str] | None = None
     ) -> list[Any]:
         """取得時段查詢的選項設定，用於優化查詢效能。
 
-        避免在存取關聯物件時，產生 N+1 查詢問題。
+        避免存取關聯物件時，產生 N+1 查詢問題。
         """
         # 如果沒有傳入參數，使用預設值 None，預設載入所有關聯
         if include_relations is None:
@@ -79,9 +78,7 @@ class ScheduleCRUD:
         return options
 
     def create_schedules(
-        self,
-        db: Session,
-        schedule_objects: list[Schedule],
+        self, db: Session, schedule_objects: list[Schedule]
     ) -> list[Schedule]:
         """建立多個時段。"""
         # 批量新增到資料庫
@@ -130,7 +127,7 @@ class ScheduleCRUD:
             query = query.filter(and_(*filters))
 
         # 執行查詢
-        schedules = query.all()
+        schedules = query.all()  # type: ignore[no-any-return]
 
         # 記錄查詢結果
         self.logger.info(
@@ -141,11 +138,7 @@ class ScheduleCRUD:
         # 返回時段列表
         return schedules
 
-    def get_schedule_by_id(
-        self,
-        db: Session,
-        schedule_id: int,
-    ) -> Schedule:
+    def get_schedule_by_id(self, db: Session, schedule_id: int) -> Schedule:
         """根據 ID 查詢單一時段，排除已軟刪除的記錄。"""
         # 建立查詢
         schedule = (
@@ -153,7 +146,7 @@ class ScheduleCRUD:
             .options(*self.get_schedule_query_options())
             .filter(Schedule.id == schedule_id, Schedule.deleted_at.is_(None))
             .first()
-        )
+        )  # type: ignore[no-any-return]
 
         # 如果找不到時段，拋出錯誤
         if not schedule:
@@ -163,9 +156,7 @@ class ScheduleCRUD:
         return schedule
 
     def get_schedule_by_id_including_deleted(
-        self,
-        db: Session,
-        schedule_id: int,
+        self, db: Session, schedule_id: int
     ) -> Schedule | None:
         """根據 ID 查詢單一時段，包含已軟刪除的記錄。"""
         # 注意：這裡不拋出異常，因為包含已刪除的記錄可能為 None
@@ -176,7 +167,7 @@ class ScheduleCRUD:
             .options(*self.get_schedule_query_options())
             .filter(Schedule.id == schedule_id)
             .first()
-        )
+        )  # type: ignore[no-any-return]
 
         # 返回時段
         return schedule

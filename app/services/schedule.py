@@ -30,7 +30,7 @@ from app.schemas import ScheduleData
 class ScheduleService:
     """時段服務類別。"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """初始化服務實例。"""
         self.logger = logging.getLogger(__name__)
         self.schedule_crud = ScheduleCRUD()
@@ -188,14 +188,16 @@ class ScheduleService:
         )
 
         # 使用 CRUD 層建立時段
-        created_schedules = self.schedule_crud.create_schedules(db, schedule_objects)
+        schedule_objects = self.schedule_crud.create_schedules(db, schedule_objects)
 
+        # 記錄建立結果
+        self.log_schedule_details(schedules)
         self.logger.info(
-            f"成功建立 {len(created_schedules)} 個時段，"
-            f"ID範圍: {[s.id for s in created_schedules]}"
+            f"成功建立 {len(schedule_objects)} 個時段，"
+            f"建立者: {created_by} (角色: {created_by_role.value})"
         )
 
-        return created_schedules
+        return schedule_objects  # type: ignore[no-any-return]
 
     @handle_service_errors("查詢時段列表")
     @log_operation("查詢時段列表")

@@ -1,27 +1,18 @@
-"""
-應用程式配置管理模組。
-
-使用 Pydantic BaseSettings 集中管理所有應用程式配置，包括路徑、應用程式資訊、API 設定等。
-"""
+"""應用程式配置管理模組。 使用 Pydantic BaseSettings 集中管理所有應用程式配置，包括路徑、應用程式資訊、API 設定等。"""
 
 # ===== 標準函式庫 =====
 import logging
 from pathlib import Path
-import re
 import tomllib
 from typing import Any
 
 # ===== 第三方套件 =====
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def get_project_version() -> str:
-    """
-    從 pyproject.toml 檔案中讀取專案版本號。
-
-    如果讀取失敗，返回預設版本號。
-    """
+    """從 pyproject.toml 檔案中讀取專案版本號。 如果讀取失敗，返回預設版本號。"""
     try:
         pyproject_path = Path(__file__).parent.parent.parent / "pyproject.toml"
         with open(pyproject_path, "rb") as f:
@@ -160,39 +151,39 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> list[str]:
-        """取得 CORS 來源列表"""
+        """取得 CORS 來源列表."""
         return [
             origin.strip() for origin in self.cors_origins.split(",") if origin.strip()
         ]
 
     @property
     def static_dir(self) -> Path:
-        """靜態檔案目錄"""
+        """靜態檔案目錄."""
         return self.project_root / "static"
 
     @property
     def templates_dir(self) -> Path:
-        """模板目錄"""
+        """模板目錄."""
         return self.app_dir / "templates"
 
     @property
     def is_development(self) -> bool:
-        """是否為開發環境"""
+        """是否為開發環境."""
         return self.app_env == "development"
 
     @property
     def is_production(self) -> bool:
-        """是否為生產環境"""
+        """是否為生產環境."""
         return self.app_env == "production"
 
     @property
     def is_staging(self) -> bool:
-        """是否為測試環境"""
+        """是否為測試環境."""
         return self.app_env == "staging"
 
     @property
     def mysql_connection_string(self) -> str:
-        """Mysql 連接字串"""
+        """Mysql 連接字串."""
         password = (
             self.mysql_password.get_secret_value()
             if self.mysql_password is not None
@@ -206,7 +197,7 @@ class Settings(BaseSettings):
 
     @property
     def redis_connection_string(self) -> str:
-        """Redis 連接字串"""
+        """Redis 連接字串."""
         if self.redis_password:
             password = self.redis_password.get_secret_value()
             return (
@@ -216,7 +207,7 @@ class Settings(BaseSettings):
         return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
     def get_smtp_config(self) -> dict[str, Any]:
-        """取得 SMTP 配置"""
+        """取得 SMTP 配置."""
         if not all([self.smtp_host, self.smtp_user, self.smtp_password]):
             return {}
 
@@ -232,34 +223,34 @@ class Settings(BaseSettings):
 
     @property
     def has_smtp_config(self) -> bool:
-        """檢查是否有完整的 SMTP 配置"""
+        """檢查是否有完整的 SMTP 配置."""
         return all([self.smtp_host, self.smtp_user, self.smtp_password])
 
     @property
     def has_aws_config(self) -> bool:
-        """檢查是否有完整的 AWS 配置"""
+        """檢查是否有完整的 AWS 配置."""
         return all(
             [self.aws_access_key_id, self.aws_secret_access_key, self.aws_region]
         )
 
     @property
     def has_104_api_config(self) -> bool:
-        """檢查是否有完整的 104 API 配置"""
+        """檢查是否有完整的 104 API 配置."""
         return all(
             [self.api_104_base_url, self.api_104_client_id, self.api_104_client_secret]
         )
 
     # ===== 安全相關的便利方法 =====
     def get_secret_key(self) -> str:
-        """安全地取得應用程式密鑰"""
+        """安全地取得應用程式密鑰."""
         return self.secret_key.get_secret_value() if self.secret_key else ""
 
     def get_session_secret(self) -> str:
-        """安全地取得會話密鑰"""
+        """安全地取得會話密鑰."""
         return self.session_secret.get_secret_value() if self.session_secret else ""
 
     def get_aws_secret_key(self) -> str:
-        """安全地取得 AWS 秘密金鑰"""
+        """安全地取得 AWS 秘密金鑰."""
         return (
             self.aws_secret_access_key.get_secret_value()
             if self.aws_secret_access_key
@@ -267,7 +258,7 @@ class Settings(BaseSettings):
         )
 
     def get_104_api_secret(self) -> str:
-        """安全地取得 104 API 密鑰"""
+        """安全地取得 104 API 密鑰."""
         return (
             self.api_104_client_secret.get_secret_value()
             if self.api_104_client_secret

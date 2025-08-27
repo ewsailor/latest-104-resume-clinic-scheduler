@@ -1,5 +1,4 @@
-"""
-日誌裝飾器模組。
+"""日誌裝飾器模組。
 
 提供各種日誌記錄裝飾器，用於記錄函式執行情況。
 """
@@ -12,19 +11,15 @@ from typing import Any, Callable
 logger = logging.getLogger(__name__)
 
 
-def log_operation(operation_name: str):
-    """
-    操作日誌裝飾器。
+def log_operation(operation_name: str) -> Callable:
+    """操作日誌裝飾器。
 
-    記錄操作的開始、成功和失敗狀態，適用於 CRUD 層和 Service 層。
-
-    Args:
-        operation_name: 操作名稱，用於日誌記錄
+    記錄操作的開始、成功和失敗狀態。
     """
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        def wrapper(*args, **kwargs) -> Any:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             logger.info(f"開始{operation_name}")
 
             try:

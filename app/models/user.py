@@ -21,7 +21,7 @@ from app.utils.timezone import get_local_now_naive
 from .database import Base
 
 
-class User(Base):  # type: ignore[misc]
+class User(Base):
     """使用者資料表模型"""
 
     __tablename__ = "users"

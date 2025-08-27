@@ -117,7 +117,7 @@ async def get_schedule(
     """
     schedule = schedule_service.get_schedule_by_id(db, schedule_id)
 
-    return ScheduleResponse.model_validate(schedule)
+    return ScheduleResponse.model_validate(schedule)  # type: ignore[no-any-return]
 
 
 @router.patch(
@@ -162,7 +162,7 @@ async def update_schedule(
         **update_data,  # 字典解包：傳遞更新資料
     )
 
-    return ScheduleResponse.model_validate(updated_schedule)
+    return ScheduleResponse.model_validate(updated_schedule)  # type: ignore[no-any-return]
 
 
 @router.delete(

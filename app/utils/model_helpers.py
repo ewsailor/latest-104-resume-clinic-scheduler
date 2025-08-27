@@ -8,7 +8,7 @@
 from typing import Any
 
 
-def format_datetime(dt) -> str | None:
+def format_datetime(dt: Any) -> str | None:
     """
     格式化日期時間為 ISO 字串，如果為 None 則返回 None。
 
@@ -21,7 +21,7 @@ def format_datetime(dt) -> str | None:
     return dt.isoformat() if dt else None
 
 
-def safe_getattr(obj: Any, attr_name: str, default=None) -> Any:
+def safe_getattr(obj: Any, attr_name: str, default: Any = None) -> Any:
     """
     安全地取得物件屬性，避免 AttributeError。
 

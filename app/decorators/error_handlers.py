@@ -1,5 +1,4 @@
-"""
-錯誤處理裝飾器模組。
+"""錯誤處理裝飾器模組。
 
 提供統一的錯誤處理裝飾器，減少重複的 try-except 程式碼。
 """
@@ -18,20 +17,16 @@ from app.errors.exceptions import APIError, DatabaseError
 logger = logging.getLogger(__name__)
 
 
-def handle_api_errors():
-    """
-    API 錯誤處理裝飾器。
-
-    簡化的錯誤處理，自動處理各種異常並轉換為適當的 HTTP 回應。
-    """
+def handle_api_errors() -> Callable:
+    """API 錯誤處理裝飾器。"""
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def wrapper(*args, **kwargs) -> Any:
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 return await func(*args, **kwargs)
             except APIError:
-                # 直接向上傳遞 APIError，讓中間件處理
+                # 向上傳遞 APIError，讓中間件處理
                 raise
             except HTTPException:
                 # 重新拋出 HTTPException
@@ -46,21 +41,19 @@ def handle_api_errors():
     return decorator
 
 
-def handle_service_errors(error_context: str):
-    """
-    Service 層錯誤處理裝飾器。
-    """
+def handle_service_errors(error_context: str) -> Callable:
+    """Service 層錯誤處理裝飾器。"""
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        def wrapper(*args, **kwargs) -> Any:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             # 假設第一個參數是 db
             db = args[0] if args else None
 
             try:
                 return func(*args, **kwargs)
             except APIError:
-                # 直接向上傳遞 APIError，讓中間件處理
+                # 向上傳遞 APIError，讓中間件處理
                 raise
             except HTTPException:
                 # 重新拋出 HTTPException

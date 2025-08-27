@@ -23,7 +23,7 @@ from app.schemas import UserCreate
 class UserService:
     """使用者服務類別。"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """初始化服務實例。"""
         self.logger = logging.getLogger(__name__)
 

@@ -60,7 +60,7 @@ class UserCRUD:
         """
         return (
             db.query(User).filter(User.id == user_id, User.deleted_at.is_(None)).first()
-        )
+        )  # type: ignore[no-any-return]
 
     def get_user_by_email(
         self,
@@ -80,7 +80,7 @@ class UserCRUD:
             db.query(User)
             .filter(User.email == email, User.deleted_at.is_(None))
             .first()
-        )
+        )  # type: ignore[no-any-return]
 
     def get_users(
         self,
@@ -104,7 +104,7 @@ class UserCRUD:
             .offset(skip)
             .limit(limit)
             .all()
-        )
+        )  # type: ignore[no-any-return]
 
     def get_users_count(self, db: Session) -> int:
         """取得使用者總數（排除已軟刪除的記錄）。
@@ -115,7 +115,7 @@ class UserCRUD:
         Returns:
             int: 使用者總數
         """
-        return db.query(User).filter(User.deleted_at.is_(None)).count()
+        return db.query(User).filter(User.deleted_at.is_(None)).count()  # type: ignore[no-any-return]
 
 
 # 建立全域實例

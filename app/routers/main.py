@@ -1,5 +1,4 @@
-"""
-主要路由模組。
+"""主要路由模組。
 
 包含首頁、健康檢查等基礎路由。
 """
@@ -14,14 +13,11 @@ router = APIRouter()
 
 @router.get("/", response_class=HTMLResponse, tags=["Pages"])
 async def read_index(request: Request) -> HTMLResponse:
-    """
-    首頁路由 - 顯示履歷診療室主頁面。
+    """首頁路由 - 顯示履歷診療室主頁面。
 
-    Args:
-        request: FastAPI 請求物件。
+    Args: request: FastAPI 請求物件。
 
-    Returns:
-        HTMLResponse: 渲染後的 HTML 頁面。
+    Returns: HTMLResponse: 渲染後的 HTML 頁面。
     """
     templates: Jinja2Templates = request.app.state.templates
     return templates.TemplateResponse(request, "index.html")
