@@ -30,24 +30,11 @@ class ScheduleCRUD:
 
     def get_schedule_query_options(self, include_relations: list[str] | None = None):
         """
-        取得時段查詢的選項設定，避免 N+1 問題。
-
-        此方法提供 SQLAlchemy joinedload 選項，用於優化查詢效能，
-        避免在存取關聯物件時產生 N+1 查詢問題。
-
-        Args:
-            include_relations: 要載入的關聯列表，如果為 None 則載入所有關聯
-
-        Returns:
-            list: joinedload 選項列表
-
-        Raises:
-            ValueError: 當輸入參數無效時
-            Exception: 當 SQLAlchemy 操作失敗時
+        取得時段查詢的選項設定，用於優化查詢效能，
+        避免在存取關聯物件時，產生 N+1 查詢問題。 
         """
-        # 如果沒有傳入參數，使用預設值（簡化驗證）
+        # 如果沒有傳入參數，使用預設值 None，預設載入所有關聯
         if include_relations is None:
-            # 預設載入所有關聯
             include_relations = [
                 'giver',
                 'taker',
@@ -63,6 +50,7 @@ class ScheduleCRUD:
                 if not isinstance(relation, str):
                     raise ValueError("include_relations 中的每個元素必須是字串")
 
+        # 建立選項列表
         options = []
         relation_mapping = {
             'giver': joinedload(Schedule.giver),
@@ -94,18 +82,7 @@ class ScheduleCRUD:
     ) -> list[Schedule]:
         """
         建立多個時段。
-
-        Args:
-            db: 資料庫會話
-            schedule_objects: 要建立的時段物件列表
-
-        Returns:
-            list[Schedule]: 建立成功的時段列表
-
-        Raises:
-            DatabaseError: 當資料庫操作失敗時
         """
-
         # 批量新增到資料庫
         db.add_all(schedule_objects)
         db.commit()
@@ -114,10 +91,13 @@ class ScheduleCRUD:
         for schedule in schedule_objects:
             db.refresh(schedule)
 
+        # 記錄建立的時段
         self.logger.info(
             f"成功建立 {len(schedule_objects)} 個時段，"
             f"ID範圍: {[s.id for s in schedule_objects]}"
         )
+
+        # 返回建立的時段列表
         return schedule_objects
 
     def get_schedules(
@@ -128,22 +108,9 @@ class ScheduleCRUD:
         status_filter: str | None = None,
     ) -> list[Schedule]:
         """
-        查詢時段列表（排除已軟刪除的記錄）。
-
-        Args:
-            db: 資料庫會話
-            giver_id: 可選的 Giver ID 篩選條件
-            taker_id: 可選的 Taker ID 篩選條件
-            status_filter: 可選的狀態篩選條件
-
-        Returns:
-            list[Schedule]: 符合條件的時段列表（排除已軟刪除的記錄）
-
-        Raises:
-            DatabaseError: 當資料庫操作失敗時
-            ValueError: 當輸入參數無效時
+        查詢時段列表，排除已軟刪除的記錄。
         """
-
+        # 建立查詢
         query = db.query(Schedule).options(*self.get_schedule_query_options())
 
         # 排除已軟刪除的記錄
@@ -170,23 +137,14 @@ class ScheduleCRUD:
             f"status_filter={status_filter}, 找到 {len(schedules)} 個時段"
         )
 
+        # 返回時段列表
         return schedules
 
     def get_schedule_by_id(self, db: Session, schedule_id: int) -> Schedule:
         """
-        根據 ID 查詢單一時段（排除已軟刪除的記錄）。
-
-        Args:
-            db: 資料庫會話
-            schedule_id: 時段 ID
-
-        Returns:
-            Schedule: 找到的時段物件
-
-        Raises:
-            NotFoundError: 當時段不存在或已軟刪除時
+        根據 ID 查詢單一時段，排除已軟刪除的記錄。
         """
-
+        # 建立查詢
         schedule = (
             db.query(Schedule)
             .options(*self.get_schedule_query_options())
@@ -194,33 +152,31 @@ class ScheduleCRUD:
             .first()
         )
 
+        # 如果找不到時段，拋出錯誤
         if not schedule:
             raise create_schedule_not_found_error(schedule_id)
 
+        # 返回時段
         return schedule
 
     def get_schedule_by_id_including_deleted(
         self, db: Session, schedule_id: int
     ) -> Schedule | None:
         """
-        根據 ID 查詢單一時段（包含已軟刪除的記錄）。
-
-        Args:
-            db: 資料庫會話
-            schedule_id: 時段 ID
-
-        Returns:
-            Schedule | None: 找到的時段物件，如果不存在則返回 None
+        根據 ID 查詢單一時段，包含已軟刪除的記錄。
         """
-
         # 注意：這裡不拋出異常，因為包含已刪除的記錄可能為 None
 
-        return (
+        # 建立查詢
+        schedule = (
             db.query(Schedule)
             .options(*self.get_schedule_query_options())
             .filter(Schedule.id == schedule_id)
             .first()
         )
+
+        # 返回時段
+        return schedule
 
     def update_schedule(
         self,
@@ -232,21 +188,7 @@ class ScheduleCRUD:
     ) -> Schedule:
         """
         更新時段。
-
-        Args:
-            db: 資料庫會話
-            schedule_id: 時段 ID
-            updated_by: 操作者的使用者 ID（更新者）
-            updated_by_role: 操作者的角色 (UserRoleEnum)
-            **kwargs: 要更新的欄位
-
-        Returns:
-            Schedule: 更新後的時段物件
-
-        Raises:
-            NotFoundError: 當時段不存在時
         """
-
         # 驗證時段是否存在
         schedule = self.get_schedule_by_id(db, schedule_id)
 
@@ -275,6 +217,7 @@ class ScheduleCRUD:
                 f"時段 {schedule_id} 更新欄位: {', '.join(updated_fields)}"
             )
 
+        # 提交更新
         db.commit()
         db.refresh(schedule)
 
@@ -283,6 +226,7 @@ class ScheduleCRUD:
             f"時段 {schedule_id} 更新成功，更新者: {updated_by} (角色: {updated_by_role.value})"
         )
 
+        # 返回更新後的時段
         return schedule
 
     def delete_schedule(
@@ -293,18 +237,8 @@ class ScheduleCRUD:
         deleted_by_role: UserRoleEnum | None = None,
     ) -> bool:
         """
-        軟刪除時段。
-
-        Args:
-            db: 資料庫會話
-            schedule_id: 時段 ID
-            deleted_by: 刪除者的使用者 ID（可選，用於審計記錄）
-            deleted_by_role: 刪除者的角色（可選，用於審計記錄）
-
-        Returns:
-            bool: 刪除成功返回 True，否則返回 False
+        軟刪除時段。    
         """
-
         # 檢查時段是否存在
         schedule = self.get_schedule_by_id_including_deleted(db, schedule_id)
         if not schedule:
@@ -323,7 +257,10 @@ class ScheduleCRUD:
         schedule.deleted_by_role = deleted_by_role
         schedule.status = ScheduleStatusEnum.CANCELLED
 
+        # 提交更新
         db.commit()
+
+        # 返回成功
         return True
 
 

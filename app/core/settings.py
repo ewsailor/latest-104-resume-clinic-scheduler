@@ -2,7 +2,6 @@
 應用程式配置管理模組。
 
 使用 Pydantic BaseSettings 集中管理所有應用程式配置，包括路徑、應用程式資訊、API 設定等。
-提供型別安全、自動驗證和環境變數整合功能。
 """
 
 # ===== 標準函式庫 =====
@@ -21,8 +20,7 @@ def get_project_version() -> str:
     """
     從 pyproject.toml 檔案中讀取專案版本號。
 
-    Returns:
-        str: 專案版本號，如果讀取失敗則返回預設版本號
+    如果讀取失敗，返回預設版本號。
     """
     try:
         pyproject_path = Path(__file__).parent.parent.parent / "pyproject.toml"
@@ -30,21 +28,12 @@ def get_project_version() -> str:
             pyproject_data = tomllib.load(f)
             return str(pyproject_data["tool"]["poetry"]["version"])
     except (FileNotFoundError, KeyError, tomllib.TOMLDecodeError) as e:
-        # 使用 logging 而不是 print，避免在生產環境中輸出
         logging.warning(f"無法從 pyproject.toml 讀取專案版本號。錯誤: {e}")
         return "0.1.0"  # 預設版本號
 
 
 class Settings(BaseSettings):
-    """
-    應用程式設定管理類別。
-
-    使用 Pydantic BaseSettings 提供：
-    - 自動環境變數載入
-    - 型別安全驗證
-    - 預設值管理
-    - 配置驗證
-    """
+    """應用程式設定管理類別。"""
 
     # Pydantic 設定配置
     model_config = SettingsConfigDict(
@@ -169,144 +158,6 @@ class Settings(BaseSettings):
     smtp_user: str | None = Field(default=None, description="SMTP 使用者名稱")
     smtp_password: SecretStr | None = Field(default=None, description="SMTP 密碼")
 
-    # ===== 驗證器 =====
-    @field_validator("app_env")
-    @classmethod
-    def validate_app_env(cls, v: str) -> str:
-        """驗證應用程式環境設定"""
-        allowed_envs = ["development", "staging", "production"]
-        if v not in allowed_envs:
-            raise ValueError(f"app_env 必須是以下其中之一: {allowed_envs}")
-        return v
-
-    @field_validator("log_level")
-    @classmethod
-    def validate_log_level(cls, v: str) -> str:
-        """驗證日誌等級設定"""
-        allowed_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-        if v.upper() not in allowed_levels:
-            raise ValueError(f"log_level 必須是以下其中之一: {allowed_levels}")
-        return v.upper()
-
-    @field_validator("mysql_port", "redis_port", "smtp_port")
-    @classmethod
-    def validate_port(cls, v: int) -> int:
-        """驗證連接埠設定"""
-        if not (1 <= v <= 65535):
-            raise ValueError("連接埠必須在 1-65535 範圍內")
-        return v
-
-    @field_validator("secret_key", "session_secret")
-    @classmethod
-    def validate_secret_key(cls, v: SecretStr | None, info: Any) -> SecretStr | None:
-        if v is None or len(v.get_secret_value()) < 32:
-            raise ValueError(f"{info.field_name} 必須設定且長度至少 32 個字元")
-        return v
-
-    @field_validator("mysql_user")
-    @classmethod
-    def validate_mysql_user(cls, v: str | None) -> str | None:
-        """驗證 MySQL 使用者設定"""
-        if v is None or not v:  # 檢查 None 或空字串
-            raise ValueError("❌ MYSQL_USER 未設定，請檢查 .env 檔案")
-        if v.lower() == "root":
-            raise ValueError("❌ 不建議使用 root 帳號，請建立專用的應用程式帳號")
-        return v
-
-    @field_validator("mysql_password")
-    @classmethod
-    def validate_mysql_password(cls, v: SecretStr | None) -> SecretStr | None:
-        """驗證 MySQL 密碼設定"""
-        if v is None or not v.get_secret_value():
-            raise ValueError("❌ MYSQL_PASSWORD 未設定，請檢查 .env 檔案")
-        return v
-
-    @field_validator("api_timeout", "api_connect_timeout", "api_read_timeout")
-    @classmethod
-    def validate_api_timeout(cls, v: int) -> int:
-        """驗證 API 超時設定"""
-        if v <= 0:
-            raise ValueError("API 超時時間必須大於 0 秒")
-        if v > 300:  # 最大 5 分鐘
-            raise ValueError("API 超時時間不能超過 300 秒")
-        return v
-
-    @field_validator("cors_origins")
-    @classmethod
-    def validate_cors_origins(cls, v: str) -> str:
-        """驗證 CORS 來源設定"""
-        if not v or not v.strip():
-            raise ValueError("CORS 來源不能為空")
-
-        # 檢查基本格式
-        origins = [origin.strip() for origin in v.split(",") if origin.strip()]
-        if not origins:
-            raise ValueError("至少需要一個有效的 CORS 來源")
-
-        # 檢查每個來源的格式
-        for origin in origins:
-            if not re.match(r"^https?://[a-zA-Z0-9.-]+(:\d+)?$", origin):
-                raise ValueError(f"無效的 CORS 來源格式：{origin}")
-
-        return v
-
-    @field_validator("mongodb_uri")
-    @classmethod
-    def validate_mongodb_uri(cls, v: str) -> str:
-        """驗證 MongoDB URI 格式"""
-        if not v or not v.strip():
-            raise ValueError("MongoDB URI 不能為空")
-
-        # 檢查基本格式
-        if not v.startswith(("mongodb://", "mongodb+srv://")):
-            raise ValueError("MongoDB URI 必須以 mongodb:// 或 mongodb+srv:// 開頭")
-
-        return v
-
-    @field_validator("aws_region")
-    @classmethod
-    def validate_aws_region(cls, v: str) -> str:
-        """驗證 AWS 區域格式"""
-        if not v or not v.strip():
-            raise ValueError("AWS 區域不能為空")
-
-        # 檢查 AWS 區域格式 (例如: us-east-1, ap-northeast-1)
-        if not re.match(r"^[a-z]{2}-[a-z]+-\d+$", v):
-            raise ValueError(f"無效的 AWS 區域格式：{v}")
-
-        return v
-
-    @field_validator("redis_db")
-    @classmethod
-    def validate_redis_db(cls, v: int) -> int:
-        """驗證 Redis 資料庫編號"""
-        if not isinstance(v, int) or v < 0 or v > 15:
-            raise ValueError("Redis 資料庫編號必須在 0-15 範圍內")
-        return v
-
-    @field_validator("mysql_charset")
-    @classmethod
-    def validate_mysql_charset(cls, v: str) -> str:
-        """驗證 MySQL 字符集"""
-        if not v or not v.strip():
-            raise ValueError("MySQL 字符集不能為空")
-
-        # 檢查常見的 MySQL 字符集
-        valid_charsets = [
-            "utf8",
-            "utf8mb4",
-            "utf8mb3",
-            "latin1",
-            "ascii",
-            "binary",
-            "gbk",
-            "big5",
-        ]
-        if v.lower() not in valid_charsets:
-            raise ValueError(f"不支援的 MySQL 字符集：{v}")
-
-        return v
-
     @property
     def cors_origins_list(self) -> list[str]:
         """取得 CORS 來源列表"""
@@ -314,7 +165,6 @@ class Settings(BaseSettings):
             origin.strip() for origin in self.cors_origins.split(",") if origin.strip()
         ]
 
-    # ===== 計算屬性 =====
     @property
     def static_dir(self) -> Path:
         """靜態檔案目錄"""
@@ -342,7 +192,7 @@ class Settings(BaseSettings):
 
     @property
     def mysql_connection_string(self) -> str:
-        """MySQL 連接字串"""
+        """Mysql 連接字串"""
         password = (
             self.mysql_password.get_secret_value()
             if self.mysql_password is not None

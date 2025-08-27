@@ -49,6 +49,7 @@ pytest-mock = "^3.14.1"
 types-requests = "^2.32.4.20250611"
 autoflake = "^2.3.1"  # 自動移除未使用的 import 和變數
 pyupgrade = "^3.18.0"  # 自動升級 Python 語法並整理 import
+pydocstyle = "^6.3.0"
 [tool.black]
 line-length = 88  # 每行最大字元數，超過此長度會自動換行
 target-version = ["py312"]
@@ -69,10 +70,27 @@ force_sort_within_sections = true
 # MyPy 型別檢查工具配置
 [tool.mypy] 
 python_version = "3.12"
-strict = false  # 非嚴格模式，避免過於嚴格的檢查
-ignore_missing_imports = true  # 忽略缺少的匯入，對於無法找到的套件不報錯
-exclude = ["scripts", "tests", ".mypy_cache", "__pycache__"]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_return_any = true
+strict_equality = true
+ignore_missing_imports = true # 忽略缺少的匯入，對於無法找到的套件不報錯
+exclude = ["scripts", "tests", ".mypy_cache", "__pycache__", "alembic"]
 namespace_packages = true
+
+# Pydocstyle 文件字串檢查工具配置
+[tool.pydocstyle]
+convention = "google"
+add-ignore = [
+    "D107",  # 忽略 __init__ 強制 docstring
+    "D203",  # 允許 class docstring 單空行
+    "D213",  # 允許多行 docstring 分開摘要
+    "D212",  # 允許多行 docstring 摘要從第二行開始
+    "D415",  # 允許中文標點符號結尾
+    "D406", "D407", "D413",  # 忽略 section name 與結尾格式限制
+]
 
 # 建置系統配置
 [build-system]

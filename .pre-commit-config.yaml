@@ -48,3 +48,10 @@ repos:
       - id: mypy
         args: ["--config-file=pyproject.toml"]
         files: ^app/.*\.py$
+
+  - repo: https://github.com/pycqa/flake8-docstrings
+    rev: 1.7.0
+    hooks:
+      - id: flake8
+        additional_dependencies: [flake8-docstrings]
+        args: ["--config=.flake8"]

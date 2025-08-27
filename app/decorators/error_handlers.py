@@ -49,11 +49,6 @@ def handle_api_errors():
 def handle_service_errors(error_context: str):
     """
     Service 層錯誤處理裝飾器。
-
-    提供統一的錯誤處理邏輯，包含資料庫事務回滾功能。
-
-    Args:
-        error_context: 錯誤上下文描述，用於日誌記錄
     """
 
     def decorator(func: Callable) -> Callable:
