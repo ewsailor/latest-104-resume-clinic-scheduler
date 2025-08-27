@@ -1,5 +1,4 @@
-"""
-時段 CRUD 操作模組。
+"""時段 CRUD 操作模組。
 
 提供時段相關的資料庫操作，包括建立、查詢、更新和刪除時段。
 """
@@ -24,14 +23,17 @@ from app.utils.timezone import get_local_now_naive
 class ScheduleCRUD:
     """時段 CRUD 操作類別。"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """初始化 CRUD 實例，設定日誌器。"""
         self.logger = logging.getLogger(__name__)
 
-    def get_schedule_query_options(self, include_relations: list[str] | None = None):
-        """
-        取得時段查詢的選項設定，用於優化查詢效能，
-        避免在存取關聯物件時，產生 N+1 查詢問題。 
+    def get_schedule_query_options(
+        self,
+        include_relations: list[str] | None = None,
+    ) -> list[Any]:
+        """取得時段查詢的選項設定，用於優化查詢效能。
+
+        避免在存取關聯物件時，產生 N+1 查詢問題。
         """
         # 如果沒有傳入參數，使用預設值 None，預設載入所有關聯
         if include_relations is None:
@@ -72,6 +74,7 @@ class ScheduleCRUD:
         if invalid_relations:
             self.logger.warning(f"忽略無效的關聯名稱: {invalid_relations}")
 
+        # 記錄建立的查詢選項
         self.logger.debug(f"建立查詢選項: {len(options)} 個關聯載入選項")
         return options
 
@@ -80,9 +83,7 @@ class ScheduleCRUD:
         db: Session,
         schedule_objects: list[Schedule],
     ) -> list[Schedule]:
-        """
-        建立多個時段。
-        """
+        """建立多個時段。"""
         # 批量新增到資料庫
         db.add_all(schedule_objects)
         db.commit()
@@ -107,9 +108,7 @@ class ScheduleCRUD:
         taker_id: int | None = None,
         status_filter: str | None = None,
     ) -> list[Schedule]:
-        """
-        查詢時段列表，排除已軟刪除的記錄。
-        """
+        """查詢時段列表，排除已軟刪除的記錄。"""
         # 建立查詢
         query = db.query(Schedule).options(*self.get_schedule_query_options())
 
@@ -130,8 +129,10 @@ class ScheduleCRUD:
         if filters:
             query = query.filter(and_(*filters))
 
+        # 執行查詢
         schedules = query.all()
 
+        # 記錄查詢結果
         self.logger.info(
             f"查詢時段列表完成: giver_id={giver_id}, taker_id={taker_id}, "
             f"status_filter={status_filter}, 找到 {len(schedules)} 個時段"
@@ -140,10 +141,12 @@ class ScheduleCRUD:
         # 返回時段列表
         return schedules
 
-    def get_schedule_by_id(self, db: Session, schedule_id: int) -> Schedule:
-        """
-        根據 ID 查詢單一時段，排除已軟刪除的記錄。
-        """
+    def get_schedule_by_id(
+        self,
+        db: Session,
+        schedule_id: int,
+    ) -> Schedule:
+        """根據 ID 查詢單一時段，排除已軟刪除的記錄。"""
         # 建立查詢
         schedule = (
             db.query(Schedule)
@@ -160,11 +163,11 @@ class ScheduleCRUD:
         return schedule
 
     def get_schedule_by_id_including_deleted(
-        self, db: Session, schedule_id: int
+        self,
+        db: Session,
+        schedule_id: int,
     ) -> Schedule | None:
-        """
-        根據 ID 查詢單一時段，包含已軟刪除的記錄。
-        """
+        """根據 ID 查詢單一時段，包含已軟刪除的記錄。"""
         # 注意：這裡不拋出異常，因為包含已刪除的記錄可能為 None
 
         # 建立查詢
@@ -186,9 +189,7 @@ class ScheduleCRUD:
         updated_by_role: UserRoleEnum,
         **kwargs: Any,
     ) -> Schedule:
-        """
-        更新時段。
-        """
+        """更新時段。"""
         # 驗證時段是否存在
         schedule = self.get_schedule_by_id(db, schedule_id)
 
@@ -236,9 +237,7 @@ class ScheduleCRUD:
         deleted_by: int | None = None,
         deleted_by_role: UserRoleEnum | None = None,
     ) -> bool:
-        """
-        軟刪除時段。    
-        """
+        """軟刪除時段。"""
         # 檢查時段是否存在
         schedule = self.get_schedule_by_id_including_deleted(db, schedule_id)
         if not schedule:

@@ -1,5 +1,4 @@
-"""
-Giver 資料模組。
+"""Giver 資料模組。
 
 提供 Giver 相關的資料和常數定義。
 """
@@ -237,24 +236,14 @@ MOCK_GIVERS = [
 
 
 def get_all_givers() -> list[dict[str, Any]]:
-    """
-    取得所有 Giver 資料。
-
-    Returns:
-        list: Giver 資料列表
-    """
+    """取得所有 Giver 資料。"""
     return MOCK_GIVERS
 
 
 def get_giver_by_id(giver_id: int) -> dict[str, Any] | None:
-    """
-    根據 ID 取得特定 Giver 資料。
+    """根據 ID 取得特定 Giver 資料。
 
-    Args:
-        giver_id: Giver ID
-
-    Returns:
-        dict: Giver 資料，如果找不到則返回 None
+    如果找不到則返回 None
     """
     for giver in MOCK_GIVERS:
         if giver["id"] == giver_id:
