@@ -146,7 +146,7 @@ class ScheduleCRUD:
         db: Session,
         schedule_id: int,
     ) -> Schedule:
-        """根據 ID 查詢單一時段，排除已軟刪除的記錄。"""
+        """根據 ID 查詢單一時段，排除已軟刪除的記錄."""
         # 建立查詢
         schedule = (
             db.query(Schedule)
