@@ -36,6 +36,13 @@ repos:
       - id: black
         args: ["--config=pyproject.toml"]
 
+  # 加入 docformatter 自動修復 docstring 格式
+  - repo: https://github.com/myint/docformatter
+    rev: v1.7.5
+    hooks:
+      - id: docformatter
+        args: ["--in-place", "--wrap-summaries=88", "--wrap-descriptions=88"]
+
   - repo: https://github.com/pycqa/flake8
     rev: 7.3.0
     hooks:
@@ -43,7 +50,6 @@ repos:
         args: ["--config=.flake8"]
         additional_dependencies: [flake8-docstrings]
 
-  # 暫時註解掉 mypy 檢查，專注於 docstring 格式
   # - repo: https://github.com/pre-commit/mirrors-mypy
   #   rev: v1.16.0
   #   hooks:
