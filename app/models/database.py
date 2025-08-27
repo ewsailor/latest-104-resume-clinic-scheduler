@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 # ===== 本地模組 =====
 from app.core import settings
+from app.decorators import handle_service_errors, log_operation
 from app.errors import create_database_error, create_service_unavailable_error
 from app.errors.exceptions import APIError
 
@@ -24,10 +25,9 @@ logger = logging.getLogger(__name__)
 Base = declarative_base()
 
 
+@log_operation("建立資料庫引擎")
 def create_database_engine() -> tuple[create_engine, sessionmaker]:
-    """建立資料庫引擎和會話工廠"""
-    logger.info("create_database_engine() called: 開始建立資料庫引擎")
-
+    """建立資料庫引擎和會話工廠。"""
     DATABASE_URL = settings.mysql_connection_string
 
     try:
@@ -61,11 +61,9 @@ def create_database_engine() -> tuple[create_engine, sessionmaker]:
             autoflush=False,  # 不自動刷新、不自動將未提交的改動同步到資料庫，需手動呼叫 flush()
         )
 
-        logger.info("create_database_engine() success: 資料庫引擎建立成功")
         return engine, SessionLocal
 
     except Exception as e:
-        logger.error(f"create_database_engine() error: 連結到資料庫失敗 - {str(e)}")
         raise create_service_unavailable_error(f"資料庫引擎建立失敗：{str(e)}")
 
 
@@ -126,12 +124,9 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
+@log_operation("檢查資料庫連線")
+@handle_service_errors("檢查資料庫連線")
 def check_db_connection() -> None:
-    """檢查資料庫連線狀態"""
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))  # 執行簡單的查詢來測試連線
-            logger.info("check_db_connection() success: 資料庫連線正常")
-    except Exception as e:
-        logger.error(f"check_db_connection() error: 資料庫連線檢查失敗 - {str(e)}")
-        raise create_service_unavailable_error(f"資料庫連線失敗：{str(e)}")
+    """檢查資料庫連線狀態。"""
+    with engine.connect() as conn:
+        conn.execute(text("SELECT 1"))  # 執行簡單的查詢來測試連線

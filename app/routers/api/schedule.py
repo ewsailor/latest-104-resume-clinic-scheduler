@@ -79,7 +79,7 @@ async def get_schedule(
     """根據 ID 取得單一時段。"""
     schedule = schedule_service.get_schedule_by_id(db, schedule_id)
 
-    return ScheduleResponse.model_validate(schedule)  # type: ignore[no-any-return]
+    return ScheduleResponse.model_validate(schedule)
 
 
 @router.patch(
@@ -108,7 +108,7 @@ async def update_schedule(
         **update_data,  # 字典解包：傳遞更新資料
     )
 
-    return ScheduleResponse.model_validate(schedule)  # type: ignore[no-any-return]
+    return ScheduleResponse.model_validate(schedule)
 
 
 @router.delete(

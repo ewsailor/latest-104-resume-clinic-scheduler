@@ -1,31 +1,34 @@
-"""
-健康檢查路由模組。
+"""健康檢查路由模組。
 
-包含健康檢查和連線測試等端點。
+包含存活探測和準備就緒探測等端點。
 """
 
 # ===== 標準函式庫 =====
-import logging
 from typing import Any
 
 # ===== 第三方套件 =====
-from fastapi import APIRouter
+from fastapi import APIRouter, status
 
 # ===== 本地模組 =====
 from app.core import get_project_version, settings
-from app.decorators import handle_api_errors
+from app.decorators import handle_api_errors, log_operation
 from app.errors import create_liveness_check_error, create_readiness_check_error
 from app.models.database import check_db_connection
 from app.utils.timezone import get_utc_timestamp
 
-logger = logging.getLogger(__name__)
-
 router = APIRouter(tags=["health"])
 
 
-@router.get("/healthz", response_model=dict[str, Any])
+@router.get(
+    "/healthz",
+    response_model=dict[str, Any],
+    status_code=status.HTTP_200_OK,
+)
 @handle_api_errors()
-async def liveness_probe(fail: bool = False) -> dict[str, Any]:
+@log_operation("存活探測檢查")
+async def liveness_probe(
+    fail: bool = False,
+) -> dict[str, Any]:
     """
     存活探測：檢查應用程式是否正在運行。
 
@@ -38,8 +41,6 @@ async def liveness_probe(fail: bool = False) -> dict[str, Any]:
     Returns:
         dict[str, Any]: 應用程式狀態資訊，包含狀態、時間戳、版本等資訊。
     """
-    logger.info("liveness_probe() called: 執行存活探測檢查")
-
     if fail:
         raise create_liveness_check_error("測試模式：故意觸發存活探測檢查錯誤")
 
@@ -54,13 +55,20 @@ async def liveness_probe(fail: bool = False) -> dict[str, Any]:
         },
     }
 
-    logger.info("liveness_probe() success: 應用程式狀態健康")
     return response_data
 
 
-@router.get("/readyz", response_model=dict[str, Any])
+@router.get(
+    "/readyz",
+    response_model=dict[str, Any],
+    status_code=status.HTTP_200_OK,
+)
 @handle_api_errors()
-async def readiness_probe(fail: bool = False, db_fail: bool = False) -> dict[str, Any]:
+@log_operation("準備就緒探測檢查")
+async def readiness_probe(
+    fail: bool = False,
+    db_fail: bool = False,
+) -> dict[str, Any]:
     """
     準備就緒探測：檢查應用程式所有外部依賴（資料庫、快取等），是否已經準備好處理請求。
 
@@ -69,8 +77,6 @@ async def readiness_probe(fail: bool = False, db_fail: bool = False) -> dict[str
     Returns:
         dict[str, Any]: 應用程式就緒狀態資訊。
     """
-    logger.info("readiness_probe() called: 執行準備就緒探測檢查")
-
     # 故意觸發錯誤測試
     if fail:
         raise create_readiness_check_error("測試模式：故意觸發準備就緒探測檢查錯誤")
@@ -97,5 +103,5 @@ async def readiness_probe(fail: bool = False, db_fail: bool = False) -> dict[str
             # "external_api": "healthy"  # 未來可加入
         },
     }
-    logger.info("readiness_probe() success: 應用程式準備就緒，所有依賴檢查通過")
+
     return response_data

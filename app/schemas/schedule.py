@@ -1,5 +1,4 @@
-"""
-時段相關的 Pydantic 資料模型。
+"""時段相關的 Pydantic 資料模型。
 
 定義時段管理相關的請求和回應模型。
 """
@@ -15,7 +14,7 @@ from app.enums.models import ScheduleStatusEnum, UserRoleEnum
 
 
 class ScheduleData(BaseModel):
-    """單一時段資料模型"""
+    """單一時段資料模型。"""
 
     giver_id: int = Field(..., description="Giver ID", gt=0)
     taker_id: int | None = Field(None, description="Taker ID（可選）", gt=0)
@@ -30,7 +29,7 @@ class ScheduleData(BaseModel):
 
 
 class ScheduleCreateRequest(BaseModel):
-    """批量建立時段的 API 請求模型"""
+    """批量建立時段的 API 請求模型。"""
 
     schedules: list[ScheduleData] = Field(..., description="要建立的時段列表")
     created_by: int = Field(..., description="建立者的使用者 ID（必填）")
@@ -38,7 +37,7 @@ class ScheduleCreateRequest(BaseModel):
 
 
 class ScheduleUpdateData(BaseModel):
-    """部分更新時段的資料模型 - 所有欄位都是可選的"""
+    """部分更新時段的資料模型 - 所有欄位都是可選的。"""
 
     giver_id: int | None = Field(None, description="Giver ID")
     taker_id: int | None = Field(None, description="Taker ID")
@@ -53,7 +52,7 @@ class ScheduleUpdateData(BaseModel):
 
 
 class ScheduleUpdateRequest(BaseModel):
-    """完整更新時段的 API 請求模型（用於 PUT 方法）"""
+    """完整更新時段的 API 請求模型（用於 PUT 方法）。"""
 
     schedule: ScheduleData = Field(..., description="完整的時段資料（所有欄位必填）")
     updated_by: int = Field(..., description="操作者的使用者 ID（必填）")
@@ -61,7 +60,7 @@ class ScheduleUpdateRequest(BaseModel):
 
 
 class SchedulePartialUpdateRequest(BaseModel):
-    """部分更新時段的 API 請求模型"""
+    """部分更新時段的 API 請求模型。"""
 
     schedule: ScheduleUpdateData = Field(
         ..., description="要更新的時段資料（部分欄位）"
@@ -71,14 +70,14 @@ class SchedulePartialUpdateRequest(BaseModel):
 
 
 class ScheduleDeleteRequest(BaseModel):
-    """刪除時段的 API 請求模型"""
+    """刪除時段的 API 請求模型。"""
 
     deleted_by: int = Field(..., description="刪除者的使用者 ID（必填）")
     deleted_by_role: UserRoleEnum = Field(..., description="刪除者的角色（必填）")
 
 
 class ScheduleResponse(BaseModel):
-    """時段回應模型"""
+    """時段回應模型。"""
 
     id: int
     giver_id: int

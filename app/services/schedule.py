@@ -1,5 +1,4 @@
-"""
-時段服務層模組。
+"""時段服務層模組。
 
 提供時段相關的業務邏輯處理，包括時段重疊檢查、時段管理等。
 """
@@ -197,7 +196,7 @@ class ScheduleService:
             f"建立者: {created_by} (角色: {created_by_role.value})"
         )
 
-        return schedule_objects  # type: ignore[no-any-return]
+        return schedule_objects
 
     @handle_service_errors("查詢時段列表")
     @log_operation("查詢時段列表")

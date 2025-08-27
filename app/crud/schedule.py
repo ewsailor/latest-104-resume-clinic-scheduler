@@ -129,7 +129,7 @@ class ScheduleCRUD:
             query = query.filter(and_(*filters))
 
         # 執行查詢
-        schedules = query.all()  # type: ignore[no-any-return]
+        schedules = query.all()
 
         # 記錄查詢結果
         self.logger.info(
@@ -152,7 +152,7 @@ class ScheduleCRUD:
             .options(*self.get_schedule_query_options())
             .filter(Schedule.id == schedule_id, Schedule.deleted_at.is_(None))
             .first()
-        )  # type: ignore[no-any-return]
+        )
 
         # 如果找不到時段，拋出錯誤
         if not schedule:
@@ -175,7 +175,7 @@ class ScheduleCRUD:
             .options(*self.get_schedule_query_options())
             .filter(Schedule.id == schedule_id)
             .first()
-        )  # type: ignore[no-any-return]
+        )
 
         # 返回時段
         return schedule

@@ -1,5 +1,4 @@
-"""
-API 路由模組集中匯入點。
+"""API 路由模組集中匯入點。
 
 匯入所有 API 相關的路由器，提供統一的 API 介面。
 
@@ -24,10 +23,3 @@ api_router = APIRouter()
 api_router.include_router(schedule_router)
 api_router.include_router(givers_router)
 api_router.include_router(users_router)
-
-# 未來可以輕鬆新增其他 API 路由
-# from .users import router as users_router
-# api_router.include_router(users_router)
-
-# from .auth import router as auth_router
-# api_router.include_router(auth_router)

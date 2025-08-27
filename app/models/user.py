@@ -1,7 +1,6 @@
-"""
-使用者模型模組。
+"""使用者模型模組。
 
-定義使用者資料表對應的 SQLAlchemy 模型。
+定義使用者資料表對應的 SQLAlchemy ORM 模型。
 """
 
 # ===== 標準函式庫 =====
@@ -22,7 +21,7 @@ from .database import Base
 
 
 class User(Base):
-    """使用者資料表模型"""
+    """使用者資料表模型。"""
 
     __tablename__ = "users"
 
@@ -32,8 +31,17 @@ class User(Base):
         autoincrement=True,
         comment="使用者 ID",
     )
-    name = Column(String(100), nullable=False, comment="使用者姓名")
-    email = Column(String(191), nullable=False, unique=True, comment="電子信箱（唯一）")
+    name = Column(
+        String(100),
+        nullable=False,
+        comment="使用者姓名",
+    )
+    email = Column(
+        String(191),
+        nullable=False,
+        unique=True,
+        comment="電子信箱（唯一）",
+    )
     created_at = Column(
         DateTime,
         default=get_local_now_naive,
@@ -47,16 +55,20 @@ class User(Base):
         nullable=False,
         comment="更新時間（本地時間）",
     )
-    deleted_at = Column(DateTime, nullable=True, comment="軟刪除標記（本地時間）")
+    deleted_at = Column(
+        DateTime,
+        nullable=True,
+        comment="軟刪除標記（本地時間）",
+    )
 
-    __table_args__ = (Index('idx_users_created_at', 'created_at'),)
+    __table_args__ = (Index("idx_users_created_at", "created_at"),)
 
     def __repr__(self) -> str:
-        """字串表示，用於除錯和日誌"""
+        """字串表示，用於除錯和日誌。"""
         return f"<User(id={self.id}, name='{self.name}', email='{self.email}')>"
 
     def to_dict(self) -> dict[str, Any]:
-        """轉換為字典格式，用於 API 和資料傳輸給前端"""
+        """轉換為字典格式，用於 API 和資料傳輸給前端。"""
         try:
             return {
                 "id": safe_getattr(self, 'id'),

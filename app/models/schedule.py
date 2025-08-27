@@ -1,7 +1,6 @@
-"""
-時段資料模型。
+"""時段資料模型。
 
-定義時段相關的資料庫模型和結構。
+定義時段資料表對應的 SQLAlchemy ORM 模型。
 """
 
 # ===== 標準函式庫 =====
@@ -33,20 +32,7 @@ from .database import Base
 
 
 class Schedule(Base):
-    """
-    諮詢時段資料模型。
-
-    用於管理諮詢時段的預約和媒合系統，支援雙向時段提供機制：
-
-    - **Giver 主動提供時段**：諮詢師提供可諮詢的時間段
-    - **Taker 主動提供時段**：求職者提供希望諮詢的時間段，等待 Giver 確認
-
-    主要功能：
-    - 時段建立與管理
-    - 預約狀態追蹤
-    - 角色權限控制
-    - 軟刪除支援
-    """
+    """諮詢時段資料模型。"""
 
     __tablename__ = "schedules"
 
@@ -58,14 +44,18 @@ class Schedule(Base):
     )
     giver_id = Column(
         INTEGER(unsigned=True),
-        ForeignKey("users.id", ondelete="RESTRICT"),  # 保護：不能刪除有時段的 Giver
+        ForeignKey(
+            "users.id",
+            ondelete="RESTRICT",
+        ),  # 保護：不能刪除有時段的 Giver
         nullable=False,
         comment="Giver 使用者 ID",
     )
     taker_id = Column(
         INTEGER(unsigned=True),
         ForeignKey(
-            "users.id", ondelete="SET NULL"
+            "users.id",
+            ondelete="SET NULL",
         ),  # 靈活：Taker 刪除時設為 NULL（時段變可預約）
         nullable=True,
         comment="Taker 使用者 ID，可為 NULL（表示 Giver 提供時段供 Taker 預約）",
@@ -76,10 +66,26 @@ class Schedule(Base):
         default=ScheduleStatusEnum.DRAFT,
         comment="諮詢時段狀態",
     )
-    date = Column(Date, nullable=False, comment="日期")
-    start_time = Column(Time, nullable=False, comment="開始時間")
-    end_time = Column(Time, nullable=False, comment="結束時間")
-    note = Column(String(255), nullable=True, comment="備註，可為空")
+    date = Column(
+        Date,
+        nullable=False,
+        comment="日期",
+    )
+    start_time = Column(
+        Time,
+        nullable=False,
+        comment="開始時間",
+    )
+    end_time = Column(
+        Time,
+        nullable=False,
+        comment="結束時間",
+    )
+    note = Column(
+        String(255),
+        nullable=True,
+        comment="備註，可為空",
+    )
 
     # ===== 審計欄位 =====
     created_at = Column(
@@ -90,7 +96,10 @@ class Schedule(Base):
     )
     created_by = Column(
         INTEGER(unsigned=True),
-        ForeignKey("users.id", ondelete="SET NULL"),  # 指向 users 表
+        ForeignKey(
+            "users.id",
+            ondelete="SET NULL",
+        ),  # 指向 users 表
         nullable=True,
         comment="建立者的使用者 ID，可為 NULL（表示系統自動建立）",
     )
@@ -108,7 +117,10 @@ class Schedule(Base):
     )
     updated_by = Column(
         INTEGER(unsigned=True),
-        ForeignKey("users.id", ondelete="SET NULL"),  # 指向 users 表
+        ForeignKey(
+            "users.id",
+            ondelete="SET NULL",
+        ),  # 指向 users 表
         nullable=True,
         comment="最後更新的使用者 ID，可為 NULL（表示系統自動更新）",
     )
@@ -119,10 +131,17 @@ class Schedule(Base):
     )
 
     # ===== 系統欄位 =====
-    deleted_at = Column(DateTime, nullable=True, comment="軟刪除標記（本地時間）")
+    deleted_at = Column(
+        DateTime,
+        nullable=True,
+        comment="軟刪除標記（本地時間）",
+    )
     deleted_by = Column(
         INTEGER(unsigned=True),
-        ForeignKey("users.id", ondelete="SET NULL"),  # 指向 users 表
+        ForeignKey(
+            "users.id",
+            ondelete="SET NULL",
+        ),  # 指向 users 表
         nullable=True,
         comment="刪除者的使用者 ID，可為 NULL（表示系統自動刪除）",
     )
@@ -132,32 +151,32 @@ class Schedule(Base):
         comment="刪除者角色",
     )
 
-    giver = relationship("User", foreign_keys=[giver_id], lazy='joined')
-    taker = relationship("User", foreign_keys=[taker_id], lazy='joined')
-    created_by_user = relationship("User", foreign_keys=[created_by], lazy='joined')
-    updated_by_user = relationship("User", foreign_keys=[updated_by], lazy='joined')
-    deleted_by_user = relationship("User", foreign_keys=[deleted_by], lazy='joined')
+    giver = relationship("User", foreign_keys=[giver_id], lazy="joined")
+    taker = relationship("User", foreign_keys=[taker_id], lazy="joined")
+    created_by_user = relationship("User", foreign_keys=[created_by], lazy="joined")
+    updated_by_user = relationship("User", foreign_keys=[updated_by], lazy="joined")
+    deleted_by_user = relationship("User", foreign_keys=[deleted_by], lazy="joined")
 
     __table_args__ = (
-        Index('idx_schedule_giver_date', 'giver_id', 'date', 'start_time'),
-        Index('idx_schedule_taker_date', 'taker_id', 'date', 'start_time'),
-        Index('idx_schedule_status', 'status'),
-        Index('idx_schedule_giver_time', 'giver_id', 'start_time', 'end_time'),
+        Index("idx_schedule_giver_date", "giver_id", "date", "start_time"),
+        Index("idx_schedule_taker_date", "taker_id", "date", "start_time"),
+        Index("idx_schedule_status", "status"),
+        Index("idx_schedule_giver_time", "giver_id", "start_time", "end_time"),
     )
 
     @property
     def is_active(self) -> bool:
-        """檢查記錄是否有效（未刪除）"""
+        """檢查記錄是否有效（未刪除）。"""
         return self.deleted_at is None
 
     @property
     def is_deleted(self) -> bool:
-        """檢查記錄是否已刪除"""
+        """檢查記錄是否已刪除。"""
         return self.deleted_at is not None
 
     @property
     def is_available(self) -> bool:
-        """檢查時段是否可預約"""
+        """檢查時段是否可預約。"""
         return (
             self.is_active
             and self.status == ScheduleStatusEnum.AVAILABLE
@@ -165,14 +184,14 @@ class Schedule(Base):
         )
 
     def __repr__(self) -> str:
-        """字串表示"""
+        """字串表示。"""
         return (
             f"<Schedule(id={self.id}, giver_id={self.giver_id}, "
             f"date={self.date}, status={self.status})>"
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """轉換為字典格式，用於 API 和資料傳輸給前端"""
+        """轉換為字典格式，用於 API 和資料傳輸給前端。"""
         try:
             return {
                 "id": safe_getattr(self, 'id'),
