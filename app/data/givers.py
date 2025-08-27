@@ -243,7 +243,7 @@ def get_all_givers() -> list[dict[str, Any]]:
 def get_giver_by_id(giver_id: int) -> dict[str, Any] | None:
     """根據 ID 取得特定 Giver 資料。
 
-    如果找不到則返回 None
+    如果找不到則返回 None。
     """
     for giver in MOCK_GIVERS:
         if giver["id"] == giver_id:

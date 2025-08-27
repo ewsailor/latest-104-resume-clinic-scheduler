@@ -5,7 +5,7 @@
 
 
 class SystemErrorCode:
-    """通用錯誤代碼."""
+    """通用錯誤代碼。"""
 
     # 500 Internal Server Error - 通用系統錯誤
     INTERNAL_ERROR = "INTERNAL_ERROR"  # 500 - 內部伺服器錯誤

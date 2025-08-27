@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def format_error_response(error: Exception) -> dict[str, Any]:
-    """格式化錯誤回應."""
+    """格式化錯誤回應。"""
     logger.info(f"格式化錯誤: {type(error).__name__}")
 
     # 處理自定義 APIError：從 APIError 物件中取出 message、status_code、error_code 和 details 等屬性，並回傳包含這些資訊的字典

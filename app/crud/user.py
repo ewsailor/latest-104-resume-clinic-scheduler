@@ -49,15 +49,7 @@ class UserCRUD:
         db: Session,
         user_id: int,
     ) -> User | None:
-        """根據 ID 查詢使用者，排除已軟刪除的記錄。
-
-        Args:
-            db: 資料庫會話
-            user_id: 使用者 ID
-
-        Returns:
-            User | None: 找到的使用者物件，如果不存在或已軟刪除則返回 None
-        """
+        """根據 ID 查詢使用者，排除已軟刪除的記錄。"""
         return (
             db.query(User).filter(User.id == user_id, User.deleted_at.is_(None)).first()
         )  # type: ignore[no-any-return]
@@ -67,15 +59,7 @@ class UserCRUD:
         db: Session,
         email: str,
     ) -> User | None:
-        """根據 email 查詢使用者（排除已軟刪除的記錄）。
-
-        Args:
-            db: 資料庫會話
-            email: 使用者 email
-
-        Returns:
-            User | None: 找到的使用者物件，如果不存在或已軟刪除則返回 None
-        """
+        """根據 email 查詢使用者（排除已軟刪除的記錄）。"""
         return (
             db.query(User)
             .filter(User.email == email, User.deleted_at.is_(None))
@@ -88,16 +72,7 @@ class UserCRUD:
         skip: int = 0,
         limit: int = 100,
     ) -> list[User]:
-        """查詢使用者列表（排除已軟刪除的記錄）。
-
-        Args:
-            db: 資料庫會話
-            skip: 跳過的記錄數（用於分頁）
-            limit: 限制返回的記錄數（用於分頁）
-
-        Returns:
-            list[User]: 使用者列表（排除已軟刪除的記錄）
-        """
+        """查詢使用者列表（排除已軟刪除的記錄）。"""
         return (
             db.query(User)
             .filter(User.deleted_at.is_(None))
@@ -107,14 +82,7 @@ class UserCRUD:
         )  # type: ignore[no-any-return]
 
     def get_users_count(self, db: Session) -> int:
-        """取得使用者總數（排除已軟刪除的記錄）。
-
-        Args:
-            db: 資料庫會話
-
-        Returns:
-            int: 使用者總數
-        """
+        """取得使用者總數（排除已軟刪除的記錄）。"""
         return db.query(User).filter(User.deleted_at.is_(None)).count()  # type: ignore[no-any-return]
 
 

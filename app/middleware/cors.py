@@ -1,7 +1,6 @@
-"""
-簡化的 CORS 中間件。
+"""簡化的 CORS 中間件。
 
-提供基本的跨來源資源共用設定，適合投履歷展示。
+提供基本的跨來源資源共用設定。
 """
 
 # ===== 標準函式庫 =====
@@ -15,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def setup_cors_middleware(app: FastAPI) -> None:
-    """設定 CORS 中間件"""
+    """設定 CORS 中間件。"""
 
     # 允許的來源
     origins = [

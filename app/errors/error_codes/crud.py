@@ -5,7 +5,7 @@
 
 
 class CRUDErrorCode:
-    """CRUD 層級錯誤代碼."""
+    """CRUD 層級錯誤代碼。"""
 
     # 400 Bad Request - CRUD 層請求錯誤
     BAD_REQUEST = "CRUD_BAD_REQUEST"  # 400 - CRUD 操作參數錯誤

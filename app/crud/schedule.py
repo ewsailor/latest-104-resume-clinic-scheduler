@@ -78,7 +78,9 @@ class ScheduleCRUD:
         return options
 
     def create_schedules(
-        self, db: Session, schedule_objects: list[Schedule]
+        self,
+        db: Session,
+        schedule_objects: list[Schedule],
     ) -> list[Schedule]:
         """建立多個時段。"""
         # 批量新增到資料庫
@@ -138,7 +140,11 @@ class ScheduleCRUD:
         # 返回時段列表
         return schedules
 
-    def get_schedule_by_id(self, db: Session, schedule_id: int) -> Schedule:
+    def get_schedule_by_id(
+        self,
+        db: Session,
+        schedule_id: int,
+    ) -> Schedule:
         """根據 ID 查詢單一時段，排除已軟刪除的記錄。"""
         # 建立查詢
         schedule = (
@@ -156,7 +162,9 @@ class ScheduleCRUD:
         return schedule
 
     def get_schedule_by_id_including_deleted(
-        self, db: Session, schedule_id: int
+        self,
+        db: Session,
+        schedule_id: int,
     ) -> Schedule | None:
         """根據 ID 查詢單一時段，包含已軟刪除的記錄。"""
         # 注意：這裡不拋出異常，因為包含已刪除的記錄可能為 None

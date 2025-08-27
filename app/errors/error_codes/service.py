@@ -5,7 +5,7 @@
 
 
 class ServiceErrorCode:
-    """Service 層級錯誤代碼."""
+    """Service 層級錯誤代碼。"""
 
     # 400 Bad Request - 服務層業務錯誤
     BUSINESS_LOGIC_ERROR = "SERVICE_BUSINESS_LOGIC_ERROR"  # 400 - 業務邏輯錯誤

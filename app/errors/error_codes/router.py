@@ -5,7 +5,7 @@
 
 
 class RouterErrorCode:
-    """Routers 層級錯誤代碼."""
+    """Routers 層級錯誤代碼。"""
 
     # 400 Bad Request - 路由層請求錯誤
     BAD_REQUEST = "ROUTER_BAD_REQUEST"  # 400 - 路由參數格式錯誤

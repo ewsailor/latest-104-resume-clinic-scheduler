@@ -5,7 +5,7 @@
 
 
 class CORSErrorCode:
-    """CORS 層級錯誤代碼."""
+    """CORS 層級錯誤代碼。"""
 
     # 403 Forbidden - CORS 層權限錯誤
     ORIGIN_NOT_ALLOWED = "CORS_ORIGIN_NOT_ALLOWED"  # 403 - 來源網域不被允許
