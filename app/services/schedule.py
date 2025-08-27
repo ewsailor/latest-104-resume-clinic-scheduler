@@ -44,10 +44,8 @@ class ScheduleService:
         end_time: time,
         exclude_schedule_id: int | None = None,
     ) -> list[Schedule]:
-        """
-        檢查時段重疊。
-        """
-        # 驗證時間範圍
+        """檢查時段重疊。"""
+        # 驗證時間範圍：確保輸入的時間範圍是有效的
         if end_time <= start_time:
             raise ValueError(f"結束時間 ({end_time}) 必須晚於開始時間 ({start_time})")
 
@@ -83,9 +81,7 @@ class ScheduleService:
         created_by_role: UserRoleEnum,
         schedule_data: ScheduleData,
     ) -> ScheduleStatusEnum:
-        """
-        根據建立者角色決定時段狀態。
-        """
+        """根據建立者角色決定時段狀態。"""
         if created_by_role == UserRoleEnum.TAKER:
             return ScheduleStatusEnum.PENDING
         elif created_by_role == UserRoleEnum.GIVER:
@@ -95,9 +91,7 @@ class ScheduleService:
             return schedule_data.status or ScheduleStatusEnum.DRAFT
 
     def log_schedule_details(self, schedules: list[ScheduleData]) -> None:
-        """
-        記錄時段詳情。
-        """
+        """記錄時段詳情。"""
         schedule_details = []
         for i, schedule_data in enumerate(schedules):
             detail = (
@@ -114,9 +108,7 @@ class ScheduleService:
         created_by: int,
         created_by_role: UserRoleEnum,
     ) -> list[Schedule]:
-        """
-        建立時段物件列表。
-        """
+        """建立時段物件列表。"""
         schedule_objects = []
         for schedule_data in schedules:
             # 根據建立者角色決定時段狀態
@@ -150,15 +142,7 @@ class ScheduleService:
         created_by: int,
         created_by_role: UserRoleEnum,
     ) -> list[Schedule]:
-        """
-        建立多個時段。
-        """
-        # 記錄建立操作
-        self.logger.info(
-            f"使用者 {created_by} (角色: {created_by_role.value}) "
-            f"正在建立 {len(schedules)} 個時段"
-        )
-
+        """建立多個時段。"""
         # 記錄即將建立的時段詳情
         self.log_schedule_details(schedules)
 
@@ -189,13 +173,6 @@ class ScheduleService:
         # 使用 CRUD 層建立時段
         schedule_objects = self.schedule_crud.create_schedules(db, schedule_objects)
 
-        # 記錄建立結果
-        self.log_schedule_details(schedules)
-        self.logger.info(
-            f"成功建立 {len(schedule_objects)} 個時段，"
-            f"建立者: {created_by} (角色: {created_by_role.value})"
-        )
-
         return schedule_objects
 
     @handle_service_errors("查詢時段列表")
@@ -207,15 +184,7 @@ class ScheduleService:
         taker_id: int | None = None,
         status_filter: str | None = None,
     ) -> list[Schedule]:
-        """
-        查詢時段列表。
-        """
-        # 記錄查詢操作
-        self.logger.info(
-            f"查詢時段列表: giver_id={giver_id}, taker_id={taker_id}, "
-            f"status_filter={status_filter}"
-        )
-
+        """查詢時段列表。"""
         # 使用 CRUD 層查詢時段
         schedules = self.schedule_crud.get_schedules(
             db, giver_id, taker_id, status_filter
@@ -226,17 +195,15 @@ class ScheduleService:
 
     @handle_service_errors("查詢單一時段")
     @log_operation("查詢單一時段")
-    def get_schedule_by_id(self, db: Session, schedule_id: int) -> Schedule:
-        """
-        根據 ID 查詢單一時段。
-        """
-        # 記錄查詢操作
-        self.logger.info(f"查詢時段: schedule_id={schedule_id}")
-
+    def get_schedule_by_id(
+        self,
+        db: Session,
+        schedule_id: int,
+    ) -> Schedule:
+        """根據 ID 查詢單一時段。"""
         # 使用 CRUD 層查詢時段
         schedule = self.schedule_crud.get_schedule_by_id(db, schedule_id)
 
-        self.logger.info(f"時段 {schedule_id} 查詢成功")
         return schedule
 
     @handle_service_errors("更新時段")
@@ -249,15 +216,7 @@ class ScheduleService:
         updated_by_role: UserRoleEnum,
         **kwargs: Any,
     ) -> Schedule:
-        """
-        更新時段。
-        """
-        # 記錄更新操作
-        self.logger.info(
-            f"時段 {schedule_id} 正在被使用者 {updated_by} "
-            f"(角色: {updated_by_role.value}) 更新"
-        )
-
+        """更新時段。"""
         # 檢查是否需要進行重疊檢查：如果更新了日期、開始時間或結束時間，就需要檢查重疊
         need_overlap_check = any(
             field in kwargs for field in ["schedule_date", "start_time", "end_time"]
@@ -292,7 +251,6 @@ class ScheduleService:
             db, schedule_id, updated_by, updated_by_role, **kwargs
         )
 
-        self.logger.info(f"時段 {schedule_id} 更新成功")
         return updated_schedule
 
     @handle_service_errors("軟刪除時段")
@@ -304,16 +262,7 @@ class ScheduleService:
         deleted_by: int | None = None,
         deleted_by_role: UserRoleEnum | None = None,
     ) -> bool:
-        """
-        軟刪除時段。
-        """
-        # 記錄刪除操作
-        if deleted_by and deleted_by_role:
-            self.logger.info(
-                f"時段 {schedule_id} 正在被使用者 {deleted_by} "
-                f"(角色: {deleted_by_role.value}) 軟刪除"
-            )
-
+        """軟刪除時段。"""
         # 使用 CRUD 層執行軟刪除
         deletion_success = self.schedule_crud.delete_schedule(
             db, schedule_id, deleted_by, deleted_by_role

@@ -1,5 +1,4 @@
-"""
-使用者服務層模組。
+"""使用者服務層模組。
 
 提供使用者相關的業務邏輯處理，包括使用者管理、驗證等。
 """
@@ -34,22 +33,7 @@ class UserService:
         db: Session,
         user_data: UserCreate,
     ) -> User:
-        """
-        建立使用者（業務邏輯層）。
-
-        Args:
-            db: 資料庫會話
-            user_data: 使用者資料
-
-        Returns:
-            User: 建立成功的使用者物件
-
-        Raises:
-            ValueError: 當 email 已存在時
-        """
-        # 記錄建立操作
-        self.logger.info(f"正在建立使用者: {user_data.name} ({user_data.email})")
-
+        """建立使用者。"""
         # 業務邏輯：檢查 email 是否已存在
         existing_user = user_crud.get_user_by_email(db, user_data.email)
         if existing_user:
@@ -57,7 +41,6 @@ class UserService:
             self.logger.warning(error_msg)
             raise ValueError("此電子信箱已被使用")
 
-        # 使用 CRUD 層建立使用者
         user = user_crud.create_user(db, user_data)
 
         self.logger.info(f"使用者建立成功: ID={user.id}, 名稱={user.name}")
@@ -71,24 +54,7 @@ class UserService:
         skip: int = 0,
         limit: int = 100,
     ) -> list[User]:
-        """
-        查詢使用者列表（業務邏輯層）。
-
-        Args:
-            db: 資料庫會話
-            skip: 跳過的記錄數（用於分頁）
-            limit: 限制返回的記錄數（用於分頁）
-
-        Returns:
-            list[User]: 使用者列表
-
-        Raises:
-            DatabaseError: 當資料庫操作失敗時
-        """
-        # 記錄查詢操作
-        self.logger.info(f"查詢使用者列表: skip={skip}, limit={limit}")
-
-        # 使用 CRUD 層查詢使用者
+        """查詢使用者列表。"""
         users = user_crud.get_users(db, skip, limit)
 
         self.logger.info(f"查詢完成，找到 {len(users)} 個使用者")
@@ -97,23 +63,7 @@ class UserService:
     @handle_service_errors("查詢單一使用者")
     @log_operation("查詢單一使用者")
     def get_user_by_id(self, db: Session, user_id: int) -> User | None:
-        """
-        根據 ID 查詢使用者（業務邏輯層）。
-
-        Args:
-            db: 資料庫會話
-            user_id: 使用者 ID
-
-        Returns:
-            User | None: 找到的使用者物件，如果不存在則返回 None
-
-        Raises:
-            DatabaseError: 當資料庫操作失敗時
-        """
-        # 記錄查詢操作
-        self.logger.info(f"查詢使用者: user_id={user_id}")
-
-        # 使用 CRUD 層查詢使用者
+        """根據 ID 查詢使用者。"""
         user = user_crud.get_user_by_id(db, user_id)
 
         if user:
@@ -126,22 +76,7 @@ class UserService:
     @handle_service_errors("查詢使用者數量")
     @log_operation("查詢使用者數量")
     def get_users_count(self, db: Session) -> int:
-        """
-        查詢使用者總數（業務邏輯層）。
-
-        Args:
-            db: 資料庫會話
-
-        Returns:
-            int: 使用者總數
-
-        Raises:
-            DatabaseError: 當資料庫操作失敗時
-        """
-        # 記錄查詢操作
-        self.logger.info("查詢使用者總數")
-
-        # 使用 CRUD 層查詢使用者數量
+        """查詢使用者總數。"""
         count = user_crud.get_users_count(db)
 
         self.logger.info(f"使用者總數: {count}")

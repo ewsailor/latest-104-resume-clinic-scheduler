@@ -1,5 +1,4 @@
-"""
-應用程式工廠模組。
+"""應用程式工廠模組。
 
 負責建立和配置 FastAPI 應用程式的各個組件，包括靜態檔案服務、模板引擎等。
 """
@@ -15,41 +14,17 @@ from app.middleware.cors import setup_cors_middleware
 
 
 def create_static_files(settings: Settings) -> StaticFiles:
-    """
-    建立並配置靜態檔案服務。
-
-    Args:
-        settings: 應用程式設定物件。
-
-    Returns:
-        StaticFiles: 配置完成的靜態檔案服務實例。
-    """
+    """建立並配置靜態檔案服務。"""
     return StaticFiles(directory=str(settings.static_dir))
 
 
 def create_templates(settings: Settings) -> Jinja2Templates:
-    """
-    建立並配置 Jinja2 模板引擎。
-
-    Args:
-        settings: 應用程式設定物件。
-
-    Returns:
-        Jinja2Templates: 配置完成的模板引擎實例。
-    """
+    """建立並配置 Jinja2 模板引擎。"""
     return Jinja2Templates(directory=str(settings.templates_dir))
 
 
 def create_app(settings: Settings) -> FastAPI:
-    """
-    建立並配置 FastAPI 應用程式。
-
-    Args:
-        settings: 應用程式設定物件。
-
-    Returns:
-        FastAPI: 配置完成的 FastAPI 應用程式實例。
-    """
+    """建立並配置 FastAPI 應用程式。"""
     # 根據環境決定是否顯示 API 文件
     docs_url = settings.docs_url if settings.debug else None
     redoc_url = settings.redoc_url if settings.debug else None

@@ -1,12 +1,11 @@
-"""
-常數定義模組。
+"""常數定義模組。
 
 集中管理系統中使用的常數，包括日期格式、週名稱、錯誤訊息等。
 """
 
 
 class WeekdayNames:
-    """週名稱常數"""
+    """週名稱常數。"""
 
     # Python datetime.weekday() 對應 (週一=0, 週日=6)
     CHINESE_WEEKDAYS: list[str] = [
@@ -35,7 +34,7 @@ class WeekdayNames:
 
 
 class DateTimeFormats:
-    """日期時間格式常數"""
+    """日期時間格式常數。"""
 
     DATE_FORMAT: str = "%Y/%m/%d"
     TIME_FORMAT: str = "%H:%M"
@@ -49,7 +48,7 @@ class DateTimeFormats:
 
 
 class ScheduleConstants:
-    """時段相關常數"""
+    """時段相關常數。"""
 
     # 時段顯示格式模板
     DATE_WITH_WEEKDAY_TEMPLATE: str = "{date}（{weekday}）"
@@ -58,7 +57,7 @@ class ScheduleConstants:
 
 
 class ErrorMessages:
-    """錯誤訊息常數"""
+    """錯誤訊息常數。"""
 
     SCHEDULE_OVERLAP_TEMPLATE: str = (
         "您正輸入的時段，和您之前曾輸入的「{overlapping_info}」時段重複或重疊，請重新輸入"
