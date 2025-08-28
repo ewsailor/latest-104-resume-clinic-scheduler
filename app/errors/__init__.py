@@ -3,10 +3,9 @@
 提供統一的錯誤處理機制，包括錯誤類型定義、錯誤處理函式和格式化功能。
 """
 
+# ===== 本地模組 =====
 from .error_codes.cors import CORSErrorCode
 from .error_codes.crud import CRUDErrorCode
-
-# ===== 本地模組 =====
 from .error_codes.router import RouterErrorCode
 from .error_codes.service import ServiceErrorCode
 from .error_codes.system import SystemErrorCode
@@ -47,6 +46,7 @@ __all__ = [
     "CORSErrorCode",
     "SystemErrorCode",
     # ===== 錯誤類別 =====
+    # 基礎錯誤類別
     "APIError",
     # Router 層級
     "ValidationError",

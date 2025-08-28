@@ -29,7 +29,8 @@ router = APIRouter(prefix="/api/v1", tags=["Schedules"])
 )
 @handle_api_errors()
 async def create_schedules(
-    request: ScheduleCreateRequest, db: Session = Depends(get_db)
+    request: ScheduleCreateRequest,
+    db: Session = Depends(get_db),
 ) -> list[ScheduleResponse]:
     """建立多個時段。"""
     schedules = schedule_service.create_schedules(

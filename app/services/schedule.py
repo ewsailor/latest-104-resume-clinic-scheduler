@@ -23,7 +23,7 @@ from app.errors import (
     ConflictError,
 )
 from app.models.schedule import Schedule
-from app.schemas import ScheduleData
+from app.schemas import ScheduleBase
 
 
 class ScheduleService:
@@ -79,7 +79,7 @@ class ScheduleService:
     def determine_schedule_status(
         self,
         created_by_role: UserRoleEnum,
-        schedule_data: ScheduleData,
+        schedule_data: ScheduleBase,
     ) -> ScheduleStatusEnum:
         """根據建立者角色決定時段狀態。"""
         if created_by_role == UserRoleEnum.TAKER:
@@ -90,7 +90,7 @@ class ScheduleService:
             # 使用傳入的狀態或預設為 DRAFT
             return schedule_data.status or ScheduleStatusEnum.DRAFT
 
-    def log_schedule_details(self, schedules: list[ScheduleData]) -> None:
+    def log_schedule_details(self, schedules: list[ScheduleBase]) -> None:
         """記錄時段詳情。"""
         schedule_details = []
         for i, schedule_data in enumerate(schedules):
@@ -104,7 +104,7 @@ class ScheduleService:
     @log_operation("建立時段物件列表")
     def create_schedule_objects(
         self,
-        schedules: list[ScheduleData],
+        schedules: list[ScheduleBase],
         created_by: int,
         created_by_role: UserRoleEnum,
     ) -> list[Schedule]:
@@ -138,7 +138,7 @@ class ScheduleService:
     def create_schedules(
         self,
         db: Session,
-        schedules: list[ScheduleData],
+        schedules: list[ScheduleBase],
         created_by: int,
         created_by_role: UserRoleEnum,
     ) -> list[Schedule]:

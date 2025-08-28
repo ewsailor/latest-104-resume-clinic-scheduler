@@ -10,6 +10,7 @@ from typing import Generator
 # ===== 第三方套件 =====
 from fastapi import HTTPException
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 # ===== 本地模組 =====
@@ -26,7 +27,7 @@ Base = declarative_base()
 
 
 @log_operation("建立資料庫引擎")
-def create_database_engine() -> tuple[create_engine, sessionmaker]:
+def create_database_engine() -> tuple[Engine, sessionmaker]:
     """建立資料庫引擎和會話工廠。"""
     DATABASE_URL = settings.mysql_connection_string
 

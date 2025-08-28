@@ -10,9 +10,13 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+# ===== 本地模組 =====
+from app.decorators import log_operation
+
 logger = logging.getLogger(__name__)
 
 
+@log_operation("設定 CORS 中間件")
 def setup_cors_middleware(app: FastAPI) -> None:
     """設定 CORS 中間件。"""
 
@@ -38,5 +42,3 @@ def setup_cors_middleware(app: FastAPI) -> None:
         allow_methods=methods,
         allow_headers=headers,
     )
-
-    logger.info("CORS 中間件設定完成")

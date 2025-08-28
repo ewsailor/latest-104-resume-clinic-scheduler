@@ -13,6 +13,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
 # ===== 本地模組 =====
+from app.decorators import log_operation
 from app.errors import format_error_response
 
 logger = logging.getLogger(__name__)
@@ -42,7 +43,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
         return JSONResponse(status_code=status_code, content=error_response)
 
 
+@log_operation("設定全域錯誤處理器")
 def setup_error_handlers(app: FastAPI) -> None:
-    """設定錯誤處理器。"""
+    """設定全域錯誤處理器。"""
     app.add_middleware(ErrorHandlerMiddleware)
-    logger.info("錯誤處理器設定完成")

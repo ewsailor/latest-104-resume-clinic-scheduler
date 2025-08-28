@@ -5,8 +5,11 @@
 
 # ===== 本地模組 =====
 from .cors import setup_cors_middleware
+from .error_handler import setup_error_handlers
 
 __all__ = [
     # CORS 中間件
     "setup_cors_middleware",
+    # 錯誤處理中間件
+    "setup_error_handlers",
 ]

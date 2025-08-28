@@ -32,7 +32,7 @@ class User(Base):
         comment="使用者 ID",
     )
     name = Column(
-        String(100),
+        String(50),
         nullable=False,
         comment="使用者姓名",
     )

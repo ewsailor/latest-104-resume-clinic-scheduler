@@ -13,16 +13,24 @@ from pydantic import BaseModel, EmailStr, Field
 class UserCreate(BaseModel):
     """建立使用者的請求模型。"""
 
-    name: str = Field(..., description="使用者姓名")
-    email: EmailStr = Field(..., description="電子信箱")
+    name: str = Field(
+        ..., description="使用者姓名", min_length=1, max_length=50, example="張三"
+    )
+    email: EmailStr = Field(..., description="電子信箱", example="zhangsan@example.com")
 
 
 class UserResponse(BaseModel):
     """使用者回應模型。"""
 
-    id: int
-    name: str
-    email: EmailStr
-    created_at: datetime = Field(description="建立時間（本地時間）")
-    updated_at: datetime = Field(description="更新時間（本地時間）")
-    deleted_at: datetime | None = Field(None, description="軟刪除標記（本地時間）")
+    id: int = Field(..., description="使用者 ID", gt=0, example=1)
+    name: str = Field(..., description="使用者姓名", example="張三")
+    email: EmailStr = Field(..., description="電子信箱", example="zhangsan@example.com")
+    created_at: datetime = Field(
+        ..., description="建立時間（本地時間）", example=datetime(2025, 9, 15, 9, 0)
+    )
+    updated_at: datetime = Field(
+        ..., description="更新時間（本地時間）", example=datetime(2025, 9, 15, 9, 0)
+    )
+    deleted_at: datetime | None = Field(
+        None, description="軟刪除標記（本地時間）", example=None
+    )

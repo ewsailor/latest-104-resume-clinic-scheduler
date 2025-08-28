@@ -6,14 +6,14 @@
 - 資料型別安全保證
 
 包含：
-- 時段相關模式（ScheduleData, ScheduleResponse 等）
+- 時段相關模式（ScheduleBase, ScheduleResponse 等）
 - 使用者相關模式（UserCreate, UserResponse 等）
 """
 
 # ===== 本地模組 =====
 from .schedule import (
+    ScheduleBase,
     ScheduleCreateRequest,
-    ScheduleData,
     ScheduleDeleteRequest,
     SchedulePartialUpdateRequest,
     ScheduleResponse,
@@ -27,7 +27,7 @@ __all__ = [
     "UserCreate",
     "UserResponse",
     # 時段相關模式
-    "ScheduleData",
+    "ScheduleBase",
     "ScheduleCreateRequest",
     "ScheduleUpdateData",
     "ScheduleUpdateRequest",
