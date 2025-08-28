@@ -12,6 +12,7 @@ from sqlalchemy import and_
 from sqlalchemy.orm import Session, joinedload
 
 # ===== 本地模組 =====
+from app.decorators import log_operation
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
 from app.errors import (
     create_schedule_not_found_error,
@@ -77,28 +78,28 @@ class ScheduleCRUD:
         self.logger.debug(f"建立查詢選項: {len(options)} 個關聯載入選項")
         return options
 
+    @log_operation("建立多個時段")
     def create_schedules(
         self,
         db: Session,
-        schedule_objects: list[Schedule],
+        schedules: list[Schedule],
     ) -> list[Schedule]:
         """建立多個時段。"""
         # 批量新增到資料庫
-        db.add_all(schedule_objects)
+        db.add_all(schedules)
         db.commit()
 
         # 重新整理物件以取得 ID
-        for schedule in schedule_objects:
+        for schedule in schedules:
             db.refresh(schedule)
 
         # 記錄建立的時段
         self.logger.info(
-            f"成功建立 {len(schedule_objects)} 個時段，"
-            f"ID範圍: {[s.id for s in schedule_objects]}"
+            f"成功建立 {len(schedules)} 個時段，" f"ID範圍: {[s.id for s in schedules]}"
         )
 
         # 返回建立的時段列表
-        return schedule_objects
+        return schedules
 
     def get_schedules(
         self,
@@ -180,6 +181,7 @@ class ScheduleCRUD:
         # 返回時段
         return schedule
 
+    @log_operation("更新時段")
     def update_schedule(
         self,
         db: Session,
@@ -229,6 +231,7 @@ class ScheduleCRUD:
         # 返回更新後的時段
         return schedule
 
+    @log_operation("軟刪除時段")
     def delete_schedule(
         self,
         db: Session,
