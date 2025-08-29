@@ -57,7 +57,7 @@ async def get_schedules(
     db: Session = Depends(get_db),
 ) -> list[ScheduleResponse]:
     """取得時段列表。"""
-    schedules = schedule_service.get_schedules(
+    schedules = schedule_service.list_schedules(
         db,
         giver_id,
         taker_id,
@@ -78,7 +78,7 @@ async def get_schedule(
     db: Session = Depends(get_db),
 ) -> ScheduleResponse:
     """根據 ID 取得單一時段。"""
-    schedule = schedule_service.get_schedule_by_id(db, schedule_id)
+    schedule = schedule_service.get_schedule(db, schedule_id)
 
     return ScheduleResponse.model_validate(schedule)
 

@@ -223,13 +223,13 @@ class TestScheduleAPI:
             assert schedule["giver_id"] == 1
             assert schedule["status"] == "AVAILABLE"
 
-    @patch('app.routers.api.schedule.schedule_crud.get_schedules')
-    def test_get_schedules_exception_handling(self, mock_get_schedules):
+    @patch('app.routers.api.schedule.schedule_crud.list_schedules')
+    def test_list_schedules_exception_handling(self, mock_list_schedules):
         """測試取得時段列表時的異常處理。"""
         log_test_info("測試取得時段列表時的異常處理")
 
         # 模擬異常
-        mock_get_schedules.side_effect = Exception("查詢錯誤")
+        mock_list_schedules.side_effect = Exception("查詢錯誤")
 
         # 執行測試
         response = client.get("/api/v1/schedules")
@@ -297,13 +297,13 @@ class TestScheduleAPI:
         # 檢查錯誤訊息是否包含預期的文字
         assert "時段不存在: ID=999" in str(data["error"]["message"])
 
-    @patch('app.routers.api.schedule.schedule_crud.get_schedule_by_id')
-    def test_get_schedule_exception_handling(self, mock_get_schedule_by_id):
+    @patch('app.routers.api.schedule.schedule_crud.get_schedule')
+    def test_get_schedule_exception_handling(self, mock_get_schedule):
         """測試取得單一時段時的異常處理。"""
         log_test_info("測試取得單一時段時的異常處理")
 
         # 模擬異常
-        mock_get_schedule_by_id.side_effect = Exception("查詢錯誤")
+        mock_get_schedule.side_effect = Exception("查詢錯誤")
 
         # 執行測試
         response = client.get("/api/v1/schedules/1")

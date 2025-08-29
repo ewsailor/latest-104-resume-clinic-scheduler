@@ -140,7 +140,7 @@ class TestAPIScheduleSimple:
         """測試成功查詢時段列表。"""
         # 模擬服務層操作
         with patch(
-            'app.services.schedule_service.get_schedules',
+            'app.services.schedule_service.list_schedules',
             return_value=[mock_schedule],
         ):
             # 執行測試
@@ -157,7 +157,7 @@ class TestAPIScheduleSimple:
         """測試帶篩選條件的時段查詢。"""
         # 模擬服務層操作
         with patch(
-            'app.services.schedule_service.get_schedules',
+            'app.services.schedule_service.list_schedules',
             return_value=[mock_schedule],
         ):
             # 執行測試
@@ -175,7 +175,7 @@ class TestAPIScheduleSimple:
         """測試根據 ID 查詢單一時段。"""
         # 模擬服務層操作
         with patch(
-            'app.services.schedule_service.get_schedule_by_id',
+            'app.services.schedule_service.get_schedule',
             return_value=mock_schedule,
         ):
             # 執行測試
@@ -191,7 +191,7 @@ class TestAPIScheduleSimple:
         """測試查詢不存在的時段。"""
         # 模擬服務層操作
         with patch(
-            'app.services.schedule_service.get_schedule_by_id',
+            'app.services.schedule_service.get_schedule',
             return_value=None,
         ):
             # 執行測試

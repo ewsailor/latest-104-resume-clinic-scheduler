@@ -177,7 +177,7 @@ class ScheduleService:
 
     @handle_service_errors("查詢時段列表")
     @log_operation("查詢時段列表")
-    def get_schedules(
+    def list_schedules(
         self,
         db: Session,
         giver_id: int | None = None,
@@ -186,7 +186,7 @@ class ScheduleService:
     ) -> list[Schedule]:
         """查詢時段列表。"""
         # 使用 CRUD 層查詢時段
-        schedules = self.schedule_crud.get_schedules(
+        schedules = self.schedule_crud.list_schedules(
             db, giver_id, taker_id, status_filter
         )
 
@@ -195,14 +195,14 @@ class ScheduleService:
 
     @handle_service_errors("查詢單一時段")
     @log_operation("查詢單一時段")
-    def get_schedule_by_id(
+    def get_schedule(
         self,
         db: Session,
         schedule_id: int,
     ) -> Schedule:
         """根據 ID 查詢單一時段。"""
         # 使用 CRUD 層查詢時段
-        schedule = self.schedule_crud.get_schedule_by_id(db, schedule_id)
+        schedule = self.schedule_crud.get_schedule(db, schedule_id)
 
         return schedule
 
@@ -224,7 +224,7 @@ class ScheduleService:
 
         if need_overlap_check:
             # 先取得現有時段資訊
-            schedule = self.schedule_crud.get_schedule_by_id(db, schedule_id)
+            schedule = self.schedule_crud.get_schedule(db, schedule_id)
 
             # 取得更新後的時間值
             new_date = kwargs.get("schedule_date", schedule.date)

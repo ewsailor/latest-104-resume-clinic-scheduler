@@ -110,7 +110,7 @@ class TestScheduleCRUD:
         # 暫時跳過此測試
         pytest.skip("重疊檢查功能尚未實作")
 
-    def test_get_schedules_all(self, db_session: Session):
+    def test_list_schedules_all(self, db_session: Session):
         """測試查詢所有時段。"""
         crud = ScheduleCRUD()
 
@@ -137,11 +137,11 @@ class TestScheduleCRUD:
         db_session.add_all([schedule1, schedule2])
         db_session.commit()
 
-        schedules = crud.get_schedules(db_session)
+        schedules = crud.list_schedules(db_session)
 
         assert len(schedules) == 2
 
-    def test_get_schedules_filter_by_giver_id(self, db_session: Session):
+    def test_list_schedules_filter_by_giver_id(self, db_session: Session):
         """測試根據 giver_id 篩選時段。"""
         crud = ScheduleCRUD()
 
@@ -169,12 +169,12 @@ class TestScheduleCRUD:
         db_session.add_all([schedule1, schedule2])
         db_session.commit()
 
-        schedules = crud.get_schedules(db_session, giver_id=user1.id)
+        schedules = crud.list_schedules(db_session, giver_id=user1.id)
 
         assert len(schedules) == 1
         assert schedules[0].giver_id == user1.id
 
-    def test_get_schedules_filter_by_status(self, db_session: Session):
+    def test_list_schedules_filter_by_status(self, db_session: Session):
         """測試根據狀態篩選時段。"""
         crud = ScheduleCRUD()
 
@@ -201,14 +201,14 @@ class TestScheduleCRUD:
         db_session.add_all([schedule1, schedule2])
         db_session.commit()
 
-        schedules = crud.get_schedules(
+        schedules = crud.list_schedules(
             db_session, status_filter=ScheduleStatusEnum.AVAILABLE
         )
 
         assert len(schedules) == 1
         assert schedules[0].status == ScheduleStatusEnum.AVAILABLE
 
-    def test_get_schedules_filter_by_both(self, db_session: Session):
+    def test_list_schedules_filter_by_both(self, db_session: Session):
         """測試同時根據 giver_id 和狀態篩選時段。"""
         crud = ScheduleCRUD()
 
@@ -243,7 +243,7 @@ class TestScheduleCRUD:
         db_session.add_all([schedule1, schedule2, schedule3])
         db_session.commit()
 
-        schedules = crud.get_schedules(
+        schedules = crud.list_schedules(
             db_session, giver_id=user1.id, status_filter=ScheduleStatusEnum.AVAILABLE
         )
 
@@ -251,7 +251,7 @@ class TestScheduleCRUD:
         assert schedules[0].giver_id == user1.id
         assert schedules[0].status == ScheduleStatusEnum.AVAILABLE
 
-    def test_get_schedules_exclude_deleted(self, db_session: Session):
+    def test_list_schedules_exclude_deleted(self, db_session: Session):
         """測試查詢時段時排除已軟刪除的記錄。"""
         crud = ScheduleCRUD()
 
@@ -282,13 +282,13 @@ class TestScheduleCRUD:
         crud.delete_schedule(db_session, schedule1.id)
 
         # 查詢時段，應該只返回未刪除的時段
-        schedules = crud.get_schedules(db_session, giver_id=user.id)
+        schedules = crud.list_schedules(db_session, giver_id=user.id)
 
         assert len(schedules) == 1
         assert schedules[0].id == schedule2.id
         assert schedules[0].deleted_at is None
 
-    def test_get_schedule_by_id_success(self, db_session: Session):
+    def test_get_schedule_success(self, db_session: Session):
         """測試成功根據 ID 查詢時段。"""
         crud = ScheduleCRUD()
 
@@ -308,18 +308,18 @@ class TestScheduleCRUD:
         db_session.add(schedule)
         db_session.commit()
 
-        found_schedule = crud.get_schedule_by_id(db_session, schedule.id)
+        found_schedule = crud.get_schedule(db_session, schedule.id)
 
         assert found_schedule is not None
         assert found_schedule.id == schedule.id
         assert found_schedule.giver_id == user.id
 
-    def test_get_schedule_by_id_not_found(self, db_session: Session):
+    def test_get_schedule_not_found(self, db_session: Session):
         """測試根據不存在的 ID 查詢時段。"""
         crud = ScheduleCRUD()
 
         with pytest.raises(ScheduleNotFoundError, match="時段不存在: ID=999"):
-            crud.get_schedule_by_id(db_session, 999)
+            crud.get_schedule(db_session, 999)
 
     def test_update_schedule_success(self, db_session: Session):
         """測試成功更新時段。"""
@@ -490,10 +490,10 @@ class TestScheduleCRUD:
 
         # 確認時段已被軟刪除（在正常查詢中不可見）
         with pytest.raises(ScheduleNotFoundError, match="時段不存在: ID=1"):
-            crud.get_schedule_by_id(db_session, schedule.id)
+            crud.get_schedule(db_session, schedule.id)
 
         # 確認時段仍然存在但已被軟刪除
-        found_schedule_with_deleted = crud.get_schedule_by_id_including_deleted(
+        found_schedule_with_deleted = crud.get_schedule_including_deleted(
             db_session, schedule.id
         )
         assert found_schedule_with_deleted is not None
@@ -536,7 +536,7 @@ class TestScheduleCRUD:
         assert result2 is True
 
         # 確認時段仍然存在但已被軟刪除
-        found_schedule_with_deleted = crud.get_schedule_by_id_including_deleted(
+        found_schedule_with_deleted = crud.get_schedule_including_deleted(
             db_session, schedule.id
         )
         assert found_schedule_with_deleted is not None

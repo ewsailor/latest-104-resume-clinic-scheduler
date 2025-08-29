@@ -101,7 +101,7 @@ class ScheduleCRUD:
         # 返回建立的時段列表
         return schedules
 
-    def get_schedules(
+    def list_schedules(
         self,
         db: Session,
         giver_id: int | None = None,
@@ -141,7 +141,7 @@ class ScheduleCRUD:
         # 返回時段列表
         return schedules
 
-    def get_schedule_by_id(
+    def get_schedule(
         self,
         db: Session,
         schedule_id: int,
@@ -162,7 +162,7 @@ class ScheduleCRUD:
         # 返回時段
         return schedule
 
-    def get_schedule_by_id_including_deleted(
+    def get_schedule_including_deleted(
         self,
         db: Session,
         schedule_id: int,
@@ -192,7 +192,7 @@ class ScheduleCRUD:
     ) -> Schedule:
         """更新時段。"""
         # 驗證時段是否存在
-        schedule = self.get_schedule_by_id(db, schedule_id)
+        schedule = self.get_schedule(db, schedule_id)
 
         # 設定更新者資訊
         schedule.updated_by = updated_by
@@ -241,7 +241,7 @@ class ScheduleCRUD:
     ) -> bool:
         """軟刪除時段。"""
         # 檢查時段是否存在
-        schedule = self.get_schedule_by_id_including_deleted(db, schedule_id)
+        schedule = self.get_schedule_including_deleted(db, schedule_id)
         if not schedule:
             return False
 

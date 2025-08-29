@@ -115,7 +115,7 @@ class TestAPIScheduleComprehensive:
         """直接測試成功查詢時段函數。"""
         # 模擬服務層操作
         with patch(
-            'app.services.schedule_service.get_schedules', return_value=[mock_schedule]
+            'app.services.schedule_service.list_schedules', return_value=[mock_schedule]
         ):
             # 執行測試
             result = await get_schedules(db=mock_db)
@@ -166,7 +166,7 @@ class TestAPIScheduleComprehensive:
         """測試成功查詢時段的 HTTP 端點。"""
         # 模擬服務層操作
         with patch(
-            'app.services.schedule_service.get_schedules', return_value=[mock_schedule]
+            'app.services.schedule_service.list_schedules', return_value=[mock_schedule]
         ):
             # 執行測試
             response = client.get("/api/v1/schedules")
@@ -183,7 +183,7 @@ class TestAPIScheduleComprehensive:
         """測試帶篩選條件的時段查詢。"""
         # 模擬服務層操作
         with patch(
-            'app.services.schedule_service.get_schedules', return_value=[mock_schedule]
+            'app.services.schedule_service.list_schedules', return_value=[mock_schedule]
         ):
             # 執行測試
             response = client.get(
@@ -201,7 +201,7 @@ class TestAPIScheduleComprehensive:
         """測試根據 ID 查詢單一時段。"""
         # 模擬服務層操作
         with patch(
-            'app.services.schedule_service.get_schedule_by_id',
+            'app.services.schedule_service.get_schedule',
             return_value=mock_schedule,
         ):
             # 執行測試
