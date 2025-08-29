@@ -151,11 +151,39 @@ class Schedule(Base):
         comment="刪除者角色",
     )
 
-    giver = relationship("User", foreign_keys=[giver_id], lazy="joined")
-    taker = relationship("User", foreign_keys=[taker_id], lazy="joined")
-    created_by_user = relationship("User", foreign_keys=[created_by], lazy="joined")
-    updated_by_user = relationship("User", foreign_keys=[updated_by], lazy="joined")
-    deleted_by_user = relationship("User", foreign_keys=[deleted_by], lazy="joined")
+    # ===== 反向關聯 =====
+    # 高頻使用：使用 lazy="join" 每次查詢都會載入關聯資料，避免 N+1 問題
+    giver = relationship(
+        "User",
+        foreign_keys=[giver_id],
+        back_populates="giver_schedules",
+        lazy="joined",
+    )
+    taker = relationship(
+        "User",
+        foreign_keys=[taker_id],
+        back_populates="taker_schedules",
+        lazy="joined",
+    )
+    # 審計欄位低頻使用：使用 lazy="select" 需要時再載入
+    created_by_user = relationship(
+        "User",
+        foreign_keys=[created_by],
+        back_populates="created_schedules",
+        lazy="select",
+    )
+    updated_by_user = relationship(
+        "User",
+        foreign_keys=[updated_by],
+        back_populates="updated_schedules",
+        lazy="select",
+    )
+    deleted_by_user = relationship(
+        "User",
+        foreign_keys=[deleted_by],
+        back_populates="deleted_schedules",
+        lazy="select",
+    )
 
     __table_args__ = (
         Index("idx_schedule_giver_date", "giver_id", "date", "start_time"),

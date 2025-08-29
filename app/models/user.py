@@ -10,6 +10,7 @@ from typing import Any
 # ===== 第三方套件 =====
 from sqlalchemy import Column, DateTime, Index, String
 from sqlalchemy.dialects.mysql import INTEGER
+from sqlalchemy.orm import relationship
 
 # ===== 本地模組 =====
 # 絕對路徑導入（跨模組）
@@ -61,7 +62,50 @@ class User(Base):
         comment="軟刪除標記（本地時間）",
     )
 
+    # ===== 反向關聯 =====
+    # 需要篩選：使用 lazy="dynamic"
+    giver_schedules = relationship(
+        "Schedule",
+        foreign_keys="Schedule.giver_id",
+        back_populates="giver",
+        lazy="dynamic",
+    )
+    taker_schedules = relationship(
+        "Schedule",
+        foreign_keys="Schedule.taker_id",
+        back_populates="taker",
+        lazy="dynamic",
+    )
+    created_schedules = relationship(
+        "Schedule",
+        foreign_keys="Schedule.created_by",
+        back_populates="created_by_user",
+        lazy="dynamic",
+    )
+    updated_schedules = relationship(
+        "Schedule",
+        foreign_keys="Schedule.updated_by",
+        back_populates="updated_by_user",
+        lazy="dynamic",
+    )
+    deleted_schedules = relationship(
+        "Schedule",
+        foreign_keys="Schedule.deleted_by",
+        back_populates="deleted_by_user",
+        lazy="dynamic",
+    )
+
     __table_args__ = (Index("idx_users_created_at", "created_at"),)
+
+    @property
+    def is_active(self) -> bool:
+        """檢查記錄是否有效（未刪除）。"""
+        return self.deleted_at is None
+
+    @property
+    def is_deleted(self) -> bool:
+        """檢查記錄是否已刪除。"""
+        return self.deleted_at is not None
 
     def __repr__(self) -> str:
         """字串表示，用於除錯和日誌。"""
@@ -77,6 +121,9 @@ class User(Base):
                 "created_at": format_datetime(safe_getattr(self, 'created_at')),
                 "updated_at": format_datetime(safe_getattr(self, 'updated_at')),
                 "deleted_at": format_datetime(safe_getattr(self, 'deleted_at')),
+                # 便利屬性
+                "is_active": self.is_active,
+                "is_deleted": self.is_deleted,
             }
         except Exception as e:
             # 記錄錯誤但不中斷程式執行
