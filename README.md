@@ -14,11 +14,21 @@
 - [專案概述](#專案概述)
   - [使用者故事 User Stories](#使用者故事)
   - [使用者流程圖](#使用者流程圖)
+  - 使用者介面示意圖
+- [技術架構](#技術架構)
+  - [技術棧](#技術棧)
+  - 開發工具
+  - [專案結構](#專案結構)
+  - [API 文檔](#api-文檔)
+    - Swagger 連結
+    - postman
+  - 測試
+    - pytest 測試
+    - CI 自動化測試 pre-commit
+- [快速開始](#快速開始)
+
 - [專案特色](#專案特色)
 - [技術架構](#技術架構)
-- [快速開始](#快速開始)
-- [專案結構](#專案結構)
-- [API 文檔](#api-文檔)
 - [測試指南](#測試指南)
 - [開發指南](#開發指南)
 - [故障排除](#故障排除)
@@ -30,6 +40,10 @@
 讓 Giver（診療服務提供者）與 Taker（診療服務接受者）能在平台內，方便地設定可面談時段並完成配對媒合，同時提供即時通知，以減少等待回應時的不確定與焦慮感。
 
 ### <a name="使用者故事"></a>使用者故事 User Stories [返回目錄 ↑](#目錄)
+
+#### 已完成
+
+#### 待開發
 
 - **Giver**
   - 作為 Giver，我希望能查看 Taker 提供的時間並快速回覆，以利進行諮詢
@@ -177,12 +191,13 @@
 │   │   ├── __init__.py           # 路由模組初始化
 │   │   ├── api/                  # API 路由
 │   │   │   ├── __init__.py       # API 路由初始化
-│   │   │   └── schedule.py       # 時段管理 API
+│   │   │   ├── schedule.py       # 時段管理 API
+│   │   │   └── givers.py         # Giver 管理 API
 │   │   ├── health.py             # 健康檢查端點
 │   │   └── main.py               # 主要路由
 │   ├── services/                 # 業務邏輯層
 │   │   ├── __init__.py           # 服務層模組初始化
-│   │   └── schedule_service.py   # 時段業務邏輯服務
+│   │   └── schedule.py           # 時段業務邏輯服務
 │   ├── crud/                     # 資料庫操作
 │   │   ├── __init__.py           # CRUD 模組初始化
 │   │   └── schedule.py           # 時段 CRUD 操作
@@ -196,14 +211,14 @@
 │   ├── utils/                    # 工具模組
 │   │   ├── __init__.py           # 工具模組初始化
 │   │   ├── timezone.py           # 時區處理工具
-│   │   ├── model_helpers.py      # 模型輔助工具
-│   │   ├── constants.py          # 常數定義
-│   │   └── decorators/           # 裝飾器模組
-│   │       ├── __init__.py       # 裝飾器模組初始化
-│   │       ├── crud_decorators.py # CRUD 裝飾器
-│   │       └── README.md         # 裝飾器使用說明
+│   │   └── model_helpers.py      # 模型輔助工具
+│   ├── decorators/               # 裝飾器模組
+│   │   ├── __init__.py           # 裝飾器模組初始化
+│   │   ├── logging.py            # 日誌裝飾器
+│   │   └── error_handlers.py     # 錯誤處理裝飾器
 │   ├── data/                     # 資料模組
-│   │   └── __init__.py           # 資料模組初始化
+│   │   ├── __init__.py           # 資料模組初始化
+│   │   └── givers.py             # Giver 資料
 │   ├── enums/                    # 列舉型別
 │   │   ├── __init__.py           # 列舉模組初始化
 │   │   ├── models.py             # 模型相關列舉
@@ -252,10 +267,10 @@
 │   │   ├── api/                  # API 端點測試
 │   │   │   ├── __init__.py       # API 測試初始化
 │   │   │   ├── test_main.py      # 主要路由測試
-
 │   │   │   ├── test_api_schedule_comprehensive.py # 排程 API 綜合測試
 │   │   │   ├── test_api_schedule_routes.py # 排程 API 路由測試
 │   │   │   ├── test_api_schedule_simple.py # 排程 API 簡單測試
+│   │   │   ├── test_api_givers.py # Giver API 測試
 │   │   │   ├── test_health.py    # 健康檢查測試
 │   │   │   └── test_health_new_style.py # 新版健康檢查測試
 │   │   └── database/             # 資料庫整合測試
