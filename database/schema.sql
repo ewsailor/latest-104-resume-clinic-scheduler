@@ -76,39 +76,39 @@ CREATE INDEX `idx_users_created_at`
 DROP TABLE IF EXISTS `schedules`;
 CREATE TABLE `schedules` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY 
-        COMMENT '諮詢時段 ID',
+        COMMENT '時段 ID',
     `giver_id` INT UNSIGNED NOT NULL 
-        COMMENT 'Giver 使用者 ID',
+        COMMENT 'Giver ID',
     `taker_id` INT UNSIGNED NULL 
-        COMMENT 'Taker 使用者 ID，可為 NULL（表示 Giver 提供時段供 Taker 預約）',
+        COMMENT 'Taker ID，可為 NULL（表示 Giver 提供時段供 Taker 預約）',
     `status` ENUM('DRAFT', 'AVAILABLE', 'PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED', 'COMPLETED') NOT NULL DEFAULT 'DRAFT'
-        COMMENT '諮詢時段狀態',
+        COMMENT '時段狀態（後端會根據操作者角色自動決定：GIVER→AVAILABLE，TAKER→PENDING，其他→DRAFT）',
     `date` DATE NOT NULL 
-        COMMENT '日期',
+        COMMENT '時段日期',
     `start_time` TIME NOT NULL 
         COMMENT '開始時間',
     `end_time` TIME NOT NULL 
         COMMENT '結束時間',
     `note` VARCHAR(255) NULL 
-        COMMENT '備註，可為空',
+        COMMENT '備註',
     
     -- ===== 審計欄位 =====
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL 
         COMMENT '建立時間（本地時間）',
     `created_by` INT UNSIGNED NULL
-        COMMENT '建立者的使用者 ID，可為 NULL（表示系統自動建立）',
+        COMMENT '建立者的 ID，可為 NULL（表示系統自動建立）',
     `created_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NULL
         COMMENT '建立者角色',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL 
         COMMENT '更新時間（本地時間）',
     `updated_by` INT UNSIGNED NULL 
-        COMMENT '最後更新的使用者 ID，可為 NULL（表示系統自動更新）',
+        COMMENT '最後更新者的 ID，可為 NULL（表示系統自動更新）',
     `updated_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NULL
         COMMENT '最後更新者角色',
     `deleted_at` DATETIME NULL 
         COMMENT '軟刪除標記（本地時間）',
     `deleted_by` INT UNSIGNED NULL
-        COMMENT '刪除者的使用者 ID，可為 NULL（表示系統自動刪除）',
+        COMMENT '刪除者的 ID，可為 NULL（表示系統自動刪除）',
     `deleted_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NULL
         COMMENT '刪除者角色',
     

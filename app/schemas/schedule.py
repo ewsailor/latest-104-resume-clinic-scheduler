@@ -13,11 +13,16 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
 
 
+# ===== 基礎模型 =====
 class ScheduleBase(BaseModel):
     """單一時段資料模型。"""
 
     giver_id: int = Field(..., description="Giver ID", gt=0, example=1)
-    taker_id: int | None = Field(None, description="Taker ID（可選）", example=2)
+    taker_id: int | None = Field(
+        None,
+        description="Taker ID，可為 NULL（表示 Giver 提供時段供 Taker 預約）",
+        example=2,
+    )
     status: ScheduleStatusEnum = Field(
         default=ScheduleStatusEnum.DRAFT,
         description="時段狀態（後端會根據操作者角色自動決定：GIVER→AVAILABLE，TAKER→PENDING，其他→DRAFT）",
@@ -30,39 +35,14 @@ class ScheduleBase(BaseModel):
     end_time: time = Field(..., description="結束時間", example=time(10, 0))
     note: str | None = Field(
         None,
-        description="備註（最多255字元）",
+        description="備註",
         max_length=255,
         example="下週要面試，希望能請教面試技巧",
     )
 
 
-class ScheduleCreateRequest(BaseModel):
-    """批量建立時段的 API 請求模型。"""
-
-    schedules: list[ScheduleBase] = Field(
-        ...,
-        description="要建立的時段列表",
-        min_length=1,
-        example=[
-            {
-                "giver_id": 1,
-                "taker_id": 2,
-                "status": "AVAILABLE",
-                "date": "2025-09-15",
-                "start_time": "09:00:00",
-                "end_time": "10:00:00",
-                "note": "下週要面試，希望能請教面試技巧",
-            }
-        ],
-    )
-    created_by: int = Field(..., description="建立者的 ID（必填）", gt=0, example=1)
-    created_by_role: UserRoleEnum = Field(
-        ..., description="建立者角色（必填）", example=UserRoleEnum.GIVER
-    )
-
-
-class ScheduleUpdateData(BaseModel):
-    """部分更新時段的資料模型 - 所有欄位都是可選的。"""
+class ScheduleUpdateBase(BaseModel):
+    """部分更新時段的基礎模型 - 所有欄位都是可選的。"""
 
     giver_id: int | None = Field(None, description="Giver ID", example=1)
     taker_id: int | None = Field(None, description="Taker ID", example=2)
@@ -77,16 +57,44 @@ class ScheduleUpdateData(BaseModel):
     start_time: time | None = Field(None, description="開始時間", example=time(14, 0))
     end_time: time | None = Field(None, description="結束時間", example=time(15, 0))
     note: str | None = Field(
-        None, description="備註", max_length=255, example="模擬面試諮詢"
+        None,
+        description="備註",
+        max_length=255,
+        example="下週要面試，希望能請教面試技巧",
+    )
+
+
+# ===== 請求模型 =====
+class ScheduleCreateRequest(BaseModel):
+    """批量建立時段的 API 請求模型。"""
+
+    schedules: list[ScheduleBase] = Field(
+        ...,
+        description="要建立的時段列表",
+        example=[
+            {
+                "giver_id": 1,
+                "taker_id": 1,
+                "status": "PENDING",
+                "date": "2025-09-15",
+                "start_time": "09:00:00",
+                "end_time": "10:00:00",
+                "note": "下週要面試，希望能請教面試技巧",
+            }
+        ],
+    )
+    created_by: int = Field(..., description="建立者的 ID", gt=0, example=1)
+    created_by_role: UserRoleEnum = Field(
+        ..., description="建立者角色", example=UserRoleEnum.GIVER
     )
 
 
 class ScheduleUpdateRequest(BaseModel):
-    """完整更新時段的 API 請求模型（用於 PUT 方法）。"""
+    """完整更新時段的 API 請求模型。"""
 
     schedule: ScheduleBase = Field(
         ...,
-        description="完整的時段資料（所有欄位必填）",
+        description="完整的時段資料",
         example={
             "giver_id": 1,
             "taker_id": 2,
@@ -97,43 +105,50 @@ class ScheduleUpdateRequest(BaseModel):
             "note": "職涯諮詢",
         },
     )
-    updated_by: int = Field(..., description="最後更新者的 ID（必填）", gt=0, example=1)
+    updated_by: int = Field(..., description="最後更新者的 ID", gt=0, example=1)
     updated_by_role: UserRoleEnum = Field(
-        ..., description="最後更新者的角色（必填）", example=UserRoleEnum.TAKER
+        ..., description="最後更新者的角色", example=UserRoleEnum.TAKER
     )
 
 
 class SchedulePartialUpdateRequest(BaseModel):
     """部分更新時段的 API 請求模型。"""
 
-    schedule: ScheduleUpdateData = Field(
+    schedule: ScheduleUpdateBase = Field(
         ...,
-        description="要更新的時段資料（部分欄位）",
+        description="要更新的時段資料",
         example={"status": "PENDING", "note": "更新備註"},
     )
-    updated_by: int = Field(..., description="最後更新者的 ID（必填）", gt=0, example=1)
+    updated_by: int = Field(..., description="最後更新者的 ID", gt=0, example=1)
     updated_by_role: UserRoleEnum = Field(
-        ..., description="最後更新者的角色（必填）", example=UserRoleEnum.TAKER
+        ..., description="最後更新者的角色", example=UserRoleEnum.TAKER
     )
 
 
 class ScheduleDeleteRequest(BaseModel):
     """刪除時段的 API 請求模型。"""
 
-    deleted_by: int = Field(..., description="刪除者的 ID（必填）", gt=0, example=1)
+    deleted_by: int = Field(..., description="刪除者的 ID", gt=0, example=1)
     deleted_by_role: UserRoleEnum = Field(
-        ..., description="刪除者角色（必填）", example=UserRoleEnum.GIVER
+        ..., description="刪除者角色", example=UserRoleEnum.GIVER
     )
 
 
+# ===== 回應模型 =====
 class ScheduleResponse(BaseModel):
     """時段回應模型。"""
 
     id: int = Field(..., description="時段 ID", gt=0, example=1)
     giver_id: int = Field(..., description="Giver ID", gt=0, example=1)
-    taker_id: int | None = Field(None, description="Taker ID", example=2)
+    taker_id: int | None = Field(
+        None,
+        description="Taker ID，可為 NULL（表示 Giver 提供時段供 Taker 預約）",
+        example=2,
+    )
     status: ScheduleStatusEnum = Field(
-        ..., description="時段狀態", example=ScheduleStatusEnum.AVAILABLE
+        ...,
+        description="時段狀態（後端會根據操作者角色自動決定：GIVER→AVAILABLE，TAKER→PENDING，其他→DRAFT）",
+        example=ScheduleStatusEnum.AVAILABLE,
     )
     schedule_date: date = Field(
         ..., description="時段日期", alias="date", example=date(2025, 9, 15)
@@ -141,26 +156,35 @@ class ScheduleResponse(BaseModel):
     start_time: time = Field(..., description="開始時間", example=time(9, 0))
     end_time: time = Field(..., description="結束時間", example=time(10, 0))
     note: str | None = Field(
-        None, description="備註", max_length=255, example="履歷健診諮詢"
+        None,
+        description="備註",
+        max_length=255,
+        example="下週要面試，希望能請教面試技巧",
     )
     created_at: datetime = Field(
         ..., description="建立時間（本地時間）", example=datetime(2025, 9, 15, 9, 0)
     )
-    created_by: int | None = Field(None, description="建立者的 ID", example=1)
+    created_by: int | None = Field(
+        None, description="建立者的 ID，可為 NULL（表示系統自動建立）", example=1
+    )
     created_by_role: UserRoleEnum | None = Field(
         None, description="建立者角色", example=UserRoleEnum.GIVER
     )
     updated_at: datetime = Field(
         ..., description="更新時間（本地時間）", example=datetime(2025, 9, 15, 9, 0)
     )
-    updated_by: int | None = Field(None, description="最後更新者的 ID", example=1)
+    updated_by: int | None = Field(
+        None, description="最後更新者的 ID，可為 NULL（表示系統自動更新）", example=1
+    )
     updated_by_role: UserRoleEnum | None = Field(
-        None, description="最後更新者的角色", example=UserRoleEnum.GIVER
+        None, description="最後更新者角色", example=UserRoleEnum.GIVER
     )
     deleted_at: datetime | None = Field(
         None, description="軟刪除標記（本地時間）", example=None
     )
-    deleted_by: int | None = Field(None, description="刪除者的 ID", example=None)
+    deleted_by: int | None = Field(
+        None, description="刪除者的 ID，可為 NULL（表示系統自動刪除）", example=None
+    )
     deleted_by_role: UserRoleEnum | None = Field(
         None, description="刪除者角色", example=None
     )

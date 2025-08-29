@@ -16,7 +16,7 @@ from .schedule import (
     ScheduleDeleteRequest,
     SchedulePartialUpdateRequest,
     ScheduleResponse,
-    ScheduleUpdateData,
+    ScheduleUpdateBase,
     ScheduleUpdateRequest,
 )
 
@@ -24,7 +24,7 @@ __all__ = [
     # 時段相關模式
     "ScheduleBase",
     "ScheduleCreateRequest",
-    "ScheduleUpdateData",
+    "ScheduleUpdateBase",
     "ScheduleUpdateRequest",
     "SchedulePartialUpdateRequest",
     "ScheduleDeleteRequest",
