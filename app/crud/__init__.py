@@ -4,7 +4,6 @@
 
 包含：
 - 時段 CRUD 操作（schedule_crud）
-- 使用者 CRUD 操作（user_crud）
 """
 
 # ===== 本地模組 =====
@@ -17,12 +16,10 @@ from app.enums.operations import (
 
 # 相對路徑導入（同模組）
 from .schedule import schedule_crud
-from .user import user_crud
 
 __all__ = [
     # CRUD 操作實例
     "schedule_crud",
-    "user_crud",
     # 操作相關 ENUM
     "OperationContext",
     "ValidationContext",

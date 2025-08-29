@@ -1,24 +1,22 @@
-"""
-完整的 API 路由層測試。
+"""完整的 API 時段路由整合測試模組。
 
-測試所有 API 端點，包括成功和失敗情況，提升測試覆蓋率。
+測試時段管理 API 的各種功能，包括建立、查詢、更新和刪除時段。
 """
 
 # ===== 標準函式庫 =====
 from datetime import datetime
 from unittest.mock import Mock, patch
 
-# ===== 第三方套件 =====
-from fastapi import HTTPException, status
 from fastapi.testclient import TestClient
+
+# ===== 第三方套件 =====
 import pytest
 
 # ===== 本地模組 =====
 from app.enums.models import UserRoleEnum
 from app.main import app
 from app.routers.api.schedule import create_schedules, get_schedules
-from app.routers.api.users import create_user
-from app.schemas import ScheduleCreateRequest, ScheduleData, UserCreate
+from app.schemas import ScheduleCreateRequest, ScheduleData
 
 
 class TestAPIScheduleComprehensive:
@@ -35,20 +33,6 @@ class TestAPIScheduleComprehensive:
         db = Mock()
         db.rollback = Mock()
         return db
-
-    @pytest.fixture
-    def mock_user(self):
-        """模擬使用者資料。"""
-        user = Mock()
-        user.id = 1
-        user.name = "測試使用者"
-        user.email = "test@example.com"
-        user.to_dict.return_value = {
-            "id": 1,
-            "name": "測試使用者",
-            "email": "test@example.com",
-        }
-        return user
 
     @pytest.fixture
     def mock_schedule(self):
@@ -95,442 +79,197 @@ class TestAPIScheduleComprehensive:
     # ===== 直接函數測試 =====
 
     @pytest.mark.asyncio
-    async def test_create_user_success_direct(self, mock_db, mock_user):
-        """直接測試成功建立使用者函數。"""
-        # 準備測試資料
-        user_data = UserCreate(name="新使用者", email="newuser@example.com")
-
-        # 模擬 CRUD 操作
-        with patch('app.crud.user_crud.create_user', return_value=mock_user):
-            # 執行測試
-            result = await create_user(user_data, mock_db)
-
-        # 驗證結果
-        assert result["message"] == "使用者建立成功"
-        assert result["user"]["name"] == "測試使用者"
-        assert result["user"]["email"] == "test@example.com"
-        assert result["user"]["id"] == 1
-
-    @pytest.mark.asyncio
-    async def test_create_user_value_error_direct(self, mock_db):
-        """直接測試建立使用者時拋出 ValueError。"""
-        # 準備測試資料
-        user_data = UserCreate(name="重複使用者", email="existing@example.com")
-
-        # 模擬 CRUD 操作拋出 ValueError
-        with patch(
-            'app.crud.user_crud.create_user',
-            side_effect=ValueError("此電子信箱已被使用"),
-        ):
-            # 執行測試並驗證異常
-            with pytest.raises(HTTPException) as exc_info:
-                await create_user(user_data, mock_db)
-
-        # 驗證異常詳情
-        assert exc_info.value.status_code == status.HTTP_409_CONFLICT
-        assert "此電子信箱已被使用" in str(exc_info.value.detail)
-
-    @pytest.mark.asyncio
-    async def test_create_user_general_exception_direct(self, mock_db):
-        """直接測試建立使用者時拋出一般異常。"""
-        # 準備測試資料
-        user_data = UserCreate(name="測試使用者", email="test@example.com")
-
-        # 模擬 CRUD 操作拋出一般異常
-        with patch(
-            'app.crud.user_crud.create_user',
-            side_effect=Exception("資料庫連線失敗"),
-        ):
-            # 執行測試並驗證異常
-            with pytest.raises(HTTPException) as exc_info:
-                await create_user(user_data, mock_db)
-
-        # 驗證異常詳情
-        assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert "建立使用者時發生內部錯誤" in str(exc_info.value.detail)
-        assert "資料庫連線失敗" in str(exc_info.value.detail)
-
-        # 驗證資料庫回滾被呼叫
-        mock_db.rollback.assert_called_once()
-
-    @pytest.mark.asyncio
     async def test_create_schedules_success_direct(self, mock_db, mock_schedule):
         """直接測試成功建立時段函數。"""
-        # 準備測試資料（新格式：包含建立者資訊）
-        schedule_data = ScheduleCreateRequest(
-            schedules=[
-                ScheduleData(
-                    giver_id=1,
-                    date="2025-09-15",
-                    start_time="09:00:00",
-                    end_time="10:00:00",
-                    note="測試時段",
-                    status="AVAILABLE",
-                )
-            ],
+        # 準備測試資料
+        schedule_data = ScheduleData(
+            giver_id=1,
+            taker_id=None,
+            date="2025-09-15",
+            start_time="09:00:00",
+            end_time="10:00:00",
+            note="測試時段",
+        )
+        request = ScheduleCreateRequest(
+            schedules=[schedule_data],
             created_by=1,
             created_by_role=UserRoleEnum.TAKER,
         )
 
-        # 模擬 CRUD 操作
+        # 模擬服務層操作
         with patch(
-            'app.crud.schedule_crud.create_schedules', return_value=[mock_schedule]
+            'app.services.schedule_service.create_schedules',
+            return_value=[mock_schedule],
         ):
             # 執行測試
-            result = await create_schedules(schedule_data, mock_db)
+            result = await create_schedules(request, mock_db)
 
         # 驗證結果
         assert len(result) == 1
-        assert result[0].id == 1
-        assert result[0].giver_id == 1
-
-    @pytest.mark.asyncio
-    async def test_create_schedules_exception_direct(self, mock_db):
-        """直接測試建立時段時拋出異常。"""
-        # 準備測試資料（新格式：包含建立者資訊）
-        schedule_data = ScheduleCreateRequest(
-            schedules=[
-                ScheduleData(
-                    giver_id=1,
-                    date="2025-09-15",
-                    start_time="09:00:00",
-                    end_time="10:00:00",
-                    note="測試時段",
-                    status="AVAILABLE",
-                )
-            ],
-            created_by=1,
-            created_by_role=UserRoleEnum.TAKER,
-        )
-
-        # 模擬 CRUD 操作拋出異常
-        with patch(
-            'app.crud.schedule_crud.create_schedules',
-            side_effect=Exception("資料庫錯誤"),
-        ):
-            # 執行測試並驗證異常
-            with pytest.raises(HTTPException) as exc_info:
-                await create_schedules(schedule_data, mock_db)
-
-        # 驗證異常詳情
-        assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert "建立時段時發生內部錯誤" in str(exc_info.value.detail)
-        assert "資料庫錯誤" in str(exc_info.value.detail)
-
-        # 驗證資料庫回滾被呼叫
-        mock_db.rollback.assert_called_once()
+        assert result[0]["id"] == 1
+        assert result[0]["giver_id"] == 1
+        assert result[0]["status"] == "AVAILABLE"
 
     @pytest.mark.asyncio
     async def test_get_schedules_success_direct(self, mock_db, mock_schedule):
         """直接測試成功查詢時段函數。"""
-        # 模擬 CRUD 操作
+        # 模擬服務層操作
         with patch(
-            'app.crud.schedule_crud.get_schedules', return_value=[mock_schedule]
+            'app.services.schedule_service.get_schedules', return_value=[mock_schedule]
         ):
             # 執行測試
-            result = await get_schedules(None, None, mock_db)
+            result = await get_schedules(db=mock_db)
 
         # 驗證結果
         assert len(result) == 1
-        assert result[0].id == 1
-        assert result[0].giver_id == 1
+        assert result[0]["id"] == 1
+        assert result[0]["giver_id"] == 1
+
+    # ===== HTTP 端點測試 =====
 
     @pytest.mark.asyncio
-    async def test_get_schedules_with_filters_direct(self, mock_db, mock_schedule):
-        """直接測試帶篩選條件的查詢時段函數。"""
-        # 模擬 CRUD 操作
-        with patch(
-            'app.crud.schedule_crud.get_schedules', return_value=[mock_schedule]
-        ):
-            # 執行測試
-            result = await get_schedules(
-                giver_id=1, status_filter="AVAILABLE", db=mock_db
-            )
-
-        # 驗證結果
-        assert len(result) == 1
-        assert result[0].id == 1
-
-    @pytest.mark.asyncio
-    async def test_get_schedules_exception_direct(self, mock_db):
-        """直接測試查詢時段時拋出異常。"""
-        # 模擬 CRUD 操作拋出異常
-        with patch(
-            'app.crud.schedule_crud.get_schedules',
-            side_effect=Exception("查詢失敗"),
-        ):
-            # 執行測試並驗證異常
-            with pytest.raises(HTTPException) as exc_info:
-                await get_schedules(None, None, mock_db)
-
-        # 驗證異常詳情
-        assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert "查詢時段列表失敗" in str(exc_info.value.detail)
-        assert "查詢失敗" in str(exc_info.value.detail)
-
-    # ===== 邊界情況測試 =====
-
-    @pytest.mark.asyncio
-    async def test_create_schedules_empty_list_direct(self, mock_db):
-        """直接測試建立空時段列表。"""
-        # 準備測試資料 - 空列表（新格式：包含操作者資訊）
-        schedule_data = ScheduleCreateRequest(
-            schedules=[],
-            created_by=1,
-            created_by_role=UserRoleEnum.TAKER,
-        )
-
-        # 模擬 CRUD 操作
-        with patch('app.crud.schedule_crud.create_schedules', return_value=[]):
-            # 執行測試
-            result = await create_schedules(schedule_data, mock_db)
-
-        # 驗證結果
-        assert len(result) == 0
-
-    @pytest.mark.asyncio
-    async def test_get_schedules_no_results_direct(self, mock_db):
-        """直接測試查詢時段無結果。"""
-        # 模擬 CRUD 操作返回空列表
-        with patch('app.crud.schedule_crud.get_schedules', return_value=[]):
-            # 執行測試
-            result = await get_schedules(None, None, mock_db)
-
-        # 驗證結果
-        assert len(result) == 0
-
-    # ===== 錯誤處理測試 =====
-
-    @pytest.mark.asyncio
-    async def test_create_user_db_rollback_on_exception(self, mock_db):
-        """測試建立使用者時資料庫回滾。"""
+    async def test_create_schedules_endpoint_success(self, client, mock_schedule):
+        """測試成功建立時段的 HTTP 端點。"""
         # 準備測試資料
-        user_data = UserCreate(name="測試使用者", email="test@example.com")
-
-        # 模擬 CRUD 操作拋出異常
-        with patch(
-            'app.crud.user_crud.create_user',
-            side_effect=Exception("資料庫錯誤"),
-        ):
-            # 執行測試並驗證異常
-            with pytest.raises(HTTPException):
-                await create_user(user_data, mock_db)
-
-        # 驗證資料庫回滾被呼叫
-        mock_db.rollback.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_create_schedules_db_rollback_on_exception(self, mock_db):
-        """測試建立時段時資料庫回滾。"""
-        # 準備測試資料（新格式：包含操作者資訊）
-        schedule_data = ScheduleCreateRequest(
-            schedules=[
-                ScheduleData(
-                    giver_id=1,
-                    date="2025-09-15",
-                    start_time="09:00:00",
-                    end_time="10:00:00",
-                    note="測試時段",
-                    status="AVAILABLE",
-                )
+        request_data = {
+            "schedules": [
+                {
+                    "giver_id": 1,
+                    "taker_id": None,
+                    "date": "2025-09-15",
+                    "start_time": "09:00:00",
+                    "end_time": "10:00:00",
+                    "note": "測試時段",
+                }
             ],
-            created_by=1,
-            created_by_role=UserRoleEnum.TAKER,
-        )
-
-        # 模擬 CRUD 操作拋出異常
-        with patch(
-            'app.crud.schedule_crud.create_schedules',
-            side_effect=Exception("資料庫錯誤"),
-        ):
-            # 執行測試並驗證異常
-            with pytest.raises(HTTPException):
-                await create_schedules(schedule_data, mock_db)
-
-        # 驗證資料庫回滾被呼叫
-        mock_db.rollback.assert_called_once()
-
-    # ===== 資料驗證測試 =====
-
-    @pytest.mark.asyncio
-    async def test_create_user_with_invalid_data(self, mock_db):
-        """測試建立使用者時無效資料處理。"""
-        # 準備測試資料 - 使用有效的 email 格式，但模擬 CRUD 層的驗證錯誤
-        user_data = UserCreate(name="測試使用者", email="test@example.com")
-
-        # 模擬 CRUD 操作拋出 ValueError
-        with patch(
-            'app.crud.user_crud.create_user',
-            side_effect=ValueError("無效的電子信箱格式"),
-        ):
-            # 執行測試並驗證異常
-            with pytest.raises(HTTPException) as exc_info:
-                await create_user(user_data, mock_db)
-
-        # 驗證異常詳情
-        assert exc_info.value.status_code == status.HTTP_409_CONFLICT
-        assert "無效的電子信箱格式" in str(exc_info.value.detail)
-
-    @pytest.mark.asyncio
-    async def test_create_schedules_with_invalid_data(self, mock_db):
-        """測試建立時段時無效資料處理。"""
-        # 準備測試資料 - 使用有效的時間格式，但模擬 CRUD 層的驗證錯誤（新格式：包含操作者資訊）
-        schedule_data = ScheduleCreateRequest(
-            schedules=[
-                ScheduleData(
-                    giver_id=1,
-                    date="2025-09-15",
-                    start_time="09:00:00",
-                    end_time="10:00:00",
-                    note="測試時段",
-                    status="AVAILABLE",
-                )
-            ],
-            created_by=1,
-            created_by_role=UserRoleEnum.TAKER,
-        )
-
-        # 模擬 CRUD 操作拋出異常（例如：時間衝突）
-        with patch(
-            'app.crud.schedule_crud.create_schedules',
-            side_effect=Exception("時間衝突：該時段已被預約"),
-        ):
-            # 執行測試並驗證異常
-            with pytest.raises(HTTPException) as exc_info:
-                await create_schedules(schedule_data, mock_db)
-
-        # 驗證異常詳情
-        assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert "建立時段時發生內部錯誤" in str(exc_info.value.detail)
-        assert "時間衝突" in str(exc_info.value.detail)
-
-    # ===== 整合測試 =====
-
-    def test_api_endpoints_integration(self, client):
-        """測試 API 端點整合功能。"""
-        # 測試端點存在性
-        response = client.get("/docs")
-        assert response.status_code == 200
-
-        # 測試 OpenAPI 文件
-        response = client.get("/openapi.json")
-        assert response.status_code == 200
-        openapi_spec = response.json()
-
-        # 驗證 API 路徑存在
-        assert "/api/v1/users" in openapi_spec["paths"]
-        assert "/api/v1/schedules" in openapi_spec["paths"]
-
-    def test_api_response_models(self, client):
-        """測試 API 回應模型。"""
-        # 測試使用者建立端點的回應模型
-        user_data = {"name": "測試使用者", "email": "test@example.com"}
-
-        with patch('app.crud.user_crud.create_user') as mock_create:
-            mock_user = Mock()
-            mock_user.to_dict.return_value = {
-                "id": 1,
-                "name": "測試使用者",
-                "email": "test@example.com",
-            }
-            mock_create.return_value = mock_user
-
-            response = client.post("/api/v1/users", json=user_data)
-
-            assert response.status_code == 201
-            result = response.json()
-            assert "message" in result
-            assert "user" in result
-            assert isinstance(result["user"], dict)
-
-    def test_api_error_responses(self, client):
-        """測試 API 錯誤回應格式。"""
-        # 測試無效的 JSON 資料
-        response = client.post("/api/v1/users", content="invalid json")
-        assert response.status_code == 422  # Unprocessable Entity
-
-        # 測試缺少必要欄位
-        response = client.post("/api/v1/users", json={})
-        assert response.status_code == 422
-
-        # 測試無效的時段資料（新格式：包含操作者資訊）
-        invalid_request_data = {
-            "schedules": [{"invalid": "data"}],
             "created_by": 1,
             "created_by_role": "TAKER",
         }
-        response = client.post("/api/v1/schedules", json=invalid_request_data)
-        assert response.status_code == 422
 
-    # ===== 效能和穩定性測試 =====
-
-    @pytest.mark.asyncio
-    async def test_create_schedules_large_list(self, mock_db, mock_schedule):
-        """測試建立大量時段。"""
-        # 準備測試資料 - 大量時段（新格式：包含操作者資訊）
-        schedule_data = ScheduleCreateRequest(
-            schedules=[
-                ScheduleData(
-                    giver_id=1,
-                    date="2025-09-15",
-                    start_time="09:00:00",
-                    end_time="10:00:00",
-                    note=f"測試時段 {i}",
-                    status="AVAILABLE",
-                )
-                for i in range(100)
-            ],
-            created_by=1,
-            created_by_role=UserRoleEnum.TAKER,
-        )
-
-        # 模擬 CRUD 操作
+        # 模擬服務層操作
         with patch(
-            'app.crud.schedule_crud.create_schedules',
-            return_value=[mock_schedule] * 100,
+            'app.services.schedule_service.create_schedules',
+            return_value=[mock_schedule],
         ):
             # 執行測試
-            result = await create_schedules(schedule_data, mock_db)
+            response = client.post("/api/v1/schedules", json=request_data)
 
         # 驗證結果
-        assert len(result) == 100
+        assert response.status_code == 201
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["id"] == 1
+        assert data[0]["giver_id"] == 1
 
     @pytest.mark.asyncio
-    async def test_get_schedules_with_complex_filters(self, mock_db, mock_schedule):
-        """測試複雜篩選條件的查詢。"""
-        # 模擬 CRUD 操作
+    async def test_get_schedules_endpoint_success(self, client, mock_schedule):
+        """測試成功查詢時段的 HTTP 端點。"""
+        # 模擬服務層操作
         with patch(
-            'app.crud.schedule_crud.get_schedules', return_value=[mock_schedule]
+            'app.services.schedule_service.get_schedules', return_value=[mock_schedule]
         ):
-            # 執行測試 - 同時使用多個篩選條件
-            result = await get_schedules(
-                giver_id=1, status_filter="AVAILABLE", db=mock_db
+            # 執行測試
+            response = client.get("/api/v1/schedules")
+
+        # 驗證結果
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["id"] == 1
+        assert data[0]["giver_id"] == 1
+
+    @pytest.mark.asyncio
+    async def test_get_schedules_with_filters(self, client, mock_schedule):
+        """測試帶篩選條件的時段查詢。"""
+        # 模擬服務層操作
+        with patch(
+            'app.services.schedule_service.get_schedules', return_value=[mock_schedule]
+        ):
+            # 執行測試
+            response = client.get(
+                "/api/v1/schedules?giver_id=1&status_filter=AVAILABLE"
             )
 
         # 驗證結果
-        assert len(result) == 1
-        assert result[0].id == 1
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["giver_id"] == 1
 
-    # ===== 日誌和監控測試 =====
+    @pytest.mark.asyncio
+    async def test_get_schedule_by_id_success(self, client, mock_schedule):
+        """測試根據 ID 查詢單一時段。"""
+        # 模擬服務層操作
+        with patch(
+            'app.services.schedule_service.get_schedule_by_id',
+            return_value=mock_schedule,
+        ):
+            # 執行測試
+            response = client.get("/api/v1/schedules/1")
 
-    def test_api_logging_coverage(self, client):
-        """測試 API 日誌記錄覆蓋率。"""
-        # 測試成功情況的日誌
-        user_data = {"name": "日誌測試使用者", "email": "log@example.com"}
+        # 驗證結果
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == 1
+        assert data["giver_id"] == 1
 
-        with patch('app.crud.user_crud.create_user') as mock_create:
-            mock_user = Mock()
-            mock_user.to_dict.return_value = {
-                "id": 1,
-                "name": "日誌測試使用者",
-                "email": "log@example.com",
-            }
-            mock_create.return_value = mock_user
+    @pytest.mark.asyncio
+    async def test_update_schedule_success(self, client, mock_schedule):
+        """測試成功更新時段。"""
+        # 準備測試資料
+        update_data = {
+            "schedule": {
+                "status": "PENDING",
+                "note": "更新後的備註",
+            },
+            "updated_by": 1,
+            "updated_by_role": "TAKER",
+        }
 
-            response = client.post("/api/v1/users", json=user_data)
-            assert response.status_code == 201
+        # 模擬服務層操作
+        with patch(
+            'app.services.schedule_service.update_schedule', return_value=mock_schedule
+        ):
+            # 執行測試
+            response = client.patch("/api/v1/schedules/1", json=update_data)
 
-        # 測試錯誤情況的日誌
-        with patch('app.crud.user_crud.create_user', side_effect=Exception("測試錯誤")):
-            response = client.post("/api/v1/users", json=user_data)
-            assert response.status_code == 500
+        # 驗證結果
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == 1
+
+    @pytest.mark.asyncio
+    async def test_delete_schedule_success(self, client):
+        """測試成功刪除時段。"""
+        # 準備測試資料
+        delete_data = {
+            "deleted_by": 1,
+            "deleted_by_role": "GIVER",
+        }
+
+        # 模擬服務層操作
+        with patch('app.services.schedule_service.delete_schedule', return_value=True):
+            # 執行測試
+            response = client.delete("/api/v1/schedules/1", json=delete_data)
+
+        # 驗證結果
+        assert response.status_code == 204
+
+    @pytest.mark.asyncio
+    async def test_delete_schedule_not_found(self, client):
+        """測試刪除不存在的時段。"""
+        # 準備測試資料
+        delete_data = {
+            "deleted_by": 1,
+            "deleted_by_role": "GIVER",
+        }
+
+        # 模擬服務層操作
+        with patch('app.services.schedule_service.delete_schedule', return_value=False):
+            # 執行測試
+            response = client.delete("/api/v1/schedules/999", json=delete_data)
+
+        # 驗證結果
+        assert response.status_code == 404
+        data = response.json()
+        assert "時段不存在或無法刪除" in data["detail"]

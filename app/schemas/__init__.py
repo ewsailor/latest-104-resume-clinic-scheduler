@@ -7,7 +7,6 @@
 
 包含：
 - 時段相關模式（ScheduleBase, ScheduleResponse 等）
-- 使用者相關模式（UserCreate, UserResponse 等）
 """
 
 # ===== 本地模組 =====
@@ -20,12 +19,8 @@ from .schedule import (
     ScheduleUpdateData,
     ScheduleUpdateRequest,
 )
-from .user import UserCreate, UserResponse
 
 __all__ = [
-    # 使用者相關模式
-    "UserCreate",
-    "UserResponse",
     # 時段相關模式
     "ScheduleBase",
     "ScheduleCreateRequest",

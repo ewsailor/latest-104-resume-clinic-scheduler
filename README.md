@@ -177,23 +177,18 @@
 │   │   ├── __init__.py           # 路由模組初始化
 │   │   ├── api/                  # API 路由
 │   │   │   ├── __init__.py       # API 路由初始化
-│   │   │   ├── schedule.py       # 時段管理 API
-│   │   │   ├── users.py          # 使用者管理 API
-│   │   │   └── givers.py         # 諮詢師管理 API
+│   │   │   └── schedule.py       # 時段管理 API
 │   │   ├── health.py             # 健康檢查端點
 │   │   └── main.py               # 主要路由
 │   ├── services/                 # 業務邏輯層
 │   │   ├── __init__.py           # 服務層模組初始化
-│   │   ├── schedule_service.py   # 時段業務邏輯服務
-│   │   └── user_service.py       # 使用者業務邏輯服務
+│   │   └── schedule_service.py   # 時段業務邏輯服務
 │   ├── crud/                     # 資料庫操作
 │   │   ├── __init__.py           # CRUD 模組初始化
-│   │   ├── schedule.py           # 時段 CRUD 操作
-│   │   └── user.py               # 使用者 CRUD 操作
+│   │   └── schedule.py           # 時段 CRUD 操作
 │   ├── schemas/                  # 資料驗證模式
 │   │   ├── __init__.py           # 模式模組初始化
-│   │   ├── schedule.py           # 時段資料模式
-│   │   └── user.py               # 使用者資料模式
+│   │   └── schedule.py           # 時段資料模式
 │   ├── middleware/               # 中間件
 │   │   ├── __init__.py           # 中間件模組初始化
 │   │   ├── cors.py               # CORS 中間件
@@ -208,8 +203,7 @@
 │   │       ├── crud_decorators.py # CRUD 裝飾器
 │   │       └── README.md         # 裝飾器使用說明
 │   ├── data/                     # 資料模組
-│   │   ├── __init__.py           # 資料模組初始化
-│   │   └── givers.py             # 諮詢師資料
+│   │   └── __init__.py           # 資料模組初始化
 │   ├── enums/                    # 列舉型別
 │   │   ├── __init__.py           # 列舉模組初始化
 │   │   ├── models.py             # 模型相關列舉
@@ -258,8 +252,7 @@
 │   │   ├── api/                  # API 端點測試
 │   │   │   ├── __init__.py       # API 測試初始化
 │   │   │   ├── test_main.py      # 主要路由測試
-│   │   │   ├── test_api_users.py # 使用者 API 測試
-│   │   │   ├── test_api_givers.py # 諮詢師 API 測試
+
 │   │   │   ├── test_api_schedule_comprehensive.py # 排程 API 綜合測試
 │   │   │   ├── test_api_schedule_routes.py # 排程 API 路由測試
 │   │   │   ├── test_api_schedule_simple.py # 排程 API 簡單測試
@@ -270,8 +263,7 @@
 │   ├── e2e/                      # 端到端測試
 │   │   └── __init__.py           # E2E 測試初始化
 │   └── fixtures/                 # 測試資料和 Fixtures
-│       ├── __init__.py           # Fixtures 初始化
-│       └── test_data_givers.py   # 諮詢師測試資料
+│       └── __init__.py           # Fixtures 初始化
 ├── static/                       # 靜態檔案
 │   ├── images/                   # 圖片資源目錄
 │   │   ├── icons/                # 圖示類檔案
@@ -566,12 +558,6 @@ poetry run flake8 app/
 - **建立使用者**: `POST /api/v1/users/` - 建立新使用者
 - **更新使用者**: `PUT /api/v1/users/{user_id}` - 更新使用者資訊
 
-#### 諮詢師管理 API
-
-- **取得諮詢師列表**: `GET /api/v1/givers/` - 取得所有諮詢師
-- **取得特定諮詢師**: `GET /api/v1/givers/{giver_id}` - 取得特定諮詢師資訊
-- **建立諮詢師**: `POST /api/v1/givers/` - 建立新諮詢師
-
 #### 排程管理 API
 
 - **取得排程列表**: `GET /api/v1/schedules/` - 取得所有排程
@@ -592,9 +578,6 @@ poetry run flake8 app/
 ```bash
 # 健康檢查
 curl http://127.0.0.1:8000/healthz
-
-# 取得使用者列表
-curl http://127.0.0.1:8000/api/v1/users/
 
 # 建立新排程
 curl -X POST http://127.0.0.1:8000/api/v1/schedules/ \
