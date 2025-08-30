@@ -10,7 +10,9 @@ from fastapi.templating import Jinja2Templates
 
 # ===== 本地模組 =====
 from app.core.settings import Settings
-from app.middleware.cors import setup_cors_middleware
+from app.decorators import handle_generic_errors_sync
+from app.middleware.cors import log_app_startup, setup_cors_middleware
+from app.models.database import initialize_database
 
 
 def create_static_files(settings: Settings) -> StaticFiles:
@@ -23,6 +25,7 @@ def create_templates(settings: Settings) -> Jinja2Templates:
     return Jinja2Templates(directory=str(settings.templates_dir))
 
 
+@handle_generic_errors_sync("建立 FastAPI 應用程式")
 def create_app(settings: Settings) -> FastAPI:
     """建立並配置 FastAPI 應用程式。"""
     # 根據環境決定是否顯示 API 文件
@@ -39,8 +42,14 @@ def create_app(settings: Settings) -> FastAPI:
         redoc_url=redoc_url,  # 生產環境隱藏 API 文件
     )
 
+    # 記錄應用程式啟動資訊
+    log_app_startup(app)
+
     # ===== CORS 中間件設定 =====
     setup_cors_middleware(app)
+
+    # ===== 資料庫初始化 =====
+    initialize_database()
 
     # 掛載靜態檔案服務
     app.mount(

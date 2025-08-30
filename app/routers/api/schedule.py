@@ -7,9 +7,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.decorators import handle_api_errors
-
 # ===== 本地模組 =====
+from app.decorators import handle_api_errors_async
 from app.models.database import get_db
 from app.schemas import (
     ScheduleCreateRequest,
@@ -27,7 +26,7 @@ router = APIRouter(prefix="/api/v1", tags=["Schedules"])
     response_model=list[ScheduleResponse],
     status_code=status.HTTP_201_CREATED,
 )
-@handle_api_errors()
+@handle_api_errors_async()
 async def create_schedules(
     request: ScheduleCreateRequest,
     db: Session = Depends(get_db),
@@ -49,8 +48,8 @@ async def create_schedules(
     response_model=list[ScheduleResponse],
     status_code=status.HTTP_200_OK,
 )
-@handle_api_errors()
-async def get_schedules(
+@handle_api_errors_async()
+async def list_schedules(
     giver_id: int | None = None,
     taker_id: int | None = None,
     status_filter: str | None = None,
@@ -72,7 +71,7 @@ async def get_schedules(
     response_model=ScheduleResponse,
     status_code=status.HTTP_200_OK,
 )
-@handle_api_errors()
+@handle_api_errors_async()
 async def get_schedule(
     schedule_id: int,
     db: Session = Depends(get_db),
@@ -88,7 +87,7 @@ async def get_schedule(
     response_model=ScheduleResponse,
     status_code=status.HTTP_200_OK,
 )
-@handle_api_errors()
+@handle_api_errors_async()
 async def update_schedule(
     schedule_id: int,
     request: SchedulePartialUpdateRequest,
@@ -116,7 +115,7 @@ async def update_schedule(
     "/schedules/{schedule_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-@handle_api_errors()
+@handle_api_errors_async()
 async def delete_schedule(
     schedule_id: int,
     request: ScheduleDeleteRequest,

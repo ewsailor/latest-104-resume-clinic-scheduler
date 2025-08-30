@@ -15,18 +15,16 @@ from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 # ===== 本地模組 =====
 from app.core import settings
-from app.decorators import handle_service_errors, log_operation
+from app.decorators import handle_generic_errors_sync
 from app.errors import create_database_error, create_service_unavailable_error
 from app.errors.exceptions import APIError
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # 建立基礎類別：所有資料表模型，都會繼承這個類別，避免重複的程式碼
 Base = declarative_base()
 
 
-@log_operation("建立資料庫引擎")
 def create_database_engine() -> tuple[Engine, sessionmaker]:
     """建立資料庫引擎和會話工廠。"""
     DATABASE_URL = settings.mysql_connection_string
@@ -51,9 +49,6 @@ def create_database_engine() -> tuple[Engine, sessionmaker]:
             logger.info(
                 f"成功建立資料庫引擎，並連結到資料庫：{settings.mysql_database}"
             )
-            logger.info(f"資料庫主機：{settings.mysql_host}:{settings.mysql_port}")
-            logger.info(f"使用者：{settings.mysql_user}")
-            logger.info("驅動程式：pymysql")
 
         # 建立 session 工廠：每次呼叫 SessionLocal()，就生成一個新 Session 實例，確保每個請求，都有一個獨立的資料庫連線，避免共用連線，導致資料庫操作錯亂
         SessionLocal = sessionmaker(
@@ -62,19 +57,29 @@ def create_database_engine() -> tuple[Engine, sessionmaker]:
             autoflush=False,  # 不自動刷新、不自動將未提交的改動同步到資料庫，需手動呼叫 flush()
         )
 
+        logger.info("成功建立會話工廠")
+
         return engine, SessionLocal
 
     except Exception as e:
         raise create_service_unavailable_error(f"資料庫引擎建立失敗：{str(e)}")
 
 
-# 程式啟動時，立即建立引擎和會話工廠
-try:
-    engine, SessionLocal = create_database_engine()
-except Exception as e:
-    logger.error(f"資料庫初始化失敗：{str(e)}")
-    # 這裡不重新拋出，因為程式啟動失敗應該直接終止
-    raise
+# 全域變數，用於儲存引擎和會話工廠
+engine: Engine | None = None
+SessionLocal: sessionmaker | None = None
+
+
+def initialize_database() -> None:
+    """初始化資料庫引擎和會話工廠。"""
+    global engine, SessionLocal
+
+    try:
+        engine, SessionLocal = create_database_engine()
+        logger.info("資料庫初始化完成")
+    except Exception as e:
+        logger.error(f"資料庫初始化失敗：{str(e)}")
+        raise
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -87,6 +92,9 @@ def get_db() -> Generator[Session, None, None]:
     Yields:
         Session: SQLAlchemy 資料庫會話實例
     """
+    if SessionLocal is None:
+        raise create_database_error("資料庫尚未初始化")
+
     logger.info("get_db() called: 建立資料庫連線")
     # db 是實際的 Session 實例，用來進行 add()、query()、commit()、close() 等操作
     db = SessionLocal()
@@ -125,9 +133,11 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
-@log_operation("檢查資料庫連線")
-@handle_service_errors("檢查資料庫連線")
+@handle_generic_errors_sync("檢查資料庫連線")
 def check_db_connection() -> None:
     """檢查資料庫連線狀態。"""
+    if engine is None:
+        raise create_database_error("資料庫引擎尚未初始化")
+
     with engine.connect() as conn:
         conn.execute(text("SELECT 1"))  # 執行簡單的查詢來測試連線

@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 # ===== 本地模組 =====
 from app.crud.schedule import ScheduleCRUD
 from app.decorators import (
-    handle_service_errors,
+    handle_service_errors_sync,
     log_operation,
 )
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
@@ -167,7 +167,7 @@ class ScheduleService:
 
         return schedule_orm_objects
 
-    @handle_service_errors("建立時段")
+    @handle_service_errors_sync("建立時段")
     @log_operation("建立時段")
     def create_schedules(
         self,
@@ -199,7 +199,7 @@ class ScheduleService:
 
         return created_schedules
 
-    @handle_service_errors("查詢時段列表")
+    @handle_service_errors_sync("查詢時段列表")
     @log_operation("查詢時段列表")
     def list_schedules(
         self,
@@ -219,7 +219,7 @@ class ScheduleService:
         )
         return schedules
 
-    @handle_service_errors("查詢單一時段")
+    @handle_service_errors_sync("查詢單一時段")
     @log_operation("查詢單一時段")
     def get_schedule(
         self,
@@ -284,7 +284,7 @@ class ScheduleService:
 
         return overlapping_schedules
 
-    @handle_service_errors("更新時段")
+    @handle_service_errors_sync("更新時段")
     @log_operation("更新時段")
     def update_schedule(
         self,
@@ -311,7 +311,7 @@ class ScheduleService:
 
         return updated_schedule
 
-    @handle_service_errors("軟刪除時段")
+    @handle_service_errors_sync("軟刪除時段")
     @log_operation("軟刪除時段")
     def delete_schedule(
         self,

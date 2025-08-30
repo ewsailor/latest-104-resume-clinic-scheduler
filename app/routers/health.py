@@ -11,7 +11,7 @@ from fastapi import APIRouter, status
 
 # ===== 本地模組 =====
 from app.core import get_project_version, settings
-from app.decorators import handle_api_errors, log_operation
+from app.decorators import handle_api_errors_async, log_operation
 from app.errors import create_liveness_check_error, create_readiness_check_error
 from app.models.database import check_db_connection
 from app.utils.timezone import get_utc_timestamp
@@ -24,7 +24,7 @@ router = APIRouter(tags=["health"])
     response_model=dict[str, Any],
     status_code=status.HTTP_200_OK,
 )
-@handle_api_errors()
+@handle_api_errors_async()
 @log_operation("存活探測檢查")
 async def liveness_probe(
     fail: bool = False,
@@ -63,7 +63,7 @@ async def liveness_probe(
     response_model=dict[str, Any],
     status_code=status.HTTP_200_OK,
 )
-@handle_api_errors()
+@handle_api_errors_async()
 @log_operation("準備就緒探測檢查")
 async def readiness_probe(
     fail: bool = False,

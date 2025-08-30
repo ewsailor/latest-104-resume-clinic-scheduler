@@ -13,6 +13,9 @@ from typing import Any
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 def get_project_version() -> str:
     """從 pyproject.toml 檔案中讀取專案版本號。
@@ -24,7 +27,7 @@ def get_project_version() -> str:
             pyproject_data = tomllib.load(f)
             return str(pyproject_data["tool"]["poetry"]["version"])
     except (FileNotFoundError, KeyError, tomllib.TOMLDecodeError) as e:
-        logging.warning(f"無法從 pyproject.toml 讀取專案版本號。錯誤: {e}")
+        logger.warning(f"無法從 pyproject.toml 讀取專案版本號。錯誤: {e}")
         return "0.1.0"  # 預設版本號
 
 

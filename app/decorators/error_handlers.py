@@ -17,8 +17,8 @@ from app.errors.exceptions import APIError, DatabaseError
 logger = logging.getLogger(__name__)
 
 
-def handle_api_errors() -> Callable:
-    """API 錯誤處理裝飾器。"""
+def handle_api_errors_async() -> Callable:
+    """API 錯誤處理裝飾器（非同步版本）。"""
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
@@ -26,13 +26,10 @@ def handle_api_errors() -> Callable:
             try:
                 return await func(*args, **kwargs)
             except APIError:
-                # 向上傳遞 APIError，讓中間件處理
                 raise
             except HTTPException:
-                # 重新拋出 HTTPException
                 raise
             except Exception as e:
-                # 處理其他未預期的錯誤
                 logger.error(f"API 端點發生未預期錯誤: {str(e)}", exc_info=True)
                 raise HTTPException(status_code=500, detail="內部伺服器錯誤")
 
@@ -41,8 +38,8 @@ def handle_api_errors() -> Callable:
     return decorator
 
 
-def handle_service_errors(error_context: str) -> Callable:
-    """Service 層錯誤處理裝飾器。"""
+def handle_service_errors_sync(error_context: str) -> Callable:
+    """Service 層錯誤處理裝飾器（同步版本）。"""
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
@@ -53,13 +50,10 @@ def handle_service_errors(error_context: str) -> Callable:
             try:
                 return func(*args, **kwargs)
             except APIError:
-                # 向上傳遞 APIError，讓中間件處理
                 raise
             except HTTPException:
-                # 重新拋出 HTTPException
                 raise
             except Exception as e:
-                # 回滾資料庫事務
                 if db and hasattr(db, "rollback"):
                     try:
                         db.rollback()
@@ -72,6 +66,60 @@ def handle_service_errors(error_context: str) -> Callable:
                     f"資料庫操作失敗 ({error_context}): {str(e)}",
                     {"operation": error_context, "original_error": str(e)},
                 )
+
+        return wrapper
+
+    return decorator
+
+
+def handle_generic_errors_sync(
+    error_context: str, log_level: str = "error"
+) -> Callable:
+    """通用錯誤處理裝飾器（同步版本）。"""
+
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            try:
+                return func(*args, **kwargs)
+            except APIError:
+                raise
+            except HTTPException:
+                raise
+            except Exception as e:
+                # 根據指定的日誌級別記錄錯誤
+                log_method = getattr(logger, log_level.lower(), logger.error)
+                log_method(f"{error_context}時發生錯誤: {str(e)}", exc_info=True)
+
+                # 重新拋出原始異常，讓上層處理
+                raise
+
+        return wrapper
+
+    return decorator
+
+
+def handle_generic_errors_async(
+    error_context: str, log_level: str = "error"
+) -> Callable:
+    """通用錯誤處理裝飾器（非同步版本）。"""
+
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            try:
+                return await func(*args, **kwargs)
+            except APIError:
+                raise
+            except HTTPException:
+                raise
+            except Exception as e:
+                # 根據指定的日誌級別記錄錯誤
+                log_method = getattr(logger, log_level.lower(), logger.error)
+                log_method(f"{error_context}時發生錯誤: {str(e)}", exc_info=True)
+
+                # 重新拋出原始異常，讓上層處理
+                raise
 
         return wrapper
 
