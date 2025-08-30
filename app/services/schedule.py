@@ -19,6 +19,7 @@ from app.decorators import (
     log_operation,
 )
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
+from app.enums.operations import OperationContext
 from app.errors import (
     ConflictError,
 )
@@ -34,7 +35,6 @@ class ScheduleService:
         self.logger = logging.getLogger(__name__)
         self.schedule_crud = ScheduleCRUD()
 
-    @log_operation("檢查時段重疊")
     def check_schedule_overlap(
         self,
         db: Session,
@@ -44,12 +44,7 @@ class ScheduleService:
         end_time: time,
         exclude_schedule_id: int | None = None,
     ) -> list[Schedule]:
-        """檢查時段重疊。"""
-        # 驗證時間範圍：確保輸入的時間範圍是有效的
-        if end_time <= start_time:
-            raise ValueError(f"結束時間 ({end_time}) 必須晚於開始時間 ({start_time})")
-
-        # 建立查詢條件
+        """檢查單一時段重疊。"""
         query = (
             db.query(Schedule)
             .options(*self.schedule_crud.get_schedule_query_options())
@@ -64,9 +59,13 @@ class ScheduleService:
         if exclude_schedule_id is not None:
             query = query.filter(Schedule.id != exclude_schedule_id)
 
-        # 檢查時間重疊
+        # 檢查時間重疊：確保新時段與現有時段不重疊
         overlapping_schedules = query.filter(
-            and_(start_time < Schedule.end_time, end_time > Schedule.start_time)
+            and_(
+                start_time < Schedule.end_time,
+                end_time > Schedule.start_time,
+                Schedule.deleted_at.is_(None),
+            )
         ).all()
 
         self.logger.info(
@@ -75,6 +74,29 @@ class ScheduleService:
         )
 
         return overlapping_schedules
+
+    def check_multiple_schedules_overlap(
+        self,
+        db: Session,
+        schedules: list[ScheduleBase],
+    ) -> list[Schedule]:
+        """檢查多個時段的重疊情況。"""
+        all_overlapping_schedules = []
+
+        for schedule_data in schedules:
+            overlapping_schedules = self.check_schedule_overlap(
+                db=db,
+                giver_id=schedule_data.giver_id,
+                schedule_date=schedule_data.schedule_date,
+                start_time=schedule_data.start_time,
+                end_time=schedule_data.end_time,
+            )
+            if overlapping_schedules:
+                all_overlapping_schedules.extend(overlapping_schedules)
+
+        # 不做錯誤處理，由上層統一處理錯誤日誌
+
+        return all_overlapping_schedules
 
     def determine_schedule_status(
         self,
@@ -90,8 +112,21 @@ class ScheduleService:
             # 使用傳入的狀態或預設為 DRAFT
             return schedule_data.status or ScheduleStatusEnum.DRAFT
 
-    def log_schedule_details(self, schedules: list[ScheduleBase]) -> None:
-        """記錄時段詳情。"""
+    def log_schedule_details(
+        self,
+        schedules: list[ScheduleBase],
+        context: OperationContext = OperationContext.CREATE,
+    ) -> None:
+        """記錄時段詳情。
+
+        Args:
+            schedules: 時段資料列表
+            context: 操作上下文，預設為建立操作
+        """
+        if not schedules:
+            self.logger.info(f"{context.value}時段: 無時段資料")
+            return
+
         schedule_details = []
         for i, schedule_data in enumerate(schedules):
             detail = (
@@ -99,22 +134,21 @@ class ScheduleService:
                 f"{schedule_data.start_time}-{schedule_data.end_time}"
             )
             schedule_details.append(detail)
-        self.logger.info(f"建立時段詳情: {', '.join(schedule_details)}")
+        self.logger.info(f"{context.value}時段詳情: {', '.join(schedule_details)}")
 
-    @log_operation("建立時段物件列表")
-    def create_schedule_objects(
+    def create_schedule_orm_objects(
         self,
         schedules: list[ScheduleBase],
         created_by: int,
         created_by_role: UserRoleEnum,
     ) -> list[Schedule]:
-        """建立時段物件列表。"""
-        schedule_objects = []
+        """建立時段 ORM 物件列表。"""
+        schedule_orm_objects = []
         for schedule_data in schedules:
             # 根據建立者角色決定時段狀態
             status = self.determine_schedule_status(created_by_role, schedule_data)
 
-            schedule = Schedule(
+            schedule_orm = Schedule(
                 giver_id=schedule_data.giver_id,
                 taker_id=schedule_data.taker_id,
                 date=schedule_data.schedule_date,
@@ -129,12 +163,12 @@ class ScheduleService:
                 deleted_by=None,
                 deleted_by_role=None,
             )
-            schedule_objects.append(schedule)
+            schedule_orm_objects.append(schedule_orm)
 
-        return schedule_objects
+        return schedule_orm_objects
 
-    @handle_service_errors("建立多個時段")
-    @log_operation("建立多個時段")
+    @handle_service_errors("建立時段")
+    @log_operation("建立時段")
     def create_schedules(
         self,
         db: Session,
@@ -143,37 +177,27 @@ class ScheduleService:
         created_by_role: UserRoleEnum,
     ) -> list[Schedule]:
         """建立多個時段。"""
-        # 記錄即將建立的時段詳情
-        self.log_schedule_details(schedules)
+        self.log_schedule_details(schedules, OperationContext.CREATE)
 
-        # 檢查時段重疊
-        all_overlapping_schedules = []
-        for schedule_data in schedules:
-            overlapping_schedules = self.check_schedule_overlap(
-                db=db,
-                giver_id=schedule_data.giver_id,
-                schedule_date=schedule_data.schedule_date,
-                start_time=schedule_data.start_time,
-                end_time=schedule_data.end_time,
+        overlapping_schedules = self.check_multiple_schedules_overlap(db, schedules)
+        if overlapping_schedules:
+            error_msg = (
+                f"檢測到 {len(overlapping_schedules)} 個重疊時段，請調整時段之時間"
             )
-            if overlapping_schedules:
-                all_overlapping_schedules.extend(overlapping_schedules)
-
-        # 如果檢測到重疊，拋出錯誤
-        if all_overlapping_schedules:
-            error_msg = f"時段重疊：檢測到 {len(all_overlapping_schedules)} 個重疊時段"
-            self.logger.warning(f"建立時段時檢測到重疊: {error_msg}")
             raise ConflictError(error_msg)
 
-        # 建立時段物件列表
-        schedule_objects = self.create_schedule_objects(
+        created_schedules = self.create_schedule_orm_objects(
             schedules, created_by, created_by_role
         )
 
-        # 使用 CRUD 層建立時段
-        schedule_objects = self.schedule_crud.create_schedules(db, schedule_objects)
+        created_schedules = self.schedule_crud.create_schedules(db, created_schedules)
 
-        return schedule_objects
+        self.logger.info(
+            f"成功建立 {len(created_schedules)} 個時段，"
+            f"ID 範圍: {[s.id for s in created_schedules]}"
+        )
+
+        return created_schedules
 
     @handle_service_errors("查詢時段列表")
     @log_operation("查詢時段列表")
@@ -185,12 +209,14 @@ class ScheduleService:
         status_filter: str | None = None,
     ) -> list[Schedule]:
         """查詢時段列表。"""
-        # 使用 CRUD 層查詢時段
         schedules = self.schedule_crud.list_schedules(
             db, giver_id, taker_id, status_filter
         )
 
-        self.logger.info(f"查詢完成，找到 {len(schedules)} 個時段")
+        self.logger.info(
+            f"查詢時段列表完成: giver_id={giver_id}, taker_id={taker_id}, "
+            f"status_filter={status_filter}, 找到 {len(schedules)} 個時段"
+        )
         return schedules
 
     @handle_service_errors("查詢單一時段")
@@ -201,10 +227,62 @@ class ScheduleService:
         schedule_id: int,
     ) -> Schedule:
         """根據 ID 查詢單一時段。"""
-        # 使用 CRUD 層查詢時段
         schedule = self.schedule_crud.get_schedule(db, schedule_id)
 
+        self.logger.info(
+            f"查詢時段完成: schedule_id={schedule_id}, "
+            f"giver_id={schedule.giver_id}, taker_id={schedule.taker_id}, "
+            f"status={schedule.status.value}, date={schedule.date}"
+        )
+
         return schedule
+
+    def new_updated_time_values(
+        self,
+        db: Session,
+        schedule_id: int,
+        **kwargs: Any,
+    ) -> tuple[date, time, time]:
+        """更新後的時間值。"""
+        schedule = self.schedule_crud.get_schedule(db, schedule_id)
+
+        new_date = kwargs.get("schedule_date", schedule.date)
+        new_start_time = kwargs.get("start_time", schedule.start_time)
+        new_end_time = kwargs.get("end_time", schedule.end_time)
+
+        return new_date, new_start_time, new_end_time
+
+    def check_update_overlap(
+        self,
+        db: Session,
+        schedule_id: int,
+        **kwargs: Any,
+    ) -> list[Schedule]:
+        """檢查更新時段時的重疊情況。"""
+        # 如果更新了日期、開始時間或結束時間，就需要進行重疊檢查
+        need_overlap_check = any(
+            field in kwargs for field in ["schedule_date", "start_time", "end_time"]
+        )
+
+        if not need_overlap_check:
+            return []
+
+        schedule = self.schedule_crud.get_schedule(db, schedule_id)
+        new_date, new_start_time, new_end_time = self.new_updated_time_values(
+            db, schedule_id, **kwargs
+        )
+
+        # 檢查重疊（排除自己）
+        overlapping_schedules = self.check_schedule_overlap(
+            db=db,
+            giver_id=schedule.giver_id,
+            schedule_date=new_date,
+            start_time=new_start_time,
+            end_time=new_end_time,
+            exclude_schedule_id=schedule_id,
+        )
+
+        return overlapping_schedules
 
     @handle_service_errors("更新時段")
     @log_operation("更新時段")
@@ -217,38 +295,18 @@ class ScheduleService:
         **kwargs: Any,
     ) -> Schedule:
         """更新時段。"""
-        # 檢查是否需要進行重疊檢查：如果更新了日期、開始時間或結束時間，就需要檢查重疊
-        need_overlap_check = any(
-            field in kwargs for field in ["schedule_date", "start_time", "end_time"]
-        )
+        overlapping_schedules = self.check_update_overlap(db, schedule_id, **kwargs)
 
-        if need_overlap_check:
-            # 先取得現有時段資訊
-            schedule = self.schedule_crud.get_schedule(db, schedule_id)
+        if overlapping_schedules:
+            error_msg = f"更新時段 {schedule_id} 時，檢測到 {len(overlapping_schedules)} 個重疊時段，請調整時段之時間"
+            raise ConflictError(error_msg)
 
-            # 取得更新後的時間值
-            new_date = kwargs.get("schedule_date", schedule.date)
-            new_start_time = kwargs.get("start_time", schedule.start_time)
-            new_end_time = kwargs.get("end_time", schedule.end_time)
-
-            # 檢查重疊（排除自己）
-            overlapping_schedules = self.check_schedule_overlap(
-                db=db,
-                giver_id=schedule.giver_id,
-                schedule_date=new_date,
-                start_time=new_start_time,
-                end_time=new_end_time,
-                exclude_schedule_id=schedule_id,
-            )
-
-            if overlapping_schedules:
-                error_msg = f"時段重疊：檢測到 {len(overlapping_schedules)} 個重疊時段"
-                self.logger.warning(f"更新時段 {schedule_id} 時檢測到重疊: {error_msg}")
-                raise ConflictError(error_msg)
-
-        # 使用 CRUD 層更新時段
         updated_schedule = self.schedule_crud.update_schedule(
-            db, schedule_id, updated_by, updated_by_role, **kwargs
+            db=db,
+            schedule_id=schedule_id,
+            updated_by=updated_by,
+            updated_by_role=updated_by_role,
+            **kwargs,
         )
 
         return updated_schedule
@@ -263,18 +321,22 @@ class ScheduleService:
         deleted_by_role: UserRoleEnum | None = None,
     ) -> bool:
         """軟刪除時段。"""
-        # 使用 CRUD 層執行軟刪除
         deletion_success = self.schedule_crud.delete_schedule(
             db, schedule_id, deleted_by, deleted_by_role
         )
 
         if deletion_success:
-            self.logger.info(f"時段 {schedule_id} 軟刪除成功")
+            self.logger.info(
+                f"時段 {schedule_id} 軟刪除成功, "
+                f"deleted_by={deleted_by}, role={deleted_by_role}"
+            )
         else:
-            self.logger.warning(f"時段 {schedule_id} 軟刪除失敗")
+            self.logger.warning(
+                f"時段 {schedule_id} 軟刪除失敗, "
+                f"deleted_by={deleted_by}, role={deleted_by_role}"
+            )
 
         return deletion_success
 
 
-# 建立服務實例
 schedule_service = ScheduleService()
