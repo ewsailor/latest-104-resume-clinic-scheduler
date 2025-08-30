@@ -18,11 +18,11 @@ logger = logging.getLogger(__name__)
 
 def log_app_startup(app: FastAPI) -> None:
     """記錄應用程式啟動資訊。"""
-    logger.info("=== 應用程式啟動 ===")
+    logger.info("===== 應用程式啟動 =====")
     logger.info(f"環境: {settings.app_env}")
     logger.info(f"版本: {settings.app_version}")
     logger.info(f"除錯模式: {settings.debug}")
-    logger.info("=== 啟動完成 ===")
+    logger.info("===== 啟動完成 ======")
 
 
 def setup_cors_middleware(app: FastAPI) -> None:

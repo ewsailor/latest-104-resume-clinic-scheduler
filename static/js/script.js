@@ -6529,27 +6529,9 @@ const DOM = {
       cacheExpiry: 5 * 60 * 1000 // 5分鐘
     },
     
-    // 載入 Giver 資料
+    // 載入 Giver 資料（直接使用 Mock 資料）
     loadGivers: async ({ onSuccess, onError, onComplete, showLoading = true } = {}) => {
-      console.log('DOM.dataLoader.loadGivers called：載入 Giver 資料');
-      // 檢查快取
-      if (DOM.dataLoader.isCached('givers') && DOM.dataLoader.isCached('givers_total')) {
-        const cachedData = DOM.dataLoader.getCached('givers');
-        const cachedTotal = DOM.dataLoader.getCached('givers_total');
-        console.log('DOM.dataLoader.loadGivers: 使用快取的 Giver 資料，總數:', cachedTotal);
-        
-        // 更新應用狀態
-        appState.givers = cachedData;
-        appState.totalGivers = cachedTotal;
-        
-        // 渲染 UI
-        renderGiverList(getGiversByPage(1));
-        renderPaginator(cachedTotal);
-        
-        onSuccess?.(cachedData);
-        onComplete?.();
-        return cachedData;
-      }
+      console.log('DOM.dataLoader.loadGivers called：載入 Giver 資料（Mock 模式）');
       
       // 顯示載入狀態
       if (showLoading) {
@@ -6560,28 +6542,26 @@ const DOM = {
         DOM.dataLoader.state.isLoading = true;
         DOM.dataLoader.state.lastLoadTime = new Date();
         
-        console.log('DOM.dataLoader.loadGivers: 開始載入 Giver 資料');
+        console.log('DOM.dataLoader.loadGivers: 開始載入 Mock Giver 資料');
         
-        const response = await axios.get(DOM.dataLoader.config.baseURL);
-        
-        // 處理成功回應
-        const giversData = response.data.results || [];
-        const totalCount = response.data.total || giversData.length;
-        console.log('DOM.dataLoader.loadGivers: Giver 資料載入成功:', giversData.length, '筆資料，總數:', totalCount);
+        // 直接使用 Mock 資料，模擬 API 回應格式
+        const giversData = MOCK_GIVERS || [];
+        const totalCount = giversData.length;
+        console.log('DOM.dataLoader.loadGivers: Mock Giver 資料載入成功:', giversData.length, '筆資料，總數:', totalCount);
         
         // 更新應用狀態
         appState.givers = giversData;
-        appState.totalGivers = totalCount; // 儲存總數
+        appState.totalGivers = totalCount;
         
         // 快取資料
         DOM.dataLoader.cacheData('givers', giversData);
-        DOM.dataLoader.cacheData('givers_total', totalCount); // 快取總數
+        DOM.dataLoader.cacheData('givers_total', totalCount);
         
         // 渲染 UI
         console.log('DOM.dataLoader.loadGivers: 開始渲染 UI', { giversDataLength: giversData.length, totalCount });
         renderGiverList(getGiversByPage(1));
         console.log('DOM.dataLoader.loadGivers: Giver 列表渲染完成，開始渲染分頁器');
-        renderPaginator(totalCount); // 使用總數而不是當前載入的資料數量
+        renderPaginator(totalCount);
         console.log('DOM.dataLoader.loadGivers: 分頁器渲染完成');
         
         // 重置重試計數
@@ -6594,15 +6574,9 @@ const DOM = {
         return giversData;
         
       } catch (error) {
-        console.error('DOM.dataLoader.loadGivers: Giver 資料載入失敗:', error);
+        console.error('DOM.dataLoader.loadGivers: Mock Giver 資料載入失敗:', error);
         
         DOM.dataLoader.state.errorCount++;
-        
-        // 處理錯誤
-        DOM.dataLoader.handleError(error, () => {
-          DOM.dataLoader.loadGivers({ onSuccess, onError, onComplete, showLoading });
-        });
-        
         onError?.(error);
         
         throw error;
@@ -6618,7 +6592,7 @@ const DOM = {
     
     // 載入特定 Giver 資料
     loadGiverById: async (giverId, options = {}) => {
-      console.log('DOM.dataLoader.loadGiverById called：載入特定 Giver 資料', { giverId });
+      console.log('DOM.dataLoader.loadGiverById called：載入特定 Giver 資料（Mock 模式）', { giverId });
       const {
         forceRefresh = false,
         showLoading = true,
@@ -6642,15 +6616,16 @@ const DOM = {
       }
       
       try {
-        console.log('DOM.dataLoader.loadGiverById: 載入特定 Giver 資料:', giverId);
+        console.log('DOM.dataLoader.loadGiverById: 載入特定 Mock Giver 資料:', giverId);
         
-        const response = await DOM.dataLoader.makeRequest(cacheKey, {
-          method: 'GET',
-          url: `${DOM.dataLoader.config.baseURL}/${giverId}`
-        });
+        // 直接從 Mock 資料中查找
+        const giverData = MOCK_GIVERS.find(giver => giver.id === parseInt(giverId));
         
-        const giverData = response.data;
-        console.log('DOM.dataLoader.loadGiverById: Giver 資料載入成功:', giverData);
+        if (!giverData) {
+          throw new Error(`找不到 ID 為 ${giverId} 的 Giver`);
+        }
+        
+        console.log('DOM.dataLoader.loadGiverById: Mock Giver 資料載入成功:', giverData);
         
         // 快取資料
         DOM.dataLoader.cacheData(cacheKey, giverData);
@@ -6659,7 +6634,7 @@ const DOM = {
         return giverData;
         
       } catch (error) {
-        console.error('DOM.dataLoader.loadGiverById: Giver 資料載入失敗:', error);
+        console.error('DOM.dataLoader.loadGiverById: Mock Giver 資料載入失敗:', error);
         if (onError) onError(error);
         throw error;
         
@@ -6670,7 +6645,7 @@ const DOM = {
       }
     },
     
-    // 搜尋 Giver 資料
+    // 搜尋 Giver 資料（Mock 模式）
     searchGivers: async (searchParams, options = {}) => {
       const {
         showLoading = true,
@@ -6694,16 +6669,31 @@ const DOM = {
       }
       
       try {
-        console.log('DOM.dataLoader.searchGivers: 搜尋 Giver 資料:', searchParams);
+        console.log('DOM.dataLoader.searchGivers: 搜尋 Mock Giver 資料:', searchParams);
         
-        const response = await DOM.dataLoader.makeRequest(cacheKey, {
-          method: 'GET',
-          url: DOM.dataLoader.config.baseURL,
-          params: searchParams
-        });
+        // 在 Mock 資料中進行搜尋
+        let searchResults = [...MOCK_GIVERS];
         
-        const searchResults = response.data.results || [];
-        console.log('DOM.dataLoader.searchGivers: 搜尋結果:', searchResults.length, '筆資料');
+        // 根據搜尋參數過濾資料
+        if (searchParams.name) {
+          searchResults = searchResults.filter(giver => 
+            giver.name.toLowerCase().includes(searchParams.name.toLowerCase())
+          );
+        }
+        
+        if (searchParams.title) {
+          searchResults = searchResults.filter(giver => 
+            giver.title.toLowerCase().includes(searchParams.title.toLowerCase())
+          );
+        }
+        
+        if (searchParams.company) {
+          searchResults = searchResults.filter(giver => 
+            giver.company.toLowerCase().includes(searchParams.company.toLowerCase())
+          );
+        }
+        
+        console.log('DOM.dataLoader.searchGivers: Mock 搜尋結果:', searchResults.length, '筆資料');
         
         // 快取資料
         DOM.dataLoader.cacheData(cacheKey, searchResults);
@@ -6712,7 +6702,7 @@ const DOM = {
         return searchResults;
         
       } catch (error) {
-        console.error('DOM.dataLoader.searchGivers: 搜尋失敗:', error);
+        console.error('DOM.dataLoader.searchGivers: Mock 搜尋失敗:', error);
         if (onError) onError(error);
         throw error;
         

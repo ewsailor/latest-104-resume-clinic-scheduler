@@ -26,13 +26,15 @@ from app.errors import (
 from app.models.schedule import Schedule
 from app.schemas import ScheduleBase
 
+# 模組級別 logger
+logger = logging.getLogger(__name__)
+
 
 class ScheduleService:
     """時段服務類別。"""
 
     def __init__(self) -> None:
         """初始化服務實例。"""
-        self.logger = logging.getLogger(__name__)
         self.schedule_crud = ScheduleCRUD()
 
     def check_schedule_overlap(
@@ -68,7 +70,7 @@ class ScheduleService:
             )
         ).all()
 
-        self.logger.info(
+        logger.info(
             f"時段重疊檢查完成: giver_id={giver_id}, date={schedule_date}, "
             f"time={start_time}-{end_time}, 重疊數量={len(overlapping_schedules)}"
         )
@@ -124,7 +126,7 @@ class ScheduleService:
             context: 操作上下文，預設為建立操作
         """
         if not schedules:
-            self.logger.info(f"{context.value}時段: 無時段資料")
+            logger.info(f"{context.value}時段: 無時段資料")
             return
 
         schedule_details = []
@@ -134,7 +136,7 @@ class ScheduleService:
                 f"{schedule_data.start_time}-{schedule_data.end_time}"
             )
             schedule_details.append(detail)
-        self.logger.info(f"{context.value}時段詳情: {', '.join(schedule_details)}")
+        logger.info(f"{context.value}時段詳情: {', '.join(schedule_details)}")
 
     def create_schedule_orm_objects(
         self,
@@ -192,7 +194,7 @@ class ScheduleService:
 
         created_schedules = self.schedule_crud.create_schedules(db, created_schedules)
 
-        self.logger.info(
+        logger.info(
             f"成功建立 {len(created_schedules)} 個時段，"
             f"ID 範圍: {[s.id for s in created_schedules]}"
         )
@@ -213,7 +215,7 @@ class ScheduleService:
             db, giver_id, taker_id, status_filter
         )
 
-        self.logger.info(
+        logger.info(
             f"查詢時段列表完成: giver_id={giver_id}, taker_id={taker_id}, "
             f"status_filter={status_filter}, 找到 {len(schedules)} 個時段"
         )
@@ -229,7 +231,7 @@ class ScheduleService:
         """根據 ID 查詢單一時段。"""
         schedule = self.schedule_crud.get_schedule(db, schedule_id)
 
-        self.logger.info(
+        logger.info(
             f"查詢時段完成: schedule_id={schedule_id}, "
             f"giver_id={schedule.giver_id}, taker_id={schedule.taker_id}, "
             f"status={schedule.status.value}, date={schedule.date}"
@@ -326,12 +328,12 @@ class ScheduleService:
         )
 
         if deletion_success:
-            self.logger.info(
+            logger.info(
                 f"時段 {schedule_id} 軟刪除成功, "
                 f"deleted_by={deleted_by}, role={deleted_by_role}"
             )
         else:
-            self.logger.warning(
+            logger.warning(
                 f"時段 {schedule_id} 軟刪除失敗, "
                 f"deleted_by={deleted_by}, role={deleted_by_role}"
             )
