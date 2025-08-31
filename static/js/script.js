@@ -7195,20 +7195,21 @@ const DOM = {
       appState.currentPage = page;
       
       try {
-        // 從後端載入指定頁面的資料
-        const response = await axios.get(`${DOM.dataLoader.config.baseURL}?page=${page}&per_page=${CONFIG.PAGINATION.GIVERS_PER_PAGE}`);
-        const pageGivers = response.data.results || [];
+        // 確保 appState.givers 包含完整的資料集
+        if (!appState.givers || appState.givers.length === 0) {
+          appState.givers = MOCK_GIVERS;
+        }
         
-        console.log('DOM.pagination.goToPage: 載入第', page, '頁資料，共', pageGivers.length, '筆');
+        // 使用本地 Mock 資料進行分頁，不發送 API 請求
+        const pageGivers = DOM.pagination.getGiversByPage(page);
         
-        // 更新應用狀態
-        appState.givers = pageGivers;
+        console.log('DOM.pagination.goToPage: 載入第', page, '頁資料，共', pageGivers.length, '筆（Mock 模式）');
         
-        // 重新渲染列表
+        // 重新渲染列表（不更新 appState.givers，保持完整資料集）
         DOM.giver.renderGiverList(pageGivers);
         
         // 重新渲染分頁器
-        DOM.pagination.renderPaginator(appState.totalGivers || appState.givers.length);
+        DOM.pagination.renderPaginator(appState.totalGivers || MOCK_GIVERS.length);
         
         // 滾動到頂部
         window.scrollTo({ top: 0, behavior: 'smooth' });

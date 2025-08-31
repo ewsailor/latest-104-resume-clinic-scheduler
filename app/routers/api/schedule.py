@@ -32,6 +32,11 @@ async def create_schedules(
     db: Session = Depends(get_db),
 ) -> list[ScheduleResponse]:
     """建立多個時段。"""
+    # 驗證每個時段的時間邏輯
+    for schedule in request.schedules:
+        if schedule.start_time >= schedule.end_time:
+            raise HTTPException(status_code=400, detail="開始時間必須早於結束時間")
+
     schedules = schedule_service.create_schedules(
         db,
         request.schedules,

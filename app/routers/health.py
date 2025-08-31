@@ -23,6 +23,58 @@ router = APIRouter(tags=["health"])
     "/healthz",
     response_model=dict[str, Any],
     status_code=status.HTTP_200_OK,
+    summary="存活探測檢查",
+    description="""
+    ## 存活探測端點
+
+    檢查應用程式是否正在運行，用於 Kubernetes 的 liveness probe。
+
+    ### 功能說明
+    - 檢查應用程式本身是否存活
+    - 不包含外部依賴檢查（如資料庫、快取等）
+    - 僅檢查應用程式進程狀態
+
+    ### 使用場景
+    - Kubernetes 容器健康檢查
+    - 負載平衡器健康檢查
+    - 應用程式監控系統
+
+    ### 回應狀態
+    - **200 OK**: 應用程式正常運行
+    - **500 Internal Server Error**: 應用程式異常
+
+    ### 測試參數
+    - `fail=true`: 故意觸發錯誤以測試錯誤處理機制
+    """,
+    responses={
+        200: {
+            "description": "應用程式存活",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "應用程式存活",
+                        "status": "healthy",
+                        "app_name": "resume-clinic-scheduler",
+                        "version": "1.0.0",
+                        "timestamp": "2024-01-01T00:00:00Z",
+                        "checks": {"application": "healthy"},
+                    }
+                }
+            },
+        },
+        500: {
+            "description": "應用程式異常",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "error": "存活探測檢查失敗",
+                        "detail": "應用程式內部錯誤",
+                        "timestamp": "2024-01-01T00:00:00Z",
+                    }
+                }
+            },
+        },
+    },
 )
 @handle_api_errors_async()
 @log_operation("存活探測檢查")
@@ -62,6 +114,67 @@ async def liveness_probe(
     "/readyz",
     response_model=dict[str, Any],
     status_code=status.HTTP_200_OK,
+    summary="準備就緒探測檢查",
+    description="""
+    ## 準備就緒探測端點
+
+    檢查應用程式所有外部依賴是否已經準備好處理請求，用於 Kubernetes 的 readiness probe。
+
+    ### 功能說明
+    - 檢查應用程式本身狀態
+    - 檢查資料庫連線狀態
+    - 檢查其他外部依賴（如快取、外部API等）
+    - 確保應用程式可以正常處理業務請求
+
+    ### 使用場景
+    - Kubernetes 容器就緒檢查
+    - 藍綠部署時的流量切換
+    - 應用程式啟動完成確認
+    - 負載平衡器流量分配
+
+    ### 檢查項目
+    - **應用程式**: 檢查應用程式進程狀態
+    - **資料庫**: 檢查資料庫連線和基本查詢
+    - **快取** (未來): 檢查 Redis 連線狀態
+    - **外部API** (未來): 檢查關鍵外部服務連線
+
+    ### 回應狀態
+    - **200 OK**: 所有依賴正常，應用程式準備就緒
+    - **500 Internal Server Error**: 依賴檢查失敗，應用程式未準備就緒
+
+    ### 測試參數
+    - `fail=true`: 故意觸發一般錯誤
+    - `db_fail=true`: 模擬資料庫連線失敗
+    """,
+    responses={
+        200: {
+            "description": "應用程式準備就緒",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "應用程式準備就緒",
+                        "status": "healthy",
+                        "app_name": "resume-clinic-scheduler",
+                        "version": "1.0.0",
+                        "timestamp": "2024-01-01T00:00:00Z",
+                        "checks": {"application": "healthy", "database": "healthy"},
+                    }
+                }
+            },
+        },
+        500: {
+            "description": "依賴檢查失敗",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "error": "準備就緒探測檢查失敗",
+                        "detail": "資料庫連線失敗，應用程式未準備就緒",
+                        "timestamp": "2024-01-01T00:00:00Z",
+                    }
+                }
+            },
+        },
+    },
 )
 @handle_api_errors_async()
 @log_operation("準備就緒探測檢查")
