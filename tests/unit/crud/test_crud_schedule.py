@@ -20,6 +20,7 @@ from app.errors import (
 )
 from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型
+from app.utils.timezone import get_local_now_naive  # 時區工具
 
 # 移除 ScheduleData 導入，直接使用 Schedule 模型
 
@@ -609,3 +610,333 @@ class TestScheduleCRUD:
         # 目前的 CRUD 類別沒有使用者驗證功能
         # 暫時跳過此測試
         pytest.skip("使用者驗證功能尚未實作")
+
+    def test_get_schedule_query_options_default(self):
+        """測試取得預設查詢選項。"""
+        crud = ScheduleCRUD()
+
+        # 測試預設選項（不傳入參數）
+        options = crud.get_schedule_query_options()
+
+        # 應該返回所有關聯載入選項
+        assert len(options) == 3
+        assert all(hasattr(opt, 'path') for opt in options)
+
+    def test_get_schedule_query_options_with_relations(self):
+        """測試取得指定關聯的查詢選項。"""
+        crud = ScheduleCRUD()
+
+        # 測試指定關聯
+        options = crud.get_schedule_query_options(
+            ['created_by_user', 'updated_by_user']
+        )
+
+        assert len(options) == 2
+        assert all(hasattr(opt, 'path') for opt in options)
+
+    def test_get_schedule_query_options_with_invalid_relations(self):
+        """測試包含無效關聯名稱的查詢選項。"""
+        crud = ScheduleCRUD()
+
+        # 測試包含無效關聯名稱
+        options = crud.get_schedule_query_options(
+            ['created_by_user', 'invalid_relation']
+        )
+
+        # 應該只返回有效的關聯選項
+        assert len(options) == 1
+        assert all(hasattr(opt, 'path') for opt in options)
+
+    def test_get_schedule_query_options_empty_list(self):
+        """測試空關聯列表的查詢選項。"""
+        crud = ScheduleCRUD()
+
+        # 測試空列表
+        options = crud.get_schedule_query_options([])
+
+        assert len(options) == 0
+
+    def test_apply_filters_basic(self, db_session: Session):
+        """測試基本篩選條件套用。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試資料
+        user1 = User(name="測試使用者1", email="test1@example.com")
+        user2 = User(name="測試使用者2", email="test2@example.com")
+        db_session.add_all([user1, user2])
+        db_session.commit()
+
+        schedule1 = Schedule(
+            giver_id=user1.id,
+            taker_id=user2.id,
+            date=date(2025, 9, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+        )
+        schedule2 = Schedule(
+            giver_id=user2.id,
+            taker_id=user1.id,
+            date=date(2025, 9, 15),
+            start_time=time(14, 0),
+            end_time=time(15, 0),
+        )
+        db_session.add_all([schedule1, schedule2])
+        db_session.commit()
+
+        # 測試基本查詢
+        query = db_session.query(Schedule)
+        filtered_query = crud._apply_filters(query)
+        results = filtered_query.all()
+
+        assert len(results) == 2
+
+    def test_apply_filters_by_giver_id(self, db_session: Session):
+        """測試按 giver_id 篩選。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試資料
+        user1 = User(name="測試使用者1", email="test1@example.com")
+        user2 = User(name="測試使用者2", email="test2@example.com")
+        db_session.add_all([user1, user2])
+        db_session.commit()
+
+        schedule1 = Schedule(
+            giver_id=user1.id,
+            taker_id=user2.id,
+            date=date(2025, 9, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+        )
+        schedule2 = Schedule(
+            giver_id=user2.id,
+            taker_id=user1.id,
+            date=date(2025, 9, 15),
+            start_time=time(14, 0),
+            end_time=time(15, 0),
+        )
+        db_session.add_all([schedule1, schedule2])
+        db_session.commit()
+
+        # 測試按 giver_id 篩選
+        query = db_session.query(Schedule)
+        filtered_query = crud._apply_filters(query, giver_id=user1.id)
+        results = filtered_query.all()
+
+        assert len(results) == 1
+        assert results[0].giver_id == user1.id
+
+    def test_apply_filters_by_status(self, db_session: Session):
+        """測試按狀態篩選。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試資料
+        user1 = User(name="測試使用者1", email="test1@example.com")
+        user2 = User(name="測試使用者2", email="test2@example.com")
+        db_session.add_all([user1, user2])
+        db_session.commit()
+
+        schedule1 = Schedule(
+            giver_id=user1.id,
+            taker_id=user2.id,
+            date=date(2025, 9, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status=ScheduleStatusEnum.AVAILABLE,
+        )
+        schedule2 = Schedule(
+            giver_id=user2.id,
+            taker_id=user1.id,
+            date=date(2025, 9, 15),
+            start_time=time(14, 0),
+            end_time=time(15, 0),
+            status=ScheduleStatusEnum.DRAFT,
+        )
+        db_session.add_all([schedule1, schedule2])
+        db_session.commit()
+
+        # 測試按狀態篩選
+        query = db_session.query(Schedule)
+        filtered_query = crud._apply_filters(query, status_filter="AVAILABLE")
+        results = filtered_query.all()
+
+        assert len(results) == 1
+        assert results[0].status == ScheduleStatusEnum.AVAILABLE
+
+    def test_apply_filters_include_deleted(self, db_session: Session):
+        """測試包含已刪除記錄的篩選。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試資料
+        user1 = User(name="測試使用者1", email="test1@example.com")
+        user2 = User(name="測試使用者2", email="test2@example.com")
+        db_session.add_all([user1, user2])
+        db_session.commit()
+
+        schedule = Schedule(
+            giver_id=user1.id,
+            taker_id=user2.id,
+            date=date(2025, 9, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+        )
+        db_session.add(schedule)
+        db_session.commit()
+
+        # 軟刪除時段
+        schedule.deleted_at = get_local_now_naive()
+        schedule.deleted_by = user1.id
+        schedule.deleted_by_role = UserRoleEnum.GIVER
+        db_session.commit()
+
+        # 測試不包含已刪除記錄
+        query = db_session.query(Schedule)
+        filtered_query = crud._apply_filters(query, include_deleted=False)
+        results = filtered_query.all()
+        assert len(results) == 0
+
+        # 測試包含已刪除記錄
+        query = db_session.query(Schedule)
+        filtered_query = crud._apply_filters(query, include_deleted=True)
+        results = filtered_query.all()
+        assert len(results) == 1
+
+    def test_get_schedule_including_deleted_success(self, db_session: Session):
+        """測試成功查詢包含已刪除記錄的時段。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試資料
+        user1 = User(name="測試使用者1", email="test1@example.com")
+        user2 = User(name="測試使用者2", email="test2@example.com")
+        db_session.add_all([user1, user2])
+        db_session.commit()
+
+        schedule = Schedule(
+            giver_id=user1.id,
+            taker_id=user2.id,
+            date=date(2025, 9, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+        )
+        db_session.add(schedule)
+        db_session.commit()
+
+        # 軟刪除時段
+        schedule.deleted_at = get_local_now_naive()
+        schedule.deleted_by = user1.id
+        schedule.deleted_by_role = UserRoleEnum.GIVER
+        db_session.commit()
+
+        # 測試查詢包含已刪除記錄的時段
+        result = crud.get_schedule_including_deleted(db_session, schedule.id)
+
+        assert result is not None
+        assert result.id == schedule.id
+        assert result.deleted_at is not None
+
+    def test_get_schedule_including_deleted_not_found(self, db_session: Session):
+        """測試查詢不存在的已刪除時段。"""
+        crud = ScheduleCRUD()
+
+        # 測試查詢不存在的時段
+        result = crud.get_schedule_including_deleted(db_session, 999)
+
+        assert result is None
+
+    def test_update_schedule_fields_success(self, db_session: Session):
+        """測試成功更新時段欄位。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試資料
+        user1 = User(name="測試使用者1", email="test1@example.com")
+        user2 = User(name="測試使用者2", email="test2@example.com")
+        db_session.add_all([user1, user2])
+        db_session.commit()
+
+        schedule = Schedule(
+            giver_id=user1.id,
+            taker_id=user2.id,
+            date=date(2025, 9, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+        )
+        db_session.add(schedule)
+        db_session.commit()
+
+        # 測試更新欄位
+        updated_fields = crud._update_schedule_fields(
+            schedule,
+            status=ScheduleStatusEnum.AVAILABLE,
+            updated_by=user1.id,
+            updated_by_role=UserRoleEnum.GIVER,
+        )
+
+        assert len(updated_fields) == 3
+        assert any("status:" in field for field in updated_fields)
+        assert any("updated_by:" in field for field in updated_fields)
+        assert any("updated_by_role:" in field for field in updated_fields)
+        assert schedule.status == ScheduleStatusEnum.AVAILABLE
+        assert schedule.updated_by == user1.id
+        assert schedule.updated_by_role == UserRoleEnum.GIVER
+
+    def test_update_schedule_fields_no_changes(self, db_session: Session):
+        """測試沒有變更的欄位更新。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試資料
+        user1 = User(name="測試使用者1", email="test1@example.com")
+        user2 = User(name="測試使用者2", email="test2@example.com")
+        db_session.add_all([user1, user2])
+        db_session.commit()
+
+        schedule = Schedule(
+            giver_id=user1.id,
+            taker_id=user2.id,
+            date=date(2025, 9, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status=ScheduleStatusEnum.AVAILABLE,
+        )
+        db_session.add(schedule)
+        db_session.commit()
+
+        # 測試沒有變更的更新
+        updated_fields = crud._update_schedule_fields(
+            schedule,
+            status=ScheduleStatusEnum.AVAILABLE,  # 相同值
+        )
+
+        # 即使值相同，方法仍會記錄變更（這是方法的行為）
+        assert len(updated_fields) == 1
+        assert any("status:" in field for field in updated_fields)
+
+    def test_update_schedule_fields_invalid_field(self, db_session: Session):
+        """測試更新無效欄位。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試資料
+        user1 = User(name="測試使用者1", email="test1@example.com")
+        user2 = User(name="測試使用者2", email="test2@example.com")
+        db_session.add_all([user1, user2])
+        db_session.commit()
+
+        schedule = Schedule(
+            giver_id=user1.id,
+            taker_id=user2.id,
+            date=date(2025, 9, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+        )
+        db_session.add(schedule)
+        db_session.commit()
+
+        # 測試更新無效欄位（應該被忽略）
+        updated_fields = crud._update_schedule_fields(
+            schedule,
+            invalid_field="test_value",
+            status=ScheduleStatusEnum.AVAILABLE,
+        )
+
+        # 只有有效欄位應該被更新
+        assert len(updated_fields) == 1
+        assert any("status:" in field for field in updated_fields)
+        assert schedule.status == ScheduleStatusEnum.AVAILABLE
