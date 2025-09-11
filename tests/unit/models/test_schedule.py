@@ -385,7 +385,3 @@ class TestScheduleModel:
         assert mapper.relationships['created_by_user'].lazy == "select"
         assert mapper.relationships['updated_by_user'].lazy == "select"
         assert mapper.relationships['deleted_by_user'].lazy == "select"
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])

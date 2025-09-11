@@ -10,11 +10,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.testclient import TestClient
 
-# ===== 標準函式庫 =====
-import pytest
-
 # ===== 本地模組 =====
 from app.middleware.cors import setup_cors_middleware
+
+# ===== 標準函式庫 =====
 
 
 class TestCorsMiddleware:
@@ -319,7 +318,3 @@ class TestCorsMiddlewareIntegration:
         assert (
             response.headers["access-control-allow-origin"] == "http://localhost:3000"
         )
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])

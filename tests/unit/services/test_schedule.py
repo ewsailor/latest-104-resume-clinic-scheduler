@@ -412,7 +412,3 @@ class TestScheduleService:
 
             assert result is True
             mock_delete.assert_called_once_with(mock_db, 1, None, None)
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])

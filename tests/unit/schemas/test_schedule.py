@@ -1101,7 +1101,3 @@ class TestScheduleResponse:
         config = ScheduleResponse.model_config
         assert config["from_attributes"] is True
         assert config["populate_by_name"] is True
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])

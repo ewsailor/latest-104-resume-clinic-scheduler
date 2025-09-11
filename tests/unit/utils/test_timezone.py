@@ -7,11 +7,10 @@
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
-# ===== 標準函式庫 =====
-import pytest
-
 # ===== 本地模組 =====
 from app.utils.timezone import TAIWAN_TIMEZONE, get_local_now_naive, get_utc_timestamp
+
+# ===== 標準函式庫 =====
 
 
 # ===== 測試設定 =====
@@ -200,7 +199,3 @@ class TestTimezone:
             assert len(result) == 20  # YYYY-MM-DDTHH:MM:SSZ
             assert result.count('-') == 2
             assert result.count(':') == 2
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])

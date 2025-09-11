@@ -222,7 +222,3 @@ class TestScheduleAPIRouter:
         assert hasattr(router, 'routes')
         assert hasattr(router, 'prefix')
         assert hasattr(router, 'tags')
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])

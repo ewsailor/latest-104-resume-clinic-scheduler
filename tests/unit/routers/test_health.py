@@ -4,6 +4,7 @@
 測試健康檢查路由模組的功能。
 """
 
+import inspect
 from unittest.mock import Mock, patch
 
 from fastapi import FastAPI
@@ -13,10 +14,11 @@ from fastapi.testclient import TestClient
 import pytest
 
 # ===== 本地模組 =====
-from app.routers.health import router
-
+from app.routers.health import liveness_probe, readiness_probe, router
 
 # ===== 測試設定 =====
+
+
 class TestHealthRouter:
     """健康檢查路由測試類別。"""
 
@@ -183,10 +185,6 @@ class TestHealthRouter:
 
     def test_liveness_probe_function_signature(self):
         """測試存活探測函數簽名。"""
-        import inspect
-
-        from app.routers.health import liveness_probe
-
         # 驗證函數簽名
         sig = inspect.signature(liveness_probe)
         params = list(sig.parameters.keys())
@@ -196,10 +194,6 @@ class TestHealthRouter:
 
     def test_readiness_probe_function_signature(self):
         """測試準備就緒探測函數簽名。"""
-        import inspect
-
-        from app.routers.health import readiness_probe
-
         # 驗證函數簽名
         sig = inspect.signature(readiness_probe)
         params = list(sig.parameters.keys())
@@ -210,19 +204,11 @@ class TestHealthRouter:
 
     def test_liveness_probe_async_function(self):
         """測試存活探測函數是否為非同步函數。"""
-        import inspect
-
-        from app.routers.health import liveness_probe
-
         # 驗證函數是否為協程函數
         assert inspect.iscoroutinefunction(liveness_probe)
 
     def test_readiness_probe_async_function(self):
         """測試準備就緒探測函數是否為非同步函數。"""
-        import inspect
-
-        from app.routers.health import readiness_probe
-
         # 驗證函數是否為協程函數
         assert inspect.iscoroutinefunction(readiness_probe)
 
@@ -332,7 +318,3 @@ class TestHealthRouter:
             # 測試兩者都為 true，應該會拋出異常
             with pytest.raises(Exception):
                 client.get("/readyz?fail=true&db_fail=true")
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])

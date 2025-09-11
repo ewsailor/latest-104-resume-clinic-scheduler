@@ -7,11 +7,10 @@
 from datetime import datetime
 from unittest.mock import Mock
 
-# ===== 標準函式庫 =====
-import pytest
-
 # ===== 本地模組 =====
 from app.utils.model_helpers import format_datetime, safe_getattr
+
+# ===== 標準函式庫 =====
 
 
 # ===== 測試設定 =====
@@ -185,7 +184,3 @@ class TestModelHelpers:
 
         result = safe_getattr(obj, "any_attr", "fallback")
         assert result == "fallback"
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])

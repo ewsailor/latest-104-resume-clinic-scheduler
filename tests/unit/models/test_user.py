@@ -380,7 +380,3 @@ class TestUserModel:
         assert result["deleted_at"] is None
         assert result["is_active"] is True
         assert result["is_deleted"] is False
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])

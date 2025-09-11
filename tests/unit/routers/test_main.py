@@ -196,7 +196,3 @@ class TestMainRouter:
             assert (
                 found
             ), f"Route {expected_path} with methods {expected_methods} not found"
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])
