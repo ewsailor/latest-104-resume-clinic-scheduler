@@ -18,8 +18,7 @@ import pytest
 from app.main import app
 from app.models.database import get_db
 from app.models.schedule import Schedule
-
-from .test_utils import generate_unique_time_slot
+from tests.utils.test_utils import generate_unique_time_slot
 
 
 class TestAPIRoutesIntegration:

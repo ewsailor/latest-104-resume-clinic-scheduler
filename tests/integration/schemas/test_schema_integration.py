@@ -26,8 +26,7 @@ from app.schemas.schedule import (
     ScheduleUpdateBase,
     ScheduleUpdateRequest,
 )
-
-from ..api.test_utils import generate_unique_time_slot
+from tests.utils.test_utils import generate_unique_time_slot
 
 
 class TestScheduleSchemaIntegration:

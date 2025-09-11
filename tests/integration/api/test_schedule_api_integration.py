@@ -6,6 +6,7 @@ Schedule API 路由整合測試模組。
 
 # ===== 標準函式庫 =====
 import datetime
+import json
 from typing import Any, Dict
 
 # ===== 第三方套件 =====
@@ -14,8 +15,12 @@ import pytest
 
 # ===== 本地模組 =====
 from app.main import app
-
-from .test_utils import generate_multiple_time_slots, generate_unique_time_slot
+from app.models.database import get_db
+from app.models.schedule import Schedule
+from tests.utils.test_utils import (
+    generate_multiple_time_slots,
+    generate_unique_time_slot,
+)
 
 
 class TestScheduleAPIIntegration:
@@ -33,9 +38,6 @@ class TestScheduleAPIIntegration:
         yield
         # 測試後清理 - 刪除測試時段
         try:
-            from app.models.database import get_db
-            from app.models.schedule import Schedule
-
             db = next(get_db())
             # 刪除所有 giver_id=1 且日期在未來365天內的測試時段
             future_date = datetime.date.today() + datetime.timedelta(days=365)
@@ -302,8 +304,6 @@ class TestScheduleAPIIntegration:
             "deleted_by_role": "GIVER",
         }
 
-        import json
-
         response = client.request(
             "DELETE",
             f"/api/v1/schedules/{schedule_id}",
@@ -323,8 +323,6 @@ class TestScheduleAPIIntegration:
             "deleted_by": 1,
             "deleted_by_role": "GIVER",
         }
-
-        import json
 
         # 使用 TestClient 的 request 方法
         response = client.request(
@@ -399,8 +397,6 @@ class TestScheduleAPIIntegration:
             "deleted_by": 1,
             "deleted_by_role": "GIVER",
         }
-
-        import json
 
         delete_response = client.request(
             "DELETE",
