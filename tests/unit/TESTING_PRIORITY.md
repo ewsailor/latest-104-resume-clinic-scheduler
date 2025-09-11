@@ -17,7 +17,9 @@
 
 ### 工具函數
 
-- [x] `app/utils/*.py` - 工具函數
+- [x] `app/utils/model_helpers.py` - 模型輔助工具
+- [x] `app/utils/timezone.py` - 時區處理工具
+- [x] `app/utils/__init__.py` - 工具模組初始化
 
 ### 錯誤處理
 
@@ -63,8 +65,8 @@
 
 ### 已完成測試
 
-- **總測試數量**: 480+ 個測試
-- **通過**: 470+ 個
+- **總測試數量**: 550+ 個測試
+- **通過**: 540+ 個
 - **跳過**: 10 個
 - **失敗**: 0 個
 
@@ -81,6 +83,7 @@
 - ✅ **API 路由**: 完整覆蓋（Main + Health + Schedule API）
 - ✅ **Schema**: 完整覆蓋（Schedule）
 - ✅ **服務層**: 完整覆蓋（Schedule Service + 模組初始化）
+- ✅ **工具函數**: 完整覆蓋（Model Helpers + Timezone + 模組初始化）
 
 ## 測試建議
 
