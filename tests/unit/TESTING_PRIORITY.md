@@ -19,7 +19,6 @@
 
 - [x] `app/utils/model_helpers.py` - 模型輔助工具
 - [x] `app/utils/timezone.py` - 時區處理工具
-- [x] `app/utils/__init__.py` - 工具模組初始化
 
 ### 錯誤處理
 
@@ -48,7 +47,6 @@
 ### 服務層
 
 - [x] `app/services/schedule.py` - 時段服務邏輯
-- [x] `app/services/__init__.py` - 服務層模組初始化
 
 ## 低優先級（可選測試）
 
@@ -82,8 +80,8 @@
 - ✅ **資料模型**: 完整覆蓋（Schedule + User + Database）
 - ✅ **API 路由**: 完整覆蓋（Main + Health + Schedule API）
 - ✅ **Schema**: 完整覆蓋（Schedule）
-- ✅ **服務層**: 完整覆蓋（Schedule Service + 模組初始化）
-- ✅ **工具函數**: 完整覆蓋（Model Helpers + Timezone + 模組初始化）
+- ✅ **服務層**: 完整覆蓋（Schedule Service）
+- ✅ **工具函數**: 完整覆蓋（Model Helpers + Timezone）
 
 ## 測試建議
 
