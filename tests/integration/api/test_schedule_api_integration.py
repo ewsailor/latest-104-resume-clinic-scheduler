@@ -18,8 +18,8 @@ from app.main import app
 from app.models.database import get_db
 from app.models.schedule import Schedule
 from tests.utils.test_utils import (
+    generate_guaranteed_unique_time_slot,
     generate_multiple_time_slots,
-    generate_unique_time_slot,
 )
 
 
@@ -58,7 +58,7 @@ class TestScheduleAPIIntegration:
     def sample_schedule_data(self) -> Dict[str, Any]:
         """提供測試用的時段資料。"""
         # 使用工具函數生成唯一時段
-        date, start_time, end_time = generate_unique_time_slot()
+        date, start_time, end_time = generate_guaranteed_unique_time_slot()
 
         return {
             "giver_id": 1,  # 使用現有的 giver_id
@@ -339,7 +339,7 @@ class TestScheduleAPIIntegration:
     def test_schedule_lifecycle_complete_flow(self, client: TestClient):
         """測試時段完整生命週期流程。"""
         # 使用工具函數生成唯一時段
-        date, start_time, end_time = generate_unique_time_slot(hour_start=13)
+        date, start_time, end_time = generate_guaranteed_unique_time_slot()
 
         # 1. 建立時段
         create_data = {

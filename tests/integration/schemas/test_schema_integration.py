@@ -6,6 +6,7 @@ Schema 整合測試模組。
 
 # ===== 標準函式庫 =====
 import datetime
+import json
 from typing import Any, Dict
 
 # ===== 第三方套件 =====
@@ -26,7 +27,7 @@ from app.schemas.schedule import (
     ScheduleUpdateBase,
     ScheduleUpdateRequest,
 )
-from tests.utils.test_utils import generate_unique_time_slot
+from tests.utils.test_utils import generate_guaranteed_unique_time_slot
 
 
 class TestScheduleSchemaIntegration:
@@ -40,7 +41,7 @@ class TestScheduleSchemaIntegration:
     @pytest.fixture
     def valid_schedule_data(self) -> Dict[str, Any]:
         """提供有效的時段資料。"""
-        date, start_time, end_time = generate_unique_time_slot()
+        date, start_time, end_time = generate_guaranteed_unique_time_slot()
         return {
             "giver_id": 1,
             "taker_id": 2,
@@ -382,8 +383,6 @@ class TestScheduleSchemaIntegration:
         assert '"date"' not in json_str
 
         # 測試從 JSON 反序列化 - 需要處理別名問題
-        import json
-
         json_data = json.loads(json_str)
         json_data["date"] = json_data.pop("schedule_date")
         from_json = ScheduleBase(**json_data)

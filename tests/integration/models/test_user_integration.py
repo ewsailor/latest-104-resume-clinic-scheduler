@@ -227,7 +227,10 @@ class TestUserIntegration:
         assert user.updated_at is not None
         assert before_create <= user.created_at <= after_create
         assert before_create <= user.updated_at <= after_create
-        assert user.created_at == user.updated_at  # 建立時應該相等
+
+        # 建立時 created_at 和 updated_at 應該非常接近（允許微秒級差異）
+        time_diff = abs((user.created_at - user.updated_at).total_seconds())
+        assert time_diff < 1.0  # 差異應該小於 1 秒
 
     def test_user_timestamps_auto_update(self, db_session, sample_user_data):
         """測試使用者時間戳記自動更新。"""

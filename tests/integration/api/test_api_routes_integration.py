@@ -18,7 +18,7 @@ import pytest
 from app.main import app
 from app.models.database import get_db
 from app.models.schedule import Schedule
-from tests.utils.test_utils import generate_unique_time_slot
+from tests.utils.test_utils import generate_guaranteed_unique_time_slot
 
 
 class TestAPIRoutesIntegration:
@@ -74,12 +74,7 @@ class TestAPIRoutesIntegration:
     def sample_schedule_data(self) -> Dict[str, Any]:
         """提供測試用的時段資料。"""
         # 使用工具函數生成唯一時段，使用更隨機的時間範圍
-        date, start_time, end_time = generate_unique_time_slot(
-            hour_start=1,  # 從早上 1 點開始
-            hour_range=22,  # 覆蓋 1-22 點
-            minute_start=1,
-            minute_range=58,  # 避免接近整點
-        )
+        date, start_time, end_time = generate_guaranteed_unique_time_slot()
 
         # 使用現有的 giver_id，避免外鍵約束失敗
         # 使用 giver_id=1，但通過強化的清理邏輯避免衝突
