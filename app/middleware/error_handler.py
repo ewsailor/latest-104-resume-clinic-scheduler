@@ -39,7 +39,20 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
 
         logger.error(f"錯誤: {request.method} {request.url.path} - {str(exc)}")
 
-        return JSONResponse(status_code=status_code, content=error_response)
+        # 創建 JSONResponse 並保留 CORS 標頭
+        response = JSONResponse(status_code=status_code, content=error_response)
+
+        # 保留原始請求的 CORS 相關標頭
+        origin = request.headers.get("origin")
+        if origin:
+            response.headers["access-control-allow-origin"] = origin
+            response.headers["access-control-allow-credentials"] = "true"
+            response.headers["access-control-allow-methods"] = (
+                "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+            )
+            response.headers["access-control-allow-headers"] = "*"
+
+        return response
 
 
 def setup_error_handlers(app: FastAPI) -> None:
