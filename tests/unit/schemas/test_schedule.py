@@ -56,7 +56,7 @@ class TestScheduleBase:
 
         assert schedule.giver_id == 1
         assert schedule.taker_id is None
-        assert schedule.status == ScheduleStatusEnum.DRAFT  # 預設值
+        assert schedule.status is None  # 預設值為 None
         assert schedule.schedule_date == date(2024, 1, 15)
         assert schedule.start_time == time(9, 0)
         assert schedule.end_time == time(10, 0)

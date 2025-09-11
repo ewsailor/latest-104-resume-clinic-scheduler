@@ -25,8 +25,8 @@ class ScheduleBase(BaseModel):
         description="Taker ID，可為 NULL（表示 Giver 提供時段供 Taker 預約）",
         json_schema_extra={"example": 2},
     )
-    status: ScheduleStatusEnum = Field(
-        default=ScheduleStatusEnum.DRAFT,
+    status: ScheduleStatusEnum | None = Field(
+        default=None,
         description="時段狀態（後端會根據操作者角色自動決定：GIVER→AVAILABLE，TAKER→PENDING，其他→DRAFT）",
         json_schema_extra={"example": ScheduleStatusEnum.AVAILABLE},
     )
@@ -48,6 +48,8 @@ class ScheduleBase(BaseModel):
         max_length=255,
         json_schema_extra={"example": "下週要面試，希望能請教面試技巧"},
     )
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class ScheduleUpdateBase(BaseModel):

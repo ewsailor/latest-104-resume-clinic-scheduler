@@ -106,13 +106,18 @@ class ScheduleService:
         schedule_data: ScheduleBase,
     ) -> ScheduleStatusEnum:
         """根據建立者角色決定時段狀態。"""
+        # 如果 schedule_data 有指定狀態，優先使用
+        if schedule_data.status is not None:
+            return schedule_data.status
+
+        # 根據建立者角色決定預設狀態
         if created_by_role == UserRoleEnum.TAKER:
             return ScheduleStatusEnum.PENDING
         elif created_by_role == UserRoleEnum.GIVER:
             return ScheduleStatusEnum.AVAILABLE
         else:
-            # 使用傳入的狀態或預設為 DRAFT
-            return schedule_data.status or ScheduleStatusEnum.DRAFT
+            # 預設為 DRAFT
+            return ScheduleStatusEnum.DRAFT
 
     def log_schedule_details(
         self,
