@@ -31,10 +31,11 @@ def generate_unique_time_slot(
     Returns:
         Tuple[str, str, str]: (date, start_time, end_time)
     """
-    # 使用微秒級時間戳 + 隨機數確保唯一性
-    timestamp = int(time.time() * 1000000)  # 微秒級時間戳
+    # 使用納秒級時間戳 + 隨機數 + 進程ID確保唯一性
+    timestamp = int(time.time() * 1000000000)  # 納秒級時間戳
     random_offset = random.randint(0, 999999)  # 隨機偏移
-    unique_id = timestamp + random_offset
+    process_id = hash(str(time.time())) % 10000  # 進程相關的唯一ID
+    unique_id = timestamp + random_offset + process_id
 
     # 計算未來日期
     future_date = datetime.date.today() + datetime.timedelta(days=days_offset)

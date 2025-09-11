@@ -5,36 +5,45 @@
 ```
 tests/
 ├── unit/                      # 單元測試
+│   ├── fixtures/              # 單元測試專用 fixtures
+│   │   ├── database.py        # 資料庫 fixtures
+│   │   └── README.md         # Fixtures 說明文檔
 │   ├── models/                # 資料模型測試
 │   │   ├── test_user.py       # 使用者模型測試
 │   │   ├── test_schedule.py   # 排程模型測試
 │   │   └── test_database.py   # 資料庫模型測試
 │   ├── crud/                  # CRUD 操作測試
-│   │   ├── test_crud_user.py  # 使用者 CRUD 測試
 │   │   └── test_crud_schedule.py # 排程 CRUD 測試
 │   ├── utils/                 # 工具函數測試
 │   │   ├── test_model_helpers.py # 模型輔助工具測試
-│   │   ├── test_timezone.py   # 時區工具測試
-│   │   └── test_config.py     # 配置測試
-│   └── middleware/            # 中間件測試
-│       └── test_cors.py       # CORS 中間件測試
+│   │   └── test_timezone.py   # 時區工具測試
+│   ├── decorators/            # 裝飾器測試
+│   ├── enums/                 # 枚舉測試
+│   ├── errors/                # 錯誤處理測試
+│   ├── middleware/            # 中間件測試
+│   ├── routers/               # 路由測試
+│   ├── schemas/               # 資料模式測試
+│   ├── services/              # 服務層測試
+│   └── core/                  # 核心功能測試
 ├── integration/               # 整合測試
 │   ├── api/                   # API 端點測試
-│   │   ├── test_users_api.py  # 使用者 API 測試
-│   │   ├── test_givers_api.py # 諮詢師 API 測試
-│   │   ├── test_schedule_api.py # 排程 API 測試
-│   │   ├── test_health.py     # 健康檢查 API 測試
-│   │   └── test_main.py       # 主要路由測試
+│   │   ├── test_schedule_api_integration.py # 時段 API 整合測試
+│   │   ├── test_health_api_integration.py # 健康檢查 API 整合測試
+│   │   ├── test_main_route_integration.py # 主路由整合測試
+│   │   ├── test_api_routes_integration.py # API 路由整合測試
+│   │   └── test_utils.py      # 整合測試工具函數
+│   ├── middleware/            # 中間件整合測試
+│   │   ├── test_cors_middleware.py # CORS 中間件測試
+│   │   ├── test_error_handler_middleware.py # 錯誤處理中間件測試
+│   │   └── test_middleware_integration.py # 中間件整合測試
+│   ├── schemas/               # Schema 整合測試
+│   │   └── test_schema_integration.py # Schema 整合測試
 │   └── database/              # 資料庫整合測試
 │       └── test_database_integration.py
 ├── e2e/                       # 端到端測試
 │   ├── test_user_workflow.py  # 使用者工作流程測試
 │   └── test_schedule_workflow.py # 排程工作流程測試
-├── fixtures/                  # 測試資料和 Fixtures
-│   ├── test_data.py           # 測試資料
-│   ├── factories.py           # 工廠函數
-│   └── mocks.py               # Mock 物件
-├── conftest.py                # Pytest 配置
+├── conftest.py                # Pytest 配置和共享 fixtures
 ├── constants.py               # 測試常數
 └── README.md                  # 本文件
 ```
@@ -234,6 +243,6 @@ def test_create_schedule(db_session):
 
 ### 測試資料管理
 
-1. 使用 fixtures 提供測試資料
+1. 使用 conftest.py 提供共享的 fixtures
 2. 避免硬編碼測試資料
 3. 確保測試資料的隔離性
