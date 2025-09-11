@@ -43,6 +43,11 @@
 
 - [x] `app/schemas/schedule.py` - Pydantic 模型
 
+### 服務層
+
+- [x] `app/services/schedule.py` - 時段服務邏輯
+- [x] `app/services/__init__.py` - 服務層模組初始化
+
 ## 低優先級（可選測試）
 
 ### 配置和初始化
@@ -58,8 +63,8 @@
 
 ### 已完成測試
 
-- **總測試數量**: 450+ 個測試
-- **通過**: 440+ 個
+- **總測試數量**: 480+ 個測試
+- **通過**: 470+ 個
 - **跳過**: 10 個
 - **失敗**: 0 個
 
@@ -74,7 +79,8 @@
 - ✅ **中間件**: 完整覆蓋（CORS + 錯誤處理）
 - ✅ **資料模型**: 完整覆蓋（Schedule + User + Database）
 - ✅ **API 路由**: 完整覆蓋（Main + Health + Schedule API）
-- ⚠️ **Schema**: 未覆蓋
+- ✅ **Schema**: 完整覆蓋（Schedule）
+- ✅ **服務層**: 完整覆蓋（Schedule Service + 模組初始化）
 
 ## 測試建議
 
