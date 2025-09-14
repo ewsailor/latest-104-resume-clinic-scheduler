@@ -31,15 +31,30 @@ def create_app(settings: Settings) -> FastAPI:
     # 根據環境決定是否顯示 API 文件
     docs_url = settings.docs_url if settings.debug else None
     redoc_url = settings.redoc_url if settings.debug else None
+    openapi_url = settings.openapi_url if settings.debug else None
+
+    # 根據環境設定伺服器資訊
+    servers = (
+        [
+            {
+                "url": settings.server_url,
+                "description": settings.server_description,
+            }
+        ]
+        if settings.debug
+        else []
+    )
 
     # 建立 FastAPI 應用程式
     app = FastAPI(
         title=settings.app_name,
         description=settings.app_description,
         version=settings.app_version,
-        debug=settings.debug,  # 根據設定決定是否開啟 debug 模式
-        docs_url=docs_url,  # 生產環境隱藏 API 文件
-        redoc_url=redoc_url,  # 生產環境隱藏 API 文件
+        debug=settings.debug,
+        docs_url=docs_url,
+        redoc_url=redoc_url,
+        openapi_url=openapi_url,
+        servers=servers,
     )
 
     # 記錄應用程式啟動資訊

@@ -15,7 +15,7 @@ from fastapi.testclient import TestClient
 import pytest
 
 # ===== 本地模組 =====
-from app.routers.main import read_index, router
+from app.routers.main import router, show_index
 
 # ===== 測試設定 =====
 
@@ -35,7 +35,7 @@ class TestMainRouter:
         """建立測試客戶端。"""
         return TestClient(app)
 
-    def test_read_index_success(self, client, app):
+    def test_show_index_success(self, client, app):
         """測試首頁路由成功情況。"""
         # 模擬應用程式狀態中的模板
         mock_templates = Mock()
@@ -57,13 +57,13 @@ class TestMainRouter:
         # 驗證模板被正確調用
         mock_templates.TemplateResponse.assert_called_once()
 
-    def test_read_index_with_templates_not_configured(self, client):
+    def test_show_index_with_templates_not_configured(self, client):
         """測試模板未配置時的情況。"""
         # 不設置模板，應該會拋出異常
         with pytest.raises(AttributeError):
             client.get("/")
 
-    def test_read_index_template_response_error(self, client, app):
+    def test_show_index_template_response_error(self, client, app):
         """測試模板回應錯誤的情況。"""
         # 模擬模板回應拋出異常
         mock_templates = Mock()
@@ -76,7 +76,7 @@ class TestMainRouter:
         with pytest.raises(Exception, match="模板錯誤"):
             client.get("/")
 
-    def test_read_index_route_metadata(self):
+    def test_show_index_route_metadata(self):
         """測試路由元資料。"""
         # 驗證路由配置
         assert len(router.routes) == 1
@@ -86,7 +86,7 @@ class TestMainRouter:
         assert route.path == "/"
         assert "GET" in route.methods
 
-    def test_read_index_with_different_request_objects(self, client, app):
+    def test_show_index_with_different_request_objects(self, client, app):
         """測試不同請求物件的情況。"""
         # 模擬模板系統
         mock_templates = Mock()
@@ -109,7 +109,7 @@ class TestMainRouter:
         # 驗證模板被調用了兩次
         assert mock_templates.TemplateResponse.call_count == 2
 
-    def test_read_index_template_name(self, client, app):
+    def test_show_index_template_name(self, client, app):
         """測試模板名稱。"""
         # 模擬模板系統
         mock_templates = Mock()
@@ -127,7 +127,7 @@ class TestMainRouter:
         # 驗證模板被正確調用
         mock_templates.TemplateResponse.assert_called_once()
 
-    def test_read_index_response_type(self, client, app):
+    def test_show_index_response_type(self, client, app):
         """測試回應類型。"""
         # 模擬模板系統
         mock_templates = Mock()
@@ -146,18 +146,18 @@ class TestMainRouter:
         assert response.status_code == 200
         assert response.headers["content-type"] == "text/html; charset=utf-8"
 
-    def test_read_index_function_signature(self):
+    def test_show_index_function_signature(self):
         """測試首頁函數簽名。"""
         # 驗證函數簽名
-        sig = inspect.signature(read_index)
+        sig = inspect.signature(show_index)
         params = list(sig.parameters.keys())
 
         assert params == ["request"]
         assert sig.return_annotation == HTMLResponse
 
-    def test_read_index_is_async(self):
+    def test_show_index_is_async(self):
         """測試首頁函數是非同步函數。"""
-        assert inspect.iscoroutinefunction(read_index)
+        assert inspect.iscoroutinefunction(show_index)
 
     def test_router_configuration(self):
         """測試路由器配置。"""

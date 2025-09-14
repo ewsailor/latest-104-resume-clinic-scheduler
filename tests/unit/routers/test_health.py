@@ -161,7 +161,7 @@ class TestHealthRouter:
 
         assert liveness_route is not None
         assert liveness_route.methods == {"GET"}
-        assert liveness_route.tags == ["health"]
+        assert liveness_route.tags == ["Health Check"]
 
     def test_readiness_probe_route_metadata(self):
         """測試準備就緒探測路由元資料。"""
@@ -174,13 +174,13 @@ class TestHealthRouter:
 
         assert readiness_route is not None
         assert readiness_route.methods == {"GET"}
-        assert readiness_route.tags == ["health"]
+        assert readiness_route.tags == ["Health Check"]
 
     def test_router_configuration(self):
         """測試路由器配置。"""
         # 驗證路由器基本配置
         assert router.prefix == ""
-        assert router.tags == ["health"]
+        assert router.tags == ["Health Check"]
         assert len(router.routes) == 2
 
     def test_liveness_probe_function_signature(self):

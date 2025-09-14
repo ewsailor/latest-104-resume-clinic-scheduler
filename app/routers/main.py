@@ -15,8 +15,10 @@ router = APIRouter()
     "/",
     response_class=HTMLResponse,
     tags=["Pages"],
+    summary="首頁",
+    description="顯示履歷診療室主頁面，提供系統介紹和導航功能。",
 )
-async def read_index(request: Request) -> HTMLResponse:
+async def show_index(request: Request) -> HTMLResponse:
     """首頁路由 - 顯示履歷診療室主頁面。
 
     Args:

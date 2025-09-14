@@ -4,6 +4,8 @@ Main 路由整合測試模組。
 測試主要路由功能，包括首頁渲染等。
 """
 
+import time
+
 # ===== 第三方套件 =====
 from fastapi.testclient import TestClient
 
@@ -22,7 +24,7 @@ class TestMainRouteIntegration:
         """建立測試客戶端。"""
         return TestClient(app)
 
-    def test_read_index_success(self, client: TestClient):
+    def test_show_index_success(self, client: TestClient):
         """測試首頁路由成功渲染。"""
         response = client.get("/")
 
@@ -39,7 +41,7 @@ class TestMainRouteIntegration:
         # 檢查基本的 HTML 結構
         assert "<!DOCTYPE html>" in html_content or "<html" in html_content
 
-    def test_read_index_with_different_headers(self, client: TestClient):
+    def test_show_index_with_different_headers(self, client: TestClient):
         """測試首頁路由使用不同標頭。"""
         # 測試帶有 Origin 標頭的請求
         response = client.get("/", headers={"Origin": "http://localhost:3000"})
@@ -52,7 +54,7 @@ class TestMainRouteIntegration:
         assert "access-control-allow-origin" in headers
         assert headers["access-control-allow-origin"] == "http://localhost:3000"
 
-    def test_read_index_content_consistency(self, client: TestClient):
+    def test_show_index_content_consistency(self, client: TestClient):
         """測試首頁內容的一致性。"""
         # 多次請求首頁
         responses = []
@@ -69,7 +71,7 @@ class TestMainRouteIntegration:
         content_lengths = [len(resp.text) for resp in responses]
         assert all(length > 0 for length in content_lengths)
 
-    def test_read_index_method_not_allowed(self, client: TestClient):
+    def test_show_index_method_not_allowed(self, client: TestClient):
         """測試首頁路由不允許的 HTTP 方法。"""
         # 測試 POST 方法（應該不被允許）
         response = client.post("/")
@@ -87,7 +89,7 @@ class TestMainRouteIntegration:
         response = client.patch("/")
         assert response.status_code == 405
 
-    def test_read_index_with_query_parameters(self, client: TestClient):
+    def test_show_index_with_query_parameters(self, client: TestClient):
         """測試首頁路由帶查詢參數。"""
         # 測試帶查詢參數的請求
         response = client.get("/?test=value&debug=true")
@@ -95,7 +97,7 @@ class TestMainRouteIntegration:
         assert response.status_code == 200
         assert "text/html" in response.headers.get("content-type", "")
 
-    def test_read_index_with_fragment(self, client: TestClient):
+    def test_show_index_with_fragment(self, client: TestClient):
         """測試首頁路由帶片段標識符。"""
         # 測試帶片段標識符的請求
         response = client.get("/#section1")
@@ -103,7 +105,7 @@ class TestMainRouteIntegration:
         assert response.status_code == 200
         assert "text/html" in response.headers.get("content-type", "")
 
-    def test_read_index_response_headers(self, client: TestClient):
+    def test_show_index_response_headers(self, client: TestClient):
         """測試首頁路由的回應標頭。"""
         response = client.get("/")
 
@@ -118,7 +120,7 @@ class TestMainRouteIntegration:
         content_type = headers["content-type"]
         assert "text/html" in content_type
 
-    def test_read_index_cors_headers(self, client: TestClient):
+    def test_show_index_cors_headers(self, client: TestClient):
         """測試首頁路由的 CORS 標頭。"""
         origins = [
             "http://localhost:3000",
@@ -138,7 +140,7 @@ class TestMainRouteIntegration:
             assert headers["access-control-allow-origin"] == origin
             assert headers["access-control-allow-credentials"] == "true"
 
-    def test_read_index_without_origin_header(self, client: TestClient):
+    def test_show_index_without_origin_header(self, client: TestClient):
         """測試首頁路由沒有 Origin 標頭。"""
         response = client.get("/")
 
@@ -149,7 +151,7 @@ class TestMainRouteIntegration:
         headers = response.headers
         assert "access-control-allow-origin" not in headers
 
-    def test_read_index_error_handling(self, client: TestClient):
+    def test_show_index_error_handling(self, client: TestClient):
         """測試首頁路由的錯誤處理。"""
         # 首頁路由應該總是成功，但我們可以測試一些邊界情況
 
@@ -159,7 +161,7 @@ class TestMainRouteIntegration:
         # 應該重定向到 404 或返回 404
         assert response.status_code in [200, 404]
 
-    def test_read_index_template_rendering(self, client: TestClient):
+    def test_show_index_template_rendering(self, client: TestClient):
         """測試首頁模板渲染。"""
         response = client.get("/")
 
@@ -174,10 +176,8 @@ class TestMainRouteIntegration:
         # 檢查是否有標題或其他預期內容
         # 注意：這裡的檢查取決於實際的模板內容
 
-    def test_read_index_performance(self, client: TestClient):
+    def test_show_index_performance(self, client: TestClient):
         """測試首頁路由的性能。"""
-        import time
-
         # 測試多次請求的響應時間
         start_time = time.time()
 
@@ -191,7 +191,7 @@ class TestMainRouteIntegration:
         # 10 次請求應該在合理時間內完成（例如 5 秒內）
         assert total_time < 5.0, f"首頁路由響應時間過長: {total_time}秒"
 
-    def test_read_index_with_different_user_agents(self, client: TestClient):
+    def test_show_index_with_different_user_agents(self, client: TestClient):
         """測試首頁路由使用不同的 User-Agent。"""
         user_agents = [
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -207,7 +207,7 @@ class TestMainRouteIntegration:
             assert response.status_code == 200
             assert "text/html" in response.headers.get("content-type", "")
 
-    def test_read_index_with_accept_headers(self, client: TestClient):
+    def test_show_index_with_accept_headers(self, client: TestClient):
         """測試首頁路由使用不同的 Accept 標頭。"""
         accept_headers = [
             "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -222,7 +222,7 @@ class TestMainRouteIntegration:
             assert response.status_code == 200
             assert "text/html" in response.headers.get("content-type", "")
 
-    def test_read_index_route_integration_with_other_routes(self, client: TestClient):
+    def test_show_index_route_integration_with_other_routes(self, client: TestClient):
         """測試首頁路由與其他路由的整合。"""
         # 測試首頁
         response = client.get("/")
