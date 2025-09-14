@@ -304,7 +304,7 @@ class TestSettings:
             },
         ):
             settings = Settings()
-            smtp_config = settings.get_smtp_config()
+            smtp_config = settings.smtp_config
             expected = {
                 'host': 'smtp.example.com',
                 'port': 587,
@@ -326,7 +326,7 @@ class TestSettings:
             },
         ):
             settings = Settings()
-            smtp_config = settings.get_smtp_config()
+            smtp_config = settings.smtp_config
             assert smtp_config == {}
 
     def test_has_smtp_config(self):
@@ -420,10 +420,10 @@ class TestSettings:
         ):
             settings = Settings()
 
-            assert settings.get_secret_key() == "test-secret-key"
-            assert settings.get_session_secret() == "test-session-secret"
-            assert settings.get_aws_secret_key() == "test-aws-secret"
-            assert settings.get_104_api_secret() == "test-104-secret"
+            assert settings.secret_key_value == "test-secret-key"
+            assert settings.session_secret_value == "test-session-secret"
+            assert settings.aws_secret_key_value == "test-aws-secret"
+            assert settings.api_104_secret_value == "test-104-secret"
 
     def test_secret_key_methods_no_secrets(self):
         """測試沒有密鑰時的方法。"""
@@ -438,10 +438,10 @@ class TestSettings:
         ):
             settings = Settings()
 
-            assert settings.get_secret_key() == ""
-            assert settings.get_session_secret() == ""
-            assert settings.get_aws_secret_key() == ""
-            assert settings.get_104_api_secret() == ""
+            assert settings.secret_key_value == ""
+            assert settings.session_secret_value == ""
+            assert settings.aws_secret_key_value == ""
+            assert settings.api_104_secret_value == ""
 
     def test_settings_validation(self):
         """測試設定驗證。"""

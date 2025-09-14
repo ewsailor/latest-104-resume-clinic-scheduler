@@ -214,7 +214,8 @@ class Settings(BaseSettings):
             )
         return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
-    def get_smtp_config(self) -> dict[str, Any]:
+    @property
+    def smtp_config(self) -> dict[str, Any]:
         """取得 SMTP 配置。"""
         if not all([self.smtp_host, self.smtp_user, self.smtp_password]):
             return {}
@@ -248,16 +249,19 @@ class Settings(BaseSettings):
             [self.api_104_base_url, self.api_104_client_id, self.api_104_client_secret]
         )
 
-    # ===== 安全相關的便利方法 =====
-    def get_secret_key(self) -> str:
+    # ===== 安全相關的便利屬性 =====
+    @property
+    def secret_key_value(self) -> str:
         """安全地取得應用程式密鑰。"""
         return self.secret_key.get_secret_value() if self.secret_key else ""
 
-    def get_session_secret(self) -> str:
+    @property
+    def session_secret_value(self) -> str:
         """安全地取得會話密鑰。"""
         return self.session_secret.get_secret_value() if self.session_secret else ""
 
-    def get_aws_secret_key(self) -> str:
+    @property
+    def aws_secret_key_value(self) -> str:
         """安全地取得 AWS 秘密金鑰。"""
         return (
             self.aws_secret_access_key.get_secret_value()
@@ -265,7 +269,8 @@ class Settings(BaseSettings):
             else ""
         )
 
-    def get_104_api_secret(self) -> str:
+    @property
+    def api_104_secret_value(self) -> str:
         """安全地取得 104 API 密鑰。"""
         return (
             self.api_104_client_secret.get_secret_value()
