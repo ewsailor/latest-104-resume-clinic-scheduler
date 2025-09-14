@@ -7,6 +7,7 @@
 from app.errors.exceptions import (
     AuthenticationError,
     AuthorizationError,
+    BadRequestError,
     BusinessLogicError,
     ConflictError,
     DatabaseError,
@@ -20,6 +21,11 @@ from app.errors.exceptions import (
 
 
 # ===== Router 層級錯誤 =====
+def create_bad_request_error(message: str) -> BadRequestError:
+    """建立路由層請求錯誤。"""
+    return BadRequestError(message)
+
+
 def create_validation_error(message: str) -> ValidationError:
     """建立資料驗證錯誤。"""
     return ValidationError(message)

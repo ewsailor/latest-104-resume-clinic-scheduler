@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session, joinedload
 # ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
 from app.errors import (
+    create_bad_request_error,
     create_schedule_not_found_error,
 )
 from app.models.schedule import Schedule
@@ -191,6 +192,13 @@ class ScheduleCRUD:
         """更新時段。"""
         # 驗證時段是否存在
         schedule = self.get_schedule(db, schedule_id)
+
+        # 驗證時間邏輯
+        start_time = kwargs.get("start_time", schedule.start_time)
+        end_time = kwargs.get("end_time", schedule.end_time)
+
+        if start_time and end_time and start_time >= end_time:
+            raise create_bad_request_error("開始時間必須早於結束時間")
 
         # 只有當時段存在時，才設定更新者資訊
         schedule.updated_by = updated_by

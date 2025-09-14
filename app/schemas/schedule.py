@@ -34,7 +34,7 @@ class ScheduleBase(BaseModel):
         ...,
         description="時段日期",
         alias="date",
-        json_schema_extra={"example": date(2025, 9, 15)},
+        json_schema_extra={"example": date(2024, 1, 1)},
     )
     start_time: time = Field(
         ..., description="開始時間", json_schema_extra={"example": time(9, 0)}
@@ -70,7 +70,7 @@ class ScheduleUpdateBase(BaseModel):
         None,
         description="時段日期",
         alias="date",
-        json_schema_extra={"example": date(2025, 9, 16)},
+        json_schema_extra={"example": date(2024, 1, 1)},
     )
     start_time: time | None = Field(
         None, description="開始時間", json_schema_extra={"example": time(14, 0)}
@@ -99,10 +99,12 @@ class ScheduleCreateRequest(BaseModel):
                     "giver_id": 1,
                     "taker_id": 1,
                     "status": "PENDING",
-                    "date": "2025-09-15",
+                    "date": "2024-01-01",
                     "start_time": "09:00:00",
                     "end_time": "10:00:00",
                     "note": "下週要面試，希望能請教面試技巧",
+                    "created_by_role": "TAKER",
+                    "updated_by_role": "TAKER",
                 }
             ]
         },
@@ -111,7 +113,7 @@ class ScheduleCreateRequest(BaseModel):
         ..., description="建立者的 ID", gt=0, json_schema_extra={"example": 1}
     )
     created_by_role: UserRoleEnum = Field(
-        ..., description="建立者角色", json_schema_extra={"example": UserRoleEnum.GIVER}
+        ..., description="建立者角色", json_schema_extra={"example": UserRoleEnum.TAKER}
     )
 
 
@@ -126,7 +128,7 @@ class ScheduleUpdateRequest(BaseModel):
                 "giver_id": 1,
                 "taker_id": 2,
                 "status": "PENDING",
-                "date": "2025-09-17",
+                "date": "2024-01-01",
                 "start_time": "16:00:00",
                 "end_time": "17:00:00",
                 "note": "職涯諮詢",
@@ -194,7 +196,7 @@ class ScheduleResponse(BaseModel):
         ...,
         description="時段日期",
         alias="date",
-        json_schema_extra={"example": date(2025, 9, 15)},
+        json_schema_extra={"example": date(2024, 1, 1)},
     )
     start_time: time = Field(
         ..., description="開始時間", json_schema_extra={"example": time(9, 0)}
@@ -211,7 +213,7 @@ class ScheduleResponse(BaseModel):
     created_at: datetime = Field(
         ...,
         description="建立時間（本地時間）",
-        json_schema_extra={"example": datetime(2025, 9, 15, 9, 0)},
+        json_schema_extra={"example": datetime(2024, 1, 1, 9, 0)},
     )
     created_by: int | None = Field(
         None,
@@ -226,7 +228,7 @@ class ScheduleResponse(BaseModel):
     updated_at: datetime = Field(
         ...,
         description="更新時間（本地時間）",
-        json_schema_extra={"example": datetime(2025, 9, 15, 9, 0)},
+        json_schema_extra={"example": datetime(2024, 1, 1, 9, 0)},
     )
     updated_by: int | None = Field(
         None,

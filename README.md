@@ -87,10 +87,10 @@ Build 狀態、測試覆蓋率、Python 版本支援等徽章，可以讓專案�
 
 - **Giver 流程**
   - Giver 查看 Taker 提供的時段，並回覆自己是否方便
-  - Giver 提供可預約的時段，讓 Taker 預約
+  - Giver 提供可預約的時段，讓 Taker 預約面談
 - **Taker 流程**
   - Taker 查看 Giver 提供的時段，並進行預約
-  - Taker 提供方便的時段，待 Giver 回覆是否方便
+  - Taker 提供方便的時段，待 Giver 回覆是否方便面談
 - **回覆流程**
   - 收到方不行：流程重來
   - 收到方可以

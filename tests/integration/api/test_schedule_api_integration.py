@@ -146,7 +146,7 @@ class TestScheduleAPIIntegration:
 
         assert response.status_code == 400
         response_data = response.json()
-        assert "開始時間必須早於結束時間" in response_data["detail"]
+        assert "開始時間必須早於結束時間" in response_data["error"]["message"]
 
     def test_list_schedules_success(
         self, client: TestClient, sample_schedule_list_data: Dict[str, Any]
@@ -284,7 +284,7 @@ class TestScheduleAPIIntegration:
 
         assert response.status_code == 422  # 驗證錯誤，因為資料格式不正確
         response_data = response.json()
-        assert "detail" in response_data
+        assert "detail" in response_data  # 422 錯誤使用 FastAPI 預設格式
 
     def test_delete_schedule_success(
         self, client: TestClient, sample_schedule_list_data: Dict[str, Any]
@@ -334,7 +334,7 @@ class TestScheduleAPIIntegration:
 
         assert response.status_code == 404
         response_data = response.json()
-        assert "時段不存在或無法刪除" in response_data["detail"]
+        assert "時段不存在" in response_data["error"]["message"]
 
     def test_schedule_lifecycle_complete_flow(self, client: TestClient):
         """測試時段完整生命週期流程。"""

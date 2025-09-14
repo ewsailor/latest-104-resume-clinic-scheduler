@@ -25,7 +25,7 @@ router = APIRouter(tags=["Health Check"])
     status_code=status.HTTP_200_OK,
     summary="存活探測檢查",
     description="""
-## 功能說明
+## 功能簡介
 - 檢查應用程式是否存活、正在運行，用於 Kubernetes 的 liveness probe
 - 不包含外部依資料庫、快取等檢查
 - 僅檢查應用程式進程狀態
@@ -35,21 +35,21 @@ router = APIRouter(tags=["Health Check"])
 - 負載平衡器健康檢查
 - 應用程式監控系統
 
+### 測試參數
+- `fail=true`: 模擬存活探測檢查錯誤
+
 ### 回應狀態
 - **200 OK**: 應用程式存活、正常運行
 - **422 Unprocessable Entity**: 參數驗證錯誤
-- **500 Internal Server Error**: 應用程式異常
-
-### 測試參數
-- `fail=true`: 故意觸發存活探測檢查錯誤
+- **500 Internal Server Error**: 存活探測檢查錯誤：應用程式異常、未正常運行
     """,
     responses={
         200: {
-            "description": "應用程式存活",
+            "description": "應用程式存活、正常運行",
             "content": {
                 "application/json": {
                     "example": {
-                        "message": "應用程式存活",
+                        "message": "應用程式存活、正常運行",
                         "status": "healthy",
                         "app_name": "【MVP】104 Resume Clinic Scheduler",
                         "version": "0.1.0",
@@ -65,7 +65,7 @@ router = APIRouter(tags=["Health Check"])
                 "application/json": {
                     "example": {
                         "error": {
-                            "message": "參數驗證失敗",
+                            "message": "參數驗證錯誤",
                             "status_code": 422,
                             "code": "VALIDATION_ERROR",
                             "timestamp": "2024-01-01T00:00:00Z",
@@ -76,12 +76,12 @@ router = APIRouter(tags=["Health Check"])
             },
         },
         500: {
-            "description": "應用程式異常",
+            "description": "存活探測檢查錯誤：應用程式異常、未正常運行",
             "content": {
                 "application/json": {
                     "example": {
                         "error": {
-                            "message": "測試模式：故意觸發存活探測檢查錯誤",
+                            "message": "存活探測檢查錯誤：應用程式異常、未正常運行",
                             "status_code": 500,
                             "code": "LIVENESS_CHECK_ERROR",
                             "timestamp": "2024-01-01T00:00:00Z",
@@ -102,16 +102,16 @@ async def liveness_probe(
     不包含外部依資料庫、快取等檢查，只檢查應用程式進程狀態。
 
     Args:
-        fail: 故意觸發錯誤測試。
+        fail: 存活探測檢查錯誤，應用程式異常、未正常運行。
 
     Returns:
         dict[str, Any]: 應用程式狀態資訊，包含狀態、時間戳、版本等資訊。
     """
     if fail:
-        raise create_liveness_check_error("測試模式：故意觸發存活探測檢查錯誤")
+        raise create_liveness_check_error("存活探測檢查錯誤：應用程式異常、未正常運行")
 
     response_data = {
-        "message": "應用程式存活",
+        "message": "應用程式存活、正常運行",
         "status": "healthy",
         "app_name": settings.app_name,
         "version": get_project_version(),
@@ -130,7 +130,7 @@ async def liveness_probe(
     status_code=status.HTTP_200_OK,
     summary="準備就緒探測檢查",
     description="""
-## 功能說明
+## 功能簡介
 - 檢查應用程式所有外部依賴，是否已準備好處理請求，用於 Kubernetes 的 readiness probe
 - 外部依賴如資料庫、快取、外部 API 等
 - 檢查應用程式進程狀態、資料庫連線、基本查詢，如連線失敗會拋出異常
@@ -146,14 +146,14 @@ async def liveness_probe(
 - **快取** (未來): 檢查 Redis 連線狀態
 - **外部 API** (未來): 檢查關鍵外部服務連線
 
+### 測試參數
+- `fail=true`: 準備就緒探測檢查錯誤
+- `db_fail=true`: 資料庫連線失敗錯誤
+
 ### 回應狀態
 - **200 OK**: 應用程式準備就緒
 - **422 Unprocessable Entity**: 參數驗證錯誤
-- **503 Service Unavailable**: 依賴檢查失敗，應用程式未準備就緒
-
-### 測試參數
-- `fail=true`: 故意觸發一般錯誤
-- `db_fail=true`: 模擬資料庫連線失敗，會拋出異常
+- **503 Service Unavailable**: 準備就緒探測檢查錯誤：應用程式未準備就緒
     """,
     responses={
         200: {
@@ -180,7 +180,7 @@ async def liveness_probe(
                 "application/json": {
                     "example": {
                         "error": {
-                            "message": "參數驗證失敗",
+                            "message": "參數驗證錯誤",
                             "status_code": 422,
                             "code": "VALIDATION_ERROR",
                             "timestamp": "2024-01-01T00:00:00Z",
@@ -194,12 +194,12 @@ async def liveness_probe(
             },
         },
         503: {
-            "description": "應用程式未準備就緒",
+            "description": "準備就緒探測檢查錯誤：應用程式未準備就緒",
             "content": {
                 "application/json": {
                     "example": {
                         "error": {
-                            "message": "應用程式未準備就緒",
+                            "message": "準備就緒探測檢查錯誤：應用程式未準備就緒",
                             "status_code": 503,
                             "code": "READINESS_CHECK_ERROR",
                             "timestamp": "2024-01-01T00:00:00Z",
@@ -220,22 +220,23 @@ async def readiness_probe(
     """準備就緒探測：用於 Kubernetes 的 readiness probe，檢查應用程式所有外部依賴如資料庫、快取、外部 API 等，是否已經準備好處理請求。
 
     Args:
-        fail: 故意觸發一般錯誤。
-        db_fail: 模擬資料庫連線失敗。
+        fail: 準備就緒探測檢查錯誤。
+        db_fail: 資料庫連線失敗錯誤。
 
     Returns:
         dict[str, Any]: 應用程式就緒狀態資訊，包含狀態、時間戳、版本等資訊。
     """
     if fail:
-        raise create_readiness_check_error("測試模式：故意觸發準備就緒探測檢查錯誤")
+        raise create_readiness_check_error("準備就緒探測檢查錯誤")
 
     if db_fail:
-        raise create_readiness_check_error(
-            "真實錯誤：資料庫連線失敗，應用程式未準備就緒"
-        )
+        raise create_readiness_check_error("資料庫連線失敗錯誤")
 
     # 檢查真實資料庫連線（如果連線失敗會拋出異常）
-    check_db_connection()
+    try:
+        check_db_connection()
+    except Exception as e:
+        raise create_readiness_check_error(f"資料庫連線失敗: {str(e)}")
 
     response_data = {
         "message": "應用程式準備就緒",

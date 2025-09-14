@@ -13,6 +13,7 @@ from .exceptions import (
     APIError,
     AuthenticationError,
     AuthorizationError,
+    BadRequestError,
     BusinessLogicError,
     ConflictError,
     DatabaseError,
@@ -27,6 +28,7 @@ from .formatters import format_error_response
 from .handlers import (
     create_authentication_error,
     create_authorization_error,
+    create_bad_request_error,
     create_business_logic_error,
     create_database_error,
     create_liveness_check_error,
@@ -49,29 +51,32 @@ __all__ = [
     # 基礎錯誤類別
     "APIError",
     # Router 層級
+    "BadRequestError",
     "ValidationError",
     "AuthenticationError",
     "AuthorizationError",
-    "BusinessLogicError",
     # Service 層級
-    "DatabaseError",
+    "BusinessLogicError",
     "ScheduleNotFoundError",
     "UserNotFoundError",
     "ConflictError",
+    # CRUD 層級
+    "DatabaseError",
     # System 層級
     "ServiceUnavailableError",
     "LivenessCheckError",
     "ReadinessCheckError",
     # ===== 錯誤處理函式 =====
     # Router 層級
+    "create_bad_request_error",
     "create_validation_error",
     "create_authentication_error",
     "create_authorization_error",
     # Service 層級
+    "create_business_logic_error",
     "create_schedule_not_found_error",
     "create_user_not_found_error",
     "create_schedule_overlap_error",
-    "create_business_logic_error",
     # CRUD 層級
     "create_database_error",
     # System 層級

@@ -35,6 +35,22 @@ class APIError(Exception):
 
 
 # ===== Router 層級錯誤 =====
+class BadRequestError(APIError):
+    """路由層請求錯誤。"""
+
+    def __init__(
+        self,
+        message: str,
+        details: dict[str, Any] | None = None,
+    ):
+        super().__init__(
+            message=message,
+            error_code=RouterErrorCode.BAD_REQUEST,
+            status_code=status.HTTP_400_BAD_REQUEST,
+            details=details,
+        )
+
+
 class ValidationError(APIError):
     """資料驗證錯誤。"""
 

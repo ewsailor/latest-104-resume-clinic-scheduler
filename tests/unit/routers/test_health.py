@@ -13,6 +13,8 @@ from fastapi.testclient import TestClient
 # ===== 標準函式庫 =====
 import pytest
 
+from app.middleware.error_handler import setup_error_handlers
+
 # ===== 本地模組 =====
 from app.routers.health import liveness_probe, readiness_probe, router
 
@@ -27,6 +29,7 @@ class TestHealthRouter:
         """建立測試用的 FastAPI 應用程式。"""
         app = FastAPI()
         app.include_router(router)
+        setup_error_handlers(app)
         return app
 
     @pytest.fixture
@@ -68,7 +71,7 @@ class TestHealthRouter:
             assert response.status_code == 200
             data = response.json()
 
-            assert data["message"] == "應用程式存活"
+            assert data["message"] == "應用程式存活、正常運行"
             assert data["status"] == "healthy"
             assert data["app_name"] == "test-app"
             assert data["version"] == "1.0.0"
@@ -77,9 +80,13 @@ class TestHealthRouter:
 
     def test_liveness_probe_with_fail_parameter(self, client):
         """測試存活探測失敗參數。"""
-        # 發送帶有 fail=true 的請求，應該會拋出異常
-        with pytest.raises(Exception):
-            client.get("/healthz?fail=true")
+        # 發送帶有 fail=true 的請求，應該會返回錯誤回應
+        response = client.get("/healthz?fail=true")
+
+        assert response.status_code == 500
+        data = response.json()
+        assert "error" in data
+        assert "存活探測檢查錯誤" in data["error"]["message"]
 
     def test_readiness_probe_success(
         self, client, mock_settings, mock_get_project_version, mock_get_utc_timestamp
@@ -112,15 +119,23 @@ class TestHealthRouter:
 
     def test_readiness_probe_with_fail_parameter(self, client):
         """測試準備就緒探測失敗參數。"""
-        # 發送帶有 fail=true 的請求，應該會拋出異常
-        with pytest.raises(Exception):
-            client.get("/readyz?fail=true")
+        # 發送帶有 fail=true 的請求，應該會返回錯誤回應
+        response = client.get("/readyz?fail=true")
+
+        assert response.status_code == 503
+        data = response.json()
+        assert "error" in data
+        assert "準備就緒探測檢查錯誤" in data["error"]["message"]
 
     def test_readiness_probe_with_db_fail_parameter(self, client):
         """測試準備就緒探測資料庫失敗參數。"""
-        # 發送帶有 db_fail=true 的請求，應該會拋出異常
-        with pytest.raises(Exception):
-            client.get("/readyz?db_fail=true")
+        # 發送帶有 db_fail=true 的請求，應該會返回錯誤回應
+        response = client.get("/readyz?db_fail=true")
+
+        assert response.status_code == 503
+        data = response.json()
+        assert "error" in data
+        assert "資料庫連線失敗錯誤" in data["error"]["message"]
 
     def test_readiness_probe_database_connection_failure(
         self, client, mock_settings, mock_get_project_version, mock_get_utc_timestamp
@@ -140,15 +155,12 @@ class TestHealthRouter:
             response = client.get("/readyz")
 
             # 驗證回應
-            assert response.status_code == 500
+            assert response.status_code == 503
             data = response.json()
 
-            # 檢查錯誤格式（可能是自定義格式或 FastAPI 預設格式）
-            assert "error" in data or "detail" in data
-            if "error" in data:
-                assert "資料庫連線失敗" in data["error"]
-            else:
-                assert "內部伺服器錯誤" in data["detail"]
+            # 檢查錯誤格式（使用自定義錯誤格式）
+            assert "error" in data
+            assert "資料庫連線失敗" in data["error"]["message"]
 
     def test_liveness_probe_route_metadata(self):
         """測試存活探測路由元資料。"""
@@ -284,13 +296,19 @@ class TestHealthRouter:
         response = client.get("/healthz?fail=false")
         assert response.status_code == 200
 
-        # 測試 fail=true，應該會拋出異常
-        with pytest.raises(Exception):
-            client.get("/healthz?fail=true")
+        # 測試 fail=true，應該會返回錯誤回應
+        response = client.get("/healthz?fail=true")
+        assert response.status_code == 500
+        data = response.json()
+        assert "error" in data
+        assert "存活探測檢查錯誤" in data["error"]["message"]
 
-        # 測試 fail=1（布林值轉換），應該會拋出異常
-        with pytest.raises(Exception):
-            client.get("/healthz?fail=1")
+        # 測試 fail=1（布林值轉換），應該會返回錯誤回應
+        response = client.get("/healthz?fail=1")
+        assert response.status_code == 500
+        data = response.json()
+        assert "error" in data
+        assert "存活探測檢查錯誤" in data["error"]["message"]
 
     def test_readiness_probe_with_different_fail_values(
         self, client, mock_settings, mock_get_project_version, mock_get_utc_timestamp
@@ -307,14 +325,23 @@ class TestHealthRouter:
             response = client.get("/readyz?fail=false&db_fail=false")
             assert response.status_code == 200
 
-            # 測試 fail=true，應該會拋出異常
-            with pytest.raises(Exception):
-                client.get("/readyz?fail=true")
+            # 測試 fail=true，應該會返回錯誤回應
+            response = client.get("/readyz?fail=true")
+            assert response.status_code == 503
+            data = response.json()
+            assert "error" in data
+            assert "準備就緒探測檢查錯誤" in data["error"]["message"]
 
-            # 測試 db_fail=true，應該會拋出異常
-            with pytest.raises(Exception):
-                client.get("/readyz?db_fail=true")
+            # 測試 db_fail=true，應該會返回錯誤回應
+            response = client.get("/readyz?db_fail=true")
+            assert response.status_code == 503
+            data = response.json()
+            assert "error" in data
+            assert "資料庫連線失敗錯誤" in data["error"]["message"]
 
-            # 測試兩者都為 true，應該會拋出異常
-            with pytest.raises(Exception):
-                client.get("/readyz?fail=true&db_fail=true")
+            # 測試兩者都為 true，應該會返回錯誤回應（fail 優先）
+            response = client.get("/readyz?fail=true&db_fail=true")
+            assert response.status_code == 503
+            data = response.json()
+            assert "error" in data
+            assert "準備就緒探測檢查錯誤" in data["error"]["message"]

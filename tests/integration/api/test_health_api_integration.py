@@ -46,7 +46,7 @@ class TestHealthAPIIntegration:
             assert field in response_data, f"缺少必要欄位: {field}"
 
         # 檢查欄位值
-        assert response_data["message"] == "應用程式存活"
+        assert response_data["message"] == "應用程式存活、正常運行"
         assert response_data["status"] == "healthy"
         assert response_data["app_name"] == settings.app_name
         assert response_data["version"] == get_project_version()
@@ -76,7 +76,10 @@ class TestHealthAPIIntegration:
 
         # 檢查錯誤內容
         assert response_data["error"]["status_code"] == 500
-        assert "測試模式：故意觸發存活探測檢查錯誤" in response_data["error"]["message"]
+        assert (
+            "存活探測檢查錯誤：應用程式異常、未正常運行"
+            in response_data["error"]["message"]
+        )
 
     def test_readiness_probe_success(self, client: TestClient):
         """測試準備就緒探測成功。"""
@@ -130,10 +133,7 @@ class TestHealthAPIIntegration:
 
         # 檢查錯誤內容
         assert response_data["error"]["status_code"] == 503
-        assert (
-            "測試模式：故意觸發準備就緒探測檢查錯誤"
-            in response_data["error"]["message"]
-        )
+        assert "準備就緒探測檢查錯誤" in response_data["error"]["message"]
 
     def test_readiness_probe_with_db_fail_parameter(self, client: TestClient):
         """測試準備就緒探測資料庫失敗參數。"""
@@ -150,10 +150,7 @@ class TestHealthAPIIntegration:
 
         # 檢查錯誤內容
         assert response_data["error"]["status_code"] == 503
-        assert (
-            "真實錯誤：資料庫連線失敗，應用程式未準備就緒"
-            in response_data["error"]["message"]
-        )
+        assert "資料庫連線失敗錯誤" in response_data["error"]["message"]
 
     @patch("app.routers.health.check_db_connection")
     def test_readiness_probe_database_connection_failure(
@@ -165,11 +162,12 @@ class TestHealthAPIIntegration:
 
         response = client.get("/readyz")
 
-        assert response.status_code == 500
+        assert response.status_code == 503
         response_data = response.json()
 
         # 檢查錯誤回應結構
-        assert "detail" in response_data
+        assert "error" in response_data
+        assert "資料庫連線失敗" in response_data["error"]["message"]
 
     def test_health_endpoints_response_format_consistency(self, client: TestClient):
         """測試健康檢查端點回應格式的一致性。"""
@@ -270,10 +268,7 @@ class TestHealthAPIIntegration:
         # 應該優先處理 fail 參數
         assert response.status_code == 503
         response_data = response.json()
-        assert (
-            "測試模式：故意觸發準備就緒探測檢查錯誤"
-            in response_data["error"]["message"]
-        )
+        assert "準備就緒探測檢查錯誤" in response_data["error"]["message"]
 
     def test_health_endpoints_cors_headers(self, client: TestClient):
         """測試健康檢查端點的 CORS 標頭。"""
