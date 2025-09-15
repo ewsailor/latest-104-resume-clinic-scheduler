@@ -11,7 +11,7 @@
 
 # ===== 本地模組 =====
 from .health import (
-    HealthCheckBaseResponse,
+    HealthCheckBase,
     HealthCheckLivenessResponse,
     HealthCheckReadinessResponse,
 )
@@ -27,7 +27,7 @@ from .schedule import (
 
 __all__ = [
     # 健康檢查相關模式
-    "HealthCheckBaseResponse",
+    "HealthCheckBase",
     "HealthCheckLivenessResponse",
     "HealthCheckReadinessResponse",
     # 時段相關模式

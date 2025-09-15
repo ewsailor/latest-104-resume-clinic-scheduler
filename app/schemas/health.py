@@ -10,8 +10,8 @@ from typing import Dict
 from pydantic import BaseModel, Field
 
 
-class HealthCheckBaseResponse(BaseModel):
-    """健康檢查回應基礎模型。"""
+class HealthCheckBase(BaseModel):
+    """健康檢查基礎模型。"""
 
     status: str = Field(
         ..., description="健康狀態", json_schema_extra={"example": "healthy"}
@@ -38,13 +38,13 @@ class HealthCheckBaseResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class HealthCheckLivenessResponse(HealthCheckBaseResponse):
+class HealthCheckLivenessResponse(HealthCheckBase):
     """健康檢查存活探測成功回應模型。"""
 
     message: str = Field(..., description="存活探測訊息")
 
 
-class HealthCheckReadinessResponse(HealthCheckBaseResponse):
+class HealthCheckReadinessResponse(HealthCheckBase):
     """健康檢查就緒探測成功回應模型。"""
 
     message: str = Field(
@@ -58,6 +58,9 @@ class HealthCheckReadinessResponse(HealthCheckBaseResponse):
         ...,
         description="各項檢查結果",
         json_schema_extra={
-            "example": {"application": "healthy", "database": "healthy"}
+            "example": {
+                "application": "healthy",
+                "database": "healthy",
+            }
         },
     )

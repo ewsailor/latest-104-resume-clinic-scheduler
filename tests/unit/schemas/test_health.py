@@ -12,18 +12,18 @@ import pytest
 
 # ===== 本地模組 =====
 from app.schemas import (
-    HealthCheckBaseResponse,
+    HealthCheckBase,
     HealthCheckLivenessResponse,
     HealthCheckReadinessResponse,
 )
 
 
-class TestHealthCheckBaseResponse:
-    """HealthCheckBaseResponse 模型測試類別。"""
+class TestHealthCheckBase:
+    """HealthCheckBase 模型測試類別。"""
 
-    def test_health_check_base_response_creation_success(self):
-        """測試 HealthCheckBaseResponse 成功建立。"""
-        response = HealthCheckBaseResponse(
+    def test_health_check_base_creation_success(self):
+        """測試 HealthCheckBase 成功建立。"""
+        response = HealthCheckBase(
             status="healthy",
             app_name="【MVP】104 Resume Clinic Scheduler",
             version="0.1.0",
