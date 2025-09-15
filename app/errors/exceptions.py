@@ -166,6 +166,39 @@ class ConflictError(APIError):
         )
 
 
+class ScheduleCannotBeDeletedError(APIError):
+    """時段無法刪除錯誤。"""
+
+    def __init__(
+        self,
+        schedule_id: int | str,
+        details: dict[str, Any] | None = None,
+    ):
+        message = f"時段無法刪除: ID={schedule_id}"
+        super().__init__(
+            message=message,
+            error_code=ServiceErrorCode.SCHEDULE_CANNOT_BE_DELETED,
+            status_code=status.HTTP_409_CONFLICT,
+            details=details,
+        )
+
+
+class ScheduleOverlapError(APIError):
+    """時段重疊錯誤。"""
+
+    def __init__(
+        self,
+        message: str,
+        details: dict[str, Any] | None = None,
+    ):
+        super().__init__(
+            message=message,
+            error_code=ServiceErrorCode.SCHEDULE_OVERLAP,
+            status_code=status.HTTP_409_CONFLICT,
+            details=details,
+        )
+
+
 # ===== CRUD 層級錯誤 =====
 class DatabaseError(APIError):
     """資料庫錯誤。"""

@@ -15,7 +15,7 @@ from sqlalchemy.orm import sessionmaker
 
 # ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
-from app.errors import ConflictError
+from app.errors import ScheduleOverlapError
 from app.models.database import Base
 from app.models.schedule import Schedule
 from app.models.user import User
@@ -564,7 +564,7 @@ class TestServiceBusinessLogicIntegration:
             note="重疊時段",
         )
 
-        with pytest.raises(ConflictError):
+        with pytest.raises(ScheduleOverlapError):
             schedule_service.create_schedules(
                 db=db_session,
                 schedules=[overlapping_schedule_data],

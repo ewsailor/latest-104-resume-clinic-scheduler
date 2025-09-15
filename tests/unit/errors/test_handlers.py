@@ -11,11 +11,11 @@ from app.errors.exceptions import (
     AuthenticationError,
     AuthorizationError,
     BusinessLogicError,
-    ConflictError,
     DatabaseError,
     LivenessCheckError,
     ReadinessCheckError,
     ScheduleNotFoundError,
+    ScheduleOverlapError,
     ServiceUnavailableError,
     UserNotFoundError,
     ValidationError,
@@ -194,20 +194,24 @@ class TestCreateScheduleOverlapError:
 
     def test_create_schedule_overlap_error_with_int_id(self):
         """測試建立整數 ID 的時段重疊錯誤。"""
-        error = create_schedule_overlap_error(123)
+        error = create_schedule_overlap_error("檢測到 1 個重疊時段，請調整時段之時間")
 
-        assert isinstance(error, ConflictError)
-        assert error.message == "時段重疊: ID=123"
-        assert error.error_code == "SERVICE_CONFLICT"
+        assert isinstance(error, ScheduleOverlapError)
+        assert error.message == "檢測到 1 個重疊時段，請調整時段之時間"
+        assert error.error_code == "SERVICE_SCHEDULE_OVERLAP"
         assert error.status_code == 409
 
     def test_create_schedule_overlap_error_with_str_id(self):
         """測試建立字串 ID 的時段重疊錯誤。"""
-        error = create_schedule_overlap_error("abc123")
+        error = create_schedule_overlap_error(
+            "更新時段 abc123 時，檢測到 1 個重疊時段，請調整時段之時間"
+        )
 
-        assert isinstance(error, ConflictError)
-        assert error.message == "時段重疊: ID=abc123"
-        assert error.error_code == "SERVICE_CONFLICT"
+        assert isinstance(error, ScheduleOverlapError)
+        assert (
+            error.message == "更新時段 abc123 時，檢測到 1 個重疊時段，請調整時段之時間"
+        )
+        assert error.error_code == "SERVICE_SCHEDULE_OVERLAP"
         assert error.status_code == 409
 
 
@@ -308,7 +312,11 @@ class TestErrorHandlerConsistency:
             (create_business_logic_error, BusinessLogicError, "業務邏輯錯誤"),
             (create_schedule_not_found_error, ScheduleNotFoundError, 123),
             (create_user_not_found_error, UserNotFoundError, 456),
-            (create_schedule_overlap_error, ConflictError, 789),
+            (
+                create_schedule_overlap_error,
+                ScheduleOverlapError,
+                "檢測到 1 個重疊時段，請調整時段之時間",
+            ),
             (create_database_error, DatabaseError, "資料庫錯誤"),
             (create_service_unavailable_error, ServiceUnavailableError, "服務不可用"),
             (create_liveness_check_error, LivenessCheckError, "存活檢查失敗"),
@@ -326,15 +334,18 @@ class TestErrorHandlerConsistency:
         id_handlers = [
             (create_schedule_not_found_error, "時段不存在: ID=123"),
             (create_user_not_found_error, "使用者不存在: ID=456"),
-            (create_schedule_overlap_error, "時段重疊: ID=789"),
+            (create_schedule_overlap_error, "檢測到 1 個重疊時段，請調整時段之時間"),
         ]
 
         for handler_func, expected_message in id_handlers:
-            error = handler_func(
-                123
-                if "123" in expected_message
-                else 456 if "456" in expected_message else 789
-            )
+            if handler_func == create_schedule_overlap_error:
+                error = handler_func(expected_message)
+            else:
+                error = handler_func(
+                    123
+                    if "123" in expected_message
+                    else 456 if "456" in expected_message else 789
+                )
             assert error.message == expected_message
 
     def test_error_handlers_status_codes(self):
@@ -347,7 +358,10 @@ class TestErrorHandlerConsistency:
             (create_business_logic_error("test"), 400),
             (create_schedule_not_found_error(1), 404),
             (create_user_not_found_error(1), 404),
-            (create_schedule_overlap_error(1), 409),
+            (
+                create_schedule_overlap_error("檢測到 1 個重疊時段，請調整時段之時間"),
+                409,
+            ),
             (create_database_error("test"), 500),
             (create_service_unavailable_error("test"), 503),
             (create_liveness_check_error("test"), 500),
@@ -367,7 +381,10 @@ class TestErrorHandlerConsistency:
             (create_business_logic_error("test"), "SERVICE_BUSINESS_LOGIC_ERROR"),
             (create_schedule_not_found_error(1), "SERVICE_SCHEDULE_NOT_FOUND"),
             (create_user_not_found_error(1), "SERVICE_USER_NOT_FOUND"),
-            (create_schedule_overlap_error(1), "SERVICE_CONFLICT"),
+            (
+                create_schedule_overlap_error("檢測到 1 個重疊時段，請調整時段之時間"),
+                "SERVICE_SCHEDULE_OVERLAP",
+            ),
             (create_database_error("test"), "CRUD_DATABASE_ERROR"),
             (create_service_unavailable_error("test"), "SERVICE_UNAVAILABLE"),
             (create_liveness_check_error("test"), "LIVENESS_CHECK_ERROR"),

@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 # ===== 本地模組 =====
 from app.decorators import handle_api_errors_async
 from app.enums.models import ScheduleStatusEnum
-from app.errors import create_bad_request_error, create_schedule_not_found_error
+from app.errors import create_bad_request_error
 from app.models.database import get_db
 from app.schemas import (
     ScheduleCreateRequest,
@@ -58,7 +58,7 @@ router = APIRouter(prefix="/api/v1", tags=["Schedules"])
                             "date": "2024-01-01",
                             "start_time": "09:00:00",
                             "end_time": "10:00:00",
-                            "note": "下週要面試，希望能請教面試技巧",
+                            "note": "成功建立時段",
                             "created_at": "2024-01-01T00:00:00Z",
                             "created_by": 1,
                             "created_by_role": "TAKER",
@@ -194,7 +194,7 @@ async def create_schedules(
                             "end_time": "10:00:00",
                             "status": "PENDING",
                             "date": "2024-01-01",
-                            "note": "下週要面試，希望能請教面試技巧",
+                            "note": "成功取得時段列表",
                             "created_at": "2024-01-01T00:00:00Z",
                             "created_by": 1,
                             "created_by_role": "TAKER",
@@ -276,7 +276,7 @@ async def list_schedules(
 
 ### 回應狀態
 - **200 OK**: 成功取得時段資訊
-- **404 Not Found**: 時段不存在
+- **404 Not Found**: 時段不存在錯誤
 - **422 Unprocessable Entity**: 參數驗證錯誤
     """,
     responses={
@@ -292,7 +292,7 @@ async def list_schedules(
                         "end_time": "10:00:00",
                         "status": "PENDING",
                         "date": "2024-01-01",
-                        "note": "下週要面試，希望能請教面試技巧",
+                        "note": "成功取得時段資訊",
                         "created_at": "2024-01-01T00:00:00Z",
                         "created_by": 1,
                         "created_by_role": "TAKER",
@@ -307,7 +307,7 @@ async def list_schedules(
             },
         },
         404: {
-            "description": "時段不存在",
+            "description": "時段不存在錯誤（Service 拋出錯誤，由 Route 捕捉）",
             "content": {
                 "application/json": {
                     "example": {
@@ -380,7 +380,8 @@ async def get_schedule(
 ### 回應狀態
 - **200 OK**: 成功更新時段
 - **400 Bad Request**: 更新資料無效
-- **404 Not Found**: 時段不存在
+- **404 Not Found**: 時段不存在錯誤
+- **409 Conflict**: 時段衝突錯誤
 - **422 Unprocessable Entity**: 參數驗證錯誤
     """,
     responses={
@@ -396,7 +397,7 @@ async def get_schedule(
                         "date": "2024-01-01",
                         "start_time": "09:00:00",
                         "end_time": "10:00:00",
-                        "note": "下週要面試，希望能請教面試技巧",
+                        "note": "成功更新時段",
                         "created_at": "2024-01-01T00:00:00Z",
                         "created_by": 1,
                         "created_by_role": "TAKER",
@@ -416,7 +417,7 @@ async def get_schedule(
                 "application/json": {
                     "example": {
                         "error": {
-                            "message": "開始時間必須早於結束時間",
+                            "message": "更新資料錯誤",
                             "status_code": 400,
                             "code": "ROUTER_BAD_REQUEST",
                             "timestamp": "2024-01-01T00:00:00Z",
@@ -427,7 +428,7 @@ async def get_schedule(
             },
         },
         404: {
-            "description": "時段不存在",
+            "description": "時段不存在錯誤（Service 拋出錯誤，由 Route 捕捉）",
             "content": {
                 "application/json": {
                     "example": {
@@ -435,6 +436,22 @@ async def get_schedule(
                             "message": "時段不存在: ID=schedule_id",
                             "status_code": 404,
                             "code": "SERVICE_SCHEDULE_NOT_FOUND",
+                            "timestamp": "2024-01-01T00:00:00Z",
+                            "details": {},
+                        }
+                    }
+                }
+            },
+        },
+        409: {
+            "description": "時段衝突錯誤（Service 拋出錯誤，由 Route 捕捉）",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "error": {
+                            "message": "更新時段 ID=schedule_id 時，檢測到 {len(overlapping_schedules)} 個重疊時段，請調整時段之時間",
+                            "status_code": 409,
+                            "code": "SERVICE_SCHEDULE_OVERLAP",
                             "timestamp": "2024-01-01T00:00:00Z",
                             "details": {},
                         }
@@ -503,7 +520,8 @@ async def update_schedule(
 - 軟刪除指定的時段記錄
 
 ### 使用場景
-- Giver 取消已設定的時段
+- Giver 刪除不再方便提供的時間
+- Taker 刪除不再方便提供的時間
 - 系統管理員清理無效時段
 - 批量清理過期時段
 
@@ -512,28 +530,39 @@ async def update_schedule(
 
 ### 回應狀態
 - **204 No Content**: 成功刪除時段
-- **404 Not Found**: 時段不存在或無法刪除
+- **404 Not Found**: 時段不存在錯誤
+- **409 Conflict**: 時段無法刪除錯誤
 - **422 Unprocessable Entity**: 參數驗證錯誤
-- **500 Internal Server Error**: 系統錯誤
-
-### 測試方式
-- 提供有效的時段 ID
-- 測試刪除不存在的時段
-- 測試刪除已被預約的時段
     """,
     responses={
         204: {
             "description": "成功刪除時段",
         },
         404: {
-            "description": "時段不存在或無法刪除",
+            "description": "時段不存在錯誤（Service 拋出錯誤，由 Route 捕捉）",
             "content": {
                 "application/json": {
                     "example": {
                         "error": {
-                            "message": "時段不存在或無法刪除: ID=schedule_id",
+                            "message": "時段不存在: ID=schedule_id",
                             "status_code": 404,
                             "code": "SERVICE_SCHEDULE_NOT_FOUND",
+                            "timestamp": "2024-01-01T00:00:00Z",
+                            "details": {},
+                        }
+                    }
+                }
+            },
+        },
+        409: {
+            "description": "時段無法刪除錯誤（Service 拋出錯誤，由 Route 捕捉）",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "error": {
+                            "message": "時段無法刪除: ID=schedule_id",
+                            "status_code": 409,
+                            "code": "SERVICE_SCHEDULE_CANNOT_BE_DELETED",
                             "timestamp": "2024-01-01T00:00:00Z",
                             "details": {},
                         }
@@ -564,24 +593,22 @@ async def update_schedule(
 @handle_api_errors_async()
 async def delete_schedule(
     request: ScheduleDeleteRequest,
-    schedule_id: int = Path(..., gt=0, description="時段 ID，必須大於 0"),
+    schedule_id: int = Path(..., gt=0, description="時段 ID，必填，必須大於 0"),
     db: Session = Depends(get_db),
 ) -> None:
     """刪除時段：刪除指定的時段記錄。
 
     Args:
         request (ScheduleDeleteRequest): 刪除請求資料。
-        schedule_id (int): 時段 ID，必須大於 0。
+        schedule_id (int): 時段 ID，必填，必須大於 0。
         db (Session): 資料庫會話。
 
     Returns:
         None: 刪除成功無回傳內容。
     """
-    result = schedule_service.delete_schedule(
+    schedule_service.delete_schedule(
         db,
         schedule_id,
         deleted_by=request.deleted_by,
         deleted_by_role=request.deleted_by_role,
     )
-    if not result:
-        raise create_schedule_not_found_error(schedule_id)

@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session  # 資料庫會話
 # ===== 本地模組 =====
 from app.crud.schedule import ScheduleCRUD  # CRUD 操作
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum  # 角色枚舉
-from app.enums.operations import OperationContext  # 操作相關的 ENUM
+from app.enums.operations import DeletionResult, OperationContext  # 操作相關的 ENUM
 from app.errors import (
     ScheduleNotFoundError,
 )
@@ -487,7 +487,7 @@ class TestScheduleCRUD:
         # 軟刪除時段
         result = crud.delete_schedule(db_session, schedule.id)
 
-        assert result is True
+        assert result == DeletionResult.SUCCESS
 
         # 確認時段已被軟刪除（在正常查詢中不可見）
         with pytest.raises(ScheduleNotFoundError, match="時段不存在: ID=1"):
@@ -506,7 +506,7 @@ class TestScheduleCRUD:
 
         result = crud.delete_schedule(db_session, 999)
 
-        assert result is False
+        assert result == DeletionResult.NOT_FOUND
 
     def test_delete_schedule_already_deleted(self, db_session: Session):
         """測試重複軟刪除時段。"""
@@ -530,11 +530,11 @@ class TestScheduleCRUD:
 
         # 第一次軟刪除
         result1 = crud.delete_schedule(db_session, schedule.id)
-        assert result1 is True
+        assert result1 == DeletionResult.SUCCESS
 
-        # 第二次軟刪除（應該成功，因為已經被軟刪除）
+        # 第二次軟刪除（應該返回已經刪除）
         result2 = crud.delete_schedule(db_session, schedule.id)
-        assert result2 is True
+        assert result2 == DeletionResult.ALREADY_DELETED
 
         # 確認時段仍然存在但已被軟刪除
         found_schedule_with_deleted = crud.get_schedule_including_deleted(

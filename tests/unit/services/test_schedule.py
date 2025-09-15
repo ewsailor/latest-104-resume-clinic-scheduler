@@ -13,8 +13,12 @@ from sqlalchemy.orm import Session
 
 # ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
-from app.enums.operations import OperationContext
-from app.errors import ConflictError
+from app.enums.operations import DeletionResult, OperationContext
+from app.errors import (
+    ScheduleCannotBeDeletedError,
+    ScheduleNotFoundError,
+    ScheduleOverlapError,
+)
 from app.models.schedule import Schedule
 from app.schemas import ScheduleBase
 from app.services.schedule import ScheduleService
@@ -269,7 +273,7 @@ class TestScheduleService:
         ):
             schedules = [sample_schedule_data]
 
-            with pytest.raises(ConflictError) as exc_info:
+            with pytest.raises(ScheduleOverlapError) as exc_info:
                 service.create_schedules(
                     mock_db, schedules, created_by=1, created_by_role=UserRoleEnum.GIVER
                 )
@@ -364,7 +368,7 @@ class TestScheduleService:
         with patch.object(
             service, 'check_update_overlap', return_value=[sample_schedule_orm]
         ):
-            with pytest.raises(ConflictError) as exc_info:
+            with pytest.raises(ScheduleOverlapError) as exc_info:
                 service.update_schedule(
                     mock_db,
                     schedule_id=1,
@@ -379,7 +383,9 @@ class TestScheduleService:
     def test_delete_schedule_success(self, mock_logger, service, mock_db):
         """測試軟刪除時段 - 成功。"""
         with patch.object(
-            service.schedule_crud, 'delete_schedule', return_value=True
+            service.schedule_crud,
+            'delete_schedule',
+            return_value=DeletionResult.SUCCESS,
         ) as mock_delete:
             result = service.delete_schedule(
                 mock_db, schedule_id=1, deleted_by=1, deleted_by_role=UserRoleEnum.GIVER
@@ -390,25 +396,70 @@ class TestScheduleService:
             mock_logger.info.assert_called()
 
     @patch('app.services.schedule.logger')
-    def test_delete_schedule_failure(self, mock_logger, service, mock_db):
-        """測試軟刪除時段 - 失敗。"""
+    def test_delete_schedule_not_found(self, mock_logger, service, mock_db):
+        """測試軟刪除時段 - 時段不存在。"""
         with patch.object(
-            service.schedule_crud, 'delete_schedule', return_value=False
+            service.schedule_crud,
+            'delete_schedule',
+            return_value=DeletionResult.NOT_FOUND,
         ) as mock_delete:
-            result = service.delete_schedule(
-                mock_db, schedule_id=1, deleted_by=1, deleted_by_role=UserRoleEnum.GIVER
-            )
+            with pytest.raises(ScheduleNotFoundError):
+                service.delete_schedule(
+                    mock_db,
+                    schedule_id=1,
+                    deleted_by=1,
+                    deleted_by_role=UserRoleEnum.GIVER,
+                )
 
-            assert result is False
             mock_delete.assert_called_once_with(mock_db, 1, 1, UserRoleEnum.GIVER)
             mock_logger.warning.assert_called()
 
     def test_delete_schedule_without_deleted_by(self, service, mock_db):
         """測試軟刪除時段 - 無刪除者資訊。"""
         with patch.object(
-            service.schedule_crud, 'delete_schedule', return_value=True
+            service.schedule_crud,
+            'delete_schedule',
+            return_value=DeletionResult.SUCCESS,
         ) as mock_delete:
             result = service.delete_schedule(mock_db, schedule_id=1)
 
             assert result is True
             mock_delete.assert_called_once_with(mock_db, 1, None, None)
+
+    @patch('app.services.schedule.logger')
+    def test_delete_schedule_cannot_delete(self, mock_logger, service, mock_db):
+        """測試軟刪除時段 - 無法刪除。"""
+        with patch.object(
+            service.schedule_crud,
+            'delete_schedule',
+            return_value=DeletionResult.CANNOT_DELETE,
+        ) as mock_delete:
+            with pytest.raises(ScheduleCannotBeDeletedError):
+                service.delete_schedule(
+                    mock_db,
+                    schedule_id=1,
+                    deleted_by=1,
+                    deleted_by_role=UserRoleEnum.GIVER,
+                )
+
+            mock_delete.assert_called_once_with(mock_db, 1, 1, UserRoleEnum.GIVER)
+            mock_logger.warning.assert_called()
+
+    @patch('app.services.schedule.logger')
+    def test_delete_schedule_already_deleted(self, mock_logger, service, mock_db):
+        """測試軟刪除時段 - 已經刪除（視為不存在）。"""
+        with patch.object(
+            service.schedule_crud,
+            'delete_schedule',
+            return_value=DeletionResult.ALREADY_DELETED,
+        ) as mock_delete:
+            with pytest.raises(ScheduleNotFoundError):
+                service.delete_schedule(
+                    mock_db,
+                    schedule_id=1,
+                    deleted_by=1,
+                    deleted_by_role=UserRoleEnum.GIVER,
+                )
+
+            mock_delete.assert_called_once_with(mock_db, 1, 1, UserRoleEnum.GIVER)
+            mock_logger.warning.assert_called()

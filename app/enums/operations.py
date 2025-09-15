@@ -34,3 +34,12 @@ class AuditAction(str, Enum):
     DELETE = "刪除"
     VIEW = "查看"
     EXPORT = "匯出"
+
+
+class DeletionResult(str, Enum):
+    """刪除結果枚舉"""
+
+    SUCCESS = "刪除成功"
+    ALREADY_DELETED = "已經刪除"
+    NOT_FOUND = "時段不存在"
+    CANNOT_DELETE = "無法刪除"

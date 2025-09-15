@@ -19,9 +19,12 @@ from app.decorators import (
     log_operation,
 )
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
-from app.enums.operations import OperationContext
+from app.enums.operations import DeletionResult, OperationContext
 from app.errors import (
-    ConflictError,
+    create_business_logic_error,
+    create_schedule_cannot_be_deleted_error,
+    create_schedule_not_found_error,
+    create_schedule_overlap_error,
 )
 from app.models.schedule import Schedule
 from app.schemas import ScheduleBase
@@ -191,7 +194,7 @@ class ScheduleService:
             error_msg = (
                 f"檢測到 {len(overlapping_schedules)} 個重疊時段，請調整時段之時間"
             )
-            raise ConflictError(error_msg)
+            raise create_schedule_overlap_error(error_msg)
 
         created_schedules = self.create_schedule_orm_objects(
             schedules, created_by, created_by_role
@@ -306,7 +309,7 @@ class ScheduleService:
 
         if overlapping_schedules:
             error_msg = f"更新時段 {schedule_id} 時，檢測到 {len(overlapping_schedules)} 個重疊時段，請調整時段之時間"
-            raise ConflictError(error_msg)
+            raise create_schedule_overlap_error(error_msg)
 
         updated_schedule = self.schedule_crud.update_schedule(
             db=db,
@@ -328,22 +331,32 @@ class ScheduleService:
         deleted_by_role: UserRoleEnum | None = None,
     ) -> bool:
         """軟刪除時段。"""
-        deletion_success = self.schedule_crud.delete_schedule(
+        deletion_result = self.schedule_crud.delete_schedule(
             db, schedule_id, deleted_by, deleted_by_role
         )
 
-        if deletion_success:
-            logger.info(
-                f"時段 {schedule_id} 軟刪除成功, "
-                f"deleted_by={deleted_by}, role={deleted_by_role}"
-            )
-        else:
-            logger.warning(
-                f"時段 {schedule_id} 軟刪除失敗, "
-                f"deleted_by={deleted_by}, role={deleted_by_role}"
-            )
-
-        return deletion_success
+        # 使用 match-case 語法處理不同的刪除結果
+        match deletion_result:
+            case DeletionResult.SUCCESS:
+                logger.info(
+                    f"時段 {schedule_id} 軟刪除成功, "
+                    f"deleted_by={deleted_by}, role={deleted_by_role}"
+                )
+                return True
+            case DeletionResult.NOT_FOUND:
+                logger.warning(f"時段 {schedule_id} 不存在")
+                raise create_schedule_not_found_error(schedule_id)
+            case DeletionResult.CANNOT_DELETE:
+                logger.warning(f"時段 {schedule_id} 無法刪除，狀態不允許")
+                raise create_schedule_cannot_be_deleted_error(schedule_id)
+            case DeletionResult.ALREADY_DELETED:
+                logger.warning(f"時段 {schedule_id} 已經刪除，視為不存在")
+                raise create_schedule_not_found_error(schedule_id)
+            case _:  # 防禦性程式設計：處理未預期的刪除結果
+                logger.error(
+                    f"時段 {schedule_id} 刪除時發生未知錯誤: {deletion_result}"
+                )
+                raise create_business_logic_error(f"未知的刪除結果: {deletion_result}")
 
 
 schedule_service = ScheduleService()

@@ -19,7 +19,9 @@ from .exceptions import (
     DatabaseError,
     LivenessCheckError,
     ReadinessCheckError,
+    ScheduleCannotBeDeletedError,
     ScheduleNotFoundError,
+    ScheduleOverlapError,
     ServiceUnavailableError,
     UserNotFoundError,
     ValidationError,
@@ -33,6 +35,7 @@ from .handlers import (
     create_database_error,
     create_liveness_check_error,
     create_readiness_check_error,
+    create_schedule_cannot_be_deleted_error,
     create_schedule_not_found_error,
     create_schedule_overlap_error,
     create_service_unavailable_error,
@@ -57,7 +60,9 @@ __all__ = [
     "AuthorizationError",
     # Service 層級
     "BusinessLogicError",
+    "ScheduleCannotBeDeletedError",
     "ScheduleNotFoundError",
+    "ScheduleOverlapError",
     "UserNotFoundError",
     "ConflictError",
     # CRUD 層級
@@ -74,6 +79,7 @@ __all__ = [
     "create_authorization_error",
     # Service 層級
     "create_business_logic_error",
+    "create_schedule_cannot_be_deleted_error",
     "create_schedule_not_found_error",
     "create_user_not_found_error",
     "create_schedule_overlap_error",

@@ -15,7 +15,7 @@ from sqlalchemy.orm import sessionmaker
 
 # ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
-from app.errors import ConflictError
+from app.errors import ScheduleNotFoundError, ScheduleOverlapError
 from app.models.database import Base
 from app.models.schedule import Schedule
 from app.models.user import User
@@ -119,7 +119,7 @@ class TestServiceErrorHandlingIntegration:
             ),
         ]
 
-        with pytest.raises(ConflictError) as exc_info:
+        with pytest.raises(ScheduleOverlapError) as exc_info:
             schedule_service.create_schedules(
                 db=db_session,
                 schedules=overlapping_schedules_data,
@@ -172,7 +172,7 @@ class TestServiceErrorHandlingIntegration:
             ),
         ]
 
-        with pytest.raises(ConflictError) as exc_info:
+        with pytest.raises(ScheduleOverlapError) as exc_info:
             schedule_service.create_schedules(
                 db=db_session,
                 schedules=schedules_data,
@@ -225,7 +225,7 @@ class TestServiceErrorHandlingIntegration:
         db_session.refresh(schedule_to_update)
 
         # 嘗試更新時段時間，使其與現有時段重疊
-        with pytest.raises(ConflictError) as exc_info:
+        with pytest.raises(ScheduleOverlapError) as exc_info:
             schedule_service.update_schedule(
                 db=db_session,
                 schedule_id=schedule_to_update.id,
@@ -266,16 +266,18 @@ class TestServiceErrorHandlingIntegration:
         self, db_session, schedule_service, sample_users
     ):
         """測試刪除不存在時段的錯誤處理。"""
-        # 嘗試刪除不存在的時段
-        deletion_success = schedule_service.delete_schedule(
-            db=db_session,
-            schedule_id=99999,
-            deleted_by=sample_users["admin"].id,
-            deleted_by_role=UserRoleEnum.SYSTEM,
-        )
+        # 嘗試刪除不存在的時段，應該拋出 ScheduleNotFoundError
+        with pytest.raises(ScheduleNotFoundError) as exc_info:
+            schedule_service.delete_schedule(
+                db=db_session,
+                schedule_id=99999,
+                deleted_by=sample_users["admin"].id,
+                deleted_by_role=UserRoleEnum.SYSTEM,
+            )
 
-        # 應該返回 False 而不是拋出異常
-        assert deletion_success is False
+        # 驗證異常訊息
+        assert "時段不存在" in str(exc_info.value)
+        assert "ID=99999" in str(exc_info.value)
 
     def test_create_schedules_invalid_data_error_handling(
         self, db_session, schedule_service, sample_users
@@ -352,7 +354,7 @@ class TestServiceErrorHandlingIntegration:
             assert created_schedules[0].end_time == datetime.time(9, 0)
         except Exception as e:
             # 如果拋出異常，確保是預期的異常類型
-            assert isinstance(e, (ValueError, ConflictError))
+            assert isinstance(e, (ValueError, ScheduleOverlapError))
 
     def test_schedule_service_error_recovery(
         self, db_session, schedule_service, sample_users
@@ -385,7 +387,7 @@ class TestServiceErrorHandlingIntegration:
             note="重疊時段",
         )
 
-        with pytest.raises(ConflictError):
+        with pytest.raises(ScheduleOverlapError):
             schedule_service.create_schedules(
                 db=db_session,
                 schedules=[overlapping_schedule_data],
@@ -463,7 +465,7 @@ class TestServiceErrorHandlingIntegration:
         ]
 
         # 3. 應該因為重疊而失敗，整個批次都不應該建立
-        with pytest.raises(ConflictError):
+        with pytest.raises(ScheduleOverlapError):
             schedule_service.create_schedules(
                 db=db_session,
                 schedules=mixed_schedules_data,
@@ -517,7 +519,7 @@ class TestServiceErrorHandlingIntegration:
 
         # 3. 第一個應該成功（如果沒有其他重疊）
         # 第二個應該失敗
-        with pytest.raises(ConflictError):
+        with pytest.raises(ScheduleOverlapError):
             schedule_service.create_schedules(
                 db=db_session,
                 schedules=[schedule_data_1, schedule_data_2],
@@ -561,7 +563,7 @@ class TestServiceErrorHandlingIntegration:
             note="重疊時段",
         )
 
-        with pytest.raises(ConflictError) as exc_info:
+        with pytest.raises(ScheduleOverlapError) as exc_info:
             schedule_service.create_schedules(
                 db=db_session,
                 schedules=[overlapping_schedule_data],
@@ -592,7 +594,7 @@ class TestServiceErrorHandlingIntegration:
         db_session.commit()
         db_session.refresh(schedule_to_update)
 
-        with pytest.raises(ConflictError) as exc_info:
+        with pytest.raises(ScheduleOverlapError) as exc_info:
             schedule_service.update_schedule(
                 db=db_session,
                 schedule_id=schedule_to_update.id,

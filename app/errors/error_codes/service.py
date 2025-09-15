@@ -18,3 +18,6 @@ class ServiceErrorCode:
 
     # 409 Conflict - 服務層衝突錯誤
     CONFLICT = "SERVICE_CONFLICT"  # 409 - 業務邏輯衝突（如重複 email）
+    SCHEDULE_CANNOT_BE_DELETED = (
+        "SERVICE_SCHEDULE_CANNOT_BE_DELETED"  # 409 - 時段無法刪除
+    )

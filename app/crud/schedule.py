@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session, joinedload
 
 # ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
+from app.enums.operations import DeletionResult
 from app.errors import (
     create_bad_request_error,
     create_schedule_not_found_error,
@@ -193,12 +194,13 @@ class ScheduleCRUD:
         # 驗證時段是否存在
         schedule = self.get_schedule(db, schedule_id)
 
-        # 驗證時間邏輯
-        start_time = kwargs.get("start_time", schedule.start_time)
-        end_time = kwargs.get("end_time", schedule.end_time)
+        # 驗證時間邏輯（只有在更新時間欄位時才檢查）
+        if "start_time" in kwargs or "end_time" in kwargs:
+            start_time = kwargs.get("start_time", schedule.start_time)
+            end_time = kwargs.get("end_time", schedule.end_time)
 
-        if start_time and end_time and start_time >= end_time:
-            raise create_bad_request_error("開始時間必須早於結束時間")
+            if start_time and end_time and start_time >= end_time:
+                raise create_bad_request_error("開始時間必須早於結束時間")
 
         # 只有當時段存在時，才設定更新者資訊
         schedule.updated_by = updated_by
@@ -224,26 +226,44 @@ class ScheduleCRUD:
         schedule_id: int,
         deleted_by: int | None = None,
         deleted_by_role: UserRoleEnum | None = None,
-    ) -> bool:
-        """軟刪除時段。"""
+    ) -> DeletionResult:
+        """軟刪除時段。
+
+        Returns:
+            DeletionResult: 刪除結果
+                - SUCCESS: 刪除成功
+                - ALREADY_DELETED: 已經刪除
+                - NOT_FOUND: 時段不存在
+                - CANNOT_DELETE: 無法刪除（狀態不允許）
+        """
         schedule = self.get_schedule_including_deleted(db, schedule_id)
 
-        if not schedule:
-            return False
+        # 使用 match-case 語法處理不同的刪除情況
+        match schedule:
+            case None:
+                return DeletionResult.NOT_FOUND
+            case _ if schedule.deleted_at is not None:
+                return DeletionResult.ALREADY_DELETED
+            # 已接受或已完成的時段無法刪除
+            # ACCEPTED: 雙方已確認面談時間，刪除會影響約定
+            # COMPLETED: 面談已完成，屬於歷史記錄，不應刪除
+            case _ if schedule.status in [
+                ScheduleStatusEnum.ACCEPTED,
+                ScheduleStatusEnum.COMPLETED,
+            ]:
+                return DeletionResult.CANNOT_DELETE
+            case _:
+                # 執行軟刪除
+                schedule.updated_at = get_local_now_naive()
+                schedule.updated_by = deleted_by
+                schedule.updated_by_role = deleted_by_role
+                schedule.deleted_at = get_local_now_naive()
+                schedule.deleted_by = deleted_by
+                schedule.deleted_by_role = deleted_by_role
+                schedule.status = ScheduleStatusEnum.CANCELLED
 
-        if schedule.deleted_at is not None:
-            return True
-
-        schedule.updated_at = get_local_now_naive()
-        schedule.updated_by = deleted_by
-        schedule.updated_by_role = deleted_by_role
-        schedule.deleted_at = get_local_now_naive()
-        schedule.deleted_by = deleted_by
-        schedule.deleted_by_role = deleted_by_role
-        schedule.status = ScheduleStatusEnum.CANCELLED
-
-        db.commit()
-        return True
+                db.commit()
+                return DeletionResult.SUCCESS
 
 
 schedule_crud = ScheduleCRUD()

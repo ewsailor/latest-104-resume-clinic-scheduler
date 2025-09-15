@@ -9,11 +9,12 @@ from app.errors.exceptions import (
     AuthorizationError,
     BadRequestError,
     BusinessLogicError,
-    ConflictError,
     DatabaseError,
     LivenessCheckError,
     ReadinessCheckError,
+    ScheduleCannotBeDeletedError,
     ScheduleNotFoundError,
+    ScheduleOverlapError,
     ServiceUnavailableError,
     UserNotFoundError,
     ValidationError,
@@ -57,9 +58,16 @@ def create_user_not_found_error(user_id: int | str) -> UserNotFoundError:
     return UserNotFoundError(user_id)
 
 
-def create_schedule_overlap_error(schedule_id: int | str) -> ConflictError:
+def create_schedule_overlap_error(message: str) -> ScheduleOverlapError:
     """建立時段重疊錯誤。"""
-    return ConflictError(f"時段重疊: ID={schedule_id}")
+    return ScheduleOverlapError(message)
+
+
+def create_schedule_cannot_be_deleted_error(
+    schedule_id: int | str,
+) -> ScheduleCannotBeDeletedError:
+    """建立時段無法刪除錯誤。"""
+    return ScheduleCannotBeDeletedError(schedule_id)
 
 
 # ===== CRUD 層級錯誤 =====

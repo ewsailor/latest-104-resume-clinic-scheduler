@@ -15,7 +15,7 @@ from sqlalchemy.orm import sessionmaker
 # ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
 from app.enums.operations import OperationContext
-from app.errors import ConflictError
+from app.errors import ScheduleNotFoundError, ScheduleOverlapError
 from app.models.database import Base
 from app.models.schedule import Schedule
 from app.models.user import User
@@ -362,7 +362,7 @@ class TestScheduleServiceIntegration:
             note="重疊時段",
         )
 
-        with pytest.raises(ConflictError) as exc_info:
+        with pytest.raises(ScheduleOverlapError) as exc_info:
             schedule_service.create_schedules(
                 db=db_session,
                 schedules=[overlapping_schedule_data],
@@ -674,7 +674,7 @@ class TestScheduleServiceIntegration:
         db_session.refresh(schedule_to_update)
 
         # 嘗試更新時段時間，使其與現有時段重疊
-        with pytest.raises(ConflictError) as exc_info:
+        with pytest.raises(ScheduleOverlapError) as exc_info:
             schedule_service.update_schedule(
                 db=db_session,
                 schedule_id=schedule_to_update.id,
@@ -727,12 +727,15 @@ class TestScheduleServiceIntegration:
         self, db_session, schedule_service, sample_users
     ):
         """測試刪除不存在的時段。"""
-        # 嘗試刪除不存在的時段
-        deletion_success = schedule_service.delete_schedule(
-            db=db_session,
-            schedule_id=99999,  # 不存在的 ID
-            deleted_by=sample_users["admin"].id,
-            deleted_by_role=UserRoleEnum.SYSTEM,
-        )
+        # 嘗試刪除不存在的時段，應該拋出 ScheduleNotFoundError
+        with pytest.raises(ScheduleNotFoundError) as exc_info:
+            schedule_service.delete_schedule(
+                db=db_session,
+                schedule_id=99999,  # 不存在的 ID
+                deleted_by=sample_users["admin"].id,
+                deleted_by_role=UserRoleEnum.SYSTEM,
+            )
 
-        assert deletion_success is False
+        # 驗證異常訊息
+        assert "時段不存在" in str(exc_info.value)
+        assert "ID=99999" in str(exc_info.value)
