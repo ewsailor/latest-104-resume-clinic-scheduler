@@ -13,10 +13,8 @@ import pytest
 # ===== 本地模組 =====
 from app.schemas import (
     HealthCheckBaseResponse,
-    HealthCheckErrorResponse,
     HealthCheckLivenessResponse,
     HealthCheckReadinessResponse,
-    ValidationErrorResponse,
 )
 
 
@@ -187,72 +185,3 @@ class TestHealthCheckReadinessResponse:
         assert data["version"] == "1.0.0"
         assert data["timestamp"] == "2024-01-01T00:00:00Z"
         assert data["checks"] == {"application": "healthy"}
-
-
-class TestHealthCheckErrorResponse:
-    """HealthCheckErrorResponse 模型測試類別。"""
-
-    def test_health_check_error_response_creation_success(self):
-        """測試 HealthCheckErrorResponse 成功建立。"""
-        error_data = {
-            "message": "準備就緒探測檢查錯誤：應用程式未準備就緒",
-            "status_code": 503,
-            "code": "READINESS_CHECK_ERROR",
-            "timestamp": "2024-01-01T00:00:00Z",
-            "details": {},
-        }
-
-        response = HealthCheckErrorResponse(error=error_data)
-
-        assert response.error == error_data
-        assert response.error["message"] == "準備就緒探測檢查錯誤：應用程式未準備就緒"
-        assert response.error["status_code"] == 503
-        assert response.error["code"] == "READINESS_CHECK_ERROR"
-
-    def test_health_check_error_response_validation_error_required(self):
-        """測試 HealthCheckErrorResponse error 必填驗證。"""
-        with pytest.raises(ValidationError) as exc_info:
-            HealthCheckErrorResponse()
-
-        errors = exc_info.value.errors()
-        assert any(
-            error["type"] == "missing" and "error" in str(error["loc"])
-            for error in errors
-        )
-
-
-class TestValidationErrorResponse:
-    """ValidationErrorResponse 模型測試類別。"""
-
-    def test_validation_error_response_creation_success(self):
-        """測試 ValidationErrorResponse 成功建立。"""
-        error_data = {
-            "message": "參數驗證錯誤",
-            "status_code": 422,
-            "code": "VALIDATION_ERROR",
-            "timestamp": "2024-01-01T00:00:00Z",
-            "details": {
-                "fail": "參數類型錯誤，應為布林值",
-                "db_fail": "參數類型錯誤，應為布林值",
-            },
-        }
-
-        response = ValidationErrorResponse(error=error_data)
-
-        assert response.error == error_data
-        assert response.error["message"] == "參數驗證錯誤"
-        assert response.error["status_code"] == 422
-        assert response.error["code"] == "VALIDATION_ERROR"
-        assert response.error["details"]["fail"] == "參數類型錯誤，應為布林值"
-        assert response.error["details"]["db_fail"] == "參數類型錯誤，應為布林值"
-
-    def test_validation_error_response_validation_error_required(self):
-        """測試 ValidationErrorResponse error 必填驗證。"""
-        with pytest.raises(ValidationError) as exc_info:
-            ValidationErrorResponse()
-
-        errors = exc_info.value.errors()
-        assert any(
-            error["type"] == "missing" and "error" in str(error["loc"])
-            for error in errors
-        )

@@ -12,10 +12,8 @@
 # ===== 本地模組 =====
 from .health import (
     HealthCheckBaseResponse,
-    HealthCheckErrorResponse,
     HealthCheckLivenessResponse,
     HealthCheckReadinessResponse,
-    ValidationErrorResponse,
 )
 from .schedule import (
     ScheduleBase,
@@ -32,8 +30,6 @@ __all__ = [
     "HealthCheckBaseResponse",
     "HealthCheckLivenessResponse",
     "HealthCheckReadinessResponse",
-    "HealthCheckErrorResponse",
-    "ValidationErrorResponse",
     # 時段相關模式
     "ScheduleBase",
     "ScheduleCreateRequest",
