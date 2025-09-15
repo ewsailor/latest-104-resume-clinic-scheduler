@@ -22,7 +22,6 @@ from .schedule import (
     SchedulePartialUpdateRequest,
     ScheduleResponse,
     ScheduleUpdateBase,
-    ScheduleUpdateRequest,
 )
 
 __all__ = [
@@ -34,7 +33,6 @@ __all__ = [
     "ScheduleBase",
     "ScheduleCreateRequest",
     "ScheduleUpdateBase",
-    "ScheduleUpdateRequest",
     "SchedulePartialUpdateRequest",
     "ScheduleDeleteRequest",
     "ScheduleResponse",

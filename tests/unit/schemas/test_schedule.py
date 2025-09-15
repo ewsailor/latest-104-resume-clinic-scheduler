@@ -17,7 +17,6 @@ from app.schemas.schedule import (
     SchedulePartialUpdateRequest,
     ScheduleResponse,
     ScheduleUpdateBase,
-    ScheduleUpdateRequest,
 )
 
 
@@ -441,112 +440,6 @@ class TestScheduleCreateRequest:
         assert len(request.schedules) == 2
         assert request.schedules[0].schedule_date == date(2024, 1, 15)
         assert request.schedules[1].schedule_date == date(2024, 1, 16)
-
-
-class TestScheduleUpdateRequest:
-    """ScheduleUpdateRequest 模型測試類別。"""
-
-    def test_schedule_update_request_creation_success(self):
-        """測試 ScheduleUpdateRequest 建立成功情況。"""
-        schedule = ScheduleBase(
-            giver_id=1,
-            taker_id=2,
-            status=ScheduleStatusEnum.PENDING,
-            date=date(2024, 1, 17),  # 使用別名
-            start_time=time(16, 0),
-            end_time=time(17, 0),
-            note="職涯諮詢",
-        )
-
-        request = ScheduleUpdateRequest(
-            schedule=schedule,
-            updated_by=1,
-            updated_by_role=UserRoleEnum.TAKER,
-        )
-
-        assert request.schedule.giver_id == 1
-        assert request.schedule.taker_id == 2
-        assert request.schedule.status == ScheduleStatusEnum.PENDING
-        assert request.updated_by == 1
-        assert request.updated_by_role == UserRoleEnum.TAKER
-
-    def test_schedule_update_request_validation_schedule_required(self):
-        """測試 ScheduleUpdateRequest schedule 必填驗證。"""
-        with pytest.raises(ValidationError) as exc_info:
-            ScheduleUpdateRequest(
-                updated_by=1,
-                updated_by_role=UserRoleEnum.TAKER,
-            )
-
-        errors = exc_info.value.errors()
-        assert any(
-            error["type"] == "missing" and "schedule" in str(error["loc"])
-            for error in errors
-        )
-
-    def test_schedule_update_request_validation_updated_by_required(self):
-        """測試 ScheduleUpdateRequest updated_by 必填驗證。"""
-        schedule = ScheduleBase(
-            giver_id=1,
-            date=date(2024, 1, 17),  # 使用別名
-            start_time=time(16, 0),
-            end_time=time(17, 0),
-        )
-
-        with pytest.raises(ValidationError) as exc_info:
-            ScheduleUpdateRequest(
-                schedule=schedule,
-                updated_by_role=UserRoleEnum.TAKER,
-            )
-
-        errors = exc_info.value.errors()
-        assert any(
-            error["type"] == "missing" and "updated_by" in str(error["loc"])
-            for error in errors
-        )
-
-    def test_schedule_update_request_validation_updated_by_positive(self):
-        """測試 ScheduleUpdateRequest updated_by 必須為正數。"""
-        schedule = ScheduleBase(
-            giver_id=1,
-            date=date(2024, 1, 17),  # 使用別名
-            start_time=time(16, 0),
-            end_time=time(17, 0),
-        )
-
-        with pytest.raises(ValidationError) as exc_info:
-            ScheduleUpdateRequest(
-                schedule=schedule,
-                updated_by=0,
-                updated_by_role=UserRoleEnum.TAKER,
-            )
-
-        errors = exc_info.value.errors()
-        assert any(
-            error["type"] == "greater_than" and "updated_by" in str(error["loc"])
-            for error in errors
-        )
-
-    def test_schedule_update_request_validation_updated_by_role_required(self):
-        """測試 ScheduleUpdateRequest updated_by_role 必填驗證。"""
-        schedule = ScheduleBase(
-            giver_id=1,
-            date=date(2024, 1, 17),  # 使用別名
-            start_time=time(16, 0),
-            end_time=time(17, 0),
-        )
-
-        with pytest.raises(ValidationError) as exc_info:
-            ScheduleUpdateRequest(
-                schedule=schedule,
-                updated_by=1,
-            )
-
-        errors = exc_info.value.errors()
-        assert any(
-            error["type"] == "missing" and "updated_by_role" in str(error["loc"])
-            for error in errors
-        )
 
 
 class TestSchedulePartialUpdateRequest:

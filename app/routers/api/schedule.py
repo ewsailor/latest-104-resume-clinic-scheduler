@@ -90,7 +90,7 @@ router = APIRouter(prefix="/api/v1", tags=["Schedules"])
             },
         },
         409: {
-            "description": "時段衝突錯誤",
+            "description": "時段衝突錯誤（Service 拋出錯誤，由 Route 捕捉）",
             "content": {
                 "application/json": {
                     "example": {
@@ -268,8 +268,7 @@ async def list_schedules(
 
 ### 使用場景
 - 查看時段詳細資訊
-- 確認時段狀態和內容
-- 系統內部查詢特定時段
+- 查看時段回覆狀態是否有更新
 
 ### 路徑參數
 - **schedule_id**: 時段 ID（必填，必須大於 0）

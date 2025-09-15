@@ -118,12 +118,12 @@ class ScheduleCreateRequest(BaseModel):
     )
 
 
-class ScheduleUpdateRequest(BaseModel):
-    """完整更新時段的 API 請求模型。"""
+class SchedulePartialUpdateRequest(BaseModel):
+    """部分更新時段的 API 請求模型。"""
 
-    schedule: ScheduleBase = Field(
+    schedule: ScheduleUpdateBase = Field(
         ...,
-        description="完整的時段資料",
+        description="要更新的時段資料",
         json_schema_extra={
             "example": {
                 "giver_id": 1,
@@ -132,27 +132,9 @@ class ScheduleUpdateRequest(BaseModel):
                 "date": "2024-01-01",
                 "start_time": "16:00:00",
                 "end_time": "17:00:00",
-                "note": "職涯諮詢",
+                "note": "時段部分更新",
             }
         },
-    )
-    updated_by: int = Field(
-        ..., description="最後更新者的 ID", gt=0, json_schema_extra={"example": 1}
-    )
-    updated_by_role: UserRoleEnum = Field(
-        ...,
-        description="最後更新者的角色",
-        json_schema_extra={"example": UserRoleEnum.TAKER},
-    )
-
-
-class SchedulePartialUpdateRequest(BaseModel):
-    """部分更新時段的 API 請求模型。"""
-
-    schedule: ScheduleUpdateBase = Field(
-        ...,
-        description="要更新的時段資料",
-        json_schema_extra={"example": {"status": "PENDING", "note": "更新備註"}},
     )
     updated_by: int = Field(
         ..., description="最後更新者的 ID", gt=0, json_schema_extra={"example": 1}

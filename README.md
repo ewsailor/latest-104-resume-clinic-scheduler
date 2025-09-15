@@ -807,7 +807,7 @@ refactor: 重構資料庫模型
   - 完善軟刪除機制，支援系統自動操作和審計追蹤
   - 確保所有測試通過，達到 221 passed, 2 skipped 的測試覆蓋率
 - **API 模型優化**
-  - 統一 `ScheduleCreateRequest`、`ScheduleUpdateRequest`、`ScheduleDeleteRequest` 的欄位命名
+  - 統一 `ScheduleCreateRequest`、`ScheduleDeleteRequest` 的欄位命名
   - 優化 `ScheduleData` 和 `ScheduleUpdateData` 的語義區分
   - 完善 API 請求/回應模型的型別安全
 - **資料庫審計追蹤**

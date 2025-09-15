@@ -25,7 +25,6 @@ from app.schemas.schedule import (
     SchedulePartialUpdateRequest,
     ScheduleResponse,
     ScheduleUpdateBase,
-    ScheduleUpdateRequest,
 )
 from tests.utils.test_utils import generate_guaranteed_unique_time_slot
 
@@ -208,22 +207,6 @@ class TestScheduleSchemaIntegration:
 
         errors = exc_info.value.errors()
         assert any(error["type"] == "greater_than" for error in errors)
-
-    def test_schedule_update_request_validation(
-        self, valid_schedule_data: Dict[str, Any]
-    ):
-        """測試 ScheduleUpdateRequest 模型驗證。"""
-        request_data = {
-            "schedule": valid_schedule_data,
-            "updated_by": 1,
-            "updated_by_role": "TAKER",
-        }
-
-        request = ScheduleUpdateRequest(**request_data)
-
-        assert request.schedule.giver_id == 1
-        assert request.updated_by == 1
-        assert request.updated_by_role == UserRoleEnum.TAKER
 
     def test_schedule_partial_update_request_validation(self):
         """測試 SchedulePartialUpdateRequest 模型驗證。"""

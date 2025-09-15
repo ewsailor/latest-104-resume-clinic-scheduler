@@ -12,7 +12,6 @@
 ### 請求模型測試
 
 - **ScheduleCreateRequest**: 批量建立時段的 API 請求模型
-- **ScheduleUpdateRequest**: 完整更新時段的 API 請求模型
 - **SchedulePartialUpdateRequest**: 部分更新時段的 API 請求模型
 - **ScheduleDeleteRequest**: 刪除時段的 API 請求模型
 
