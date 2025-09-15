@@ -23,6 +23,7 @@ class ScheduleBase(BaseModel):
     taker_id: int | None = Field(
         None,
         description="Taker ID，可為 NULL（表示 Giver 提供時段供 Taker 預約）",
+        gt=0,
         json_schema_extra={"example": 2},
     )
     status: ScheduleStatusEnum | None = Field(
@@ -56,10 +57,10 @@ class ScheduleUpdateBase(BaseModel):
     """部分更新時段的基礎模型 - 所有欄位都是可選的。"""
 
     giver_id: int | None = Field(
-        None, description="Giver ID", json_schema_extra={"example": 1}
+        None, description="Giver ID", gt=0, json_schema_extra={"example": 1}
     )
     taker_id: int | None = Field(
-        None, description="Taker ID", json_schema_extra={"example": 2}
+        None, description="Taker ID", gt=0, json_schema_extra={"example": 2}
     )
     status: ScheduleStatusEnum | None = Field(
         default=None,
@@ -185,6 +186,7 @@ class ScheduleResponse(BaseModel):
     taker_id: int | None = Field(
         None,
         description="Taker ID，可為 NULL（表示 Giver 提供時段供 Taker 預約）",
+        gt=0,
         json_schema_extra={"example": 2},
     )
     status: ScheduleStatusEnum = Field(
@@ -218,6 +220,7 @@ class ScheduleResponse(BaseModel):
     created_by: int | None = Field(
         None,
         description="建立者的 ID，可為 NULL（表示系統自動建立）",
+        gt=0,
         json_schema_extra={"example": 1},
     )
     created_by_role: UserRoleEnum | None = Field(
@@ -233,6 +236,7 @@ class ScheduleResponse(BaseModel):
     updated_by: int | None = Field(
         None,
         description="最後更新者的 ID，可為 NULL（表示系統自動更新）",
+        gt=0,
         json_schema_extra={"example": 1},
     )
     updated_by_role: UserRoleEnum | None = Field(
@@ -246,6 +250,7 @@ class ScheduleResponse(BaseModel):
     deleted_by: int | None = Field(
         None,
         description="刪除者的 ID，可為 NULL（表示系統自動刪除）",
+        gt=0,
         json_schema_extra={"example": None},
     )
     deleted_by_role: UserRoleEnum | None = Field(

@@ -254,18 +254,30 @@ class TestScheduleUpdateBase:
         assert update.note is None
 
     def test_schedule_update_base_validation_giver_id_positive(self):
-        """測試 ScheduleUpdateBase giver_id 可以接受任何整數值。"""
-        # ScheduleUpdateBase 的 giver_id 欄位沒有 gt=0 驗證，所以可以接受 0
-        update = ScheduleUpdateBase(giver_id=0)
-        assert update.giver_id == 0
+        """測試 ScheduleUpdateBase giver_id 必須為正數。"""
+        # ScheduleUpdateBase 的 giver_id 欄位有 gt=0 驗證，所以不能接受 0
+        with pytest.raises(ValidationError) as exc_info:
+            ScheduleUpdateBase(giver_id=0)
 
-        # 也可以接受正數
+        errors = exc_info.value.errors()
+        assert any(
+            error["type"] == "greater_than" and "giver_id" in str(error["loc"])
+            for error in errors
+        )
+
+        # 可以接受正數
         update = ScheduleUpdateBase(giver_id=1)
         assert update.giver_id == 1
 
-        # 也可以接受負數
-        update = ScheduleUpdateBase(giver_id=-1)
-        assert update.giver_id == -1
+        # 不能接受負數
+        with pytest.raises(ValidationError) as exc_info:
+            ScheduleUpdateBase(giver_id=-1)
+
+        errors = exc_info.value.errors()
+        assert any(
+            error["type"] == "greater_than" and "giver_id" in str(error["loc"])
+            for error in errors
+        )
 
     def test_schedule_update_base_validation_note_max_length(self):
         """測試 ScheduleUpdateBase note 最大長度驗證。"""

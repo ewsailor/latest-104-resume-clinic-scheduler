@@ -4,7 +4,6 @@
 """
 
 # ===== 標準函式庫 =====
-from typing import Any
 
 # ===== 第三方套件 =====
 from fastapi import APIRouter, status
@@ -14,6 +13,7 @@ from app.core import get_project_version, settings
 from app.decorators import handle_api_errors_async, log_operation
 from app.errors import create_liveness_check_error, create_readiness_check_error
 from app.models.database import check_db_connection
+from app.schemas import HealthCheckLivenessResponse, HealthCheckReadinessResponse
 from app.utils.timezone import get_utc_timestamp
 
 router = APIRouter(tags=["Health Check"])
@@ -21,7 +21,7 @@ router = APIRouter(tags=["Health Check"])
 
 @router.get(
     "/healthz",
-    response_model=dict[str, Any],
+    response_model=HealthCheckLivenessResponse,
     status_code=status.HTTP_200_OK,
     summary="存活探測檢查",
     description="""
@@ -97,7 +97,7 @@ router = APIRouter(tags=["Health Check"])
 @log_operation("存活探測檢查")
 async def liveness_probe(
     fail: bool = False,
-) -> dict[str, Any]:
+) -> HealthCheckLivenessResponse:
     """存活探測：用於 Kubernetes 的 liveness probe，檢查應用程式是否存活、正在運行。
     不包含外部依資料庫、快取等檢查，只檢查應用程式進程狀態。
 
@@ -105,28 +105,26 @@ async def liveness_probe(
         fail: 存活探測檢查錯誤，應用程式異常、未正常運行。
 
     Returns:
-        dict[str, Any]: 應用程式狀態資訊，包含狀態、時間戳、版本等資訊。
+        HealthCheckLivenessResponse: 應用程式狀態資訊，包含狀態、時間戳、版本等資訊。
     """
     if fail:
         raise create_liveness_check_error("存活探測檢查錯誤：應用程式異常、未正常運行")
 
-    response_data = {
-        "message": "應用程式存活、正常運行",
-        "status": "healthy",
-        "app_name": settings.app_name,
-        "version": get_project_version(),
-        "timestamp": get_utc_timestamp(),
-        "checks": {
+    return HealthCheckLivenessResponse(
+        message="應用程式存活、正常運行",
+        status="healthy",
+        app_name=settings.app_name,
+        version=get_project_version(),
+        timestamp=get_utc_timestamp(),
+        checks={
             "application": "healthy",
         },
-    }
-
-    return response_data
+    )
 
 
 @router.get(
     "/readyz",
-    response_model=dict[str, Any],
+    response_model=HealthCheckReadinessResponse,
     status_code=status.HTTP_200_OK,
     summary="準備就緒探測檢查",
     description="""
@@ -216,7 +214,7 @@ async def liveness_probe(
 async def readiness_probe(
     fail: bool = False,
     db_fail: bool = False,
-) -> dict[str, Any]:
+) -> HealthCheckReadinessResponse:
     """準備就緒探測：用於 Kubernetes 的 readiness probe，檢查應用程式所有外部依賴如資料庫、快取、外部 API 等，是否已經準備好處理請求。
 
     Args:
@@ -224,7 +222,7 @@ async def readiness_probe(
         db_fail: 資料庫連線失敗錯誤。
 
     Returns:
-        dict[str, Any]: 應用程式就緒狀態資訊，包含狀態、時間戳、版本等資訊。
+        HealthCheckReadinessResponse: 應用程式就緒狀態資訊，包含狀態、時間戳、版本等資訊。
     """
     if fail:
         raise create_readiness_check_error("準備就緒探測檢查錯誤")
@@ -238,18 +236,16 @@ async def readiness_probe(
     except Exception as e:
         raise create_readiness_check_error(f"資料庫連線失敗: {str(e)}")
 
-    response_data = {
-        "message": "應用程式準備就緒",
-        "status": "healthy",
-        "app_name": settings.app_name,
-        "version": get_project_version(),
-        "timestamp": get_utc_timestamp(),
-        "checks": {
+    return HealthCheckReadinessResponse(
+        message="應用程式準備就緒",
+        status="healthy",
+        app_name=settings.app_name,
+        version=get_project_version(),
+        timestamp=get_utc_timestamp(),
+        checks={
             "application": "healthy",
             "database": "healthy",
             # "redis": "healthy",  # 未來可加入
             # "external_api": "healthy"  # 未來可加入
         },
-    }
-
-    return response_data
+    )
