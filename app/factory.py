@@ -55,6 +55,14 @@ def create_app(settings: Settings) -> FastAPI:
         redoc_url=redoc_url,
         openapi_url=openapi_url,
         servers=servers,
+        contact={
+            "name": "鍾郡荃 Oscar",
+            "email": "ew12136@gmail.com",
+        },
+        license_info={
+            "name": "MIT License",
+            "url": "https://opensource.org/licenses/MIT",
+        },
     )
 
     # 記錄應用程式啟動資訊
