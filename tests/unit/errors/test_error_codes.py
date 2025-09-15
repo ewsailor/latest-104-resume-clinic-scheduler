@@ -4,8 +4,6 @@
 測試各種錯誤代碼常數。
 """
 
-# ===== 標準函式庫 =====
-
 # ===== 本地模組 =====
 from app.errors.error_codes.cors import CORSErrorCode
 from app.errors.error_codes.crud import CRUDErrorCode

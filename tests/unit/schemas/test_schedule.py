@@ -4,11 +4,14 @@
 測試時段管理相關的請求和回應模型。
 """
 
+# ===== 標準函式庫 =====
 from datetime import date, datetime, time
 
+# ===== 第三方套件 =====
 from pydantic import ValidationError
 import pytest
 
+# ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
 from app.schemas.schedule import (
     ScheduleBase,

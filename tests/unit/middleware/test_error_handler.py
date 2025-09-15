@@ -7,10 +7,9 @@
 # ===== 標準函式庫 =====
 from unittest.mock import AsyncMock, MagicMock, patch
 
+# ===== 第三方套件 =====
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.testclient import TestClient
-
-# ===== 第三方套件 =====
 import pytest
 from starlette.responses import JSONResponse
 

@@ -7,8 +7,6 @@ CORS 中間件整合測試模組。
 # ===== 第三方套件 =====
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
-# ===== 標準函式庫 =====
 import pytest
 
 # ===== 本地模組 =====

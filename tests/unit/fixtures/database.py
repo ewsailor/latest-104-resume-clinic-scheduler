@@ -4,17 +4,14 @@
 提供單元測試用的資料庫會話和相關工具。
 """
 
-# ===== 標準函式庫 =====
-import pytest  # 測試框架
-
 # ===== 第三方套件 =====
+import pytest  # 測試框架
 from sqlalchemy import create_engine  # 資料庫引擎
 from sqlalchemy.orm import Session, sessionmaker  # 資料庫會話
 
+# ===== 本地模組 =====
 # 確保所有模型都被導入，這樣 Base.metadata 才會包含所有表格
 from app.models import schedule, user  # noqa: F401
-
-# ===== 本地模組 =====
 from app.models.database import Base  # 資料庫基礎類別
 from app.models.schedule import Schedule  # 時段模型
 from app.models.user import User  # 使用者模型

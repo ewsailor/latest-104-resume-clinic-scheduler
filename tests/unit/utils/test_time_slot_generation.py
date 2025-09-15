@@ -16,8 +16,6 @@ from tests.utils.test_utils import (
     get_used_time_slots_count,
 )
 
-# ===== 第三方套件 =====
-
 
 class TestTimeSlotGeneration:
     """時間時段生成測試類別。"""

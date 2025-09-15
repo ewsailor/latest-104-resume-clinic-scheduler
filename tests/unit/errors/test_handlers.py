@@ -4,8 +4,6 @@
 測試錯誤處理輔助函式。
 """
 
-# ===== 標準函式庫 =====
-
 # ===== 本地模組 =====
 from app.errors.exceptions import (
     AuthenticationError,

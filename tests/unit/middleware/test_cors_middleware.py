@@ -13,8 +13,6 @@ from fastapi.testclient import TestClient
 # ===== 本地模組 =====
 from app.middleware.cors import setup_cors_middleware
 
-# ===== 標準函式庫 =====
-
 
 class TestCorsMiddleware:
     """CORS 中間件測試類別。"""

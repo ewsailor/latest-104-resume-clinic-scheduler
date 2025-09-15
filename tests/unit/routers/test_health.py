@@ -4,18 +4,17 @@
 測試健康檢查路由模組的功能。
 """
 
+# ===== 標準函式庫 =====
 import inspect
 from unittest.mock import Mock, patch
 
+# ===== 第三方套件 =====
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
-# ===== 標準函式庫 =====
 import pytest
 
-from app.middleware.error_handler import setup_error_handlers
-
 # ===== 本地模組 =====
+from app.middleware.error_handler import setup_error_handlers
 from app.routers.health import liveness_probe, readiness_probe, router
 
 # ===== 測試設定 =====

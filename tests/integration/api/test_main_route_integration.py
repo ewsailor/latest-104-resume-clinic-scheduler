@@ -4,12 +4,11 @@ Main 路由整合測試模組。
 測試主要路由功能，包括首頁渲染等。
 """
 
+# ===== 標準函式庫 =====
 import time
 
 # ===== 第三方套件 =====
 from fastapi.testclient import TestClient
-
-# ===== 標準函式庫 =====
 import pytest
 
 # ===== 本地模組 =====

@@ -4,14 +4,14 @@
 測試主路由模組的功能。
 """
 
+# ===== 標準函式庫 =====
 import inspect
 from unittest.mock import Mock
 
+# ===== 第三方套件 =====
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.testclient import TestClient
-
-# ===== 標準函式庫 =====
 import pytest
 
 # ===== 本地模組 =====

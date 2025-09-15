@@ -10,9 +10,8 @@ from pathlib import Path
 import tempfile
 from unittest.mock import patch
 
-from pydantic import ValidationError
-
 # ===== 第三方套件 =====
+from pydantic import ValidationError
 import pytest
 
 # ===== 本地模組 =====

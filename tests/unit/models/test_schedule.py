@@ -4,10 +4,11 @@ Schedule 模型測試。
 測試 Schedule 模型的屬性、方法和行為。
 """
 
+# ===== 標準函式庫 =====
 from datetime import date, datetime, time
 from unittest.mock import Mock
 
-# ===== 標準函式庫 =====
+# ===== 第三方套件 =====
 import pytest
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import class_mapper, sessionmaker

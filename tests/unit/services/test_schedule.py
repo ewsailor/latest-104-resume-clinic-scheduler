@@ -4,10 +4,11 @@
 測試時段服務層模組的功能。
 """
 
+# ===== 標準函式庫 =====
 from datetime import date, time
 from unittest.mock import Mock, patch
 
-# ===== 標準函式庫 =====
+# ===== 第三方套件 =====
 import pytest
 from sqlalchemy.orm import Session
 

@@ -7,8 +7,6 @@
 # ===== 第三方套件 =====
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
-
-# ===== 標準函式庫 =====
 import pytest
 
 # ===== 本地模組 =====

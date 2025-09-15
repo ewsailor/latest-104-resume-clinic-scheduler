@@ -4,13 +4,12 @@
 測試多個中間件同時運作的情況，確保它們能正確協同工作。
 """
 
+# ===== 標準函式庫 =====
 import re
 
 # ===== 第三方套件 =====
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
-
-# ===== 標準函式庫 =====
 import pytest
 
 # ===== 本地模組 =====

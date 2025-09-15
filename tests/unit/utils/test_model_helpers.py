@@ -4,13 +4,12 @@
 測試模型輔助工具模組的功能。
 """
 
+# ===== 標準函式庫 =====
 from datetime import datetime
 from unittest.mock import Mock
 
 # ===== 本地模組 =====
 from app.utils.model_helpers import format_datetime, safe_getattr
-
-# ===== 標準函式庫 =====
 
 
 # ===== 測試設定 =====

@@ -3,11 +3,8 @@
 測試健康檢查相關的 Pydantic 資料模型。
 """
 
-# ===== 標準函式庫 =====
-
-from pydantic import ValidationError
-
 # ===== 第三方套件 =====
+from pydantic import ValidationError
 import pytest
 
 # ===== 本地模組 =====

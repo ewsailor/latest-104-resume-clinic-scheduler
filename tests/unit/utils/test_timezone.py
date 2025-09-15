@@ -4,13 +4,12 @@
 測試時區處理工具模組的功能。
 """
 
+# ===== 標準函式庫 =====
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 # ===== 本地模組 =====
 from app.utils.timezone import TAIWAN_TIMEZONE, get_local_now_naive, get_utc_timestamp
-
-# ===== 標準函式庫 =====
 
 
 # ===== 測試設定 =====

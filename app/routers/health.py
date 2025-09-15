@@ -3,8 +3,6 @@
 包含存活探測和準備就緒探測等端點。
 """
 
-# ===== 標準函式庫 =====
-
 # ===== 第三方套件 =====
 from fastapi import APIRouter, status
 

@@ -4,9 +4,10 @@
 測試資料庫連線、會話管理等功能。
 """
 
+# ===== 標準函式庫 =====
 from unittest.mock import Mock, patch
 
-# ===== 標準函式庫 =====
+# ===== 第三方套件 =====
 import pytest
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.exc import OperationalError
@@ -21,8 +22,6 @@ from app.models.database import (
     engine,
     get_db,
 )
-
-# ===== 第三方套件 =====
 
 
 # ===== 測試設定 =====

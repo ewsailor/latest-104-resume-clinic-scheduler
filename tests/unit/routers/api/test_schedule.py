@@ -4,13 +4,13 @@
 測試時段管理 API 路由模組的功能。
 """
 
+# ===== 標準函式庫 =====
 from datetime import date, time
 import inspect
 
+# ===== 第三方套件 =====
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
-# ===== 標準函式庫 =====
 import pytest
 
 # ===== 本地模組 =====

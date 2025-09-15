@@ -14,9 +14,8 @@ from fastapi.testclient import TestClient
 from pydantic import ValidationError
 import pytest
 
-from app.enums.models import ScheduleStatusEnum, UserRoleEnum
-
 # ===== 本地模組 =====
+from app.enums.models import ScheduleStatusEnum, UserRoleEnum
 from app.main import app
 from app.schemas.schedule import (
     ScheduleBase,
