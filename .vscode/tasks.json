@@ -1,0 +1,90 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Export to Postman",
+            "type": "shell",
+            "command": "python",
+            "args": ["scripts/export_to_postman.py"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "匯出 OpenAPI JSON 到 Postman"
+        },
+        {
+            "label": "Watch and Export",
+            "type": "shell",
+            "command": "python",
+            "args": ["scripts/watch_and_export.py"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "監控檔案變更並自動匯出到 Postman",
+            "isBackground": true,
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        },
+        {
+            "label": "Setup Git Hooks",
+            "type": "shell",
+            "command": "python",
+            "args": ["scripts/setup_git_hooks.py"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "設定 Git hooks 自動匯出到 Postman"
+        },
+        {
+            "label": "Start Dev Server",
+            "type": "shell",
+            "command": "uvicorn",
+            "args": ["app.main:app", "--reload", "--host", "0.0.0.0", "--port", "8000"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "啟動開發伺服器",
+            "isBackground": true
+        }
+    ]
+}
