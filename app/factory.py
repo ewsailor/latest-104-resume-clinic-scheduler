@@ -34,16 +34,26 @@ def create_app(settings: Settings) -> FastAPI:
     openapi_url = settings.openapi_url if settings.debug else None
 
     # 根據環境設定伺服器資訊
-    servers = (
-        [
+    servers = []
+
+    # 開發環境：顯示開發伺服器
+    if settings.debug:
+        servers.append(
             {
                 "url": settings.server_url,
                 "description": settings.server_description,
             }
-        ]
-        if settings.debug
-        else []
-    )
+        )
+
+    # 可以根據需要添加其他環境（僅在開發模式下）
+    # 注意：生產環境不應暴露多個伺服器 URL
+    if settings.debug and settings.app_env == "development":
+        # 可以添加測試環境（如果需要）
+        # servers.append({
+        #     "url": "https://test-api.example.com",
+        #     "description": "測試環境",
+        # })
+        pass
 
     # 建立 FastAPI 應用程式
     app = FastAPI(
