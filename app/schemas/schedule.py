@@ -38,10 +38,14 @@ class ScheduleBase(BaseModel):
         json_schema_extra={"example": date(2024, 1, 1)},
     )
     start_time: time = Field(
-        ..., description="開始時間", json_schema_extra={"example": time(9, 0)}
+        ...,
+        description="開始時間（格式：HH:MM:SS，小時 0-23，分鐘 0-59，秒 0-59）",
+        json_schema_extra={"example": time(9, 0)},
     )
     end_time: time = Field(
-        ..., description="結束時間", json_schema_extra={"example": time(10, 0)}
+        ...,
+        description="結束時間（格式：HH:MM:SS，小時 0-23，分鐘 0-59，秒 0-59）",
+        json_schema_extra={"example": time(10, 0)},
     )
     note: str | None = Field(
         None,
@@ -74,10 +78,14 @@ class ScheduleUpdateBase(BaseModel):
         json_schema_extra={"example": date(2024, 1, 1)},
     )
     start_time: time | None = Field(
-        None, description="開始時間", json_schema_extra={"example": time(14, 0)}
+        None,
+        description="開始時間（格式：HH:MM:SS，小時 0-23，分鐘 0-59，秒 0-59）",
+        json_schema_extra={"example": time(14, 0)},
     )
     end_time: time | None = Field(
-        None, description="結束時間", json_schema_extra={"example": time(15, 0)}
+        None,
+        description="結束時間（格式：HH:MM:SS，小時 0-23，分鐘 0-59，秒 0-59）",
+        json_schema_extra={"example": time(15, 0)},
     )
     note: str | None = Field(
         None,
@@ -183,10 +191,14 @@ class ScheduleResponse(BaseModel):
         json_schema_extra={"example": date(2024, 1, 1)},
     )
     start_time: time = Field(
-        ..., description="開始時間", json_schema_extra={"example": time(9, 0)}
+        ...,
+        description="開始時間（格式：HH:MM:SS，小時 0-23，分鐘 0-59，秒 0-59）",
+        json_schema_extra={"example": time(9, 0)},
     )
     end_time: time = Field(
-        ..., description="結束時間", json_schema_extra={"example": time(10, 0)}
+        ...,
+        description="結束時間（格式：HH:MM:SS，小時 0-23，分鐘 0-59，秒 0-59）",
+        json_schema_extra={"example": time(10, 0)},
     )
     note: str | None = Field(
         None,

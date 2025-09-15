@@ -41,7 +41,11 @@ class HealthCheckBase(BaseModel):
 class HealthCheckLivenessResponse(HealthCheckBase):
     """健康檢查存活探測成功回應模型。"""
 
-    message: str = Field(..., description="存活探測訊息")
+    message: str = Field(
+        ...,
+        description="存活探測訊息",
+        json_schema_extra={"example": "應用程式存活、正常運行"},
+    )
 
 
 class HealthCheckReadinessResponse(HealthCheckBase):
