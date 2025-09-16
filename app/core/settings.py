@@ -52,7 +52,7 @@ class Settings(BaseSettings):
         default_factory=lambda: Path(__file__).parent.parent,
         description="應用程式目錄，用來定位 templates 等檔案",
     )
-
+    # test
     # ===== 應用程式基本配置 =====
     app_name: str = Field(
         default="【MVP】104 Resume Clinic Scheduler", description="應用程式名稱"
