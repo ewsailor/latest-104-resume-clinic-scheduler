@@ -6,7 +6,7 @@ Schedule 模型測試。
 
 # ===== 標準函式庫 =====
 from datetime import date, datetime, time
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 # ===== 第三方套件 =====
 import pytest
@@ -223,6 +223,41 @@ class TestScheduleModel:
         assert "id" in result
         assert "giver_id" in result
         assert "error" not in result
+
+    def test_schedule_to_dict_exception_handling(self):
+        """測試 Schedule to_dict 方法異常處理。"""
+        schedule = Schedule(
+            id=1,
+            giver_id=1,
+            date=date(2024, 1, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+        )
+
+        # 模擬 safe_getattr 函數拋出異常，觸發錯誤處理
+        with patch('app.models.schedule.safe_getattr') as mock_safe_getattr:
+            # 提供足夠的返回值，然後拋出異常
+            mock_safe_getattr.side_effect = [
+                1,
+                1,
+                None,
+                None,
+                Exception("模擬錯誤"),
+            ] + [None] * 20
+
+            result = schedule.to_dict()
+
+            # 驗證錯誤處理
+            assert isinstance(result, dict)
+            assert result["id"] is None
+            assert result["giver_id"] is None
+            assert result["taker_id"] is None
+            assert result["status"] is None
+            assert result["date"] is None
+            assert result["start_time"] is None
+            assert result["end_time"] is None
+            assert result["note"] is None
+            assert result["error"] == "資料序列化時發生錯誤"
 
     def test_schedule_table_structure(self):
         """測試 Schedule 資料表結構。"""

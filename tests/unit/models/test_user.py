@@ -6,6 +6,7 @@ User 模型測試。
 
 # ===== 標準函式庫 =====
 from datetime import datetime
+from unittest.mock import patch
 
 # ===== 第三方套件 =====
 import pytest
@@ -143,6 +144,33 @@ class TestUserModel:
         assert "id" in result
         assert "name" in result
         assert "error" not in result
+
+    def test_user_to_dict_exception_handling(self):
+        """測試 User to_dict 方法異常處理。"""
+        user = User(
+            id=1,
+            name="測試使用者",
+            email="test@example.com",
+        )
+
+        # 模擬 safe_getattr 函數拋出異常，觸發錯誤處理
+        with patch('app.models.user.safe_getattr') as mock_safe_getattr:
+            # 提供足夠的返回值，然後拋出異常
+            mock_safe_getattr.side_effect = [
+                1,
+                "測試使用者",
+                "test@example.com",
+                Exception("模擬錯誤"),
+            ] + [None] * 10
+
+            result = user.to_dict()
+
+            # 驗證錯誤處理
+            assert isinstance(result, dict)
+            assert result["id"] is None
+            assert result["name"] is None
+            assert result["email"] is None
+            assert result["error"] == "資料序列化時發生錯誤"
 
     def test_user_table_structure(self):
         """測試 User 資料表結構。"""
