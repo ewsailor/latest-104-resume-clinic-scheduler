@@ -19,7 +19,7 @@ def integration_app():
     """
     提供整合測試用的 FastAPI 應用程式。
 
-    創建一個使用測試資料庫的應用程式實例。
+    創建一個使用測試資料庫的應用程式實例，並確保資料庫表已創建。
 
     Returns:
         FastAPI: 整合測試用的應用程式實例
@@ -33,6 +33,26 @@ def integration_app():
 
     # 創建測試應用程式
     test_app = create_app(test_settings)
+
+    # 建立模板引擎實例
+    from app.factory import create_templates
+    templates = create_templates(test_settings)
+    test_app.state.templates = templates
+
+    # 設定錯誤處理器
+    from app.middleware.error_handler import setup_error_handlers
+    setup_error_handlers(test_app)
+
+    # 註冊路由
+    from app.routers import api_router, health_router, main_router
+    test_app.include_router(main_router)
+    test_app.include_router(health_router)
+    test_app.include_router(api_router)
+
+    # 確保資料庫表已創建
+    from app.models.database import Base, create_database_engine
+    engine, _ = create_database_engine()
+    Base.metadata.create_all(bind=engine)
 
     return test_app
 

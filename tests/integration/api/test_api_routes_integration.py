@@ -25,9 +25,9 @@ class TestAPIRoutesIntegration:
     """API 路由組合整合測試類別。"""
 
     @pytest.fixture
-    def client(self):
+    def client(self, integration_client):
         """建立測試客戶端。"""
-        return TestClient(app)
+        return integration_client
 
     @pytest.fixture(autouse=True)
     def cleanup_test_data(self):
