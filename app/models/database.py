@@ -18,7 +18,6 @@ from app.core import settings
 from app.decorators import handle_generic_errors_sync
 from app.errors import create_database_error, create_service_unavailable_error
 from app.errors.exceptions import APIError
-from app.models import schedule, user  # 導入模型以確保表被創建
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +100,8 @@ def initialize_database() -> None:
 
         # 在測試環境中創建資料庫表
         if settings.testing or settings.app_env == "testing":
+            # 延遲導入以避免循環導入
+            from app.models import schedule, user  # noqa: F401
             Base.metadata.create_all(bind=engine)
             logger.info("測試環境資料庫表創建完成")
 
