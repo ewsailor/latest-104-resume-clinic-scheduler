@@ -97,20 +97,20 @@ CREATE TABLE `schedules` (
         COMMENT '建立時間（本地時間）',
     `created_by` INT UNSIGNED NULL
         COMMENT '建立者的 ID，可為 NULL（表示系統自動建立）',
-    `created_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NULL
+    `created_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NOT NULL DEFAULT 'SYSTEM'
         COMMENT '建立者角色',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL 
         COMMENT '更新時間（本地時間）',
     `updated_by` INT UNSIGNED NULL 
         COMMENT '最後更新者的 ID，可為 NULL（表示系統自動更新）',
-    `updated_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NULL
+    `updated_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NOT NULL DEFAULT 'SYSTEM'
         COMMENT '最後更新者角色',
     `deleted_at` DATETIME NULL 
         COMMENT '軟刪除標記（本地時間）',
     `deleted_by` INT UNSIGNED NULL
         COMMENT '刪除者的 ID，可為 NULL（表示系統自動刪除）',
     `deleted_by_role` ENUM('GIVER', 'TAKER', 'SYSTEM') NULL
-        COMMENT '刪除者角色',
+        COMMENT '刪除者角色，可為 NULL（未刪除時）',
     
     -- ===== 外鍵約束 =====
     CONSTRAINT `fk_schedules_giver_id` 

@@ -105,7 +105,8 @@ class Schedule(Base):
     )
     created_by_role = Column(
         Enum(UserRoleEnum),
-        nullable=True,
+        nullable=False,
+        default=UserRoleEnum.SYSTEM,
         comment="建立者角色",
     )
     updated_at = Column(
@@ -126,7 +127,8 @@ class Schedule(Base):
     )
     updated_by_role = Column(
         Enum(UserRoleEnum),
-        nullable=True,
+        nullable=False,
+        default=UserRoleEnum.SYSTEM,
         comment="最後更新者角色",
     )
 
@@ -148,7 +150,7 @@ class Schedule(Base):
     deleted_by_role = Column(
         Enum(UserRoleEnum),
         nullable=True,
-        comment="刪除者角色",
+        comment="刪除者角色，可為 NULL（未刪除時）",
     )
 
     # ===== 反向關聯 =====
