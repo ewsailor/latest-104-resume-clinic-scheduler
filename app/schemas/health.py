@@ -4,13 +4,14 @@
 """
 
 # ===== 標準函式庫 =====
-from typing import Dict
+from abc import ABC, abstractmethod
+from typing import Any, Dict
 
 # ===== 第三方套件 =====
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_serializer
 
 
-class HealthCheckBase(BaseModel):
+class HealthCheckBase(BaseModel, ABC):
     """健康檢查基礎模型。"""
 
     status: str = Field(
@@ -37,6 +38,22 @@ class HealthCheckBase(BaseModel):
 
     model_config = {"from_attributes": True}
 
+    @abstractmethod
+    def get_message(self) -> str:
+        """取得訊息內容，由子類別實作。"""
+
+    @model_serializer
+    def serialize_model(self) -> Dict[str, Any]:
+        """自定義序列化方法，確保 message 欄位在最前面。"""
+        return {
+            "message": self.get_message(),
+            "status": self.status,
+            "app_name": self.app_name,
+            "version": self.version,
+            "timestamp": self.timestamp,
+            "checks": self.checks,
+        }
+
 
 class HealthCheckLivenessResponse(HealthCheckBase):
     """健康檢查存活探測成功回應模型。"""
@@ -46,6 +63,10 @@ class HealthCheckLivenessResponse(HealthCheckBase):
         description="存活探測訊息",
         json_schema_extra={"example": "應用程式存活、正常運行"},
     )
+
+    def get_message(self) -> str:
+        """取得存活探測訊息。"""
+        return self.message
 
 
 class HealthCheckReadinessResponse(HealthCheckBase):
@@ -68,3 +89,7 @@ class HealthCheckReadinessResponse(HealthCheckBase):
             }
         },
     )
+
+    def get_message(self) -> str:
+        """取得就緒探測訊息。"""
+        return self.message

@@ -19,24 +19,18 @@ class TestHealthCheckBase:
     """HealthCheckBase 模型測試類別。"""
 
     def test_health_check_base_creation_success(self):
-        """測試 HealthCheckBase 成功建立。"""
-        response = HealthCheckBase(
-            status="healthy",
-            app_name="【MVP】104 Resume Clinic Scheduler",
-            version="0.1.0",
-            timestamp="2024-01-01T00:00:00Z",
-            checks={
-                "application": "healthy",
-            },
-        )
-
-        assert response.status == "healthy"
-        assert response.app_name == "【MVP】104 Resume Clinic Scheduler"
-        assert response.version == "0.1.0"
-        assert response.timestamp == "2024-01-01T00:00:00Z"
-        assert response.checks == {
-            "application": "healthy",
-        }
+        """測試 HealthCheckBase 抽象類別不能直接實例化。"""
+        # HealthCheckBase 現在是抽象類別，不能直接實例化
+        with pytest.raises(TypeError, match="Can't instantiate abstract class"):
+            HealthCheckBase(
+                status="healthy",
+                app_name="【MVP】104 Resume Clinic Scheduler",
+                version="0.1.0",
+                timestamp="2024-01-01T00:00:00Z",
+                checks={
+                    "application": "healthy",
+                },
+            )
 
 
 class TestHealthCheckLivenessResponse:
