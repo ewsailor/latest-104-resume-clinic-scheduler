@@ -32,6 +32,10 @@ jobs:
       # 4. 安裝依賴
       - name: Install dependencies
         run: |
+          echo "Python version: $(python --version)"
+          echo "Poetry version: $(poetry --version)"
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-root
 
       # 5. 代碼品質檢查 (Black)
