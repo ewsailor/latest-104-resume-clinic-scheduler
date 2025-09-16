@@ -7,10 +7,11 @@
 import logging
 
 # ===== 第三方套件 =====
+from typing import Callable
+
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.types import ASGIApp
 
 # ===== 本地模組 =====
 from app.errors import format_error_response
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 class ErrorHandlerMiddleware(BaseHTTPMiddleware):
     """錯誤處理中間件。"""
 
-    async def dispatch(self, request: Request, call_next: ASGIApp) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """處理請求並捕獲錯誤。"""
         try:
             response = await call_next(request)

@@ -60,7 +60,7 @@ class Schedule(Base):
         nullable=True,
         comment="Taker 使用者 ID，可為 NULL（表示 Giver 提供時段供 Taker 預約）",
     )
-    status = Column(
+    status: "Column[ScheduleStatusEnum]" = Column(
         Enum(ScheduleStatusEnum),
         nullable=False,
         default=ScheduleStatusEnum.DRAFT,
@@ -103,7 +103,7 @@ class Schedule(Base):
         nullable=True,
         comment="建立者的使用者 ID，可為 NULL（表示系統自動建立）",
     )
-    created_by_role = Column(
+    created_by_role: "Column[UserRoleEnum]" = Column(
         Enum(UserRoleEnum),
         nullable=False,
         default=UserRoleEnum.SYSTEM,
@@ -125,7 +125,7 @@ class Schedule(Base):
         nullable=True,
         comment="最後更新的使用者 ID，可為 NULL（表示系統自動更新）",
     )
-    updated_by_role = Column(
+    updated_by_role: "Column[UserRoleEnum]" = Column(
         Enum(UserRoleEnum),
         nullable=False,
         default=UserRoleEnum.SYSTEM,
@@ -147,7 +147,7 @@ class Schedule(Base):
         nullable=True,
         comment="刪除者的使用者 ID，可為 NULL（表示系統自動刪除）",
     )
-    deleted_by_role = Column(
+    deleted_by_role: "Column[UserRoleEnum]" = Column(
         Enum(UserRoleEnum),
         nullable=True,
         comment="刪除者角色，可為 NULL（未刪除時）",
@@ -207,7 +207,7 @@ class Schedule(Base):
     @property
     def is_available(self) -> bool:
         """檢查時段是否可預約。"""
-        return (
+        return bool(  # type: ignore
             self.is_active
             and self.status == ScheduleStatusEnum.AVAILABLE
             and self.taker_id is None

@@ -285,7 +285,7 @@ class ScheduleService:
         # 檢查重疊（排除自己）
         overlapping_schedules = self.check_schedule_overlap(
             db=db,
-            giver_id=schedule.giver_id,
+            giver_id=int(schedule.giver_id),
             schedule_date=new_date,
             start_time=new_start_time,
             end_time=new_end_time,

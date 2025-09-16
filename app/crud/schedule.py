@@ -99,12 +99,12 @@ class ScheduleCRUD:
 
         # 套用其他篩選條件
         if giver_id is not None:
-            filters.append(Schedule.giver_id == giver_id)
+            filters.append(Schedule.giver_id == giver_id)  # type: ignore
         if taker_id is not None:
-            filters.append(Schedule.taker_id == taker_id)
+            filters.append(Schedule.taker_id == taker_id)  # type: ignore
         if status_filter is not None:
             status_enum = ScheduleStatusEnum(status_filter)
-            filters.append(Schedule.status == status_enum)
+            filters.append(Schedule.status == status_enum)  # type: ignore
 
         # 如果 filters 列表不為空時，使用 and_ 組合所有篩選條件
         if filters:
@@ -203,8 +203,10 @@ class ScheduleCRUD:
                 raise create_bad_request_error("開始時間必須早於結束時間")
 
         # 只有當時段存在時，才設定更新者資訊
-        schedule.updated_by = updated_by
-        schedule.updated_by_role = updated_by_role
+        if updated_by is not None:
+            schedule.updated_by = updated_by  # type: ignore
+        if updated_by_role is not None:
+            schedule.updated_by_role = updated_by_role  # type: ignore
 
         updated_fields = self._update_schedule_fields(schedule, **kwargs)
 

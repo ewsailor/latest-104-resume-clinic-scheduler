@@ -9,6 +9,7 @@
 [![Test Coverage](https://img.shields.io/badge/Coverage-83%25-brightgreen.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
 [![Version](https://img.shields.io/badge/Version-0.1.0-blue.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
 [![CI/CD](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml/badge.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml)
+[![Tests](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/test-only.yml/badge.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/test-only.yml)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
 徽章（Badges）： 顯示版本、測試、文件等狀態，增加專業感。
@@ -30,7 +31,10 @@ Build 狀態、測試覆蓋率、Python 版本支援等徽章，可以讓專案�
     - postman
   - 測試
     - pytest 測試
-    - CI 自動化測試 pre-commit
+    - pre-commit
+    - CI/CD 自動化測試
+    - 測試覆蓋率報告
+    - 代碼品質檢查
 - [快速開始](#快速開始)
   把環境需求、如何跑起來示範、範例程式碼／指令都寫清楚。對 Junior 或未拆過這專案的人很重要。
   Python 版本、library requirements、資料庫、外部服務（如果有的話）等都要列；如果需環境變數／API 金鑰，也要說清楚。
@@ -460,7 +464,46 @@ pytest --cov=app --cov-report=html
 
 # 執行測試（推薦）
 poetry run pytest
+
+# 快速測試（開發期間）
+./scripts/quick-test.sh
+
+# 完整 CI/CD 流程（本地）
+./scripts/run-ci-locally.sh
 ```
+
+### CI/CD 自動化測試
+
+專案使用 GitHub Actions 進行自動化 CI/CD 流程：
+
+#### 工作流程
+
+1. **代碼品質檢查**：
+
+   - Black 代碼格式化檢查
+   - isort 導入排序檢查
+   - flake8 代碼風格檢查
+   - mypy 類型檢查
+
+2. **測試執行**：
+
+   - 支援 Python 3.9, 3.10, 3.11 多版本測試
+   - 單元測試、整合測試、端到端測試
+   - 測試覆蓋率報告
+
+3. **安全檢查**：
+
+   - safety 依賴漏洞檢查
+   - bandit 安全代碼分析
+
+4. **自動部署**：
+   - develop 分支 → 測試環境
+   - main 分支 → 生產環境
+
+#### 狀態徽章
+
+- ![CI/CD Pipeline](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml/badge.svg)
+- ![Tests](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/test-only.yml/badge.svg)
 
 ### 測試說明
 

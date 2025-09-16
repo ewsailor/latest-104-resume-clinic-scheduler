@@ -1,0 +1,75 @@
+name: 依賴更新檢查
+
+on:
+  schedule:
+    # 每週一檢查依賴更新
+    - cron: "0 9 * * 1"
+  workflow_dispatch: # 手動觸發
+
+env:
+  PYTHON_VERSION: "3.11"
+  POETRY_VERSION: "1.6.1"
+
+jobs:
+  # 檢查依賴更新
+  check-dependencies:
+    name: 檢查依賴更新
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 檢出代碼
+        uses: actions/checkout@v4
+
+      - name: 設置 Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 安裝 Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: 檢查過期依賴
+        run: |
+          poetry show --outdated
+
+      - name: 更新依賴
+        run: |
+          poetry update --dry-run
+
+      - name: 安全檢查
+        run: |
+          poetry run safety check
+
+  # 自動創建 PR（如果有更新）
+  create-pr:
+    name: 創建更新 PR
+    runs-on: ubuntu-latest
+    needs: [check-dependencies]
+    if: github.event_name == 'schedule'
+
+    steps:
+      - name: 檢出代碼
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 設置 Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 安裝 Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: 更新依賴並創建 PR
+        run: |
+          # 這裡可以添加自動更新依賴並創建 PR 的腳本
+          echo "檢查是否有依賴需要更新..."

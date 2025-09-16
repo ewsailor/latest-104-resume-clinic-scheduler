@@ -43,19 +43,20 @@ black = "^25.1.0"  # 自動格式化 Python 程式碼
 isort = "^6.0.1"  # 自動整理 import 語句的順序 
 mypy = "^1.16.0"  # 靜態型別檢查
 pre-commit = "^3.7.0"  # 提交前，自動檢查程式碼品質
-
-# Black 格式化工具配置
 pytest-mock = "^3.14.1"
 types-requests = "^2.32.4.20250611"
 autoflake = "^2.3.1"  # 自動移除未使用的 import 和變數
 pyupgrade = "^3.18.0"  # 自動升級 Python 語法並整理 import
 pydocstyle = "^6.3.0"
 pytest-cov = "^7.0.0"
+flake8 = "^7.0.0"  # 代碼風格檢查
+safety = "^3.0.1"  # 安全漏洞檢查
+bandit = "^1.7.5"  # 安全代碼分析
 [tool.black]
 line-length = 88  # 每行最大字元數，超過此長度會自動換行
 target-version = ["py312"]
 skip-string-normalization = true  # 跳過字串正規化，保持原始格式
-encoding = "utf-8"  # 設定編碼為 UTF-8，避免亂碼問題
+# encoding = "utf-8"  # Black 不支援此設定，已移除
 
 # isort 匯入排序工具配置
 [tool.isort]
@@ -94,6 +95,25 @@ add-ignore = [
     "D415",  # 允許中文標點符號結尾
     "D406", "D407", "D413",  # 忽略 section name 與結尾格式限制
 ]
+
+# Flake8 代碼風格檢查配置
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503", "E501"]
+exclude = [
+    ".git",
+    "__pycache__",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".venv",
+    "venv",
+    "alembic",
+]
+
+# Bandit 安全檢查配置
+[tool.bandit]
+exclude_dirs = ["tests", "venv", ".venv"]
+skips = ["B101", "B601"]  # 跳過 assert_used 和 shell_injection 檢查
 
 # 建置系統配置
 [build-system]

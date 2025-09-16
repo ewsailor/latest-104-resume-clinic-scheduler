@@ -1,0 +1,239 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  PYTHON_VERSION: "3.11"
+  POETRY_VERSION: "1.6.1"
+
+jobs:
+  # 代碼品質檢查
+  code-quality:
+    name: 代碼品質檢查
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 檢出代碼
+        uses: actions/checkout@v4
+
+      - name: 設置 Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 安裝 Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: 安裝依賴
+        run: |
+          poetry install --no-interaction --no-root
+
+      - name: 代碼格式化檢查 (Black)
+        run: |
+          poetry run black --check .
+
+      - name: 導入排序檢查 (isort)
+        run: |
+          poetry run isort --check-only .
+
+      - name: 代碼風格檢查 (flake8)
+        run: |
+          poetry run flake8 .
+
+      - name: 類型檢查 (mypy)
+        run: |
+          poetry run mypy .
+
+  # 測試執行
+  test:
+    name: 測試執行
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - name: 檢出代碼
+        uses: actions/checkout@v4
+
+      - name: 設置 Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 安裝 Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: 安裝依賴
+        run: |
+          poetry install --no-interaction --no-root
+
+      - name: 運行單元測試
+        run: |
+          poetry run pytest tests/unit/ -v --cov=app --cov-report=xml --cov-report=html
+
+      - name: 運行整合測試
+        run: |
+          poetry run pytest tests/integration/ -v
+
+      - name: 運行端到端測試
+        run: |
+          poetry run pytest tests/e2e/ -v
+
+      - name: 上傳測試覆蓋率報告
+        uses: codecov/codecov-action@v3
+        if: matrix.python-version == '3.11'
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+  # 安全檢查
+  security:
+    name: 安全檢查
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 檢出代碼
+        uses: actions/checkout@v4
+
+      - name: 設置 Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 安裝 Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: 安裝依賴
+        run: |
+          poetry install --no-interaction --no-root
+
+      - name: 安全漏洞檢查 (safety)
+        run: |
+          poetry run safety check
+
+      - name: 依賴漏洞掃描 (bandit)
+        run: |
+          poetry run bandit -r app/ -f json -o bandit-report.json || true
+
+      - name: 上傳安全報告
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-report
+          path: bandit-report.json
+
+  # 建構檢查
+  build:
+    name: 建構檢查
+    runs-on: ubuntu-latest
+    needs: [code-quality, test, security]
+
+    steps:
+      - name: 檢出代碼
+        uses: actions/checkout@v4
+
+      - name: 設置 Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 安裝 Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: 安裝依賴
+        run: |
+          poetry install --no-interaction --no-root
+
+      - name: 建構應用程式
+        run: |
+          poetry build
+
+      - name: 上傳建構產物
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
+  # 部署到測試環境
+  deploy-staging:
+    name: 部署到測試環境
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+
+    steps:
+      - name: 檢出代碼
+        uses: actions/checkout@v4
+
+      - name: 下載建構產物
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
+      - name: 部署到測試環境
+        run: |
+          echo "部署到測試環境..."
+          # 這裡添加您的部署腳本
+          # 例如：使用 Docker、Kubernetes 或其他部署工具
+
+  # 部署到生產環境
+  deploy-production:
+    name: 部署到生產環境
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - name: 檢出代碼
+        uses: actions/checkout@v4
+
+      - name: 下載建構產物
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
+      - name: 部署到生產環境
+        run: |
+          echo "部署到生產環境..."
+          # 這裡添加您的部署腳本
+          # 例如：使用 Docker、Kubernetes 或其他部署工具
+
+  # 通知
+  notify:
+    name: 通知
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+
+    steps:
+      - name: 發送通知
+        run: |
+          echo "CI/CD 流程完成"
+          # 這裡可以添加 Slack、Discord 或其他通知服務
