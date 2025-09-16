@@ -1,27 +1,19 @@
 name: CI
 
-on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
+on: [push, pull_request]
 
 jobs:
-  build:
+  lint-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 拉取 repo
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # 2. 安裝 Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      # 3. 安裝 Poetry
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
@@ -29,47 +21,21 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
-      # 4. 安裝依賴
       - name: Install dependencies
         run: |
-          echo "Python version: $(python --version)"
-          echo "Poetry version: $(poetry --version)"
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-root
 
-      # 5. 設置測試環境變數
       - name: Set test environment variables
         run: |
           echo "TESTING=true" >> $GITHUB_ENV
           echo "APP_ENV=testing" >> $GITHUB_ENV
 
-      # 6. 代碼品質檢查 (Black)
-      - name: Code formatting check (Black)
+      - name: Run pre-commit (lint + format + type check)
         run: |
-          poetry run black --check .
+          pip install pre-commit
+          pre-commit run --all-files
 
-      # 7. 導入排序檢查 (isort)
-      - name: Import sorting check (isort)
-        run: |
-          poetry run isort --check-only .
-
-      # 8. 代碼風格檢查 (flake8)
-      - name: Code style check (flake8)
-        run: |
-          poetry run flake8 .
-
-      # 9. 類型檢查 (mypy)
-      - name: Type checking (mypy)
-        run: |
-          poetry run mypy app/ --ignore-missing-imports
-
-      # 10. 安全檢查 (bandit)
-      - name: Security check (bandit)
-        run: |
-          poetry run bandit -r app/ --skip B101,B601
-
-      # 11. 跑 pytest 單元測試/整合測試
-      - name: Run pytest
-        run: |
-          poetry run pytest tests/unit/ tests/integration/ -v --maxfail=3 --disable-warnings
+      - name: Run tests
+        run: poetry run pytest --maxfail=1 --disable-warnings -q
