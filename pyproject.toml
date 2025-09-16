@@ -2,7 +2,7 @@
 [tool.poetry]
 name = "104-resume-clinic-scheduler"                             
 version = "0.1.0"                                                 
-description = "【MVP】104 履歷診療室 - 站內諮詢時間媒合系統"      
+description = "104 履歷診療室 - 站內諮詢時間媒合系統"      
 authors = ["Oscar <ew12136@gmail.com>"]                       
 license = "MIT"  # 授權是歡迎自由使用，但要保留版權與授權資訊
 readme = "README.md"

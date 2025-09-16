@@ -1,4 +1,4 @@
-# 【MVP】104 履歷診療室 - 平台內諮詢時間媒合系統
+# 104 履歷診療室 - 平台內諮詢時間媒合系統
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.116+-green.svg)](https://fastapi.tiangolo.com/)

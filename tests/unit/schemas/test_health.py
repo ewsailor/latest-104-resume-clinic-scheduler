@@ -24,7 +24,7 @@ class TestHealthCheckBase:
         with pytest.raises(TypeError, match="Can't instantiate abstract class"):
             HealthCheckBase(
                 status="healthy",
-                app_name="【MVP】104 Resume Clinic Scheduler",
+                app_name="104 Resume Clinic Scheduler",
                 version="0.1.0",
                 timestamp="2024-01-01T00:00:00Z",
                 checks={
@@ -41,7 +41,7 @@ class TestHealthCheckLivenessResponse:
         response = HealthCheckLivenessResponse(
             message="應用程式存活、正常運行",
             status="healthy",
-            app_name="【MVP】104 Resume Clinic Scheduler",
+            app_name="104 Resume Clinic Scheduler",
             version="0.1.0",
             timestamp="2024-01-01T00:00:00Z",
             checks={
@@ -51,7 +51,7 @@ class TestHealthCheckLivenessResponse:
 
         assert response.message == "應用程式存活、正常運行"
         assert response.status == "healthy"
-        assert response.app_name == "【MVP】104 Resume Clinic Scheduler"
+        assert response.app_name == "104 Resume Clinic Scheduler"
         assert response.version == "0.1.0"
         assert response.timestamp == "2024-01-01T00:00:00Z"
         assert response.checks == {
@@ -104,7 +104,7 @@ class TestHealthCheckReadinessResponse:
         response = HealthCheckReadinessResponse(
             message="應用程式準備就緒",
             status="healthy",
-            app_name="【MVP】104 Resume Clinic Scheduler",
+            app_name="104 Resume Clinic Scheduler",
             version="0.1.0",
             timestamp="2024-01-01T00:00:00Z",
             checks={
@@ -115,7 +115,7 @@ class TestHealthCheckReadinessResponse:
 
         assert response.message == "應用程式準備就緒"
         assert response.status == "healthy"
-        assert response.app_name == "【MVP】104 Resume Clinic Scheduler"
+        assert response.app_name == "104 Resume Clinic Scheduler"
         assert response.version == "0.1.0"
         assert response.timestamp == "2024-01-01T00:00:00Z"
         assert response.checks == {

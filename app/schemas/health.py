@@ -20,7 +20,7 @@ class HealthCheckBase(BaseModel, ABC):
     app_name: str = Field(
         ...,
         description="應用程式名稱",
-        json_schema_extra={"example": "【MVP】104 Resume Clinic Scheduler"},
+        json_schema_extra={"example": "104 Resume Clinic Scheduler"},
     )
     version: str = Field(
         ..., description="應用程式版本", json_schema_extra={"example": "0.1.0"}

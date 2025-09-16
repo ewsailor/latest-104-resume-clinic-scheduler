@@ -115,7 +115,7 @@ class TestSettings:
             settings = Settings()
 
             # 測試基本配置
-            assert settings.app_name == "【MVP】104 Resume Clinic Scheduler"
+            assert settings.app_name == "104 Resume Clinic Scheduler"
             assert settings.app_env == "development"
             # debug 的預設值可能是 True（從環境變數或 .env 文件讀取）
             assert isinstance(settings.debug, bool)

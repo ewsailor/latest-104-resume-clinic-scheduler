@@ -55,10 +55,10 @@ class Settings(BaseSettings):
 
     # ===== 應用程式基本配置 =====
     app_name: str = Field(
-        default="【MVP】104 Resume Clinic Scheduler", description="應用程式名稱"
+        default="104 Resume Clinic Scheduler", description="應用程式名稱"
     )
     app_description: str = Field(
-        default="【MVP】104 履歷診療室 - 站內諮詢時間媒合系統。\n\n讓 Giver（診療服務提供者）與 Taker（診療服務接受者）能在平台內，方便地設定可面談時段並完成配對媒合，同時提供即時通知，以減少等待回應時的不確定與焦慮感。",
+        default="104 履歷診療室 - 站內諮詢時間媒合系統。\n\n讓 Giver（診療服務提供者）與 Taker（診療服務接受者）能在平台內，方便地設定可面談時段並完成配對媒合，同時提供即時通知，以減少等待回應時的不確定與焦慮感。",
         description="應用程式描述",
     )
     app_version: str = Field(

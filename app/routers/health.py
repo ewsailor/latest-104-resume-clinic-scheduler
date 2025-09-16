@@ -49,7 +49,7 @@ router = APIRouter(tags=["Health Check"])
                     "example": {
                         "message": "應用程式存活、正常運行",
                         "status": "healthy",
-                        "app_name": "【MVP】104 Resume Clinic Scheduler",
+                        "app_name": "104 Resume Clinic Scheduler",
                         "version": "0.1.0",
                         "timestamp": "2024-01-01T00:00:00Z",
                         "checks": {"application": "healthy"},
@@ -159,7 +159,7 @@ async def liveness_probe(
                     "example": {
                         "message": "應用程式準備就緒",
                         "status": "healthy",
-                        "app_name": "【MVP】104 Resume Clinic Scheduler",
+                        "app_name": "104 Resume Clinic Scheduler",
                         "version": "0.1.0",
                         "timestamp": "2024-01-01T00:00:00Z",
                         "checks": {
