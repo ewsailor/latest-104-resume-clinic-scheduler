@@ -45,22 +45,35 @@ def integration_app():
 
     try:
         # 創建測試設定（使用檔案資料庫而不是記憶體資料庫）
-        temp_db = tempfile.NamedTemporaryFile(delete=False, suffix=".db")
-        temp_db.close()
+        # 在 CI 環境中使用 /tmp 目錄確保寫入權限
+        temp_dir = tempfile.gettempdir()
+        temp_db_path = os.path.join(
+            temp_dir, f"test_db_{os.getpid()}_{id(tempfile)}.db"
+        )
+
+        # 創建空檔案
+        with open(temp_db_path, 'w') as f:
+            pass
 
         # 確保檔案有寫入權限（在 Linux 環境下很重要）
         os.chmod(
-            temp_db.name, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP
+            temp_db_path,
+            stat.S_IRUSR
+            | stat.S_IWUSR
+            | stat.S_IRGRP
+            | stat.S_IWGRP
+            | stat.S_IROTH
+            | stat.S_IWOTH,
         )
 
         os.environ["TESTING"] = "true"
         os.environ["APP_ENV"] = "testing"
-        os.environ["SQLITE_DATABASE"] = temp_db.name
+        os.environ["SQLITE_DATABASE"] = temp_db_path
 
         test_settings = Settings(
             testing=True,
             app_env="testing",
-            sqlite_database=temp_db.name,
+            sqlite_database=temp_db_path,
         )
 
         # 創建測試應用程式（不調用 initialize_database）
@@ -148,8 +161,8 @@ def integration_app():
     finally:
         # 清理臨時資料庫檔案
         try:
-            if 'temp_db' in locals():
-                os.unlink(temp_db.name)
+            if 'temp_db_path' in locals():
+                os.unlink(temp_db_path)
         except Exception:
             pass
 
