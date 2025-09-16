@@ -25,7 +25,7 @@ sqlalchemy = ">=2.0.41,<3.0.0"
 motor = ">=3.7.1,<4.0.0"  # 用 motor 建立非同步 MongoDB 連線，進行非同步資料庫查詢
 pymongo = ">=4.0.0,<5.0.0"  # 用 pymongo 做同步操作，寫管理工具或腳本（例如資料匯入匯出）時使用
 redis = ">=6.2.0,<7.0.0" 
-python-dotenv = ">=1.0.0,<2.0.0"  # 載入環境變數檔案 
+# python-dotenv 已移除 - 使用 Pydantic BaseSettings 自動載入 .env 檔案 
 jinja2 = ">=3.1.0,<4.0.0" 
 pydantic = ">=2.11.7,<3.0.0"
 boto3 = "^1.34.0"  # Boto3 AWS SDK - 用於與 AWS 服務互動

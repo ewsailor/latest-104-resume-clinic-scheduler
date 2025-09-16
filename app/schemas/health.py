@@ -5,7 +5,7 @@
 
 # ===== 標準函式庫 =====
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any
 
 # ===== 第三方套件 =====
 from pydantic import BaseModel, Field, model_serializer
@@ -30,7 +30,7 @@ class HealthCheckBase(BaseModel, ABC):
         description="檢查時間戳（UTC）",
         json_schema_extra={"example": "2024-01-01T00:00:00Z"},
     )
-    checks: Dict[str, str] = Field(
+    checks: dict[str, str] = Field(
         ...,
         description="各項檢查結果",
         json_schema_extra={"example": {"application": "healthy"}},
@@ -43,7 +43,7 @@ class HealthCheckBase(BaseModel, ABC):
         """取得訊息內容，由子類別實作。"""
 
     @model_serializer
-    def serialize_model(self) -> Dict[str, Any]:
+    def serialize_model(self) -> dict[str, Any]:
         """自定義序列化方法，確保 message 欄位在最前面。"""
         return {
             "message": self.get_message(),
@@ -79,7 +79,7 @@ class HealthCheckReadinessResponse(HealthCheckBase):
     )
 
     # 覆寫 checks 欄位的範例，因為就緒探測包含更多檢查項目
-    checks: Dict[str, str] = Field(
+    checks: dict[str, str] = Field(
         ...,
         description="各項檢查結果",
         json_schema_extra={
