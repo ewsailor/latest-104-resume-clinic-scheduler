@@ -13,10 +13,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
+from app.database import Base
+
 # ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
 from app.errors import ScheduleNotFoundError, ScheduleOverlapError
-from app.models.database import Base
 from app.models.schedule import Schedule
 from app.models.user import User
 from app.schemas import ScheduleBase

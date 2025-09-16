@@ -13,7 +13,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # ===== 本地模組 =====
-from app.models.database import Base
+from app.database import Base
 from app.models.user import User
 
 

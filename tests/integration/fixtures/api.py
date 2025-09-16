@@ -53,7 +53,8 @@ def integration_app():
     test_app.include_router(api_router)
 
     # 確保資料庫表已創建
-    from app.models.database import Base, create_database_engine
+    from app.database import Base
+    from app.models.database import create_database_engine
 
     engine, _ = create_database_engine()
     Base.metadata.create_all(bind=engine)

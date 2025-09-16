@@ -351,7 +351,7 @@ class ScheduleCRUD:
 from sqlalchemy import Column, Integer, Date, Time, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.models.database import Base
+from app.database import Base
 from app.enums.models import UserRoleEnum
 
 class Schedule(Base):

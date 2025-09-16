@@ -11,21 +11,16 @@ from typing import Generator
 from fastapi import HTTPException
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session, declarative_base, sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 # ===== 本地模組 =====
 from app.core import settings
+from app.database import Base
 from app.decorators import handle_generic_errors_sync
 from app.errors import create_database_error, create_service_unavailable_error
 from app.errors.exceptions import APIError
 
-# 導入所有模型以確保 Base.metadata 包含所有資料表定義
-import app.models  # noqa: F401
-
 logger = logging.getLogger(__name__)
-
-# 建立基礎類別：所有資料表模型，都會繼承這個類別，避免重複的程式碼
-Base = declarative_base()
 
 
 def create_database_engine() -> tuple[Engine, sessionmaker]:
@@ -103,7 +98,6 @@ def initialize_database() -> None:
 
         # 在測試環境中創建資料庫表
         if settings.testing or settings.app_env == "testing":
-            # 所有模型已在檔案頂部導入，Base.metadata 已包含所有資料表定義
             Base.metadata.create_all(bind=engine)
             logger.info("測試環境資料庫表創建完成")
 

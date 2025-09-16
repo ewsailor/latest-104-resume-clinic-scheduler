@@ -12,13 +12,11 @@ from sqlalchemy import Column, DateTime, Index, String
 from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import relationship
 
+from app.database import Base
+
 # ===== 本地模組 =====
-# 絕對路徑導入（跨模組）
 from app.utils.model_helpers import format_datetime, safe_getattr
 from app.utils.timezone import get_local_now_naive
-
-# 相對路徑導入（同模組）
-from .database import Base
 
 
 class User(Base):  # type: ignore[misc,valid-type]

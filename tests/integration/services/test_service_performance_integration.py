@@ -13,9 +13,10 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from app.database import Base
+
 # ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
-from app.models.database import Base
 from app.models.user import User
 from app.schemas import ScheduleBase
 from app.services.schedule import ScheduleService

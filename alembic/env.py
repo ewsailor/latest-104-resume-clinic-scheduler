@@ -11,7 +11,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 # Import your application's models and settings
 from app.core.settings import settings  # noqa: E402
-from app.models.database import Base  # noqa: E402
+from app.database import Base  # noqa: E402
 
 # Import all models to ensure they are registered with Base.metadata
 from app.models.schedule import Schedule  # noqa: E402, F401
