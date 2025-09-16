@@ -4,15 +4,25 @@ API 相關的整合測試 Fixtures。
 提供整合測試用的 API 客戶端和相關工具。
 """
 
+import os
+import tempfile
+
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+
 # ===== 第三方套件 =====
 from fastapi.testclient import TestClient
 import pytest  # 測試框架
+from sqlalchemy import create_engine, inspect
+from sqlalchemy.orm import sessionmaker
 
 from app.core.settings import Settings
 from app.database import Base
+import app.database.connection as db_module
 
 # ===== 本地模組 =====
 from app.factory import create_templates
+from app.middleware.cors import setup_cors_middleware
 from app.middleware.error_handler import setup_error_handlers
 from app.routers import api_router, health_router, main_router
 
@@ -28,8 +38,6 @@ def integration_app():
         FastAPI: 整合測試用的應用程式實例
     """
     # 設定環境變數以確保使用測試設定（在創建應用程式之前）
-    import os
-
     original_testing = os.environ.get("TESTING")
     original_app_env = os.environ.get("APP_ENV")
     original_sqlite_db = os.environ.get("SQLITE_DATABASE")
@@ -40,8 +48,6 @@ def integration_app():
         os.environ["SQLITE_DATABASE"] = ":memory:"
 
         # 創建測試設定（使用檔案資料庫而不是記憶體資料庫）
-        import tempfile
-
         temp_db = tempfile.NamedTemporaryFile(delete=False, suffix=".db")
         temp_db.close()
 
@@ -52,9 +58,6 @@ def integration_app():
         )
 
         # 創建測試應用程式（不調用 initialize_database）
-        from fastapi import FastAPI
-        from fastapi.staticfiles import StaticFiles
-
         # 根據環境決定是否顯示 API 文件
         docs_url = test_settings.docs_url if test_settings.debug else None
         redoc_url = test_settings.redoc_url if test_settings.debug else None
@@ -80,8 +83,6 @@ def integration_app():
         )
 
         # 設定 CORS 中間件
-        from app.middleware.cors import setup_cors_middleware
-
         setup_cors_middleware(test_app)
 
         # 掛載靜態檔案服務
@@ -103,9 +104,6 @@ def integration_app():
         test_app.include_router(api_router)
 
         # 手動初始化資料庫（使用測試設定）
-        from sqlalchemy import create_engine
-        from sqlalchemy.orm import sessionmaker
-
         # 創建測試資料庫引擎
         test_engine = create_engine(
             test_settings.sqlite_connection_string,
@@ -120,21 +118,16 @@ def integration_app():
         )
 
         # 導入所有模型以確保 Base.metadata 包含所有表
-
         # 創建資料庫表
         Base.metadata.create_all(bind=test_engine)
 
         # 驗證表是否被創建
-        from sqlalchemy import inspect
-
         inspector = inspect(test_engine)
         tables = inspector.get_table_names()
         assert "users" in tables, f"users table not found in {tables}"
         assert "schedules" in tables, f"schedules table not found in {tables}"
 
         # 設定全域變數（用於 get_db 函數）
-        import app.database.connection as db_module
-
         db_module.engine = test_engine
         db_module.SessionLocal = test_session_local
 
