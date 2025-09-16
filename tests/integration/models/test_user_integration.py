@@ -6,6 +6,7 @@ User 模型整合測試模組。
 
 # ===== 標準函式庫 =====
 import datetime
+import time
 from typing import Any, Dict
 
 # ===== 第三方套件 =====
@@ -243,8 +244,6 @@ class TestUserIntegration:
         original_updated_at = user.updated_at
 
         # 等待一小段時間確保時間差異
-        import time
-
         time.sleep(0.01)
 
         # 更新使用者

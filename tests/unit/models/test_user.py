@@ -9,8 +9,8 @@ from datetime import datetime
 
 # ===== 第三方套件 =====
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, inspect
+from sqlalchemy.orm import class_mapper, sessionmaker
 
 # ===== 本地模組 =====
 from app.database import Base
@@ -149,8 +149,6 @@ class TestUserModel:
         # 驗證資料表已建立
         # 注意：在記憶體資料庫中，我們需要先建立資料表
         Base.metadata.create_all(bind=self.test_engine)
-        from sqlalchemy import inspect
-
         inspector = inspect(self.test_engine)
         tables = inspector.get_table_names()
 
@@ -176,8 +174,6 @@ class TestUserModel:
         """測試 User 資料表索引。"""
         # 驗證索引存在
         Base.metadata.create_all(bind=self.test_engine)
-        from sqlalchemy import inspect
-
         inspector = inspect(self.test_engine)
 
         indexes = inspector.get_indexes("users")
@@ -194,8 +190,6 @@ class TestUserModel:
         """測試 User 唯一約束。"""
         # 驗證 email 欄位的唯一約束
         Base.metadata.create_all(bind=self.test_engine)
-        from sqlalchemy import inspect
-
         inspector = inspect(self.test_engine)
 
         # 在 SQLite 中，唯一約束可能不會顯示在 get_indexes 中
@@ -246,8 +240,6 @@ class TestUserModel:
         # 所有關聯都應該使用 lazy="dynamic"
         # 注意：在 SQLAlchemy 中，dynamic 關聯返回的是 AppenderQuery 物件
         # 我們需要通過 mapper 來檢查 lazy 設定
-        from sqlalchemy.orm import class_mapper
-
         mapper = class_mapper(User)
 
         assert mapper.relationships['giver_schedules'].lazy == "dynamic"
@@ -299,8 +291,6 @@ class TestUserModel:
         )
 
         # 驗證關聯的 back_populates 設定
-        from sqlalchemy.orm import class_mapper
-
         mapper = class_mapper(User)
 
         assert mapper.relationships['giver_schedules'].back_populates == "giver"
@@ -322,8 +312,6 @@ class TestUserModel:
         """測試 User 外鍵約束。"""
         # 驗證外鍵存在
         Base.metadata.create_all(bind=self.test_engine)
-        from sqlalchemy import inspect
-
         inspector = inspect(self.test_engine)
 
         foreign_keys = inspector.get_foreign_keys("users")

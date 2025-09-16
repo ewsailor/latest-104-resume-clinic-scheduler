@@ -6,6 +6,7 @@
 
 # ===== 標準函式庫 =====
 import asyncio
+import inspect
 from unittest.mock import Mock, patch
 
 # ===== 第三方套件 =====
@@ -320,8 +321,6 @@ class TestErrorHandlers:
         assert test_func.__doc__ == "測試函數文檔字符串。"
 
         # 檢查函數簽名
-        import inspect
-
         sig = inspect.signature(test_func)
         assert "param1" in sig.parameters
         assert "param2" in sig.parameters

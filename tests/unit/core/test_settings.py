@@ -102,8 +102,6 @@ class TestSettings:
     def test_settings_default_values(self):
         """測試 Settings 類別的預設值。"""
         # 清除環境變數以確保測試純淨
-        import os
-
         original_testing = os.environ.get('TESTING')
         original_app_env = os.environ.get('APP_ENV')
 

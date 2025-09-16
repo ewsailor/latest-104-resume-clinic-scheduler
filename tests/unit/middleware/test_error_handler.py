@@ -9,6 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 # ===== 第三方套件 =====
 from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
 import pytest
 from starlette.responses import JSONResponse
@@ -337,8 +338,6 @@ class TestSetupErrorHandlers:
         app = FastAPI()
 
         # 添加其他中間件
-        from fastapi.middleware.cors import CORSMiddleware
-
         app.add_middleware(CORSMiddleware, allow_origins=["*"])
 
         initial_middleware_count = len(app.user_middleware)

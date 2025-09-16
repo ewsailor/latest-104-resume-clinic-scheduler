@@ -4,6 +4,9 @@
 測試錯誤處理中間件的功能，包括異常捕獲、錯誤格式化等。
 """
 
+# ===== 標準函式庫 =====
+import re
+
 # ===== 第三方套件 =====
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
@@ -336,8 +339,6 @@ class TestErrorHandlerMiddleware:
         timestamp = response_data["error"]["timestamp"]
         assert isinstance(timestamp, str)
         # 驗證時間戳格式：YYYY-MM-DDTHH:MM:SSZ
-        import re
-
         timestamp_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
         assert re.match(timestamp_pattern, timestamp), f"時間戳格式不正確: {timestamp}"
 

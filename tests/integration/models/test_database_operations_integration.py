@@ -9,7 +9,7 @@ import datetime
 
 # ===== 第三方套件 =====
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
@@ -518,8 +518,6 @@ class TestDatabaseOperationsIntegration:
     def test_database_metadata_consistency(self, db_session):
         """測試資料庫元資料一致性。"""
         # 驗證資料表存在
-        from sqlalchemy import inspect
-
         inspector = inspect(self.engine)
         tables = inspector.get_table_names()
 

@@ -6,12 +6,19 @@
 
 # ===== 標準函式庫 =====
 import datetime
+import os
 import time
 
 # ===== 第三方套件 =====
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+# 嘗試導入 psutil，如果不可用則跳過相關測試
+try:
+    import psutil
+except ImportError:
+    psutil = None
 
 from app.database import Base
 
@@ -344,11 +351,7 @@ class TestServicePerformanceIntegration:
         self, db_session, schedule_service, sample_users
     ):
         """測試服務層記憶體使用。"""
-        try:
-            import os
-
-            import psutil
-        except ImportError:
+        if psutil is None:
             pytest.skip("psutil not available")
 
         # 記錄初始記憶體使用

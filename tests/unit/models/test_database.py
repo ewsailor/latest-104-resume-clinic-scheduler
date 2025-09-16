@@ -10,8 +10,10 @@ import pytest  # 測試框架
 # ===== 第三方套件 =====
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from sqlalchemy.pool.impl import SingletonThreadPool
 
 # ===== 本地模組 =====
+from app.core import settings
 from app.database import (
     Base,
     check_db_connection,
@@ -116,12 +118,8 @@ class TestDatabaseModule:
         # 在測試環境中，engine 可能是 None
         if engine is not None:
             # 根據資料庫類型驗證不同的引擎設定
-            from app.core import settings
-
             if settings.testing or settings.app_env == "testing":
                 # SQLite 測試環境：檢查連線池類型
-                from sqlalchemy.pool.impl import SingletonThreadPool
-
                 assert isinstance(engine.pool, SingletonThreadPool)
                 # SQLite 使用 SingletonThreadPool，屬性結構不同
             else:
