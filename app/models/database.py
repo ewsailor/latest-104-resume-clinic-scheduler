@@ -18,6 +18,7 @@ from app.core import settings
 from app.decorators import handle_generic_errors_sync
 from app.errors import create_database_error, create_service_unavailable_error
 from app.errors.exceptions import APIError
+from app.models import schedule, user  # 導入模型以確保表被創建
 
 logger = logging.getLogger(__name__)
 
@@ -27,28 +28,49 @@ Base = declarative_base()
 
 def create_database_engine() -> tuple[Engine, sessionmaker]:
     """建立資料庫引擎和會話工廠。"""
-    DATABASE_URL = settings.mysql_connection_string
+    # 根據環境選擇資料庫
+    if settings.testing or settings.app_env == "testing":
+        DATABASE_URL = settings.sqlite_connection_string
+        logger.info("使用 SQLite 資料庫（測試環境）")
+    else:
+        DATABASE_URL = settings.mysql_connection_string
+        logger.info("使用 MySQL 資料庫（生產/開發環境）")
 
     try:
-        # 建立資料庫引擎連線
-        engine = create_engine(
-            DATABASE_URL,  # MySQL 連接字串
-            echo=False,  # 關閉 SQL 查詢日誌
-            pool_pre_ping=True,  # 啟用連線檢查，確保連線有效性
-            pool_size=10,  # 連線池大小
-            max_overflow=10,  # 最大溢出連線數（通常是 pool_size 的 1-2 倍）
-            pool_timeout=30,  # 連線超時時間（30秒）
-            pool_recycle=3600,  # 連線池回收時間（1小時）
-            connect_args={  # pymysql 特定參數
-                "charset": "utf8mb4",  # 使用 utf8mb4 字符集
-            },
-        )
+        # 根據資料庫類型設定不同的引擎參數
+        if settings.testing or settings.app_env == "testing":
+            # SQLite 配置
+            engine = create_engine(
+                DATABASE_URL,  # SQLite 連接字串
+                echo=False,  # 關閉 SQL 查詢日誌
+                pool_pre_ping=False,  # SQLite 不需要連線檢查
+                connect_args={
+                    "check_same_thread": False,  # 允許多執行緒存取
+                },
+            )
+        else:
+            # MySQL 配置
+            engine = create_engine(
+                DATABASE_URL,  # MySQL 連接字串
+                echo=False,  # 關閉 SQL 查詢日誌
+                pool_pre_ping=True,  # 啟用連線檢查，確保連線有效性
+                pool_size=10,  # 連線池大小
+                max_overflow=10,  # 最大溢出連線數（通常是 pool_size 的 1-2 倍）
+                pool_timeout=30,  # 連線超時時間（30秒）
+                pool_recycle=3600,  # 連線池回收時間（1小時）
+                connect_args={  # pymysql 特定參數
+                    "charset": "utf8mb4",  # 使用 utf8mb4 字符集
+                },
+            )
 
         # 測試連線
         with engine.connect():
-            logger.info(
-                f"成功建立資料庫引擎，並連結到資料庫：{settings.mysql_database}"
-            )
+            if settings.testing or settings.app_env == "testing":
+                logger.info(f"成功建立 SQLite 資料庫引擎：{settings.sqlite_database}")
+            else:
+                logger.info(
+                    f"成功建立 MySQL 資料庫引擎，並連結到資料庫：{settings.mysql_database}"
+                )
 
         # 建立 session 工廠：每次呼叫 SessionLocal()，就生成一個新 Session 實例，確保每個請求，都有一個獨立的資料庫連線，避免共用連線，導致資料庫操作錯亂
         SessionLocal = sessionmaker(
@@ -76,6 +98,12 @@ def initialize_database() -> None:
 
     try:
         engine, SessionLocal = create_database_engine()
+
+        # 在測試環境中創建資料庫表
+        if settings.testing or settings.app_env == "testing":
+            Base.metadata.create_all(bind=engine)
+            logger.info("測試環境資料庫表創建完成")
+
         logger.info("資料庫初始化完成")
     except Exception as e:
         logger.error(f"資料庫初始化失敗：{str(e)}")
@@ -99,18 +127,26 @@ def get_db() -> Generator[Session, None, None]:
     # db 是實際的 Session 實例，用來進行 add()、query()、commit()、close() 等操作
     db = SessionLocal()
     try:
-        # 設定時區為台灣時間
-        db.execute(text("SET time_zone = '+08:00'"))
+        # 根據資料庫類型設定不同的參數
+        if settings.testing or settings.app_env == "testing":
+            # SQLite 不需要設定時區和 sql_mode
+            # 驗證連線是否有效（輕量級檢查）
+            db.execute(text("SELECT 1"))
+        else:
+            # MySQL 特定設定
+            # 設定時區為台灣時間
+            db.execute(text("SET time_zone = '+08:00'"))
 
-        # 設定 sql_mode 為嚴格模式（每個連線都會設定）
-        db.execute(
-            text(
-                "SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO'"
+            # 設定 sql_mode 為嚴格模式（每個連線都會設定）
+            db.execute(
+                text(
+                    "SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO'"
+                )
             )
-        )
 
-        # 驗證連線是否有效（輕量級檢查）
-        db.execute(text("SELECT 1"))
+            # 驗證連線是否有效（輕量級檢查）
+            db.execute(text("SELECT 1"))
+
         logger.info("get_db() yield: 傳遞資料庫連線給處理函式")
         yield db
     except APIError as e:

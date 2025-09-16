@@ -101,15 +101,34 @@ class TestSettings:
 
     def test_settings_default_values(self):
         """測試 Settings 類別的預設值。"""
-        settings = Settings()
+        # 清除環境變數以確保測試純淨
+        import os
 
-        # 測試基本配置
-        assert settings.app_name == "【MVP】104 Resume Clinic Scheduler"
-        assert settings.app_env == "development"
-        # debug 的預設值可能是 True（從環境變數或 .env 文件讀取）
-        assert isinstance(settings.debug, bool)
-        assert settings.testing is False
-        assert settings.log_level == "INFO"
+        original_testing = os.environ.get('TESTING')
+        original_app_env = os.environ.get('APP_ENV')
+
+        try:
+            # 清除測試相關的環境變數
+            if 'TESTING' in os.environ:
+                del os.environ['TESTING']
+            if 'APP_ENV' in os.environ:
+                del os.environ['APP_ENV']
+
+            settings = Settings()
+
+            # 測試基本配置
+            assert settings.app_name == "【MVP】104 Resume Clinic Scheduler"
+            assert settings.app_env == "development"
+            # debug 的預設值可能是 True（從環境變數或 .env 文件讀取）
+            assert isinstance(settings.debug, bool)
+            assert settings.testing is False
+            assert settings.log_level == "INFO"
+        finally:
+            # 恢復原始環境變數
+            if original_testing is not None:
+                os.environ['TESTING'] = original_testing
+            if original_app_env is not None:
+                os.environ['APP_ENV'] = original_app_env
 
         # 測試資料庫配置
         assert settings.mysql_host == "localhost"

@@ -120,6 +120,11 @@ class Settings(BaseSettings):
     mysql_database: str = Field(default="scheduler_db", description="MySQL 資料庫名稱")
     mysql_charset: str = Field(default="utf8mb4", description="MySQL 字符集")
 
+    # SQLite 配置（用於測試環境）
+    sqlite_database: str = Field(
+        default=":memory:", description="SQLite 資料庫路徑（測試環境使用記憶體資料庫）"
+    )
+
     # MongoDB 配置
     mongodb_uri: str = Field(
         default="mongodb://localhost:27017", description="MongoDB 連接 URI"
@@ -211,6 +216,11 @@ class Settings(BaseSettings):
             f"@{self.mysql_host}:{self.mysql_port}/{self.mysql_database}"
             f"?charset={self.mysql_charset}"
         )
+
+    @property
+    def sqlite_connection_string(self) -> str:
+        """SQLite 連接字串（用於測試環境）。"""
+        return f"sqlite:///{self.sqlite_database}"
 
     @property
     def redis_connection_string(self) -> str:

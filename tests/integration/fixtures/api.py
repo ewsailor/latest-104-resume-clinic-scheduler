@@ -8,8 +8,10 @@ API 相關的整合測試 Fixtures。
 from fastapi.testclient import TestClient
 import pytest  # 測試框架
 
+from app.core.settings import Settings
+
 # ===== 本地模組 =====
-from app.main import app
+from app.factory import create_app
 
 
 @pytest.fixture
@@ -17,10 +19,22 @@ def integration_app():
     """
     提供整合測試用的 FastAPI 應用程式。
 
+    創建一個使用測試資料庫的應用程式實例。
+
     Returns:
         FastAPI: 整合測試用的應用程式實例
     """
-    return app
+    # 創建測試設定
+    test_settings = Settings(
+        testing=True,
+        app_env="testing",
+        sqlite_database=":memory:",
+    )
+
+    # 創建測試應用程式
+    test_app = create_app(test_settings)
+
+    return test_app
 
 
 @pytest.fixture

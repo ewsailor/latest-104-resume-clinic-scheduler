@@ -38,32 +38,38 @@ jobs:
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-root
 
-      # 5. 代碼品質檢查 (Black)
+      # 5. 設置測試環境變數
+      - name: Set test environment variables
+        run: |
+          echo "TESTING=true" >> $GITHUB_ENV
+          echo "APP_ENV=testing" >> $GITHUB_ENV
+
+      # 6. 代碼品質檢查 (Black)
       - name: Code formatting check (Black)
         run: |
           poetry run black --check .
 
-      # 6. 導入排序檢查 (isort)
+      # 7. 導入排序檢查 (isort)
       - name: Import sorting check (isort)
         run: |
           poetry run isort --check-only .
 
-      # 7. 代碼風格檢查 (flake8)
+      # 8. 代碼風格檢查 (flake8)
       - name: Code style check (flake8)
         run: |
           poetry run flake8 .
 
-      # 8. 類型檢查 (mypy)
+      # 9. 類型檢查 (mypy)
       - name: Type checking (mypy)
         run: |
           poetry run mypy app/ --ignore-missing-imports
 
-      # 9. 安全檢查 (bandit)
+      # 10. 安全檢查 (bandit)
       - name: Security check (bandit)
         run: |
           poetry run bandit -r app/ --skip B101,B601
 
-      # 10. 跑 pytest 單元測試/整合測試
+      # 11. 跑 pytest 單元測試/整合測試
       - name: Run pytest
         run: |
           poetry run pytest tests/unit/ tests/integration/ -v --maxfail=3 --disable-warnings
