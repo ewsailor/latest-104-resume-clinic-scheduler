@@ -280,7 +280,12 @@ class TestScheduleCRUD:
         db_session.commit()
 
         # 軟刪除其中一個時段
-        crud.delete_schedule(db_session, schedule1.id)
+        crud.delete_schedule(
+            db_session,
+            schedule1.id,
+            deleted_by=user.id,
+            deleted_by_role=UserRoleEnum.GIVER,
+        )
 
         # 查詢時段，應該只返回未刪除的時段
         schedules = crud.list_schedules(db_session, giver_id=user.id)
@@ -485,7 +490,12 @@ class TestScheduleCRUD:
         db_session.commit()
 
         # 軟刪除時段
-        result = crud.delete_schedule(db_session, schedule.id)
+        result = crud.delete_schedule(
+            db_session,
+            schedule.id,
+            deleted_by=user.id,
+            deleted_by_role=UserRoleEnum.GIVER,
+        )
 
         assert result == DeletionResult.SUCCESS
 
@@ -529,11 +539,21 @@ class TestScheduleCRUD:
         db_session.commit()
 
         # 第一次軟刪除
-        result1 = crud.delete_schedule(db_session, schedule.id)
+        result1 = crud.delete_schedule(
+            db_session,
+            schedule.id,
+            deleted_by=user.id,
+            deleted_by_role=UserRoleEnum.GIVER,
+        )
         assert result1 == DeletionResult.SUCCESS
 
         # 第二次軟刪除（應該返回已經刪除）
-        result2 = crud.delete_schedule(db_session, schedule.id)
+        result2 = crud.delete_schedule(
+            db_session,
+            schedule.id,
+            deleted_by=user.id,
+            deleted_by_role=UserRoleEnum.GIVER,
+        )
         assert result2 == DeletionResult.ALREADY_DELETED
 
         # 確認時段仍然存在但已被軟刪除

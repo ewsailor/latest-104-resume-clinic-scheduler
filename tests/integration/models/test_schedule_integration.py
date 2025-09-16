@@ -315,7 +315,7 @@ class TestScheduleIntegration:
         assert schedule.created_by == sample_schedule_data["created_by"]
         assert schedule.created_by_role == sample_schedule_data["created_by_role"]
         assert schedule.updated_by is None  # 建立時應該為 None
-        assert schedule.updated_by_role is None  # 建立時應該為 None
+        assert schedule.updated_by_role == UserRoleEnum.SYSTEM  # 建立時預設為 SYSTEM
         assert schedule.deleted_by is None  # 建立時應該為 None
         assert schedule.deleted_by_role is None  # 建立時應該為 None
 
