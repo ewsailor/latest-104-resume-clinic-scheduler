@@ -5,17 +5,73 @@ CORS 中間件測試模組。
 測試 CORS 中間件的各種功能和安全性。
 """
 
-# ===== 第三方套件 =====
+# ===== 標準函式庫 =====
+from unittest.mock import patch
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.testclient import TestClient
 
+# ===== 第三方套件 =====
+import pytest
+
 # ===== 本地模組 =====
-from app.middleware.cors import setup_cors_middleware
+from app.middleware.cors import log_app_startup, setup_cors_middleware
 
 
 class TestCorsMiddleware:
     """CORS 中間件測試類別。"""
+
+    def test_log_app_startup_success(self):
+        """測試成功記錄應用程式啟動資訊。"""
+        app = FastAPI()
+
+        # 使用 patch 來捕獲 logger.info 的調用
+        with patch('app.middleware.cors.logger') as mock_logger:
+            log_app_startup(app)
+
+            # 驗證 logger.info 被調用了 5 次（啟動開始、環境、版本、除錯模式、啟動完成）
+            assert mock_logger.info.call_count == 5
+
+            # 檢查具體的日誌訊息
+            calls = mock_logger.info.call_args_list
+            assert "===== 應用程式啟動 =====" in calls[0][0][0]
+            assert "環境:" in calls[1][0][0]
+            assert "版本:" in calls[2][0][0]
+            assert "除錯模式:" in calls[3][0][0]
+            assert "===== 啟動完成 ======" in calls[4][0][0]
+
+    def test_log_app_startup_with_different_apps(self):
+        """測試使用不同 FastAPI 應用程式記錄啟動資訊。"""
+        app1 = FastAPI(title="App 1")
+        app2 = FastAPI(title="App 2")
+
+        with patch('app.middleware.cors.logger') as mock_logger:
+            # 測試第一個應用程式
+            log_app_startup(app1)
+            first_call_count = mock_logger.info.call_count
+
+            # 測試第二個應用程式
+            log_app_startup(app2)
+            second_call_count = mock_logger.info.call_count
+
+            # 驗證兩次調用都成功
+            assert first_call_count == 5
+            assert second_call_count == 10  # 5 + 5
+
+    def test_log_app_startup_logger_error_handling(self):
+        """測試日誌記錄錯誤處理。"""
+        app = FastAPI()
+
+        # 模擬 logger.info 拋出異常
+        with patch('app.middleware.cors.logger') as mock_logger:
+            mock_logger.info.side_effect = Exception("日誌記錄錯誤")
+
+            # 函數會因為日誌錯誤而拋出異常，這是預期的行為
+            with pytest.raises(Exception) as exc_info:
+                log_app_startup(app)
+
+            assert "日誌記錄錯誤" in str(exc_info.value)
 
     def test_setup_cors_middleware_success(self):
         """測試成功設定 CORS 中間件。"""
