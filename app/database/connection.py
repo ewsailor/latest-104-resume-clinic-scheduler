@@ -1,6 +1,6 @@
-"""資料庫管理模組。
+"""資料庫連線管理模組。
 
-包含資料庫連線、會話管理等功能。
+包含資料庫引擎、會話管理等功能。
 """
 
 # ===== 標準函式庫 =====
@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 # ===== 本地模組 =====
 from app.core import settings
-from app.database import Base
+from app.database.base import Base
 from app.decorators import handle_generic_errors_sync
 from app.errors import create_database_error, create_service_unavailable_error
 from app.errors.exceptions import APIError

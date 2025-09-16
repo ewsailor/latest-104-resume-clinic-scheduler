@@ -8,9 +8,9 @@ from fastapi import APIRouter, status
 
 # ===== 本地模組 =====
 from app.core import get_project_version, settings
+from app.database import check_db_connection
 from app.decorators import handle_api_errors_async, log_operation
 from app.errors import create_liveness_check_error, create_readiness_check_error
-from app.models.database import check_db_connection
 from app.schemas import HealthCheckLivenessResponse, HealthCheckReadinessResponse
 from app.utils.timezone import get_utc_timestamp
 

@@ -480,7 +480,7 @@ def get_db() -> Generator[Session, None, None]:
 # app/routers/api/schedule.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.models.database import get_db
+from app.database import get_db
 from app.services import schedule_service
 from app.schemas.schedule import ScheduleCreateRequest, ScheduleResponse
 

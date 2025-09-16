@@ -3,12 +3,26 @@
 提供資料庫相關的基礎設施和配置。
 """
 
-# ===== 第三方套件 =====
-from sqlalchemy.orm import declarative_base
-
-# 建立基礎類別：所有資料表模型，都會繼承這個類別，避免重複的程式碼
-Base = declarative_base()
+# ===== 本地模組 =====
+from .base import Base
+from .connection import (
+    SessionLocal,
+    check_db_connection,
+    create_database_engine,
+    engine,
+    get_db,
+    initialize_database,
+)
 
 __all__ = [
+    # 基礎類別
     "Base",
+    # 資料庫連線管理
+    "create_database_engine",
+    "initialize_database",
+    "get_db",
+    "check_db_connection",
+    # 全域變數
+    "engine",
+    "SessionLocal",
 ]

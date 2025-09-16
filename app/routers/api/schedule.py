@@ -7,11 +7,12 @@
 from fastapi import APIRouter, Depends, Path, Query, status
 from sqlalchemy.orm import Session
 
+from app.database import get_db
+
 # ===== 本地模組 =====
 from app.decorators import handle_api_errors_async
 from app.enums.models import ScheduleStatusEnum
 from app.errors import create_bad_request_error
-from app.models.database import get_db
 from app.schemas import (
     ScheduleCreateRequest,
     ScheduleDeleteRequest,

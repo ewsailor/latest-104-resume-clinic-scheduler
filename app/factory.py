@@ -10,9 +10,9 @@ from fastapi.templating import Jinja2Templates
 
 # ===== 本地模組 =====
 from app.core.settings import Settings
+from app.database import initialize_database
 from app.decorators import handle_generic_errors_sync
 from app.middleware.cors import log_app_startup, setup_cors_middleware
-from app.models.database import initialize_database
 
 
 def create_static_files(settings: Settings) -> StaticFiles:

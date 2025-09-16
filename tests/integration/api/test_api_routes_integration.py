@@ -15,7 +15,7 @@ from fastapi.testclient import TestClient
 import pytest
 
 # ===== 本地模組 =====
-from app.models.database import get_db
+from app.database import get_db
 from app.models.schedule import Schedule
 from tests.utils.test_utils import generate_guaranteed_unique_time_slot
 

@@ -9,9 +9,12 @@ from fastapi.testclient import TestClient
 import pytest  # 測試框架
 
 from app.core.settings import Settings
+from app.database import Base, create_database_engine
 
 # ===== 本地模組 =====
-from app.factory import create_app
+from app.factory import create_app, create_templates
+from app.middleware.error_handler import setup_error_handlers
+from app.routers import api_router, health_router, main_router
 
 
 @pytest.fixture
@@ -35,27 +38,18 @@ def integration_app():
     test_app = create_app(test_settings)
 
     # 建立模板引擎實例
-    from app.factory import create_templates
-
     templates = create_templates(test_settings)
     test_app.state.templates = templates
 
     # 設定錯誤處理器
-    from app.middleware.error_handler import setup_error_handlers
-
     setup_error_handlers(test_app)
 
     # 註冊路由
-    from app.routers import api_router, health_router, main_router
-
     test_app.include_router(main_router)
     test_app.include_router(health_router)
     test_app.include_router(api_router)
 
     # 確保資料庫表已創建
-    from app.database import Base
-    from app.models.database import create_database_engine
-
     engine, _ = create_database_engine()
     Base.metadata.create_all(bind=engine)
 

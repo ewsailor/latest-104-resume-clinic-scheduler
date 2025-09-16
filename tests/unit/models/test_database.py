@@ -12,7 +12,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 # ===== 本地模組 =====
-from app.models.database import (
+from app.database import (
     Base,
     check_db_connection,
     create_database_engine,
