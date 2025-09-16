@@ -31,7 +31,7 @@ from app.utils.timezone import get_local_now_naive
 from .database import Base
 
 
-class Schedule(Base):
+class Schedule(Base):  # type: ignore[misc,valid-type]
     """諮詢時段資料模型。"""
 
     __tablename__ = "schedules"
