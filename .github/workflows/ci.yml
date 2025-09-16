@@ -51,16 +51,6 @@ jobs:
       - name: Run unit tests
         run: poetry run pytest tests/unit/ -v --maxfail=3 --disable-warnings --tb=short
 
-      - name: Generate test coverage report
-        run: poetry run pytest tests/unit/ --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
 
       - name: Test Summary
         if: always()
@@ -68,9 +58,3 @@ jobs:
           echo "## 🧪 測試結果摘要" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ 程式碼檢查 (lint + format + type check)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ 單元測試 (Unit Tests)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ 測試覆蓋率報告 (Coverage Report)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📊 測試覆蓋率" >> $GITHUB_STEP_SUMMARY
-          if [ -f coverage.xml ]; then
-            echo "覆蓋率報告已生成並上傳至 Codecov" >> $GITHUB_STEP_SUMMARY
-          fi
