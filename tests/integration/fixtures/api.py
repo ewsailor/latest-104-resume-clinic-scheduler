@@ -5,6 +5,7 @@ API 相關的整合測試 Fixtures。
 """
 
 import os
+import stat
 import tempfile
 
 from fastapi import FastAPI
@@ -43,13 +44,18 @@ def integration_app():
     original_sqlite_db = os.environ.get("SQLITE_DATABASE")
 
     try:
-        os.environ["TESTING"] = "true"
-        os.environ["APP_ENV"] = "testing"
-        os.environ["SQLITE_DATABASE"] = ":memory:"
-
         # 創建測試設定（使用檔案資料庫而不是記憶體資料庫）
         temp_db = tempfile.NamedTemporaryFile(delete=False, suffix=".db")
         temp_db.close()
+
+        # 確保檔案有寫入權限（在 Linux 環境下很重要）
+        os.chmod(
+            temp_db.name, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP
+        )
+
+        os.environ["TESTING"] = "true"
+        os.environ["APP_ENV"] = "testing"
+        os.environ["SQLITE_DATABASE"] = temp_db.name
 
         test_settings = Settings(
             testing=True,
@@ -109,7 +115,10 @@ def integration_app():
             test_settings.sqlite_connection_string,
             echo=False,
             pool_pre_ping=False,
-            connect_args={"check_same_thread": False},
+            connect_args={
+                "check_same_thread": False,
+                "timeout": 30,
+            },
         )
 
         # 創建會話工廠
