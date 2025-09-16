@@ -36,21 +36,25 @@ def integration_app():
 
     # 建立模板引擎實例
     from app.factory import create_templates
+
     templates = create_templates(test_settings)
     test_app.state.templates = templates
 
     # 設定錯誤處理器
     from app.middleware.error_handler import setup_error_handlers
+
     setup_error_handlers(test_app)
 
     # 註冊路由
     from app.routers import api_router, health_router, main_router
+
     test_app.include_router(main_router)
     test_app.include_router(health_router)
     test_app.include_router(api_router)
 
     # 確保資料庫表已創建
     from app.models.database import Base, create_database_engine
+
     engine, _ = create_database_engine()
     Base.metadata.create_all(bind=engine)
 
