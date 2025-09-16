@@ -128,6 +128,7 @@ class TestDatabaseModule:
             if settings.testing or settings.app_env == "testing":
                 # SQLite 測試環境：檢查連線池類型
                 from sqlalchemy.pool.impl import SingletonThreadPool
+
                 assert isinstance(engine.pool, SingletonThreadPool)
                 # SQLite 使用 SingletonThreadPool，屬性結構不同
             else:

@@ -102,6 +102,7 @@ def initialize_database() -> None:
         if settings.testing or settings.app_env == "testing":
             # 延遲導入以避免循環導入
             from app.models import schedule, user  # noqa: F401
+
             Base.metadata.create_all(bind=engine)
             logger.info("測試環境資料庫表創建完成")
 
