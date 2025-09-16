@@ -496,7 +496,8 @@ async def update_schedule(
         ScheduleResponse: 更新後的時段資訊。
     """
     # 將 Pydantic 模型的物件，轉換為字典格式，只包含非 None 的欄位，避免把「空值」也更新到資料庫
-    update_data = request.schedule.model_dump(exclude_none=True)
+    # 使用 by_alias=True 來獲得別名形式的字典，這樣 date 欄位會以別名形式出現
+    update_data = request.schedule.model_dump(by_alias=True, exclude_none=True)
     # 處理 date 欄位的別名 - 將 date 轉換為 schedule_date，以符合資料庫或後端函式期望的欄位名稱
     if "date" in update_data:
         update_data["schedule_date"] = update_data.pop("date")
