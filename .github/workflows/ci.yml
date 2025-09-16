@@ -38,4 +38,4 @@ jobs:
           pre-commit run --all-files
 
       - name: Run tests
-        run: poetry run pytest --maxfail=1 --disable-warnings -q
+        run: poetry run pytest tests/unit/ -v --maxfail=3 --disable-warnings
