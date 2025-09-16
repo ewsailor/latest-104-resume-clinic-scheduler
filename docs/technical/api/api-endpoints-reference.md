@@ -53,7 +53,7 @@
       "name": "王零一",
       "email": "wang@example.com",
       "role": "GIVER",
-      "created_at": "2024-01-15T10:30:00"
+      "created_at": "2024-01-15T10:30:00Z"
     }
   ],
   "total": 50,
@@ -87,7 +87,7 @@
     "name": "王零一",
     "email": "wang@example.com",
     "role": "GIVER",
-    "created_at": "2024-01-15T10:30:00"
+    "created_at": "2024-01-15T10:30:00Z"
   }
 }
 ```
@@ -118,8 +118,8 @@
     "start_time": "14:00:00",
     "end_time": "15:00:00",
     "note": "履歷諮詢時段",
-    "created_at": "2024-01-15T10:30:00",
-    "updated_at": "2024-01-15T10:30:00",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:30:00Z",
     "updated_by": 1,
     "updated_by_role": "GIVER",
     "deleted_at": null
@@ -165,8 +165,8 @@
     "start_time": "14:00:00",
     "end_time": "15:00:00",
     "note": "履歷諮詢時段",
-    "created_at": "2024-01-15T10:30:00",
-    "updated_at": "2024-01-15T10:30:00",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:30:00Z",
     "updated_by": 1,
     "updated_by_role": "GIVER",
     "deleted_at": null
@@ -544,7 +544,7 @@ raise DatabaseError("資料庫連線失敗", error_code=ErrorCode.DATABASE_ERROR
 
 - 日期: `YYYY-MM-DD` (例如: `2024-01-20`)
 - 時間: `HH:MM:SS` (例如: `14:00:00`)
-- 日期時間: `YYYY-MM-DDTHH:MM:SS` (例如: `2024-01-15T10:30:00`)
+- 日期時間: `YYYY-MM-DDTHH:MM:SSZ` (例如: `2024-01-15T10:30:00Z`)
 
 ## 開發者工具
 

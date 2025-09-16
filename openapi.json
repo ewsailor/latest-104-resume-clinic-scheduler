@@ -1043,7 +1043,7 @@
             "format": "date-time",
             "title": "Created At",
             "description": "\u5efa\u7acb\u6642\u9593\uff08\u672c\u5730\u6642\u9593\uff09",
-            "example": "2024-01-01T09:00:00"
+            "example": "2024-01-01T09:00:00Z"
           },
           "created_by": {
             "anyOf": [
@@ -1076,7 +1076,7 @@
             "format": "date-time",
             "title": "Updated At",
             "description": "\u66f4\u65b0\u6642\u9593\uff08\u672c\u5730\u6642\u9593\uff09",
-            "example": "2024-01-01T09:00:00"
+            "example": "2024-01-01T09:00:00Z"
           },
           "updated_by": {
             "anyOf": [

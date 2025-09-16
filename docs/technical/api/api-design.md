@@ -147,7 +147,7 @@ GET /api/v1/users?page=1&per_page=20
       "name": "王零一",
       "email": "wang@example.com",
       "role": "GIVER",
-      "created_at": "2024-01-15T10:30:00"
+      "created_at": "2024-01-15T10:30:00Z"
     }
   ],
   "total": 50,
@@ -187,7 +187,7 @@ GET /api/v1/users?page=1&per_page=20
     "name": "王零一",
     "email": "wang@example.com",
     "role": "GIVER",
-    "created_at": "2024-01-15T10:30:00"
+    "created_at": "2024-01-15T10:30:00Z"
   }
 }
 ```
@@ -239,8 +239,8 @@ GET /api/v1/users?page=1&per_page=20
     "start_time": "14:00:00",
     "end_time": "15:00:00",
     "note": "履歷諮詢時段",
-    "created_at": "2024-01-15T10:30:00",
-    "updated_at": "2024-01-15T10:30:00",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:30:00Z",
     "updated_by": 1,
     "updated_by_role": "GIVER",
     "deleted_at": null
@@ -285,8 +285,8 @@ GET /api/v1/schedules?giver_id=1&status_filter=AVAILABLE
     "start_time": "14:00:00",
     "end_time": "15:00:00",
     "note": "履歷諮詢時段",
-    "created_at": "2024-01-15T10:30:00",
-    "updated_at": "2024-01-15T10:30:00",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:30:00Z",
     "updated_by": 1,
     "updated_by_role": "GIVER",
     "deleted_at": null
@@ -440,8 +440,8 @@ GET /api/v1/schedules/1
     "start_time": "14:00:00",
     "end_time": "15:00:00",
     "note": "履歷諮詢時段",
-    "created_at": "2024-01-15T10:30:00",
-    "updated_at": "2024-01-15T10:30:00",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:30:00Z",
     "updated_by": 1,
     "updated_by_role": "GIVER",
     "deleted_at": null
@@ -473,8 +473,8 @@ GET /api/v1/schedules/1
     "start_time": "14:00:00",
     "end_time": "15:00:00",
     "note": "履歷諮詢時段",
-    "created_at": "2024-01-15T10:30:00",
-    "updated_at": "2024-01-15T11:00:00",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T11:00:00Z",
     "updated_by": 2,
     "updated_by_role": "TAKER",
     "deleted_at": null

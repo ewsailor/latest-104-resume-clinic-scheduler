@@ -209,7 +209,7 @@ class ScheduleResponse(BaseModel):
     created_at: datetime = Field(
         ...,
         description="建立時間（本地時間）",
-        json_schema_extra={"example": "2024-01-01T09:00:00"},
+        json_schema_extra={"example": "2024-01-01T09:00:00Z"},
     )
     created_by: int | None = Field(
         None,
@@ -225,7 +225,7 @@ class ScheduleResponse(BaseModel):
     updated_at: datetime = Field(
         ...,
         description="更新時間（本地時間）",
-        json_schema_extra={"example": "2024-01-01T09:00:00"},
+        json_schema_extra={"example": "2024-01-01T09:00:00Z"},
     )
     updated_by: int | None = Field(
         None,
