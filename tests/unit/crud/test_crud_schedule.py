@@ -960,3 +960,131 @@ class TestScheduleCRUD:
         assert len(updated_fields) == 1
         assert any("status:" in field for field in updated_fields)
         assert schedule.status == ScheduleStatusEnum.AVAILABLE
+
+    def test_apply_filters_by_taker_id(self, db_session: Session):
+        """測試按 taker_id 篩選。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試資料
+        user1 = User(name="測試使用者1", email="test1@example.com")
+        user2 = User(name="測試使用者2", email="test2@example.com")
+        db_session.add_all([user1, user2])
+        db_session.commit()
+
+        schedule1 = Schedule(
+            giver_id=user1.id,
+            taker_id=user2.id,
+            date=date(2025, 9, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+        )
+        schedule2 = Schedule(
+            giver_id=user2.id,
+            taker_id=user1.id,
+            date=date(2025, 9, 15),
+            start_time=time(14, 0),
+            end_time=time(15, 0),
+        )
+        db_session.add_all([schedule1, schedule2])
+        db_session.commit()
+
+        # 測試按 taker_id 篩選
+        query = db_session.query(Schedule)
+        filtered_query = crud._apply_filters(query, taker_id=user2.id)
+        results = filtered_query.all()
+
+        assert len(results) == 1
+        assert results[0].taker_id == user2.id
+
+    def test_update_schedule_invalid_time_range(self, db_session: Session):
+        """測試更新時段時無效的時間範圍。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
+
+        # 建立測試時段
+        schedule = Schedule(
+            giver_id=user.id,
+            date=date(2025, 9, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status=ScheduleStatusEnum.AVAILABLE,
+        )
+        db_session.add(schedule)
+        db_session.commit()
+
+        # 測試無效的時間範圍（開始時間晚於結束時間）
+        with pytest.raises(Exception) as exc_info:
+            crud.update_schedule(
+                db_session,
+                schedule.id,
+                updated_by=user.id,
+                updated_by_role=UserRoleEnum.GIVER,
+                start_time=time(11, 0),  # 開始時間晚於結束時間
+                end_time=time(10, 0),
+            )
+
+        assert "開始時間必須早於結束時間" in str(exc_info.value)
+
+    def test_delete_schedule_cannot_delete_accepted(self, db_session: Session):
+        """測試刪除已接受的時段。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
+
+        # 建立已接受的時段
+        schedule = Schedule(
+            giver_id=user.id,
+            date=date(2025, 9, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status=ScheduleStatusEnum.ACCEPTED,
+        )
+        db_session.add(schedule)
+        db_session.commit()
+
+        # 嘗試刪除已接受的時段
+        result = crud.delete_schedule(
+            db_session,
+            schedule.id,
+            deleted_by=user.id,
+            deleted_by_role=UserRoleEnum.GIVER,
+        )
+
+        assert result == DeletionResult.CANNOT_DELETE
+
+    def test_delete_schedule_cannot_delete_completed(self, db_session: Session):
+        """測試刪除已完成的時段。"""
+        crud = ScheduleCRUD()
+
+        # 建立測試使用者
+        user = User(name="測試 Giver", email="giver@example.com")
+        db_session.add(user)
+        db_session.commit()
+
+        # 建立已完成的時段
+        schedule = Schedule(
+            giver_id=user.id,
+            date=date(2025, 9, 15),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status=ScheduleStatusEnum.COMPLETED,
+        )
+        db_session.add(schedule)
+        db_session.commit()
+
+        # 嘗試刪除已完成的時段
+        result = crud.delete_schedule(
+            db_session,
+            schedule.id,
+            deleted_by=user.id,
+            deleted_by_role=UserRoleEnum.GIVER,
+        )
+
+        assert result == DeletionResult.CANNOT_DELETE
