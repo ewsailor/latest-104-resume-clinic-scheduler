@@ -12,16 +12,15 @@ from fastapi.testclient import TestClient
 import pytest
 
 # ===== 本地模組 =====
-from app.main import app
 
 
 class TestMainRouteIntegration:
     """Main 路由整合測試類別。"""
 
     @pytest.fixture
-    def client(self):
+    def client(self, integration_client):
         """建立測試客戶端。"""
-        return TestClient(app)
+        return integration_client
 
     def test_show_index_success(self, client: TestClient):
         """測試首頁路由成功渲染。"""
