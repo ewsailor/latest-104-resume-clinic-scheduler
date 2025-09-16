@@ -117,7 +117,7 @@ def get_db() -> Generator[Session, None, None]:
     Yields:
         Session: SQLAlchemy 資料庫會話實例
     """
-    if SessionLocal is None:
+    if SessionLocal is None or engine is None:
         raise create_database_error("資料庫尚未初始化")
 
     logger.info("get_db() called: 建立資料庫連線")
@@ -125,7 +125,9 @@ def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
         # 根據資料庫類型設定不同的參數
-        if settings.testing or settings.app_env == "testing":
+        is_sqlite = engine.url.drivername == "sqlite"
+
+        if is_sqlite:
             # SQLite 不需要設定時區和 sql_mode
             # 驗證連線是否有效（輕量級檢查）
             db.execute(text("SELECT 1"))
