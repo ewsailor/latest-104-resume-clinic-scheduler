@@ -4,6 +4,8 @@
 測試日誌記錄裝飾器的功能。
 """
 
+import inspect
+
 # ===== 標準函式庫 =====
 from unittest.mock import patch
 
@@ -195,8 +197,6 @@ class TestLoggingDecorator:
         assert test_func.__doc__ == "測試函數文檔字符串。"
 
         # 檢查函數簽名
-        import inspect
-
         sig = inspect.signature(test_func)
         assert "param1" in sig.parameters
         assert "param2" in sig.parameters
