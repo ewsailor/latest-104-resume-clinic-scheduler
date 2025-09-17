@@ -25,11 +25,13 @@ from app.errors.handlers import (
     create_database_error,
     create_liveness_check_error,
     create_readiness_check_error,
+    create_schedule_cannot_be_deleted_error,
     create_schedule_not_found_error,
     create_schedule_overlap_error,
     create_service_unavailable_error,
     create_user_not_found_error,
     create_validation_error,
+    get_deletion_explanation,
 )
 
 
@@ -391,3 +393,149 @@ class TestErrorHandlerConsistency:
 
         for error, expected_code in code_tests:
             assert error.error_code == expected_code
+
+
+class TestGetDeletionExplanation:
+    """get_deletion_explanation 函數測試。"""
+
+    def test_get_deletion_explanation_accepted(self):
+        """測試已接受狀態的解釋。"""
+        explanation = get_deletion_explanation("ACCEPTED")
+        expected = "已接受的時段無法刪除，因為雙方已確認面談時間，刪除會影響約定"
+        assert explanation == expected
+
+    def test_get_deletion_explanation_completed(self):
+        """測試已完成狀態的解釋。"""
+        explanation = get_deletion_explanation("COMPLETED")
+        expected = "已完成的時段無法刪除，因為面談已完成，屬於歷史記錄，不應刪除"
+        assert explanation == expected
+
+    def test_get_deletion_explanation_cancelled(self):
+        """測試已取消狀態的解釋。"""
+        explanation = get_deletion_explanation("CANCELLED")
+        expected = "時段狀態不允許刪除"
+        assert explanation == expected
+
+    def test_get_deletion_explanation_unknown_status(self):
+        """測試未知狀態的解釋。"""
+        explanation = get_deletion_explanation("UNKNOWN")
+        expected = "時段狀態不允許刪除"
+        assert explanation == expected
+
+    def test_get_deletion_explanation_empty_string(self):
+        """測試空字串狀態的解釋。"""
+        explanation = get_deletion_explanation("")
+        expected = "時段狀態不允許刪除"
+        assert explanation == expected
+
+    def test_get_deletion_explanation_none(self):
+        """測試 None 狀態的解釋。"""
+        explanation = get_deletion_explanation(None)
+        expected = "時段狀態不允許刪除"
+        assert explanation == expected
+
+    def test_get_deletion_explanation_all_valid_statuses(self):
+        """測試所有有效狀態的解釋。"""
+        test_cases = [
+            (
+                "ACCEPTED",
+                "已接受的時段無法刪除，因為雙方已確認面談時間，刪除會影響約定",
+            ),
+            (
+                "COMPLETED",
+                "已完成的時段無法刪除，因為面談已完成，屬於歷史記錄，不應刪除",
+            ),
+        ]
+
+        for status, expected in test_cases:
+            explanation = get_deletion_explanation(status)
+            assert explanation == expected
+
+    def test_get_deletion_explanation_invalid_statuses(self):
+        """測試無效狀態的解釋。"""
+        invalid_statuses = [
+            "PENDING",
+            "AVAILABLE",
+            "DRAFT",
+            "CANCELLED",  # 已取消的時段應該返回 404 錯誤，不是 409 錯誤
+            "INVALID",
+            "123",
+            "test",
+        ]
+
+        for status in invalid_statuses:
+            explanation = get_deletion_explanation(status)
+            assert explanation == "時段狀態不允許刪除"
+
+    def test_get_deletion_explanation_case_sensitivity(self):
+        """測試大小寫敏感性。"""
+        # 測試小寫
+        explanation_lower = get_deletion_explanation("accepted")
+        assert explanation_lower == "時段狀態不允許刪除"
+
+        # 測試混合大小寫
+        explanation_mixed = get_deletion_explanation("Accepted")
+        assert explanation_mixed == "時段狀態不允許刪除"
+
+        # 測試正確的大寫
+        explanation_upper = get_deletion_explanation("ACCEPTED")
+        expected = "已接受的時段無法刪除，因為雙方已確認面談時間，刪除會影響約定"
+        assert explanation_upper == expected
+
+
+class TestCreateScheduleCannotBeDeletedError:
+    """create_schedule_cannot_be_deleted_error 函數測試。"""
+
+    def test_create_schedule_cannot_be_deleted_error_basic(self):
+        """測試基本的時段無法刪除錯誤建立。"""
+        error = create_schedule_cannot_be_deleted_error(123)
+
+        assert error.message == "時段無法刪除: ID=123"
+        assert error.error_code == "SERVICE_SCHEDULE_CANNOT_BE_DELETED"
+        assert error.status_code == 409
+        assert error.details == {}
+
+    def test_create_schedule_cannot_be_deleted_error_with_reason(self):
+        """測試帶有原因的時段無法刪除錯誤建立。"""
+        error = create_schedule_cannot_be_deleted_error(456, reason="狀態不允許刪除")
+
+        assert error.message == "時段無法刪除: ID=456"
+        assert error.error_code == "SERVICE_SCHEDULE_CANNOT_BE_DELETED"
+        assert error.status_code == 409
+        assert error.details == {"reason": "狀態不允許刪除"}
+
+    def test_create_schedule_cannot_be_deleted_error_with_status(self):
+        """測試帶有狀態的時段無法刪除錯誤建立。"""
+        error = create_schedule_cannot_be_deleted_error(789, schedule_status="ACCEPTED")
+
+        assert error.message == "時段無法刪除: ID=789"
+        assert error.error_code == "SERVICE_SCHEDULE_CANNOT_BE_DELETED"
+        assert error.status_code == 409
+        assert error.details == {
+            "current_status": "ACCEPTED",
+            "explanation": "已接受的時段無法刪除，因為雙方已確認面談時間，刪除會影響約定",
+        }
+
+    def test_create_schedule_cannot_be_deleted_error_with_all_params(self):
+        """測試帶有所有參數的時段無法刪除錯誤建立。"""
+        error = create_schedule_cannot_be_deleted_error(
+            999, reason="狀態不允許刪除", schedule_status="COMPLETED"
+        )
+
+        assert error.message == "時段無法刪除: ID=999"
+        assert error.error_code == "SERVICE_SCHEDULE_CANNOT_BE_DELETED"
+        assert error.status_code == 409
+        assert error.details == {
+            "reason": "狀態不允許刪除",
+            "current_status": "COMPLETED",
+            "explanation": "已完成的時段無法刪除，因為面談已完成，屬於歷史記錄，不應刪除",
+        }
+
+    def test_create_schedule_cannot_be_deleted_error_string_id(self):
+        """測試字串 ID 的時段無法刪除錯誤建立。"""
+        error = create_schedule_cannot_be_deleted_error("test_id")
+
+        assert error.message == "時段無法刪除: ID=test_id"
+        assert error.error_code == "SERVICE_SCHEDULE_CANNOT_BE_DELETED"
+        assert error.status_code == 409
+        assert error.details == {}

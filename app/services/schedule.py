@@ -194,7 +194,7 @@ class ScheduleService:
             error_msg = (
                 f"檢測到 {len(overlapping_schedules)} 個重疊時段，請調整時段之時間"
             )
-            raise create_schedule_overlap_error(error_msg)
+            raise create_schedule_overlap_error(error_msg, overlapping_schedules)
 
         created_schedules = self.create_schedule_orm_objects(
             schedules, created_by, created_by_role
@@ -309,7 +309,7 @@ class ScheduleService:
 
         if overlapping_schedules:
             error_msg = f"更新時段 {schedule_id} 時，檢測到 {len(overlapping_schedules)} 個重疊時段，請調整時段之時間"
-            raise create_schedule_overlap_error(error_msg)
+            raise create_schedule_overlap_error(error_msg, overlapping_schedules)
 
         updated_schedule = self.schedule_crud.update_schedule(
             db=db,
@@ -347,8 +347,21 @@ class ScheduleService:
                 logger.warning(f"時段 {schedule_id} 不存在")
                 raise create_schedule_not_found_error(schedule_id)
             case DeletionResult.CANNOT_DELETE:
-                logger.warning(f"時段 {schedule_id} 無法刪除，狀態不允許")
-                raise create_schedule_cannot_be_deleted_error(schedule_id)
+                # 獲取時段資訊以提供詳細的錯誤原因
+                schedule = self.schedule_crud.get_schedule_including_deleted(
+                    db, schedule_id
+                )
+                schedule_status = (
+                    schedule.status.value if schedule and schedule.status else "UNKNOWN"
+                )
+                logger.warning(
+                    f"時段 {schedule_id} 無法刪除，狀態不允許，當前狀態: {schedule_status}"
+                )
+                raise create_schedule_cannot_be_deleted_error(
+                    schedule_id,
+                    reason="狀態不允許刪除",
+                    schedule_status=schedule_status,
+                )
             case DeletionResult.ALREADY_DELETED:
                 logger.warning(f"時段 {schedule_id} 已經刪除，視為不存在")
                 raise create_schedule_not_found_error(schedule_id)

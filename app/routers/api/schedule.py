@@ -100,7 +100,18 @@ router = APIRouter(prefix="/api/v1", tags=["Schedules"])
                             "status_code": 409,
                             "code": "SERVICE_CONFLICT",
                             "timestamp": "2024-01-01T00:00:00Z",
-                            "details": {},
+                            "details": {
+                                "overlapping_schedules": [
+                                    {
+                                        "id": 123,
+                                        "giver_id": 1,
+                                        "date": "2024-01-01",
+                                        "start_time": "08:00:00",
+                                        "end_time": "12:00:00",
+                                        "status": "AVAILABLE",
+                                    }
+                                ]
+                            },
                         }
                     }
                 }
@@ -453,7 +464,18 @@ async def get_schedule(
                             "status_code": 409,
                             "code": "SERVICE_SCHEDULE_OVERLAP",
                             "timestamp": "2024-01-01T00:00:00Z",
-                            "details": {},
+                            "details": {
+                                "overlapping_schedules": [
+                                    {
+                                        "id": 1,
+                                        "giver_id": 1,
+                                        "date": "2024-01-01",
+                                        "start_time": "08:00:00",
+                                        "end_time": "12:00:00",
+                                        "status": "AVAILABLE",
+                                    }
+                                ]
+                            },
                         }
                     }
                 }
@@ -565,7 +587,11 @@ async def update_schedule(
                             "status_code": 409,
                             "code": "SERVICE_SCHEDULE_CANNOT_BE_DELETED",
                             "timestamp": "2024-01-01T00:00:00Z",
-                            "details": {},
+                            "details": {
+                                "reason": "狀態不允許刪除",
+                                "current_status": "ACCEPTED",
+                                "explanation": "已接受的時段無法刪除，因為雙方已確認面談時間，刪除會影響約定",
+                            },
                         }
                     }
                 }

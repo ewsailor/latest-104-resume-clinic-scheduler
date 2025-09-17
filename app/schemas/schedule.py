@@ -172,7 +172,7 @@ class ScheduleDeleteRequest(BaseModel):
         ..., description="刪除者的 ID", gt=0, json_schema_extra={"example": 1}
     )
     deleted_by_role: UserRoleEnum = Field(
-        ..., description="刪除者角色", json_schema_extra={"example": UserRoleEnum.GIVER}
+        ..., description="刪除者角色", json_schema_extra={"example": UserRoleEnum.TAKER}
     )
 
 

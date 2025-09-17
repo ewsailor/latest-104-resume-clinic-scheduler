@@ -58,16 +58,49 @@ def create_user_not_found_error(user_id: int | str) -> UserNotFoundError:
     return UserNotFoundError(user_id)
 
 
-def create_schedule_overlap_error(message: str) -> ScheduleOverlapError:
+def create_schedule_overlap_error(
+    message: str, overlapping_schedules: list | None = None
+) -> ScheduleOverlapError:
     """建立時段重疊錯誤。"""
-    return ScheduleOverlapError(message)
+    details = {}
+    if overlapping_schedules:
+        details["overlapping_schedules"] = [
+            {
+                "id": schedule.id,
+                "giver_id": schedule.giver_id,
+                "date": schedule.date.isoformat(),
+                "start_time": schedule.start_time.strftime("%H:%M:%S"),
+                "end_time": schedule.end_time.strftime("%H:%M:%S"),
+                "status": schedule.status.value if schedule.status else None,
+            }
+            for schedule in overlapping_schedules
+        ]
+    return ScheduleOverlapError(message, details=details)
+
+
+def get_deletion_explanation(status: str) -> str:
+    """根據時段狀態提供刪除失敗的解釋。"""
+    explanations = {
+        "ACCEPTED": "已接受的時段無法刪除，因為雙方已確認面談時間，刪除會影響約定",
+        "COMPLETED": "已完成的時段無法刪除，因為面談已完成，屬於歷史記錄，不應刪除",
+    }
+    return explanations.get(status, "時段狀態不允許刪除")
 
 
 def create_schedule_cannot_be_deleted_error(
     schedule_id: int | str,
+    reason: str | None = None,
+    schedule_status: str | None = None,
 ) -> ScheduleCannotBeDeletedError:
     """建立時段無法刪除錯誤。"""
-    return ScheduleCannotBeDeletedError(schedule_id)
+    details = {}
+    if reason:
+        details["reason"] = reason
+    if schedule_status:
+        details["current_status"] = schedule_status
+        details["explanation"] = get_deletion_explanation(schedule_status)
+
+    return ScheduleCannotBeDeletedError(schedule_id, details=details)
 
 
 # ===== CRUD 層級錯誤 =====

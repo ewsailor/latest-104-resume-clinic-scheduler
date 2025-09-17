@@ -41,6 +41,7 @@ from .handlers import (
     create_service_unavailable_error,
     create_user_not_found_error,
     create_validation_error,
+    get_deletion_explanation,
 )
 
 __all__ = [
@@ -91,4 +92,6 @@ __all__ = [
     "create_service_unavailable_error",
     # ===== 錯誤格式化 =====
     "format_error_response",
+    # ===== 工具函式 =====
+    "get_deletion_explanation",
 ]
