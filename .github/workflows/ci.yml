@@ -6,6 +6,9 @@ jobs:
   lint-and-test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # 確保 CI 狀態正確回報給 GitHub
+    outputs:
+      success: ${{ steps.ci-status.outputs.success }}
 
     steps:
       - uses: actions/checkout@v4
@@ -47,10 +50,26 @@ jobs:
       - name: Generate test coverage report
         run: poetry run pytest tests/unit/ --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing
 
+      - name: Set CI Status
+        id: ci-status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Test Summary
         if: always()
         run: |
           echo "## 🧪 測試結果摘要" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ 程式碼檢查 (lint + format + type check)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ 單元測試 (Unit Tests)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ 測試覆蓋率報告 (Test Coverage Report)" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.ci-status.outputs.success }}" == "true" ]; then
+            echo "- ✅ 程式碼檢查 (lint + format + type check)" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ 單元測試 (Unit Tests)" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ 測試覆蓋率報告 (Test Coverage Report)" >> $GITHUB_STEP_SUMMARY
+            echo "- 🎉 **所有檢查通過，可以合併到 main 分支！**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ 程式碼檢查或測試失敗" >> $GITHUB_STEP_SUMMARY
+            echo "- 🚫 **請修正問題後重新提交**" >> $GITHUB_STEP_SUMMARY
+          fi
