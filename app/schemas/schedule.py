@@ -111,10 +111,21 @@ class ScheduleCreateRequest(BaseModel):
                     "date": "2024-01-01",
                     "start_time": "09:00:00",
                     "end_time": "10:00:00",
-                    "note": "下週要面試，希望能請教面試技巧",
+                    "note": "建立第 1 個測試時段",
                     "created_by_role": "TAKER",
                     "updated_by_role": "TAKER",
-                }
+                },
+                {
+                    "giver_id": 21,
+                    "taker_id": 1,
+                    "status": "PENDING",
+                    "date": "2024-01-01",
+                    "start_time": "11:00:00",
+                    "end_time": "12:00:00",
+                    "note": "建立第 2 個測試時段",
+                    "created_by_role": "TAKER",
+                    "updated_by_role": "TAKER",
+                },
             ]
         },
     )

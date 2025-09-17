@@ -1,6 +1,6 @@
 """健康檢查路由模組。
 
-包含存活探測和準備就緒探測等端點。
+包含存活探測和就緒探測等端點。
 """
 
 # ===== 第三方套件 =====
@@ -124,7 +124,7 @@ async def liveness_probe(
     "/readyz",
     response_model=HealthCheckReadinessResponse,
     status_code=status.HTTP_200_OK,
-    summary="準備就緒探測檢查",
+    summary="就緒探測檢查",
     description="""
 ## 功能簡介
 - 檢查應用程式所有外部依賴，是否已準備好處理請求，用於 Kubernetes 的 readiness probe
@@ -143,13 +143,13 @@ async def liveness_probe(
 - **外部 API** (未來): 檢查關鍵外部服務連線
 
 ### 測試參數
-- `fail=true`: 準備就緒探測檢查錯誤
+- `fail=true`: 就緒探測檢查錯誤
 - `db_fail=true`: 資料庫連線失敗錯誤
 
 ### 回應狀態
 - **200 OK**: 應用程式準備就緒
 - **422 Unprocessable Entity**: 參數驗證錯誤
-- **503 Service Unavailable**: 準備就緒探測檢查錯誤：應用程式未準備就緒
+- **503 Service Unavailable**: 就緒探測檢查錯誤：應用程式未準備就緒
     """,
     responses={
         200: {
@@ -190,12 +190,12 @@ async def liveness_probe(
             },
         },
         503: {
-            "description": "準備就緒探測檢查錯誤：應用程式未準備就緒",
+            "description": "就緒探測檢查錯誤：應用程式未準備就緒",
             "content": {
                 "application/json": {
                     "example": {
                         "error": {
-                            "message": "準備就緒探測檢查錯誤：應用程式未準備就緒",
+                            "message": "就緒探測檢查錯誤：應用程式未準備就緒",
                             "status_code": 503,
                             "code": "READINESS_CHECK_ERROR",
                             "timestamp": "2024-01-01T00:00:00Z",
@@ -208,22 +208,22 @@ async def liveness_probe(
     },
 )
 @handle_api_errors_async()
-@log_operation("準備就緒探測檢查")
+@log_operation("就緒探測檢查")
 async def readiness_probe(
     fail: bool = False,
     db_fail: bool = False,
 ) -> HealthCheckReadinessResponse:
-    """準備就緒探測：用於 Kubernetes 的 readiness probe，檢查應用程式所有外部依賴如資料庫、快取、外部 API 等，是否已經準備好處理請求。
+    """就緒探測：用於 Kubernetes 的 readiness probe，檢查應用程式所有外部依賴如資料庫、快取、外部 API 等，是否已經準備好處理請求。
 
     Args:
-        fail: 準備就緒探測檢查錯誤。
+        fail: 就緒探測檢查錯誤。
         db_fail: 資料庫連線失敗錯誤。
 
     Returns:
         HealthCheckReadinessResponse: 應用程式就緒狀態資訊，包含狀態、時間戳、版本等資訊。
     """
     if fail:
-        raise create_readiness_check_error("準備就緒探測檢查錯誤")
+        raise create_readiness_check_error("就緒探測檢查錯誤")
 
     if db_fail:
         raise create_readiness_check_error("資料庫連線失敗錯誤")
