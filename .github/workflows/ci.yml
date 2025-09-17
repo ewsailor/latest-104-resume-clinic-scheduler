@@ -39,18 +39,11 @@ jobs:
           echo "APP_ENV=testing" >> $GITHUB_ENV
 
       - name: Run pre-commit (lint + format + type check)
-        run: |
-          # 增加重試機制以處理網路問題
-          for i in {1..3}; do
-            pip install pre-commit && break
-            echo "pip install 嘗試 $i/3 失敗，等待 5 秒後重試..."
-            sleep 5
-          done
-          pre-commit run --all-files
+        run: poetry run pre-commit run --all-files
 
       - name: Run unit tests
         run: poetry run pytest tests/unit/ -v --maxfail=3 --disable-warnings --tb=short
-      
+
       - name: Generate test coverage report
         run: poetry run pytest tests/unit/ --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing
 
