@@ -124,7 +124,7 @@ class TestHealthRouter:
         assert response.status_code == 503
         data = response.json()
         assert "error" in data
-        assert "準備就緒探測檢查錯誤" in data["error"]["message"]
+        assert "就緒探測檢查錯誤" in data["error"]["message"]
 
     def test_readiness_probe_with_db_fail_parameter(self, client):
         """測試準備就緒探測資料庫失敗參數。"""
@@ -329,7 +329,7 @@ class TestHealthRouter:
             assert response.status_code == 503
             data = response.json()
             assert "error" in data
-            assert "準備就緒探測檢查錯誤" in data["error"]["message"]
+            assert "就緒探測檢查錯誤" in data["error"]["message"]
 
             # 測試 db_fail=true，應該會返回錯誤回應
             response = client.get("/readyz?db_fail=true")
@@ -343,4 +343,4 @@ class TestHealthRouter:
             assert response.status_code == 503
             data = response.json()
             assert "error" in data
-            assert "準備就緒探測檢查錯誤" in data["error"]["message"]
+            assert "就緒探測檢查錯誤" in data["error"]["message"]
