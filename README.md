@@ -1,12 +1,12 @@
 # 104 履歷診療室 - 平台內諮詢時間媒合系統
 
-[![Version](https://img.shields.io/badge/Version-0.1.0-blue.svg)](https://github.com/ewsailor/resume-clinic-scheduler)
+[![Version](https://img.shields.io/badge/Version-0.1.0-blue.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
 [![Python](https://img.shields.io/badge/Python-3.12.8-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.116+-green.svg)](https://fastapi.tiangolo.com/)
 [![Database](https://img.shields.io/badge/Database-MySQL%2FMariaDB-blue.svg)](https://www.mysql.com/)
 [![Poetry](https://img.shields.io/badge/Poetry-2.1.3-green.svg)](https://python-poetry.org/)
-[![CI/CD](https://github.com/ewsailor/resume-clinic-scheduler/actions/workflows/ci.yml/badge.svg)](https://github.com/ewsailor/resume-clinic-scheduler/actions/workflows/ci.yml)
-[![Test Coverage](https://img.shields.io/badge/Coverage-83%25-brightgreen.svg)](https://github.com/ewsailor/resume-clinic-scheduler)
+[![CI/CD](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml/badge.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml)
+[![Test Coverage](https://img.shields.io/badge/Coverage-83%25-brightgreen.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
 
 ## 目錄
 
@@ -135,26 +135,39 @@
    cd 104-resume-clinic-scheduler
    ```
 
-2. **安裝 Poetry (如果尚未安裝)**
+2. **安裝 Python 3.9+ (如果尚未安裝)**
+
+   - 下載並安裝 [Python 3.9+](https://www.python.org/downloads/)
+   - 確認版本：`python --version`
+
+3. **安裝 Poetry (如果尚未安裝)**
 
    ```bash
    pip install poetry
    ```
 
-3. **使用 Poetry 安裝依賴**
+4. **用 Poetry 安裝依賴**
 
    ```bash
    poetry install
+   # 這會自動安裝 FastAPI、Uvicorn 等所有依賴套件
+   # 包括：fastapi, uvicorn, sqlalchemy, pymysql, pydantic 等
    ```
 
-4. **設定環境變數**
+5. **安裝資料庫**
+
+   - 下載並安裝 [MySQL Installer](https://dev.mysql.com/downloads/installer/)
+   - SQLite 通常內建在 Python 中，無需額外安裝
+
+6. **設定環境變數**
 
    ```bash
    cp .env.example .env
-   # 將 .env.example 檔案複製成 .env 檔案，並在 .env 檔案填入資料庫設定*
+   # 複製 .env.example 檔案，命名為 .env，並在 .env 檔案填入相關的值*
+   # 密碼建議至少 12 個字元，包含大小寫字母、數字、特殊符號
    ```
 
-5. **資料庫初始化（使用 root 建立專用帳號） ⚠️**
+7. **資料庫初始化（使用 root 建立專用帳號） ⚠️**
 
    ⚠️ 本步驟僅限開發者操作，用來建立資料庫與應用程式專用帳號
 
@@ -163,27 +176,11 @@
    # 連接到 MySQL：以使用者 root 的身份，登入 MySQL，並提示輸入密碼
    ```
 
-6. **用 Alembic 升級到最新版本**
+8. **用 Alembic 升級到最新版本**
 
    ```bash
    poetry run alembic upgrade head
    ```
-
-7. **啟動開發伺服器**
-
-   ```bash
-   # 使用 Poetry 啟動（推薦）
-   poetry run uvicorn app.main:app --reload --reload-dir app
-
-   # 或直接使用 uvicorn
-   uvicorn app.main:app --reload --reload-dir app
-   ```
-
-8. **驗證安裝**
-
-   - 開啟瀏覽器訪問：`http://localhost:8000`
-   - 查看 API 文檔：`http://localhost:8000/docs`
-   - 檢查健康狀態：`http://localhost:8000/health`
 
 ### 3. 啟動方式
 
@@ -268,6 +265,8 @@
   - **監控**: 整合日誌系統
   - **AWS 整合**: Boto3 SDK 支援
 
+安全性
+   # 複製 .env.example  .env， 密碼建議至少 12 個字元，包含大小寫字母、數字、特殊符號
 ## <a name="專案結構"></a>專案結構 [返回目錄 ↑](#目錄)
 
 app/
