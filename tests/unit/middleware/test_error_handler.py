@@ -436,9 +436,13 @@ class TestErrorHandlerMiddlewareIntegration:
         def test_post_error():
             raise BusinessLogicError("POST 錯誤")
 
-        @app.put("/test-put")
-        def test_put_error():
-            raise BusinessLogicError("PUT 錯誤")
+        @app.get("/test-get")
+        def test_get_error():
+            raise BusinessLogicError("GET 錯誤")
+
+        @app.patch("/test-patch")
+        def test_patch_error():
+            raise BusinessLogicError("PATCH 錯誤")
 
         @app.delete("/test-delete")
         def test_delete_error():
@@ -450,17 +454,21 @@ class TestErrorHandlerMiddlewareIntegration:
         # 測試不同方法的錯誤處理
         methods_and_endpoints = [
             ("POST", "/test-post"),
-            ("PUT", "/test-put"),
+            ("GET", "/test-get"),
+            ("PATCH", "/test-patch"),
             ("DELETE", "/test-delete"),
         ]
 
         for method, endpoint in methods_and_endpoints:
-            if method == "POST":
-                response = client.post(endpoint)
-            elif method == "PUT":
-                response = client.put(endpoint)
-            elif method == "DELETE":
-                response = client.delete(endpoint)
+            match method:
+                case "POST":
+                    response = client.post(endpoint)
+                case "GET":
+                    response = client.get(endpoint)
+                case "PATCH":
+                    response = client.patch(endpoint)
+                case "DELETE":
+                    response = client.delete(endpoint)
 
             assert response.status_code == 400
             data = response.json()

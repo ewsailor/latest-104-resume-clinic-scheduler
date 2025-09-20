@@ -114,13 +114,14 @@ class ScheduleService:
             return schedule_data.status
 
         # 根據建立者角色決定預設狀態
-        if created_by_role == UserRoleEnum.TAKER:
-            return ScheduleStatusEnum.PENDING
-        elif created_by_role == UserRoleEnum.GIVER:
-            return ScheduleStatusEnum.AVAILABLE
-        else:
-            # 預設為 DRAFT
-            return ScheduleStatusEnum.DRAFT
+        match created_by_role:
+            case UserRoleEnum.TAKER:
+                return ScheduleStatusEnum.PENDING
+            case UserRoleEnum.GIVER:
+                return ScheduleStatusEnum.AVAILABLE
+            case _:
+                # 預設為 DRAFT
+                return ScheduleStatusEnum.DRAFT
 
     def log_schedule_details(
         self,

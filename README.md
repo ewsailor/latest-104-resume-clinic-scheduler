@@ -148,10 +148,9 @@ uvicorn app.main:app --reload --reload-dir app
 
 ### 1. 環境需求
 
-- **Python**: 3.12+
-  版本要求：需要 Python 3.9 或更高版本
-  ⚠️ FastAPI 相容性：FastAPI 完全支援新的語法
-  你的建議完全正確！將 Dict 改為 dict 確實更符合 Python 3.9+ 的現代語法，並且與我們之前將 List 改為 list 的更新保持一致。👍
+- **Python**: 3.9+
+  - Python 3.9+ 支援語法：使用 `dict`、`list`、`set`、`tuple` 而非 `Dict`、`List`、`Set`、`Tuple`，不需額外匯入 `typing` 模組，語法更簡潔
+  - Python 3.10+ 支援語法：`match`/`case` 模式，避免大量 `if-elif-else`，語法更簡潔
 - **Poetry**: 1.8+
 - **資料庫**: MySQL/MariaDB
 

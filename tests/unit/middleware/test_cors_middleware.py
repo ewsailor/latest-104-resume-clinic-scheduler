@@ -256,9 +256,9 @@ class TestCorsMiddlewareIntegration:
         def test_post():
             return {"method": "POST"}
 
-        @app.put("/test")
-        def test_put():
-            return {"method": "PUT"}
+        @app.patch("/test")
+        def test_patch():
+            return {"method": "PATCH"}
 
         @app.delete("/test")
         def test_delete():
@@ -268,24 +268,25 @@ class TestCorsMiddlewareIntegration:
         client = TestClient(app)
 
         # 測試不同的 HTTP 方法
-        methods = ["GET", "POST", "PUT", "DELETE"]
+        methods = ["GET", "POST", "PATCH", "DELETE"]
         for method in methods:
-            if method == "GET":
-                response = client.get(
-                    "/test", headers={"Origin": "http://localhost:3000"}
-                )
-            elif method == "POST":
-                response = client.post(
-                    "/test", headers={"Origin": "http://localhost:3000"}
-                )
-            elif method == "PUT":
-                response = client.put(
-                    "/test", headers={"Origin": "http://localhost:3000"}
-                )
-            elif method == "DELETE":
-                response = client.delete(
-                    "/test", headers={"Origin": "http://localhost:3000"}
-                )
+            match method:
+                case "GET":
+                    response = client.get(
+                        "/test", headers={"Origin": "http://localhost:3000"}
+                    )
+                case "POST":
+                    response = client.post(
+                        "/test", headers={"Origin": "http://localhost:3000"}
+                    )
+                case "PATCH":
+                    response = client.patch(
+                        "/test", headers={"Origin": "http://localhost:3000"}
+                    )
+                case "DELETE":
+                    response = client.delete(
+                        "/test", headers={"Origin": "http://localhost:3000"}
+                    )
 
             assert "access-control-allow-origin" in response.headers
             assert (
