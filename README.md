@@ -58,12 +58,12 @@
 
 ### <a name="使用者故事"></a>使用者故事 User Stories [返回目錄 ↑](#目錄)
 
+完整使用者故事請[點此](./docs/user-stories.md)查看，以下簡述本專案的主要使用者故事：
+
 - Giver 提供可預約的時段，讓 Taker 預約面談
 - Taker 提供方便的時段，待 Giver 回覆是否方便面談
   - 因 Giver 尚未提供可預約的時段，Taker 無法預約面談
   - 因 Giver 已提供的方便時段，Taker 均不方便面談
-
-[點我看完整使用者故事](./docs/user-stories.md)
 
 #### **已完成功能**
 
@@ -85,8 +85,8 @@
 完整流程請詳下圖，以下簡述本專案的主要使用者流程：
 
 - **Giver 流程**
-  - Giver 查看 Taker 提供的時段，並回覆自己是否方便
   - Giver 提供可預約的時段，讓 Taker 預約面談
+  - Giver 查看 Taker 提供的時段，並回覆自己是否方便
 - **Taker 流程**
   - Taker 查看 Giver 提供的時段，並進行預約
   - Taker 提供方便的時段，待 Giver 回覆是否方便面談
@@ -99,6 +99,17 @@
 ![104 履歷診療室 - 平台內諮詢時間媒合系統用戶流程](./static/images/content/user-flow.png)
 
 ### 使用者介面截圖
+
+- Giver 列表
+  - [Giver 列表總覽](./static/images/ui/01-giver-list-overview.png)
+- Taker 預約 Giver 時段
+  - [Taker 預約 Giver 時段](./static/images/ui/02-taker-scheduling-giver-time.png)
+  - [Taker 預約 Giver 時段結果](./static/images/ui/03-taker-scheduling-giver-time-result.png)
+- Taker 提供方便時段給 Giver
+  - [Taker 提供方便時段給 Giver](./static/images/ui/04-taker-provide-available-time.png)
+  - [Taker 提供方便時段給 Giver 結果](./static/images/ui/05-taker-provide-available-time-result.png)
+
+[點我看完整使用者故事](./docs/user-stories.md)
 
 ## <a name="快速開始"></a>快速開始 [返回目錄 ↑](#目錄)
 
