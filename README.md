@@ -103,39 +103,6 @@
 
 ## <a name="快速開始"></a>快速開始 [返回目錄 ↑](#目錄)
 
-### **一鍵啟動（推薦）**
-
-```bash
-# 1. 複製專案
-git clone https://github.com/ewsailor/104-resume-clinic-scheduler.git
-cd 104-resume-clinic-scheduler
-
-# 2. 使用 Poetry 安裝依賴
-poetry install
-
-# 3. 設定環境變數
-cp .env.example .env
-# 編輯 .env 檔案，填入您的資料庫設定
-
-# 4. 初始化資料庫
-poetry run alembic upgrade head
-
-# 5. 啟動開發伺服器
-poetry run uvicorn app.main:app --reload --reload-dir app
-
-uvicorn app.main:app --reload --reload-dir app
-```
-
-- **[測試管理指南](tests/README.md)**: 完整的測試策略和最佳實踐
-
-### **目錄結構**
-
-- **`app/`**: 應用程式核心程式碼
-- **`tests/`**: 分層測試架構（unit/integration/e2e）
-- **`static/`**: 分類管理的靜態資源
-- **`docs/`**: 詳細的開發文檔
-- **`scripts/`**: 開發工具和腳本
-
 ### 1. 環境需求
 
 - **Python**: 3.9+
@@ -174,7 +141,7 @@ uvicorn app.main:app --reload --reload-dir app
    pip install poetry
    ```
 
-3. **安裝專案依賴**
+3. **使用 Poetry 安裝依賴**
 
    ```bash
    poetry install
@@ -184,7 +151,7 @@ uvicorn app.main:app --reload --reload-dir app
 
    ```bash
    cp .env.example .env
-   # 將 .env.example 檔案複製成 .env 檔案，並在 .env 檔案填入環境變數*
+   # 將 .env.example 檔案複製成 .env 檔案，並在 .env 檔案填入資料庫設定*
    ```
 
 5. **資料庫初始化（使用 root 建立專用帳號） ⚠️**
@@ -196,37 +163,34 @@ uvicorn app.main:app --reload --reload-dir app
    # 連接到 MySQL：以使用者 root 的身份，登入 MySQL，並提示輸入密碼
    ```
 
-6. **資料庫遷移管理**
-
-   本專案使用 Alembic 進行資料庫 schema 版本控制：
+6. **用 Alembic 升級到最新版本**
 
    ```bash
-
-   # 修改模型後，自動檢測模型變更並生成遷移
-   poetry run alembic revision --autogenerate -m "描述變更"
-
-   # 升級到最新版本
    poetry run alembic upgrade head
-
-   # 查看當前資料庫版本
-   poetry run alembic current
-
-   # 查看詳細歷史（包含分支）
-   poetry run alembic history --verbose
-
-   # 升級一個版本
-   poetry run alembic upgrade +1
-
-   # 回滾一個版本
-   poetry run alembic downgrade -1
    ```
+
+7. **啟動開發伺服器**
+
+   ```bash
+   # 使用 Poetry 啟動（推薦）
+   poetry run uvicorn app.main:app --reload --reload-dir app
+
+   # 或直接使用 uvicorn
+   uvicorn app.main:app --reload --reload-dir app
+   ```
+
+8. **驗證安裝**
+
+   - 開啟瀏覽器訪問：`http://localhost:8000`
+   - 查看 API 文檔：`http://localhost:8000/docs`
+   - 檢查健康狀態：`http://localhost:8000/health`
 
 ### 3. 啟動方式
 
-1. **啟動伺服器**
+1. **用 Poetry 啟動伺服器，確保環境一致性**
 
    ```bash
-   uvicorn app.main:app --reload --reload-dir app
+   poetry run uvicorn app.main:app --reload --reload-dir app
    ```
 
 2. **瀏覽器輸入網址**
@@ -289,6 +253,8 @@ uvicorn app.main:app --reload --reload-dir app
 - **提交前自動檢查**: Pre-commit
 - **程式碼風格**: black, isort, flake8, mypy
 - **自動化工具**: pre-commit, GitHub Actions (CI/CD)
+  sourcetree
+  Postman
 
 ### 後續擴充
 
