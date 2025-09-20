@@ -1,22 +1,12 @@
 # 104 履歷診療室 - 平台內諮詢時間媒合系統
 
-[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Version](https://img.shields.io/badge/Version-0.1.0-blue.svg)](https://github.com/ewsailor/resume-clinic-scheduler)
+[![Python](https://img.shields.io/badge/Python-3.12.8-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.116+-green.svg)](https://fastapi.tiangolo.com/)
-[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0+-red.svg)](https://www.sqlalchemy.org/)
-[![Alembic](https://img.shields.io/badge/Alembic-1.16+-purple.svg)](https://alembic.sqlalchemy.org/)
-[![Poetry](https://img.shields.io/badge/Poetry-1.8+-orange.svg)](https://python-poetry.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Test Coverage](https://img.shields.io/badge/Coverage-83%25-brightgreen.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
-[![Version](https://img.shields.io/badge/Version-0.1.0-blue.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
-[![CI/CD](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml/badge.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml)
-[![Tests](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/test-only.yml/badge.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/test-only.yml)
-[![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
-
-- ![CI/CD Pipeline](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml/badge.svg)
-- ![Tests](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/test-only.yml/badge.svg)
-
-徽章 Badges
-放置 CI/CD、Coverage、
+[![Database](https://img.shields.io/badge/Database-MySQL%2FMariaDB-blue.svg)](https://www.mysql.com/)
+[![Poetry](https://img.shields.io/badge/Poetry-2.1.3-green.svg)](https://python-poetry.org/)
+[![CI/CD](https://github.com/ewsailor/resume-clinic-scheduler/actions/workflows/ci.yml/badge.svg)](https://github.com/ewsailor/resume-clinic-scheduler/actions/workflows/ci.yml)
+[![Test Coverage](https://img.shields.io/badge/Coverage-83%25-brightgreen.svg)](https://github.com/ewsailor/resume-clinic-scheduler)
 
 ## 目錄
 
@@ -149,10 +139,25 @@ uvicorn app.main:app --reload --reload-dir app
 ### 1. 環境需求
 
 - **Python**: 3.9+
-  - Python 3.9+ 支援語法：使用 `dict`、`list`、`set`、`tuple` 而非 `Dict`、`List`、`Set`、`Tuple`，不需額外匯入 `typing` 模組，語法更簡潔
-  - Python 3.10+ 支援語法：`match`/`case` 模式，避免大量 `if-elif-else`，語法更簡潔
-- **Poetry**: 1.8+
-- **資料庫**: MySQL/MariaDB
+  - Python 3.9+ 支援語法：使用 `dict`、`list`、`set`、`tuple` 而非 `Dict`、`List`、`Set`、`Tuple`，不需額外匯入 `typing` 模組
+  - Python 3.10+ 支援語法：
+    - `match`/`case` 模式匹配，避免大量 `if-elif-else`
+    - `X | Y` 聯合類型，替代 `Union[X, Y]`
+    - `X | None` 可選類型，替代 `Optional[X]`
+- **FastAPI**
+  - Web 框架：現代化 Python Web API 框架，支援非同步
+  - 自動文檔：自動依路由、Pydantic 型別，生成 OpenAPI 文檔和 Swagger UI，減少維護工作
+  - 型別安全：完整的型別提示支援
+- **Uvicorn**
+  - ASGI 伺服器：運行 FastAPI 應用程式
+  - 高效能：支援非同步、高併發處理
+- **Poetry**
+  - 依賴管理：用 `pyproject.toml` 定義依賴的版本範圍，用 `poetry.lock` 鎖定確切依賴版本，確保環境一致性
+  - 虛擬環境：自動建立虛擬環境，避免專案依賴與系統環境的其他專案衝突
+  - 打包發佈：簡化打包和發佈流程
+- **資料庫**
+  - MySQL 或 MariaDB：儲存使用者資料和預約資訊
+  - SQLite：測試環境使用
 
 ### 2. 安裝步驟
 
