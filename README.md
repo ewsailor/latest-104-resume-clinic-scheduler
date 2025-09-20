@@ -8,12 +8,10 @@
 [![CI/CD](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml/badge.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml)
 [![Test Coverage](https://img.shields.io/badge/Coverage-83%25-brightgreen.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
 
-## 目錄
-
 - [專案概述](#專案概述)
   - [核心目標](#核心目標)、[使用者故事](#使用者故事)、[使用者流程圖](#使用者流程圖)、[使用者介面截圖](#使用者介面截圖)
 - [快速開始](#快速開始)
-  - 系統需求、環境設定、安裝與運行步驟
+  - 環境需求、安裝步驟、啟動方式
 - [技術架構與設計理念](#技術架構與設計理念)
   - 技術棧
     - 專案結構、後端、前端、資料庫、開發工具、後續擴充
@@ -99,8 +97,6 @@
   - ![Taker 提供方便時段給 Giver](./static/images/ui/04-taker-provide-available-time.png)
   - ![Taker 提供方便時段給 Giver 結果](./static/images/ui/05-taker-provide-available-time-result.png)
 
-[點我看完整使用者故事](./docs/user-stories.md)
-
 ## <a name="快速開始"></a>快速開始 [返回目錄 ↑](#目錄)
 
 ### 1. 環境需求
@@ -137,21 +133,22 @@
 
 2. **安裝 Python 3.9+ (如果尚未安裝)**
 
-   - 下載並安裝 [Python 3.9+](https://www.python.org/downloads/)
-   - 確認版本：`python --version`
+    - 下載並安裝 [Python 3.9+](https://www.python.org/downloads/)
+    - 確認版本：
+      ```bash
+      python --version
+      ```
 
-3. **安裝 Poetry (如果尚未安裝)**
+3. **安裝 Poetry**
 
    ```bash
    pip install poetry
    ```
 
-4. **用 Poetry 安裝依賴**
+4. **用 Poetry 安裝 FastAPI、Uvicorn 等所有依賴套件**
 
    ```bash
    poetry install
-   # 這會自動安裝 FastAPI、Uvicorn 等所有依賴套件
-   # 包括：fastapi, uvicorn, sqlalchemy, pymysql, pydantic 等
    ```
 
 5. **安裝資料庫**
@@ -161,22 +158,83 @@
 
 6. **設定環境變數**
 
-   ```bash
-   cp .env.example .env
-   # 複製 .env.example 檔案，命名為 .env，並在 .env 檔案填入相關的值*
-   # 密碼建議至少 12 個字元，包含大小寫字母、數字、特殊符號
-   ```
+   1. 複製 .env.example 檔案，命名為 .env
+      ```bash
+      cp .env.example .env
+      ```
 
-7. **資料庫初始化（使用 root 建立專用帳號） ⚠️**
+   2. 確保 `.env` 被 `.gitignore` 忽略：在專案根目錄建立 .gitignore，並在 .gitignore 中加入以下程式碼
+      ```bash
+      .env
+      ```
 
-   ⚠️ 本步驟僅限開發者操作，用來建立資料庫與應用程式專用帳號
+   3. 在 .env 檔案填入密碼、資料庫設定等
+      ```bash
+      # ===== 應用程式基本設定 =====
+      APP_NAME="104 Resume Clinic Scheduler"
+      APP_ENV=development # development, staging, production
+      DEBUG=true
+      SECRET_KEY=hs9H7!vZqkT2dLmP0$wX3@eCr1FgUbYkT2dLmP0$ # 密碼建議至少 12 個字元，包含大小寫字母、數字、特殊符號
+
+      # ===== 資料庫設定 =====
+      # MySQL 設定
+      # DATABASE_URL=mysql+pymysql://fastapi_user:your_password@mysql:3306/resume_clinic_scheduler
+      # MYSQL_ROOT_PASSWORD=root_password 
+      MYSQL_HOST=localhost
+      MYSQL_PORT=3306
+      MYSQL_DATABASE=scheduler_db
+      MYSQL_USER=fastapi_user # ⚠️ 安全提醒：不要使用 root，請建立專用帳號如：fastapi_user
+      MYSQL_PASSWORD=fastapi123 # 建議至少 12 個字元，包含大小寫字母、數字、特殊符號
+      MYSQL_CHARSET=utf8mb4
+      ```
+
+7. **以 root 身份登入 MySQL**
 
    ```bash
    mysql -u root -p
-   # 連接到 MySQL：以使用者 root 的身份，登入 MySQL，並提示輸入密碼
    ```
+   - 連接到 MySQL：使用者以 root 身份登入 MySQL，並輸入 root 密碼以登入 MySQL
 
-8. **用 Alembic 升級到最新版本**
+8. **資料庫初始化**
+   
+   1. 刪除並重新建立資料庫，加上字符集和排序規則，然後切換到 scheduler_db 資料庫
+      ```
+      DROP DATABASE IF EXISTS `scheduler_db`;
+      CREATE DATABASE `scheduler_db` 
+          DEFAULT CHARACTER SET utf8mb4 
+          COLLATE utf8mb4_unicode_ci;
+      USE `scheduler_db`; 
+      ```
+   
+   2. 刪除並重新建立名為 fastapi_user 的使用者，避免使用 root 進行日常操作，提升安全性
+  
+      ```
+      DROP USER IF EXISTS 'fastapi_user'@'localhost';
+      CREATE USER 'fastapi_user'@'localhost' 
+          IDENTIFIED BY 'fastapi123';
+      ```
+
+   3. 撤銷任何意外預設權限，並遵循最小權限原則，重新給予 fastapi_user 在 scheduler_db 這個資料庫上所有資料表必要的權限，確保安全性（通常 DROP USER 後不需要，但加上更保險）
+  
+      ```
+      REVOKE ALL PRIVILEGES ON `scheduler_db`.* 
+          FROM 'fastapi_user'@'localhost'; 
+      GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, INDEX, ALTER 
+          ON `scheduler_db`.* 
+          TO 'fastapi_user'@'localhost';
+      ```
+
+   4. 重新整理權限表，讓權限即時生效
+      ```
+      FLUSH PRIVILEGES;
+      ```
+
+   5. 檢查資料庫使用者權限：顯示 fastapi_user 的所有授權清單，確認是否設置成功
+      ```
+      SHOW GRANTS FOR 'fastapi_user'@'localhost';
+      ```
+
+9. **用 Alembic 升級資料庫到最新版本**
 
    ```bash
    poetry run alembic upgrade head
@@ -193,18 +251,6 @@
 2. **瀏覽器輸入網址**
 
    訪問 http://127.0.0.1:8000
-
-### 4. 安全提醒：
-
-- ❌ 絕對不要使用 `root` 帳號，作為應用程式資料庫使用者
-- ❌ 不要在版本控制中提交 `.env` 檔案
-- ❌ 不要將資料庫憑證硬編碼在程式碼中
-- ✅ 建立專用的應用程式帳號（如：`fastapi_user`）
-- ✅ 將 `.env` 檔案加入 `.gitignore`
-- ✅ 使用強密碼（至少 8 個字元，包含大小寫字母、數字、符號）
-- ✅ 定期更換密碼
-- ✅ 授予權限時，遵循最小權限原則
-- ✅ 使用環境變數管理敏感資訊
 
 ## <a name="技術架構與設計理念"></a>技術架構與設計理念 [返回目錄 ↑](#目錄)
 
