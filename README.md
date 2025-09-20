@@ -8,13 +8,15 @@
 [![CI/CD](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml/badge.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml)
 [![Test Coverage](https://img.shields.io/badge/Coverage-83%25-brightgreen.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
 
+## <a name="目錄"></a>目錄
+
 - [專案概述](#專案概述)
   - [核心目標](#核心目標)、[使用者故事](#使用者故事)、[使用者流程圖](#使用者流程圖)、[使用者介面截圖](#使用者介面截圖)
 - [快速開始](#快速開始)
-  - 環境需求、安裝步驟、啟動方式
+  - [環境需求](#環境需求)、[安裝步驟](#安裝步驟)、[啟動方式](#啟動方式)
 - [技術架構與設計理念](#技術架構與設計理念)
   - 技術棧
-    - 專案結構、後端、前端、資料庫、開發工具、後續擴充
+    - [專案結構](#專案結構)、後端、前端、資料庫、開發工具、後續擴充
   - [API 文檔](#api-文檔)
     - Swagger、API 端點概覽、RESTful API 範例請求與回應、版本控制、狀態碼的使用
   - [測試](#測試)
@@ -99,7 +101,7 @@
 
 ## <a name="快速開始"></a>快速開始 [返回目錄 ↑](#目錄)
 
-### 1. 環境需求
+### <a name="環境需求"></a>1. 環境需求 [返回目錄 ↑](#目錄)
 
 - **Python**: 3.9+
   - Python 3.9+ 支援語法：使用 `dict`、`list`、`set`、`tuple` 而非 `Dict`、`List`、`Set`、`Tuple`，不需額外匯入 `typing` 模組
@@ -122,7 +124,7 @@
   - MySQL 或 MariaDB：儲存使用者資料和預約資訊
   - SQLite：測試環境使用
 
-### 2. 安裝步驟
+### <a name="安裝步驟"></a>2. 安裝步驟 [返回目錄 ↑](#目錄)
 
 1. **複製專案**
 
@@ -133,11 +135,11 @@
 
 2. **安裝 Python 3.9+ (如果尚未安裝)**
 
-    - 下載並安裝 [Python 3.9+](https://www.python.org/downloads/)
-    - 確認版本：
-      ```bash
-      python --version
-      ```
+   - 下載並安裝 [Python 3.9+](https://www.python.org/downloads/)
+   - 確認版本：
+     ```bash
+     python --version
+     ```
 
 3. **安裝 Poetry**
 
@@ -158,7 +160,8 @@
 
 6. **設定環境變數**
 
-   1. 複製 .env.example 檔案，命名為 .env
+   1. 複製 .env.example 檔案，命名為 .env，並填入密碼、資料庫設定等
+
       ```bash
       cp .env.example .env
       ```
@@ -168,63 +171,46 @@
       .env
       ```
 
-   3. 在 .env 檔案填入密碼、資料庫設定等
-      ```bash
-      # ===== 應用程式基本設定 =====
-      APP_NAME="104 Resume Clinic Scheduler"
-      APP_ENV=development # development, staging, production
-      DEBUG=true
-      SECRET_KEY=hs9H7!vZqkT2dLmP0$wX3@eCr1FgUbYkT2dLmP0$ # 密碼建議至少 12 個字元，包含大小寫字母、數字、特殊符號
-
-      # ===== 資料庫設定 =====
-      # MySQL 設定
-      # DATABASE_URL=mysql+pymysql://fastapi_user:your_password@mysql:3306/resume_clinic_scheduler
-      # MYSQL_ROOT_PASSWORD=root_password 
-      MYSQL_HOST=localhost
-      MYSQL_PORT=3306
-      MYSQL_DATABASE=scheduler_db
-      MYSQL_USER=fastapi_user # ⚠️ 安全提醒：不要使用 root，請建立專用帳號如：fastapi_user
-      MYSQL_PASSWORD=fastapi123 # 建議至少 12 個字元，包含大小寫字母、數字、特殊符號
-      MYSQL_CHARSET=utf8mb4
-      ```
-
 7. **以 root 身份登入 MySQL**
 
    ```bash
    mysql -u root -p
    ```
+
    - 連接到 MySQL：使用者以 root 身份登入 MySQL，並輸入 root 密碼以登入 MySQL
 
 8. **資料庫初始化**
-   
+
    1. 刪除並重新建立資料庫，加上字符集和排序規則，然後切換到 scheduler_db 資料庫
+
       ```
       DROP DATABASE IF EXISTS `scheduler_db`;
-      CREATE DATABASE `scheduler_db` 
-          DEFAULT CHARACTER SET utf8mb4 
+      CREATE DATABASE `scheduler_db`
+          DEFAULT CHARACTER SET utf8mb4
           COLLATE utf8mb4_unicode_ci;
-      USE `scheduler_db`; 
+      USE `scheduler_db`;
       ```
-   
+
    2. 刪除並重新建立名為 fastapi_user 的使用者，避免使用 root 進行日常操作，提升安全性
-  
+
       ```
       DROP USER IF EXISTS 'fastapi_user'@'localhost';
-      CREATE USER 'fastapi_user'@'localhost' 
+      CREATE USER 'fastapi_user'@'localhost'
           IDENTIFIED BY 'fastapi123';
       ```
 
    3. 撤銷任何意外預設權限，並遵循最小權限原則，重新給予 fastapi_user 在 scheduler_db 這個資料庫上所有資料表必要的權限，確保安全性（通常 DROP USER 後不需要，但加上更保險）
-  
+
       ```
-      REVOKE ALL PRIVILEGES ON `scheduler_db`.* 
-          FROM 'fastapi_user'@'localhost'; 
-      GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, INDEX, ALTER 
-          ON `scheduler_db`.* 
+      REVOKE ALL PRIVILEGES ON `scheduler_db`.*
+          FROM 'fastapi_user'@'localhost';
+      GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, INDEX, ALTER
+          ON `scheduler_db`.*
           TO 'fastapi_user'@'localhost';
       ```
 
    4. 重新整理權限表，讓權限即時生效
+
       ```
       FLUSH PRIVILEGES;
       ```
@@ -240,7 +226,7 @@
    poetry run alembic upgrade head
    ```
 
-### 3. 啟動方式
+### <a name="啟動方式"></a>3. 啟動方式 [返回目錄 ↑](#目錄)
 
 1. **用 Poetry 啟動伺服器，確保環境一致性**
 
@@ -312,7 +298,11 @@
   - **AWS 整合**: Boto3 SDK 支援
 
 安全性
-   # 複製 .env.example  .env， 密碼建議至少 12 個字元，包含大小寫字母、數字、特殊符號
+
+# 複製 .env.example .env， 密碼建議至少 12 個字元，包含大小寫字母、數字、特殊符號
+
+避免使用 root 進行日常操作，提升安全性
+
 ## <a name="專案結構"></a>專案結構 [返回目錄 ↑](#目錄)
 
 app/
