@@ -12,78 +12,81 @@
 [![Tests](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/test-only.yml/badge.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/test-only.yml)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
-徽章（Badges）： 顯示版本、測試、文件等狀態，增加專業感。
-Build 狀態、測試覆蓋率、Python 版本支援等徽章，可以讓專案看起來成熟、專業。
+- ![CI/CD Pipeline](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml/badge.svg)
+- ![Tests](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/test-only.yml/badge.svg)
+
+徽章 Badges
+放置 CI/CD、Coverage、
 
 ## 目錄
 
 - [專案概述](#專案概述)
-  - [使用者故事](#使用者故事)
-  - [使用者流程圖](#使用者流程圖)
-  - 使用者介面示意圖：功能 demo、用法範例 POST、GET
-    若能附上執行成果的截圖、GIF、或程式碼範例效果圖／輸出結果，會大幅提升信任感與理解度。
-- [技術架構](#技術架構)
-  - [技術棧](#技術棧)
-  - 開發工具
-  - [專案結構](#專案結構)
-  - [API 文檔](#api-文檔)
-    - Swagger 連結
-    - postman
-  - 測試
-    - pytest 測試
-    - pre-commit
-    - CI/CD 自動化測試
-    - 測試覆蓋率報告
-    - 代碼品質檢查
+  - 核心目標、使用者故事、使用者流程圖、使用者介面截圖
 - [快速開始](#快速開始)
-  把環境需求、如何跑起來示範、範例程式碼／指令都寫清楚。對 Junior 或未拆過這專案的人很重要。
-  Python 版本、library requirements、資料庫、外部服務（如果有的話）等都要列；如果需環境變數／API 金鑰，也要說清楚。
-- [專案特色](#專案特色)
-  亮點說明如使用 Redis 快取、高效查詢、async 異步處理、log decorator
-- [技術架構](#技術架構)
-- [測試指南](#測試指南)
-- [開發指南](#開發指南)
-- [故障排除](#故障排除)
-- [貢獻指南](#貢獻指南)
-- [未來規劃](#未來規劃)
-- [更新日誌](#更新日誌)
+  - 系統需求、環境設定、安裝與運行步驟
+- [技術架構與設計理念](#技術架構與設計理念)
+  - 技術棧
+    - 專案結構、後端、前端、資料庫、開發工具、後續擴充
+  - [API 文檔](#api-文檔)
+    - Swagger、API 端點概覽、RESTful API 範例請求與回應、版本控制、狀態碼的使用
+  - [測試](#測試)
+    - 測試覆蓋率、夾具 Fixtures 集中化管理測試常數、單元測試、整合測試、
+  - [自動化測試](#cicd)
+    - CI/CD 的 CI、pre-commit
+  - [安全性](安全性)
+    - 驗證、授權、資料加密、防攻擊
+  - 錯誤處理與例外處理 Error & Exception Handling
+  - 可靠性 Reliability
+    - 健康檢查、重試、監控
+  - 健壯性 Robustness
+    - 輸入驗證、降級策略、異常情境處理
+  - [效能](效能)
+  - [團隊合作](團隊合作)
+    - Jira、
+- [未來規劃](未來規劃)
+  - 專案的潛在發展與改進方向、JWT、Redis、MongoDB、Docker、AWS 部署
+- [開發者](開發者)
+  - Email、LinkedIn、GitHub
+
+提供 CI/CD 流水線的截圖或簡單說明。
 
 ## <a name="專案概述"></a>專案概述 [返回目錄 ↑](#目錄)
 
-一個以 FastAPI + SQLAlchemy 建立的履歷診斷系統，提供時段（Schedule）的 CRUD API，並整合 Swagger / Redoc 自動化文件、pytest 測試、pre-commit 程式碼風格檢查 與 CI/CD 自動化測試流程。
+專案概述子目錄
+
+- 核心目標
+- 使用場景
+- 使用者故事
+- 使用者流程圖
+- 使用者介面截圖
+
+### 核心目標
 
 讓 Giver（診療服務提供者）與 Taker（診療服務接受者）能在平台內，方便地設定可面談時段並完成配對媒合，同時提供即時通知，以減少等待回應時的不確定與焦慮感。
 
 ### <a name="使用者故事"></a>使用者故事 User Stories [返回目錄 ↑](#目錄)
 
-#### 已完成
+- Giver 提供可預約的時段，讓 Taker 預約面談
+- Taker 提供方便的時段，待 Giver 回覆是否方便面談
+  - 因 Giver 尚未提供可預約的時段，Taker 無法預約面談
+  - 因 Giver 已提供的方便時段，Taker 均不方便面談
 
-#### 待開發
+[點我看完整使用者故事](./docs/user-stories.md)
 
-- **Giver**
-  - 作為 Giver，我希望能查看 Taker 提供的時間並快速回覆，以利進行諮詢
-  - 作為 Giver，我希望能新增可被預約諮詢的時間，以利 Taker 能預約我的時間
-  - 作為 Giver，我希望能查看 Taker 的預約請求並快速回覆，以利進行諮詢
-  - 作為 Giver，我希望能編輯尚未公開給 Taker 預約的諮詢時間，以利因應行程變動
-  - 作為 Giver，我希望能刪除尚未公開給 Taker 預約的諮詢時間，以利取消不再方便提供的時間
-  - 作為 Giver，我希望能刪除已公開，但 Taker 尚未預約的諮詢時間，以利取消不再方便提供的時間
-  - 作為 Giver，我希望收到預約請求後，能按個鍵就發送預計回覆時間的訊息，以減少我即時回覆的壓力、Taker 等待回應時的不確定與焦慮感
-  - 作為 Giver，我希望發送預計回覆時間的訊息後，時限前一天如果我還沒回覆，系統自動發提醒訊息，以免我忘了回覆
-- **Taker**
-  - 作為 Taker，我希望能查看 Giver 已提供且未被預約的時間並預約 Giver 時間，以利安排諮詢
-  - 作為 Taker，我希望能新增我方便諮詢的時間，以利 Giver 回覆是否方便安排諮詢
-  - 作為 Taker，我希望能查看 Giver 的回覆狀態並快速回覆，以利進行諮詢
-  - 作為 Taker，我希望能編輯尚未送出給 Giver 的諮詢時間，以利因應行程變動
-  - 作為 Taker，我希望能刪除尚未送出給 Giver 的諮詢時間，以利取消不再方便提供的時間
-  - 作為 Taker，我希望能刪除已送出，但 Giver 尚未回覆的諮詢時間，以利取消不再方便提供的時間
-  - 作為 Taker，我希望送出預約後，如果 Giver 3 天內未回覆，系統自動發提醒訊息，以避免我要發訊息提醒 Giver 回覆的尷尬
-  - 作為 Taker，我希望收到 Giver 預計回覆時間的通知，但 Giver 逾期未回，系統自動發提醒訊息，以避免我要發訊息提醒 Giver 回覆的尷尬
-- **系統自動化功能**
-  - 作為系統，我希望 Giver、Taker 回覆時，另一方能即時收到訊息通知，以利盡早促成諮詢時間
-  - 作為系統，我希望能鎖定 Giver 已公開，且有 Taker 預約的諮詢時間，以免其他人搶約相同時間
-  - 作為系統，我希望 Giver、Taker 所有互動，都在平台內完成，以維護平台體驗
-- **Admin**
-  - 作為 Admin，我希望能查看每週媒合與使用數據報表，以作為營運分析參考
+#### **已完成功能**
+
+- ✅ 時段的 CRUD 操作：使用者新增、查詢、編輯、刪除時段
+- ✅ 時段重疊檢查，避免新增或更新時段時造成衝突
+- ✅ 查詢支援多種篩選條件
+- ✅ 軟刪除機制和審計追蹤
+- ✅ 時段狀態 ENUM 管理：DRAFT、AVAILABLE、PENDING、ACCEPTED、REJECTED、CANCELLED、COMPLETED
+
+#### **待開發功能**
+
+- 登入功能
+- 通知系統：即時訊息通知、預計回覆時間通知、自動提醒功能（逾期回覆提醒）
+- 鎖定已被預約的時段，避免時段被重複預約
+- 媒合與使用數據報表
 
 ### <a name="使用者流程圖"></a>使用者流程圖 [返回目錄 ↑](#目錄)
 
@@ -103,193 +106,7 @@ Build 狀態、測試覆蓋率、Python 版本支援等徽章，可以讓專案�
 
 ![104 履歷診療室 - 平台內諮詢時間媒合系統用戶流程](./static/images/content/user-flow.png)
 
-## <a name="專案特色"></a>專案特色 [返回目錄 ↑](#目錄)
-
-- **乾淨分層架構**：CRUD、Service、Router 清晰分離
-- **自動化文件**：Swagger / Redoc 即時生成 API 文件
-- **可維護性**：Decorator 統一 log，避免重複程式碼
-- **程式碼品質**：pre-commit + CI/CD，自動檢查與測試
-- **測試覆蓋率**：提供 CRUD 單元測試與整合測試
-
----
-
-👉 這樣的 README 技術主管只要 1 分鐘就能理解你的專案亮點，而且 CI/CD 與 pre-commit 都是加分項。
-
-要不要我再幫你做一個 **小範例 CI Badge (狀態圖示)**，放在 README 頂端？這樣會讓專案看起來更專業。
-
-### **現代化架構設計**
-
-- **分層架構**: 清晰的 API → Service → CRUD → Model 分層架構，易於維護和擴展
-- **業務邏輯分離**: Service 層處理業務邏輯，CRUD 層專注資料庫操作
-- **依賴注入**: 使用 FastAPI 的依賴注入系統，提高可測試性
-- **工廠模式**: 應用程式工廠模式，便於配置和測試
-- **模組化設計**: 功能模組化，便於團隊協作
-
-### **完整的測試策略**
-
-- **分層測試**: 單元測試、整合測試、端到端測試
-- **測試覆蓋率**: 83% 的程式碼覆蓋率
-- **測試資料管理**: 集中化的測試資料和 Fixtures
-- **自動化測試**: 完整的測試架構，確保程式碼品質
-- **品質保證**: 完整的 QA 流程和測試策略
-
-### **專業的檔案管理**
-
-- **靜態資源管理**: 分類管理圖片、CSS、JavaScript 檔案
-- **測試架構**: 結構化的測試目錄和命名規範
-- **文檔完善**: 詳細的開發指南和最佳實踐
-- **版本控制**: 完整的資料庫遷移和版本管理
-- **團隊協作**: 標準化的協作確認指標和流程
-
-### **開發者體驗**
-
-- **熱重載**: 開發時自動重載，提高開發效率
-- **程式碼品質**: 自動格式化、型別檢查、風格檢查
-- **除錯工具**: 完整的日誌系統和錯誤處理
-- **開發腳本**: 豐富的開發工具和腳本
-
-### **命名規範統一**
-
-- **語義清晰**: 統一的 API 模型和審計欄位命名規範
-- **型別安全**: 優化 Pydantic v2 模型配置，支援 ORM 轉換
-- **審計追蹤**: 完整的軟刪除機制和系統自動操作支援
-
-## <a name="技術架構"></a>技術架構 [返回目錄 ↑](#目錄)
-
-### 後端技術棧
-
-- **框架**: FastAPI (現代、快速、基於 Python 3.7+ 的 Web 框架)
-- **ASGI 伺服器**: Uvicorn (輕量級 ASGI 伺服器)
-- **配置管理**: Pydantic Settings (型別安全的配置管理)
-- **架構模式**: 分層架構 (API → Service → CRUD → Model)
-- **資料庫**:
-  - **MySQL/MariaDB**: 核心業務資料儲存
-  - SQLite（測試）
-- **ORM**: SQLAlchemy (Python 最強大的 ORM)
-- **資料庫遷移**: Alembic (SQLAlchemy 官方遷移工具)
-- **驗證**: Pydantic (資料驗證和序列化)
-- **模板引擎**: Jinja2 (HTML 模板渲染)
-- **中間件**: CORS 支援、自定義中間件
-- **文件**: Swagger UI / Redoc
-- **測試**: pytest
-
-### 前端技術棧
-
-- **框架**: Bootstrap 5.1.3 (響應式 UI 框架)
-- **圖標**: Font Awesome (豐富的圖標庫)
-- **JavaScript**: 原生 JS + 現代 ES6+ 語法
-
-### 開發工具
-
-- **IDE**: Visual Studio Code
-- **資料庫管理**: MySQL Workbench 8.0.15
-- **版本控制**: Git
-- **套件管理**: Poetry
-- **資料庫遷移**: Alembic (自動版本控制)
-- **自動程式碼格式化**: Black
-- **自動整理 import 語句**: isort
-- **靜態型別檢查**: MyPy
-- **程式碼風格檢查**: Flake8
-- **提交前自動檢查**: Pre-commit
-- **程式碼風格**: black, isort, flake8, mypy
-- **自動化工具**: pre-commit, GitHub Actions (CI/CD)
-
-### 後續擴充
-
-- **資料庫**:
-  - **MongoDB**: 彈性資料儲存（日誌、使用者偏好等）
-  - **Redis**: 快取和即時資料
-- **部署和 DevOps**:
-
-  - **容器化**: Docker 支援
-  - **CI/CD**: GitHub Actions
-  - **監控**: 整合日誌系統
-  - **AWS 整合**: Boto3 SDK 支援
-
-## <a name="專案結構"></a>專案結構 [返回目錄 ↑](#目錄)
-
-app/
-├── crud/ # 資料庫 CRUD 操作
-│ └── schedule.py
-├── routers/ # API 路由
-├── services/ # 業務邏輯
-├── models/ # SQLAlchemy 資料模型
-├── schemas/ # Pydantic Schema
-├── utils/ # 工具函式（ex: 時區處理）
-├── decorators/ # 共用裝飾器（log_operation）
-└── errors/ # 自定義錯誤
-tests/ # 單元測試與整合測試
-.github/workflows/ # CI/CD 設定
-
-```
-104-resume-clinic-scheduler/
-├── alembic/                      # 資料庫遷移管理
-├── app/                          # 應用程式主目錄
-│   ├── core/                     # 核心功能模組（設定管理）
-│   ├── crud/                     # 資料庫操作層
-│   ├── decorators/               # 裝飾器（日誌、錯誤處理）
-│   │   ├── logging.py            # 日誌裝飾器
-│   │   └── error_handlers.py     # 錯誤處理裝飾器
-│   ├── enums/                    # 列舉型別定義
-│   ├── errors/                   # 錯誤處理系統
-│   │   ├── error_codes           # 各層級錯誤代碼
-│   │   ├── exceptions.py         # 自定義異常
-│   │   ├── formatters.py         # 錯誤格式化
-│   │   └── handlers.py           # 錯誤處理器
-│   ├── middleware/               # 中間件（CORS、錯誤處理）
-│   ├── models/                   # SQLAlchemy 資料模型
-│   │   ├── database.py           # 資料庫連線和會話管理
-│   │   ├── schedule.py           # 排程模型
-│   ├── routers/                  # API 路由模組
-│   │   ├── api/                  # API 端點
-│   │   │   └── schedule.py       # 時段管理 API
-│   │   ├── health.py             # 健康檢查端點
-│   │   └── main.py               # 主要路由
-│   ├── schemas/                  # Pydantic 資料驗證模式
-│   ├── services/                 # 業務邏輯層
-│   ├── templates/                # HTML 模板
-│   ├── utils/                    # 工具模組（時區處理、模型輔助）
-│   │   ├── timezone.py           # 時區處理工具
-│   │   └── model_helpers.py      # 模型輔助工具
-│   ├── factory.py                # 應用程式工廠
-│   └── main.py                   # 應用程式入口點
-├── database
-├── docs/                         # 文件目錄
-│   ├── technical/                # 技術文件
-│   ├── guides/                   # 使用指南
-│   └── testing/                  # 測試相關文件
-├── htmlcov/                      # 測試覆蓋率報告
-├── logs/                         # 日誌檔案
-├── scripts/                      # 開發工具腳本
-├── static/                       # 靜態檔案
-│   ├── images/                   # 圖片資源
-│   ├── css/                      # 樣式檔案
-│   └── js/                       # JavaScript 檔案
-├── tests/                        # 測試檔案
-│   ├── unit/                     # 單元測試
-│   ├── integration/              # 整合測試
-│   ├── e2e/                      # 端到端測試
-│   └── fixtures/                 # 測試資料和 Fixtures
-├── .coverage                     # 測試覆蓋率報告
-├── .env                          # 環境變數（本地開發）
-├── .env.example                  # 環境變數範例
-├── .flake8                       # Flake8 配置
-├── .gitignore                    # Git 忽略檔案
-├── .pre-commit-config.yaml       # Pre-commit 配置
-├── alembic.ini                   # Alembic 主配置檔案
-├── poetry.lock                   # Poetry 依賴鎖定
-├── pyproject.toml                # Poetry 專案配置
-├── pytest.ini                    # Pytest 配置
-└── README.md                     # 專案說明文件
-```
-
-### **分層架構設計**
-
-- **API 層** (`routers/`): 處理 HTTP 請求和回應
-- **業務邏輯層** (`services/`): 處理業務規則和邏輯
-- **資料存取層** (`crud/`): 資料庫 CRUD 操作
-- **資料模型層** (`models/`): SQLAlchemy 模型定義
-- **驗證層** (`schemas/`): Pydantic 資料驗證
+### 使用者介面截圖
 
 ## <a name="快速開始"></a>快速開始 [返回目錄 ↑](#目錄)
 
@@ -421,6 +238,148 @@ uvicorn app.main:app --reload --reload-dir app
 - ✅ 授予權限時，遵循最小權限原則
 - ✅ 使用環境變數管理敏感資訊
 
+## <a name="技術架構與設計理念"></a>技術架構與設計理念 [返回目錄 ↑](#目錄)
+
+### 後端技術棧
+
+- **框架**: FastAPI (現代、快速、基於 Python 3.7+ 的 Web 框架)
+- **ASGI 伺服器**: Uvicorn (輕量級 ASGI 伺服器)
+- **配置管理**: Pydantic Settings (型別安全的配置管理)
+- **架構模式**: 分層架構 (API → Service → CRUD → Model)
+- **資料庫**:
+  - **MySQL/MariaDB**: 核心業務資料儲存
+  - SQLite（測試）
+    ERD
+    Alembic
+- **ORM**: SQLAlchemy (Python 最強大的 ORM)
+- **資料庫遷移**: Alembic (SQLAlchemy 官方遷移工具)
+- **驗證**: Pydantic (資料驗證和序列化)
+- **模板引擎**: Jinja2 (HTML 模板渲染)
+- **中間件**: CORS 支援、自定義中間件
+- **文件**: Swagger UI / Redoc
+- **測試**: pytest
+
+### 前端技術棧
+
+- **框架**: Bootstrap 5.1.3 (響應式 UI 框架)
+- **圖標**: Font Awesome (豐富的圖標庫)
+- **JavaScript**: 原生 JS + 現代 ES6+ 語法
+  HTML
+  CSS
+
+### 開發工具
+
+- **IDE**: Visual Studio Code
+  Cursor
+- **資料庫管理**: MySQL Workbench 8.0.15
+- **版本控制**: Git
+- **套件管理**: Poetry
+- **資料庫遷移**: Alembic (自動版本控制)
+- **自動程式碼格式化**: Black
+- **自動整理 import 語句**: isort
+- **靜態型別檢查**: MyPy
+- **程式碼風格檢查**: Flake8
+- **提交前自動檢查**: Pre-commit
+- **程式碼風格**: black, isort, flake8, mypy
+- **自動化工具**: pre-commit, GitHub Actions (CI/CD)
+
+### 後續擴充
+
+- **資料庫**:
+  - **MongoDB**: 彈性資料儲存（日誌、使用者偏好等）
+  - **Redis**: 快取和即時資料
+- **部署和 DevOps**:
+
+  - **容器化**: Docker 支援
+  - **CI/CD**: GitHub Actions
+  - **監控**: 整合日誌系統
+  - **AWS 整合**: Boto3 SDK 支援
+
+## <a name="專案結構"></a>專案結構 [返回目錄 ↑](#目錄)
+
+app/
+├── crud/ # 資料庫 CRUD 操作
+│ └── schedule.py
+├── routers/ # API 路由
+├── services/ # 業務邏輯
+├── models/ # SQLAlchemy 資料模型
+├── schemas/ # Pydantic Schema
+├── utils/ # 工具函式（ex: 時區處理）
+├── decorators/ # 共用裝飾器（log_operation）
+└── errors/ # 自定義錯誤
+tests/ # 單元測試與整合測試
+.github/workflows/ # CI/CD 設定
+
+```
+104-resume-clinic-scheduler/
+├── alembic/                      # 資料庫遷移管理
+├── app/                          # 應用程式主目錄
+│   ├── core/                     # 核心功能模組（設定管理）
+│   ├── crud/                     # 資料庫操作層
+│   ├── decorators/               # 裝飾器（日誌、錯誤處理）
+│   │   ├── logging.py            # 日誌裝飾器
+│   │   └── error_handlers.py     # 錯誤處理裝飾器
+│   ├── enums/                    # 列舉型別定義
+│   ├── errors/                   # 錯誤處理系統
+│   │   ├── error_codes           # 各層級錯誤代碼
+│   │   ├── exceptions.py         # 自定義異常
+│   │   ├── formatters.py         # 錯誤格式化
+│   │   └── handlers.py           # 錯誤處理器
+│   ├── middleware/               # 中間件（CORS、錯誤處理）
+│   ├── models/                   # SQLAlchemy 資料模型
+│   │   ├── database.py           # 資料庫連線和會話管理
+│   │   ├── schedule.py           # 排程模型
+│   ├── routers/                  # API 路由模組
+│   │   ├── api/                  # API 端點
+│   │   │   └── schedule.py       # 時段管理 API
+│   │   ├── health.py             # 健康檢查端點
+│   │   └── main.py               # 主要路由
+│   ├── schemas/                  # Pydantic 資料驗證模式
+│   ├── services/                 # 業務邏輯層
+│   ├── templates/                # HTML 模板
+│   ├── utils/                    # 工具模組（時區處理、模型輔助）
+│   │   ├── timezone.py           # 時區處理工具
+│   │   └── model_helpers.py      # 模型輔助工具
+│   ├── factory.py                # 應用程式工廠
+│   └── main.py                   # 應用程式入口點
+├── database
+├── docs/                         # 文件目錄
+│   ├── technical/                # 技術文件
+│   ├── guides/                   # 使用指南
+│   └── testing/                  # 測試相關文件
+├── htmlcov/                      # 測試覆蓋率報告
+├── logs/                         # 日誌檔案
+├── scripts/                      # 開發工具腳本
+├── static/                       # 靜態檔案
+│   ├── images/                   # 圖片資源
+│   ├── css/                      # 樣式檔案
+│   └── js/                       # JavaScript 檔案
+├── tests/                        # 測試檔案
+│   ├── unit/                     # 單元測試
+│   ├── integration/              # 整合測試
+│   ├── e2e/                      # 端到端測試
+│   └── fixtures/                 # 測試資料和 Fixtures
+├── .coverage                     # 測試覆蓋率報告
+├── .env                          # 環境變數（本地開發）
+├── .env.example                  # 環境變數範例
+├── .flake8                       # Flake8 配置
+├── .gitignore                    # Git 忽略檔案
+├── .pre-commit-config.yaml       # Pre-commit 配置
+├── alembic.ini                   # Alembic 主配置檔案
+├── poetry.lock                   # Poetry 依賴鎖定
+├── pyproject.toml                # Poetry 專案配置
+├── pytest.ini                    # Pytest 配置
+└── README.md                     # 專案說明文件
+```
+
+### **分層架構設計**
+
+- **API 層** (`routers/`): 處理 HTTP 請求和回應
+- **業務邏輯層** (`services/`): 處理業務規則和邏輯
+- **資料存取層** (`crud/`): 資料庫 CRUD 操作
+- **資料模型層** (`models/`): SQLAlchemy 模型定義
+- **驗證層** (`schemas/`): Pydantic 資料驗證
+
 ## <a name="測試指南"></a>測試指南 [返回目錄 ↑](#目錄)
 
 ### 測試工具
@@ -502,9 +461,6 @@ poetry run pytest
 
 #### 狀態徽章
 
-- ![CI/CD Pipeline](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml/badge.svg)
-- ![Tests](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/test-only.yml/badge.svg)
-
 ### 測試說明
 
 專案使用 pytest 作為測試框架，提供完整的測試覆蓋率分析。
@@ -551,7 +507,7 @@ pre-commit install
 
 ```
 
-## CI/CD
+## <a name="cicd"></a>CI/CD [返回目錄 ↑](#目錄)
 
 專案包含 GitHub Actions (`.github/workflows/ci.yml`)，在每次 `git push origin main` 時自動執行：
 
@@ -801,11 +757,11 @@ refactor: 重構資料庫模型
 - 複雜功能需要提供使用範例
 - 更新 README.md 中的相關章節
 
-## 授權
+## <a name="授權"></a>授權 [返回目錄 ↑](#目錄)
 
 本專案採用 MIT 授權條款
 
-## 開發者
+## <a name="開發者"></a>開發者 [返回目錄 ↑](#目錄)
 
 **Oscar Chung** - [GitHub](https://github.com/ewsailor)
 
