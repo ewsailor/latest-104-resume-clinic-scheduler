@@ -101,13 +101,13 @@
 ### 使用者介面截圖
 
 - Giver 列表
-  - [Giver 列表總覽](./static/images/ui/01-giver-list-overview.png)
+  - ![Giver 列表總覽](./static/images/ui/01-giver-list-overview.png)
 - Taker 預約 Giver 時段
-  - [Taker 預約 Giver 時段](./static/images/ui/02-taker-scheduling-giver-time.png)
-  - [Taker 預約 Giver 時段結果](./static/images/ui/03-taker-scheduling-giver-time-result.png)
+  - ![Taker 預約 Giver 時段](./static/images/ui/02-taker-scheduling-giver-time.png)
+  - ![Taker 預約 Giver 時段結果](./static/images/ui/03-taker-scheduling-giver-time-result.png)
 - Taker 提供方便時段給 Giver
-  - [Taker 提供方便時段給 Giver](./static/images/ui/04-taker-provide-available-time.png)
-  - [Taker 提供方便時段給 Giver 結果](./static/images/ui/05-taker-provide-available-time-result.png)
+  - ![Taker 提供方便時段給 Giver](./static/images/ui/04-taker-provide-available-time.png)
+  - ![Taker 提供方便時段給 Giver 結果](./static/images/ui/05-taker-provide-available-time-result.png)
 
 [點我看完整使用者故事](./docs/user-stories.md)
 
