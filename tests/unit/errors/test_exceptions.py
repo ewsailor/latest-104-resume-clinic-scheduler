@@ -17,8 +17,6 @@ from app.errors.exceptions import (
     BusinessLogicError,
     ConflictError,
     DatabaseError,
-    LivenessCheckError,
-    ReadinessCheckError,
     ScheduleNotFoundError,
     ServiceUnavailableError,
     UserNotFoundError,
@@ -266,46 +264,6 @@ class TestServiceUnavailableError:
         assert error.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
 
 
-class TestLivenessCheckError:
-    """LivenessCheckError 測試。"""
-
-    def test_liveness_check_error_default_message(self):
-        """測試 LivenessCheckError 預設訊息。"""
-        error = LivenessCheckError()
-
-        assert error.message == "存活檢查失敗"
-        assert error.error_code == "LIVENESS_CHECK_ERROR"
-        assert error.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    def test_liveness_check_error_custom_message(self):
-        """測試 LivenessCheckError 自定義訊息。"""
-        error = LivenessCheckError("資料庫連線失敗")
-
-        assert error.message == "資料庫連線失敗"
-        assert error.error_code == "LIVENESS_CHECK_ERROR"
-        assert error.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-
-
-class TestReadinessCheckError:
-    """ReadinessCheckError 測試。"""
-
-    def test_readiness_check_error_default_message(self):
-        """測試 ReadinessCheckError 預設訊息。"""
-        error = ReadinessCheckError()
-
-        assert error.message == "準備就緒檢查失敗"
-        assert error.error_code == "READINESS_CHECK_ERROR"
-        assert error.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
-
-    def test_readiness_check_error_custom_message(self):
-        """測試 ReadinessCheckError 自定義訊息。"""
-        error = ReadinessCheckError("外部服務不可用")
-
-        assert error.message == "外部服務不可用"
-        assert error.error_code == "READINESS_CHECK_ERROR"
-        assert error.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
-
-
 class TestErrorHierarchy:
     """錯誤層級測試。"""
 
@@ -322,8 +280,6 @@ class TestErrorHierarchy:
             ConflictError("test"),
             DatabaseError("test"),
             ServiceUnavailableError("test"),
-            LivenessCheckError("test"),
-            ReadinessCheckError("test"),
         ]
 
         for error in errors:
@@ -349,14 +305,6 @@ class TestErrorHierarchy:
             ServiceUnavailableError("test").status_code
             == status.HTTP_503_SERVICE_UNAVAILABLE
         )
-        assert (
-            LivenessCheckError("test").status_code
-            == status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-        assert (
-            ReadinessCheckError("test").status_code
-            == status.HTTP_503_SERVICE_UNAVAILABLE
-        )
 
     def test_error_codes_format(self):
         """測試錯誤代碼格式。"""
@@ -371,8 +319,6 @@ class TestErrorHierarchy:
             ConflictError("test"),
             DatabaseError("test"),
             ServiceUnavailableError("test"),
-            LivenessCheckError("test"),
-            ReadinessCheckError("test"),
         ]
 
         for error in errors:

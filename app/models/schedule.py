@@ -152,7 +152,7 @@ class Schedule(Base):  # type: ignore[misc,valid-type]
     )
 
     # ===== 反向關聯 =====
-    # 高頻使用：使用 lazy="join" 每次查詢都會載入關聯資料，避免 N+1 問題
+    # 高頻使用 Eager loading 解決 N+1：使用 lazy="joined" 每次查詢都會載入所需關聯資料，避免多次查詢的 N+1 問題
     giver = relationship(
         "User",
         foreign_keys=[giver_id],
@@ -165,7 +165,7 @@ class Schedule(Base):  # type: ignore[misc,valid-type]
         back_populates="taker_schedules",
         lazy="joined",
     )
-    # 審計欄位低頻使用：使用 lazy="select" 需要時再載入
+    # 審計欄位低頻使用 Lazy loading：使用 lazy="select" 需要時再載入，避免不必要資料抓取
     created_by_user = relationship(
         "User",
         foreign_keys=[created_by],

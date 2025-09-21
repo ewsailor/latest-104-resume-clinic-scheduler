@@ -10,8 +10,6 @@ from app.errors.exceptions import (
     BadRequestError,
     BusinessLogicError,
     DatabaseError,
-    LivenessCheckError,
-    ReadinessCheckError,
     ScheduleCannotBeDeletedError,
     ScheduleNotFoundError,
     ScheduleOverlapError,
@@ -113,13 +111,3 @@ def create_database_error(message: str) -> DatabaseError:
 def create_service_unavailable_error(message: str) -> ServiceUnavailableError:
     """建立服務不可用錯誤。"""
     return ServiceUnavailableError(message)
-
-
-def create_liveness_check_error(message: str) -> LivenessCheckError:
-    """建立存活檢查錯誤。"""
-    return LivenessCheckError(message)
-
-
-def create_readiness_check_error(message: str) -> ReadinessCheckError:
-    """建立準備就緒檢查錯誤。"""
-    return ReadinessCheckError(message)

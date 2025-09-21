@@ -6,7 +6,7 @@
 
 # ===== 標準函式庫 =====
 import inspect
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 # ===== 第三方套件 =====
 from fastapi import FastAPI
@@ -36,68 +36,32 @@ class TestHealthRouter:
         """建立測試客戶端。"""
         return TestClient(app)
 
-    @pytest.fixture
-    def mock_settings(self):
-        """模擬設定。"""
-        mock_settings = Mock()
-        mock_settings.app_name = "test-app"
-        return mock_settings
+    # 簡化後不再需要這些 mock fixture
 
-    @pytest.fixture
-    def mock_get_project_version(self):
-        """模擬專案版本函數。"""
-        return Mock(return_value="1.0.0")
-
-    @pytest.fixture
-    def mock_get_utc_timestamp(self):
-        """模擬 UTC 時間戳函數。"""
-        return Mock(return_value="2024-01-01T00:00:00Z")
-
-    def test_liveness_probe_success(
-        self, client, mock_settings, mock_get_project_version, mock_get_utc_timestamp
-    ):
+    def test_liveness_probe_success(self, client):
         """測試存活探測成功情況。"""
-        with (
-            patch("app.routers.health.settings", mock_settings),
-            patch("app.routers.health.get_project_version", mock_get_project_version),
-            patch("app.routers.health.get_utc_timestamp", mock_get_utc_timestamp),
-        ):
+        # 發送請求
+        response = client.get("/healthz")
 
-            # 發送請求
-            response = client.get("/healthz")
+        # 驗證回應
+        assert response.status_code == 200
+        data = response.json()
 
-            # 驗證回應
-            assert response.status_code == 200
-            data = response.json()
-
-            assert data["message"] == "應用程式存活、正常運行"
-            assert data["status"] == "healthy"
-            assert data["app_name"] == "test-app"
-            assert data["version"] == "1.0.0"
-            assert data["timestamp"] == "2024-01-01T00:00:00Z"
-            assert data["checks"]["application"] == "healthy"
+        # 簡化後只返回基本狀態
+        assert data["status"] == "healthy"
 
     def test_liveness_probe_with_fail_parameter(self, client):
-        """測試存活探測失敗參數。"""
-        # 發送帶有 fail=true 的請求，應該會返回錯誤回應
+        """測試存活探測失敗參數（已移除，參數不再有效）。"""
+        # 簡化後不再支援 fail 參數，應該正常返回
         response = client.get("/healthz?fail=true")
 
-        assert response.status_code == 500
+        assert response.status_code == 200
         data = response.json()
-        assert "error" in data
-        assert "存活探測檢查錯誤" in data["error"]["message"]
+        assert data["status"] == "healthy"
 
-    def test_readiness_probe_success(
-        self, client, mock_settings, mock_get_project_version, mock_get_utc_timestamp
-    ):
+    def test_readiness_probe_success(self, client):
         """測試準備就緒探測成功情況。"""
-        with (
-            patch("app.routers.health.settings", mock_settings),
-            patch("app.routers.health.get_project_version", mock_get_project_version),
-            patch("app.routers.health.get_utc_timestamp", mock_get_utc_timestamp),
-            patch("app.routers.health.check_db_connection") as mock_check_db,
-        ):
-
+        with patch("app.routers.health.check_db_connection") as mock_check_db:
             # 發送請求
             response = client.get("/readyz")
 
@@ -105,48 +69,35 @@ class TestHealthRouter:
             assert response.status_code == 200
             data = response.json()
 
-            assert data["message"] == "應用程式準備就緒"
+            # 簡化後只返回基本狀態
             assert data["status"] == "healthy"
-            assert data["app_name"] == "test-app"
-            assert data["version"] == "1.0.0"
-            assert data["timestamp"] == "2024-01-01T00:00:00Z"
-            assert data["checks"]["application"] == "healthy"
-            assert data["checks"]["database"] == "healthy"
 
             # 驗證資料庫檢查被調用
             mock_check_db.assert_called_once()
 
     def test_readiness_probe_with_fail_parameter(self, client):
-        """測試準備就緒探測失敗參數。"""
-        # 發送帶有 fail=true 的請求，應該會返回錯誤回應
-        response = client.get("/readyz?fail=true")
+        """測試準備就緒探測失敗參數（已移除，參數不再有效）。"""
+        with patch("app.routers.health.check_db_connection"):
+            # 簡化後不再支援 fail 參數，應該正常返回
+            response = client.get("/readyz?fail=true")
 
-        assert response.status_code == 503
-        data = response.json()
-        assert "error" in data
-        assert "就緒探測檢查錯誤" in data["error"]["message"]
+            assert response.status_code == 200
+            data = response.json()
+            assert data["status"] == "healthy"
 
     def test_readiness_probe_with_db_fail_parameter(self, client):
-        """測試準備就緒探測資料庫失敗參數。"""
-        # 發送帶有 db_fail=true 的請求，應該會返回錯誤回應
-        response = client.get("/readyz?db_fail=true")
+        """測試準備就緒探測資料庫失敗參數（已移除，參數不再有效）。"""
+        with patch("app.routers.health.check_db_connection"):
+            # 簡化後不再支援 db_fail 參數，應該正常返回
+            response = client.get("/readyz?db_fail=true")
 
-        assert response.status_code == 503
-        data = response.json()
-        assert "error" in data
-        assert "資料庫連線失敗錯誤" in data["error"]["message"]
+            assert response.status_code == 200
+            data = response.json()
+            assert data["status"] == "healthy"
 
-    def test_readiness_probe_database_connection_failure(
-        self, client, mock_settings, mock_get_project_version, mock_get_utc_timestamp
-    ):
+    def test_readiness_probe_database_connection_failure(self, client):
         """測試準備就緒探測資料庫連線失敗。"""
-        with (
-            patch("app.routers.health.settings", mock_settings),
-            patch("app.routers.health.get_project_version", mock_get_project_version),
-            patch("app.routers.health.get_utc_timestamp", mock_get_utc_timestamp),
-            patch("app.routers.health.check_db_connection") as mock_check_db,
-        ):
-
+        with patch("app.routers.health.check_db_connection") as mock_check_db:
             # 模擬資料庫連線失敗
             mock_check_db.side_effect = Exception("資料庫連線失敗")
 
@@ -157,9 +108,8 @@ class TestHealthRouter:
             assert response.status_code == 503
             data = response.json()
 
-            # 檢查錯誤格式（使用自定義錯誤格式）
-            assert "error" in data
-            assert "資料庫連線失敗" in data["error"]["message"]
+            # 簡化後的錯誤格式
+            assert data["detail"] == "Service Unavailable"
 
     def test_liveness_probe_route_metadata(self):
         """測試存活探測路由元資料。"""
@@ -196,22 +146,19 @@ class TestHealthRouter:
 
     def test_liveness_probe_function_signature(self):
         """測試存活探測函數簽名。"""
-        # 驗證函數簽名
+        # 驗證函數簽名（簡化後無參數）
         sig = inspect.signature(liveness_probe)
         params = list(sig.parameters.keys())
 
-        assert params == ["fail"]
-        assert sig.parameters["fail"].default is False
+        assert params == []
 
     def test_readiness_probe_function_signature(self):
         """測試準備就緒探測函數簽名。"""
-        # 驗證函數簽名
+        # 驗證函數簽名（簡化後無參數）
         sig = inspect.signature(readiness_probe)
         params = list(sig.parameters.keys())
 
-        assert params == ["fail", "db_fail"]
-        assert sig.parameters["fail"].default is False
-        assert sig.parameters["db_fail"].default is False
+        assert params == []
 
     def test_liveness_probe_async_function(self):
         """測試存活探測函數是否為非同步函數。"""
@@ -223,49 +170,22 @@ class TestHealthRouter:
         # 驗證函數是否為協程函數
         assert inspect.iscoroutinefunction(readiness_probe)
 
-    def test_liveness_probe_response_structure(
-        self, client, mock_settings, mock_get_project_version, mock_get_utc_timestamp
-    ):
+    def test_liveness_probe_response_structure(self, client):
         """測試存活探測回應結構。"""
-        with (
-            patch("app.routers.health.settings", mock_settings),
-            patch("app.routers.health.get_project_version", mock_get_project_version),
-            patch("app.routers.health.get_utc_timestamp", mock_get_utc_timestamp),
-        ):
+        # 發送請求
+        response = client.get("/healthz")
 
-            # 發送請求
-            response = client.get("/healthz")
+        # 驗證回應結構
+        assert response.status_code == 200
+        data = response.json()
 
-            # 驗證回應結構
-            assert response.status_code == 200
-            data = response.json()
+        # 簡化後只驗證必要欄位
+        assert "status" in data
+        assert data["status"] == "healthy"
 
-            # 驗證必要欄位
-            required_fields = [
-                "message",
-                "status",
-                "app_name",
-                "version",
-                "timestamp",
-                "checks",
-            ]
-            for field in required_fields:
-                assert field in data
-
-            # 驗證 checks 結構
-            assert "application" in data["checks"]
-
-    def test_readiness_probe_response_structure(
-        self, client, mock_settings, mock_get_project_version, mock_get_utc_timestamp
-    ):
+    def test_readiness_probe_response_structure(self, client):
         """測試準備就緒探測回應結構。"""
-        with (
-            patch("app.routers.health.settings", mock_settings),
-            patch("app.routers.health.get_project_version", mock_get_project_version),
-            patch("app.routers.health.get_utc_timestamp", mock_get_utc_timestamp),
-            patch("app.routers.health.check_db_connection"),
-        ):
-
+        with patch("app.routers.health.check_db_connection"):
             # 發送請求
             response = client.get("/readyz")
 
@@ -273,74 +193,41 @@ class TestHealthRouter:
             assert response.status_code == 200
             data = response.json()
 
-            # 驗證必要欄位
-            required_fields = [
-                "message",
-                "status",
-                "app_name",
-                "version",
-                "timestamp",
-                "checks",
-            ]
-            for field in required_fields:
-                assert field in data
-
-            # 驗證 checks 結構
-            assert "application" in data["checks"]
-            assert "database" in data["checks"]
+            # 簡化後只驗證必要欄位
+            assert "status" in data
+            assert data["status"] == "healthy"
 
     def test_liveness_probe_with_different_fail_values(self, client):
-        """測試存活探測不同失敗值。"""
-        # 測試 fail=false（預設值）
+        """測試存活探測不同失敗值（已移除，參數不再有效）。"""
+        # 簡化後不再支援 fail 參數，所有請求都應該正常返回
         response = client.get("/healthz?fail=false")
         assert response.status_code == 200
+        assert response.json()["status"] == "healthy"
 
-        # 測試 fail=true，應該會返回錯誤回應
         response = client.get("/healthz?fail=true")
-        assert response.status_code == 500
-        data = response.json()
-        assert "error" in data
-        assert "存活探測檢查錯誤" in data["error"]["message"]
+        assert response.status_code == 200
+        assert response.json()["status"] == "healthy"
 
-        # 測試 fail=1（布林值轉換），應該會返回錯誤回應
         response = client.get("/healthz?fail=1")
-        assert response.status_code == 500
-        data = response.json()
-        assert "error" in data
-        assert "存活探測檢查錯誤" in data["error"]["message"]
+        assert response.status_code == 200
+        assert response.json()["status"] == "healthy"
 
-    def test_readiness_probe_with_different_fail_values(
-        self, client, mock_settings, mock_get_project_version, mock_get_utc_timestamp
-    ):
-        """測試準備就緒探測不同失敗值。"""
-        with (
-            patch("app.routers.health.settings", mock_settings),
-            patch("app.routers.health.get_project_version", mock_get_project_version),
-            patch("app.routers.health.get_utc_timestamp", mock_get_utc_timestamp),
-            patch("app.routers.health.check_db_connection"),
-        ):
-
-            # 測試 fail=false, db_fail=false（預設值）
+    def test_readiness_probe_with_different_fail_values(self, client):
+        """測試準備就緒探測不同失敗值（已移除，參數不再有效）。"""
+        with patch("app.routers.health.check_db_connection"):
+            # 簡化後不再支援 fail 和 db_fail 參數，所有請求都應該正常返回
             response = client.get("/readyz?fail=false&db_fail=false")
             assert response.status_code == 200
+            assert response.json()["status"] == "healthy"
 
-            # 測試 fail=true，應該會返回錯誤回應
             response = client.get("/readyz?fail=true")
-            assert response.status_code == 503
-            data = response.json()
-            assert "error" in data
-            assert "就緒探測檢查錯誤" in data["error"]["message"]
+            assert response.status_code == 200
+            assert response.json()["status"] == "healthy"
 
-            # 測試 db_fail=true，應該會返回錯誤回應
             response = client.get("/readyz?db_fail=true")
-            assert response.status_code == 503
-            data = response.json()
-            assert "error" in data
-            assert "資料庫連線失敗錯誤" in data["error"]["message"]
+            assert response.status_code == 200
+            assert response.json()["status"] == "healthy"
 
-            # 測試兩者都為 true，應該會返回錯誤回應（fail 優先）
             response = client.get("/readyz?fail=true&db_fail=true")
-            assert response.status_code == 503
-            data = response.json()
-            assert "error" in data
-            assert "就緒探測檢查錯誤" in data["error"]["message"]
+            assert response.status_code == 200
+            assert response.json()["status"] == "healthy"

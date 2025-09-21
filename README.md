@@ -14,27 +14,34 @@
   - [核心目標](#核心目標)、[使用者故事](#使用者故事)、[使用者流程圖](#使用者流程圖)、[使用者介面截圖](#使用者介面截圖)
 - [快速開始](#快速開始)
   - [環境需求](#環境需求)、[安裝步驟](#安裝步驟)、[啟動方式](#啟動方式)
-- [技術架構與設計理念](#技術架構與設計理念)
+- [設計理念](#設計理念)
+  - [安全性](安全性)
+  - 可維護性與可擴充性
+  - 可靠性
+  - [效能](效能)
+  - 開發者體驗與團隊合作
+- [技術架構](#技術架構)
+  - [專案結構](#專案結構)
   - 技術棧
-    - [專案結構](#專案結構)、後端、前端、資料庫、開發工具、後續擴充
   - [API 文檔](#api-文檔)
     - Swagger、API 端點概覽、RESTful API 範例請求與回應、版本控制、狀態碼的使用
   - [測試](#測試)
     - 測試覆蓋率、夾具 Fixtures 集中化管理測試常數、單元測試、整合測試、
   - [自動化測試](#cicd)
     - CI/CD 的 CI、pre-commit
-  - [安全性](安全性)
-    - 驗證、授權、資料加密、防攻擊
-  - 錯誤處理與例外處理 Error & Exception Handling
-  - 可靠性 Reliability
-    - 健康檢查、重試、監控
-  - 健壯性 Robustness
-    - 輸入驗證、降級策略、異常情境處理
-  - [效能](效能)
   - [團隊合作](團隊合作)
     - Jira、
+    Alembic 
+- **版本控制**：Git (程式碼版本管理、協作開發)
+可輸入多行的git commit  -m ""
+
 - [未來規劃](未來規劃)
   - 專案的潛在發展與改進方向、JWT、Redis、MongoDB、Docker、AWS 部署
+- **後續擴充**:
+  - **Redis**：快取和即時資料 (提升效能)
+  - **MongoDB**：彈性資料儲存 (高效能文件資料庫)
+  - **Docker**：容器化部署 (資源優化)
+  - **AWS**：雲端擴充性
 - [開發者](開發者)
   - Email、LinkedIn、GitHub
 
@@ -103,23 +110,16 @@
 
 ### <a name="環境需求"></a>1. 環境需求 [返回目錄 ↑](#目錄)
 
-- **Python**: 3.9+
-  - Python 3.9+ 支援語法：使用 `dict`、`list`、`set`、`tuple` 而非 `Dict`、`List`、`Set`、`Tuple`，不需額外匯入 `typing` 模組
+- **Python**：3.9+
+  - Python 3.9+ 支援語法：
+    - 可用 `dict`、`list`、`set`、`tuple` 取代 `Dict`、`List`、`Set`、`Tuple`，不需額外匯入 `typing` 模組
   - Python 3.10+ 支援語法：
-    - `match`/`case` 模式匹配，避免大量 `if-elif-else`
-    - `X | Y` 聯合類型，替代 `Union[X, Y]`
-    - `X | None` 可選類型，替代 `Optional[X]`
+    - 可用 `match`/`case` 減少大量 `if-elif-else`
+    - 可用 `X | Y` 替代 `Union[X, Y]` 聯合類型
+    - 可用 `X | None` 替代 `Optional[X]` 可選類型
 - **FastAPI**
-  - Web 框架：現代化 Python Web API 框架，支援非同步
-  - 自動文檔：自動依路由、Pydantic 型別，生成 OpenAPI 文檔和 Swagger UI，減少維護工作
-  - 型別安全：完整的型別提示支援
 - **Uvicorn**
-  - ASGI 伺服器：運行 FastAPI 應用程式
-  - 高效能：支援非同步、高併發處理
 - **Poetry**
-  - 依賴管理：用 `pyproject.toml` 定義依賴的版本範圍，用 `poetry.lock` 鎖定確切依賴版本，確保環境一致性
-  - 虛擬環境：自動建立虛擬環境，避免專案依賴與系統環境的其他專案衝突
-  - 打包發佈：簡化打包和發佈流程
 - **資料庫**
   - MySQL 或 MariaDB：儲存使用者資料和預約資訊
   - SQLite：測試環境使用
@@ -133,7 +133,7 @@
    cd 104-resume-clinic-scheduler
    ```
 
-2. **安裝 Python 3.9+ (如果尚未安裝)**
+2. **安裝 Python 3.9+**
 
    - 下載並安裝 [Python 3.9+](https://www.python.org/downloads/)
    - 確認版本：
@@ -160,7 +160,7 @@
 
 6. **設定環境變數**
 
-   1. 複製 .env.example 檔案，命名為 .env，並填入密碼、資料庫設定等
+   1. 複製 .env.example 檔案，命名為 .env，並填入密碼、資料庫設定等資訊
 
       ```bash
       cp .env.example .env
@@ -240,91 +240,19 @@
 
 ## <a name="技術架構與設計理念"></a>技術架構與設計理念 [返回目錄 ↑](#目錄)
 
-### 後端技術棧
+主要使用技術為 Python、FastAPI 框架 + SQLAlchemy、MySQL/MariaDB 資料庫，採分層架構避免高耦合，提供時段（Schedule）的 CRUD API 與 Swagger API 文件，用 Postman、pytest、pre-commit、CI/CD 的 CI 確保程式碼品質，並有考量安全性、可維護性與可擴充性、可靠性、效能。
 
-- **框架**: FastAPI (現代、快速、基於 Python 3.7+ 的 Web 框架)
-- **ASGI 伺服器**: Uvicorn (輕量級 ASGI 伺服器)
-- **配置管理**: Pydantic Settings (型別安全的配置管理)
-- **架構模式**: 分層架構 (API → Service → CRUD → Model)
-- **資料庫**:
-  - **MySQL/MariaDB**: 核心業務資料儲存
-  - SQLite（測試）
-    ERD
-    Alembic
-- **ORM**: SQLAlchemy (Python 最強大的 ORM)
-- **資料庫遷移**: Alembic (SQLAlchemy 官方遷移工具)
-- **驗證**: Pydantic (資料驗證和序列化)
-- **模板引擎**: Jinja2 (HTML 模板渲染)
-- **中間件**: CORS 支援、自定義中間件
-- **文件**: Swagger UI / Redoc
-- **測試**: pytest
-
-### 前端技術棧
-
-- **框架**: Bootstrap 5.1.3 (響應式 UI 框架)
-- **圖標**: Font Awesome (豐富的圖標庫)
-- **JavaScript**: 原生 JS + 現代 ES6+ 語法
-  HTML
-  CSS
-
-### 開發工具
-
-- **IDE**: Visual Studio Code
-  Cursor
-- **資料庫管理**: MySQL Workbench 8.0.15
-- **版本控制**: Git
-- **套件管理**: Poetry
-- **資料庫遷移**: Alembic (自動版本控制)
-- **自動程式碼格式化**: Black
-- **自動整理 import 語句**: isort
-- **靜態型別檢查**: MyPy
-- **程式碼風格檢查**: Flake8
-- **提交前自動檢查**: Pre-commit
-- **程式碼風格**: black, isort, flake8, mypy
-- **自動化工具**: pre-commit, GitHub Actions (CI/CD)
-  sourcetree
-  Postman
-
-### 後續擴充
-
-- **資料庫**:
-  - **MongoDB**: 彈性資料儲存（日誌、使用者偏好等）
-  - **Redis**: 快取和即時資料
-- **部署和 DevOps**:
-
-  - **容器化**: Docker 支援
-  - **CI/CD**: GitHub Actions
-  - **監控**: 整合日誌系統
-  - **AWS 整合**: Boto3 SDK 支援
-
-安全性
-
-# 複製 .env.example .env， 密碼建議至少 12 個字元，包含大小寫字母、數字、特殊符號
-
-避免使用 root 進行日常操作，提升安全性
-
-## <a name="專案結構"></a>專案結構 [返回目錄 ↑](#目錄)
-
-app/
-├── crud/ # 資料庫 CRUD 操作
-│ └── schedule.py
-├── routers/ # API 路由
-├── services/ # 業務邏輯
-├── models/ # SQLAlchemy 資料模型
-├── schemas/ # Pydantic Schema
-├── utils/ # 工具函式（ex: 時區處理）
-├── decorators/ # 共用裝飾器（log_operation）
-└── errors/ # 自定義錯誤
-tests/ # 單元測試與整合測試
-.github/workflows/ # CI/CD 設定
+### <a name="專案結構"></a>專案結構 [返回目錄 ↑](#目錄)
 
 ```
 104-resume-clinic-scheduler/
+├── .github\workflows\ci.yml      # CI/CD 的 CI
 ├── alembic/                      # 資料庫遷移管理
 ├── app/                          # 應用程式主目錄
-│   ├── core/                     # 核心功能模組（設定管理）
-│   ├── crud/                     # 資料庫操作層
-│   ├── decorators/               # 裝飾器（日誌、錯誤處理）
+│   ├── core/                     # 設定管理
+│   ├── crud/                     # CRUD 資料庫操作層
+│   ├── database/                 # 資料庫連線管理
+│   ├── decorators/               # 裝飾器
 │   │   ├── logging.py            # 日誌裝飾器
 │   │   └── error_handlers.py     # 錯誤處理裝飾器
 │   ├── enums/                    # 列舉型別定義
@@ -333,31 +261,39 @@ tests/ # 單元測試與整合測試
 │   │   ├── exceptions.py         # 自定義異常
 │   │   ├── formatters.py         # 錯誤格式化
 │   │   └── handlers.py           # 錯誤處理器
-│   ├── middleware/               # 中間件（CORS、錯誤處理）
+│   ├── middleware/               # 中間件 CORS
 │   ├── models/                   # SQLAlchemy 資料模型
-│   │   ├── database.py           # 資料庫連線和會話管理
-│   │   ├── schedule.py           # 排程模型
 │   ├── routers/                  # API 路由模組
 │   │   ├── api/                  # API 端點
 │   │   │   └── schedule.py       # 時段管理 API
 │   │   ├── health.py             # 健康檢查端點
 │   │   └── main.py               # 主要路由
-│   ├── schemas/                  # Pydantic 資料驗證模式
+│   ├── schemas/                  # Pydantic 資料驗證
 │   ├── services/                 # 業務邏輯層
 │   ├── templates/                # HTML 模板
-│   ├── utils/                    # 工具模組（時區處理、模型輔助）
-│   │   ├── timezone.py           # 時區處理工具
-│   │   └── model_helpers.py      # 模型輔助工具
+│   ├── utils/                    # 工具模組
 │   ├── factory.py                # 應用程式工廠
 │   └── main.py                   # 應用程式入口點
-├── database
+├── database/                     # 資料庫相關檔案
+│   └── schema.sql                # 資料庫結構檔案
 ├── docs/                         # 文件目錄
 │   ├── technical/                # 技術文件
-│   ├── guides/                   # 使用指南
-│   └── testing/                  # 測試相關文件
+│   │   └── api/                  # API 技術文件
+│   │       ├── api-best-practices.md      # API 最佳實踐
+│   │       ├── api-design.md             # API 設計
+│   │       ├── api-endpoints-reference.md # API 端點參考
+│   │       └── api-layered-architecture.md # API 分層架構
+│   ├── testing/                  # 測試相關文件
+│   │   ├── 104_resume_clinic_api_collection.json # Postman 測試集合
+│   │   ├── postman_testing_guide.md       # Postman 測試指南
+│   │   └── schedule_api_examples.md        # 排程 API 範例
+│   ├── README.md                 # 文件說明
+│   └── user-stories.md           # 使用者故事
 ├── htmlcov/                      # 測試覆蓋率報告
 ├── logs/                         # 日誌檔案
 ├── scripts/                      # 開發工具腳本
+│   ├── clear_cache.py            # 清除快取腳本
+│   └── fix_imports.py            # 修復匯入腳本
 ├── static/                       # 靜態檔案
 │   ├── images/                   # 圖片資源
 │   ├── css/                      # 樣式檔案
@@ -365,51 +301,122 @@ tests/ # 單元測試與整合測試
 ├── tests/                        # 測試檔案
 │   ├── unit/                     # 單元測試
 │   ├── integration/              # 整合測試
-│   ├── e2e/                      # 端到端測試
-│   └── fixtures/                 # 測試資料和 Fixtures
-├── .coverage                     # 測試覆蓋率報告
+│   ├── utils/                    # 測試工具
+│   │   └── test_utils.py         # 測試工具函式
+│   ├── conftest.py               # 測試配置
+│   └── README.md                 # 測試說明
 ├── .env                          # 環境變數（本地開發）
-├── .env.example                  # 環境變數範例
+├── .env.example                  # 環境變數範本
 ├── .flake8                       # Flake8 配置
 ├── .gitignore                    # Git 忽略檔案
 ├── .pre-commit-config.yaml       # Pre-commit 配置
-├── alembic.ini                   # Alembic 主配置檔案
+├── coverage.xml                  # 測試覆蓋率報告
+├── openapi.json                  # OpenAPI 規格檔案
 ├── poetry.lock                   # Poetry 依賴鎖定
 ├── pyproject.toml                # Poetry 專案配置
-├── pytest.ini                    # Pytest 配置
 └── README.md                     # 專案說明文件
 ```
 
+### 技術棧
+
+#### 安全性
+
+- **FastAPI 型別檢查**：自動檢查傳入資料的型別，確保符合 Pydantic 模型定義
+- **.env 管理環境變數**：`.env` 檔案被 `.gitignore` 忽略，避免敏感資訊被提交到公開的 GitHub
+- **Pydantic Settings 配置管理**：配置參數從 `.env` 讀取避免敏感資訊洩露，且讀取時會驗證每個值的型別，降低錯誤配置風險
+- **CORS 跨域請求控管**：只允許經授權的網域訪問後端 API，避免惡意網站存取後端 API
+- **Pydantic 輸入驗證**：輸入資料不符合 schema 設定的型別和格式會報錯，從源頭阻止惡意輸入
+- **ORM 避免 SQL 注入**：ORM 將傳入資料視為「參數」而不是「指令」，故傳入的惡意資料，即使被拼接也不會被當作 SQL 指令執行而避免 SQL 注入
+- **最小權限原則**：避免使用 root 進行資料庫操作，而是建立使用者，並只授予其在資料庫上所有資料表必要的權限
+- **Enum 列舉型別**：防止不合法的值，被賦給變數
+- **健康檢查**：只返回簡單的 {"status": "healthy"} 或 {"status": "unhealthy"}，避免暴露應用程式詳細資訊
+
+#### 可維護性與可擴充性
+
+- **FastAPI 自動生成文件**：自動依據路由和 Pydantic 型別生成 OpenAPI 規範文檔，提供互動式測試的 Swagger UI、單頁式閱讀介面的 Redoc，減少維護 API 文件的工作量
+- **CI/CD 的 CI**：每次提交程式碼前，會自動執行 pre-commit hooks、pytest 測試，確保程式碼品質
+- **Pre-commit**：每次提交 commit 前自動檢查以下項目，確保程式碼品質
+  - **fix_imports.py**：自定義腳本，將函式內部的 import 語句移到檔案頂部
+  - **autoflake**：移除所有未使用的 import、變數
+  - **isort**：自動整理 import 語句的順序
+  - **Black**：統一程式碼風格，如縮排、換行、空格、行長度等
+  - **Flake8**：檢查程式碼是否符合 PEP8 規範，避免語法錯誤、潛在錯誤
+  - **MyPy**：確保程式碼都有型別標註，並在程式執行前就檢查型別錯誤
+- **錯誤處理 Decorator**：統一錯誤回傳格式，不需在每個函式中都寫重覆的 try...except
+- **自定義錯誤處理**：自定義不同層級可能遇到的錯誤類型，除錯時能快速定位是哪個層級拋出的錯誤
+- **Log Decorator**：統一日誌記錄格式，除錯時能快速定位問題根源
+- **Poetry 套件管理**：用 `pyproject.toml` 定義依賴的版本範圍，用 `poetry.lock` 鎖定確切依賴版本，確保環境一致性
+- **微服務分層模組**：從用戶請求到回應，依職責拆分成 CORS → Routers → Schemas → Service → CRUD → Models → DB 
+- **SQLAlchemy ORM**：可用直觀的  Python 物件而非 SQL 操作資料庫，且資料庫切換時只需改連線設定，不需重寫資料庫操作程式碼
+- **Alembic 資料庫遷移**：讓資料庫遷移像程式碼版本控制一樣，方便回溯與管理
+- **Enum 列舉型別**：修改選項時只需改 Enum 定義，使用的地方會自動更新，降低維護成本
+- **軟刪除**：避免誤刪資料，方便未來還原資料
+
+#### 可靠性
+
+- **FastAPI 框架**：Uvicorn ASGI 伺服器支援非同步，確保高流量請求時不阻塞、服務穩定
+- **測試覆蓋率 80％**：透過 pytest 進行單元測試、整合測試，測試覆蓋率 80%，確保各模組正常運作
+- **SQLite 測試環境**：不需啟動完整資料庫伺服器即可運行，確保測試失敗代表程式碼問題，而不是環境問題
+- **健康檢查**：監控應用程式是否存活、就緒，異常發生時自動重啟或流量導向健康的實例，確保服務穩定
+- **錯誤處理 Decorator**：攔截錯誤與例外，避免未捕捉錯誤導致服務中斷
+- **Log Decorator**：藉日誌監控應用程式的運行狀態，以提早發現效能瓶頸或不正常行為，如被頻繁呼叫的 API、處理時間過長的請求
+- **資料庫事務管理**：透過回滾 Rollback 裝飾器，落實 ACID 原則，防範資料不一致性問題
+- **資料庫連線池**：連線池事先準備好一定數量的連線，確保高併發狀況下仍能穩定回應請求
+- **外鍵約束避免孤兒紀錄**：確保子表的外鍵都有對應到父表中存在的主鍵，避免因父表刪除產生孤兒紀錄
+
+#### 效能
+
+- **FastAPI 非同步框架**：支援 ASGI 非同步伺服器 Uvicorn，利用 async/await 提升吞吐量，支援高併發 API 請求
+- **Eager loading 解決 N+1**：JOIN 查詢時載入所需關聯資料，避免多次查詢的 N+1 問題，適用高頻率查詢場景如查詢時段列表、Giver 資訊、Taker 資訊
+- **Lazy loading**：需要時才載入子表，避免不必要資料抓取，適用低頻率查詢場景如審計欄位
+- **資料庫連線池**：連線池事先準備好一定數量的連線，避免頻繁建立、關閉資料庫連線，提升效能並穩定資源使用
+- **資料庫索引**：為高頻率查詢場景建立索引避免全表掃描、低頻率查詢場景不建立索引避免系統負擔、選擇性高欄位放複合索引前面提高效率、覆蓋索引盡可能涵蓋查詢所需欄位
+- **Jinja2 模板引擎**：將模板先編譯成 Python 程式碼避免每次請求都解析原始模板、支援快取已編譯的模板
+- **Bootstrap 響應式網格**：網站依不同裝置（手機、平板、桌面）自動調整版面，減少因不同裝置重新渲染導致頁面載入變慢
+- **靜態資源預載入**：透過HTML preload、prefetch，在瀏覽器解析 HTML 時即開始下載關鍵資源，避免資源使用時才開始下載造成阻塞，提高頁面渲染速度
+
+#### 開發者體驗
+
+- **SQLite 測試環境**：簡化測試環境的設定。開發者不需要額外安裝和管理一個完整的資料庫伺服器，只需簡單的檔案操作即可。這大大降低了維護成本，並讓測試環境更易於在 CI/CD 流程中擴展。
+以輕鬆地在本地運行測試，而無需網路連線或複雜的資料庫配置。這加速了開發循環，提高了測試效率，大大優化了開發者體驗。
+
+- **IDE**：Visual Studio Code, Cursor
+- **資料庫管理**：MySQL Workbench 8.0.15
+- **API 測試**：Postman
+- **版本控制**：Git, Sourcetree
+- **監控工具**：整合日誌系統
+
+
 ### **分層架構設計**
 
-- **API 層** (`routers/`): 處理 HTTP 請求和回應
-- **業務邏輯層** (`services/`): 處理業務規則和邏輯
-- **資料存取層** (`crud/`): 資料庫 CRUD 操作
-- **資料模型層** (`models/`): SQLAlchemy 模型定義
-- **驗證層** (`schemas/`): Pydantic 資料驗證
+- **API 層** (`routers/`)：處理 HTTP 請求和回應
+- **業務邏輯層** (`services/`)：處理業務規則和邏輯
+- **資料存取層** (`crud/`)：資料庫 CRUD 操作
+- **資料模型層** (`models/`)：SQLAlchemy 模型定義
+- **驗證層** (`schemas/`)：Pydantic 資料驗證
 
 ## <a name="測試指南"></a>測試指南 [返回目錄 ↑](#目錄)
 
 ### 測試工具
 
-- **Pytest**: 測試框架
-- **Pytest-asyncio**: 異步測試支援
-- **HTTPX**: FastAPI 測試客戶端
-- **測試常數管理**: 集中化管理測試常數，確保一致性
-- **測試覆蓋率**: 使用 pytest-cov 進行覆蓋率分析
+- **Pytest**：測試框架
+- **Pytest-asyncio**：異步測試支援
+- **HTTPX**：FastAPI 測試客戶端
+- **測試常數管理**：集中化管理測試常數，確保一致性
+- **測試覆蓋率**：使用 pytest-cov 進行覆蓋率分析
 
 ### 測試策略
 
-- **單元測試** (`tests/unit/`): 測試個別函數、類別和模組
-  - 模型測試: 資料庫模型和驗證
-  - CRUD 測試: 資料庫操作
-  - 工具函數測試: 輔助工具和配置
-  - 中間件測試: CORS 等中間件功能
-- **整合測試** (`tests/integration/`): 測試多個組件之間的互動
-  - API 測試: 端點功能和整合
-  - 資料庫整合測試: 資料庫操作和整合
-- **端到端測試** (`tests/e2e/`): 測試完整的用戶工作流程
-- **測試資料管理** (`tests/fixtures/`): 集中管理測試資料和 Fixtures
+- **單元測試** (`tests/unit/`)：測試個別函數、類別和模組
+  - 模型測試：資料庫模型和驗證
+  - CRUD 測試：資料庫操作
+  - 工具函數測試：輔助工具和配置
+  - 中間件測試：CORS 等中間件功能
+- **整合測試** (`tests/integration/`)：測試多個組件之間的互動
+  - API 測試：端點功能和整合
+  - 資料庫整合測試：資料庫操作和整合
+- **端到端測試** (`tests/e2e/`)：測試完整的用戶工作流程
+- **測試資料管理** (`tests/fixtures/`)：集中管理測試資料和 Fixtures
 
 ### 執行測試
 
@@ -530,30 +537,30 @@ pre-commit install
 
 #### 健康檢查端點
 
-- **基本健康檢查**: `GET /healthz` - 檢查應用程式是否正在運行
-- **就緒檢查**: `GET /readyz` - 檢查應用程式和資料庫是否準備好接收流量
+- **基本健康檢查**：`GET /healthz` - 檢查應用程式是否正在運行
+- **就緒檢查**：`GET /readyz` - 檢查應用程式和資料庫是否準備好接收流量
 
 #### 使用者管理 API
 
-- **取得使用者列表**: `GET /api/v1/users/` - 取得所有使用者
-- **取得特定使用者**: `GET /api/v1/users/{user_id}` - 取得特定使用者資訊
-- **建立使用者**: `POST /api/v1/users/` - 建立新使用者
-- **更新使用者**: `PUT /api/v1/users/{user_id}` - 更新使用者資訊
+- **取得使用者列表**：`GET /api/v1/users/` - 取得所有使用者
+- **取得特定使用者**：`GET /api/v1/users/{user_id}` - 取得特定使用者資訊
+- **建立使用者**：`POST /api/v1/users/` - 建立新使用者
+- **更新使用者**：`PUT /api/v1/users/{user_id}` - 更新使用者資訊
 
 #### 排程管理 API
 
-- **取得排程列表**: `GET /api/v1/schedules/` - 取得所有排程
-- **取得特定排程**: `GET /api/v1/schedules/{schedule_id}` - 取得特定排程資訊
-- **建立排程**: `POST /api/v1/schedules/` - 建立新排程
-- **更新排程**: `PATCH /api/v1/schedules/{schedule_id}` - 更新排程資訊
-- **刪除排程**: `DELETE /api/v1/schedules/{schedule_id}` - 刪除排程
+- **取得排程列表**：`GET /api/v1/schedules/` - 取得所有排程
+- **取得特定排程**：`GET /api/v1/schedules/{schedule_id}` - 取得特定排程資訊
+- **建立排程**：`POST /api/v1/schedules/` - 建立新排程
+- **更新排程**：`PATCH /api/v1/schedules/{schedule_id}` - 更新排程資訊
+- **刪除排程**：`DELETE /api/v1/schedules/{schedule_id}` - 刪除排程
 
 ### **API 文件**
 
 啟動伺服器後，可以訪問以下文件：
 
-- **Swagger UI**: http://127.0.0.1:8000/docs
-- **ReDoc**: http://127.0.0.1:8000/redoc
+- **Swagger UI**：http://127.0.0.1:8000/docs
+- **ReDoc**：http://127.0.0.1:8000/redoc
 
 ### **API 使用範例**
 

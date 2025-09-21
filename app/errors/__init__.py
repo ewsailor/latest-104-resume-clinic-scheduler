@@ -17,8 +17,6 @@ from .exceptions import (
     BusinessLogicError,
     ConflictError,
     DatabaseError,
-    LivenessCheckError,
-    ReadinessCheckError,
     ScheduleCannotBeDeletedError,
     ScheduleNotFoundError,
     ScheduleOverlapError,
@@ -33,8 +31,6 @@ from .handlers import (
     create_bad_request_error,
     create_business_logic_error,
     create_database_error,
-    create_liveness_check_error,
-    create_readiness_check_error,
     create_schedule_cannot_be_deleted_error,
     create_schedule_not_found_error,
     create_schedule_overlap_error,
@@ -70,8 +66,6 @@ __all__ = [
     "DatabaseError",
     # System 層級
     "ServiceUnavailableError",
-    "LivenessCheckError",
-    "ReadinessCheckError",
     # ===== 錯誤處理函式 =====
     # Router 層級
     "create_bad_request_error",
@@ -87,8 +81,6 @@ __all__ = [
     # CRUD 層級
     "create_database_error",
     # System 層級
-    "create_liveness_check_error",
-    "create_readiness_check_error",
     "create_service_unavailable_error",
     # ===== 錯誤格式化 =====
     "format_error_response",

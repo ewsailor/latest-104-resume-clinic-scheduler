@@ -10,8 +10,6 @@ from app.errors.exceptions import (
     AuthorizationError,
     BusinessLogicError,
     DatabaseError,
-    LivenessCheckError,
-    ReadinessCheckError,
     ScheduleNotFoundError,
     ScheduleOverlapError,
     ServiceUnavailableError,
@@ -23,8 +21,6 @@ from app.errors.handlers import (
     create_authorization_error,
     create_business_logic_error,
     create_database_error,
-    create_liveness_check_error,
-    create_readiness_check_error,
     create_schedule_cannot_be_deleted_error,
     create_schedule_not_found_error,
     create_schedule_overlap_error,
@@ -257,48 +253,6 @@ class TestCreateServiceUnavailableError:
         assert error.message == message
 
 
-class TestCreateLivenessCheckError:
-    """create_liveness_check_error 函數測試。"""
-
-    def test_create_liveness_check_error(self):
-        """測試建立存活檢查錯誤。"""
-        error = create_liveness_check_error("資料庫連線失敗")
-
-        assert isinstance(error, LivenessCheckError)
-        assert error.message == "資料庫連線失敗"
-        assert error.error_code == "LIVENESS_CHECK_ERROR"
-        assert error.status_code == 500
-
-    def test_create_liveness_check_error_with_detailed_message(self):
-        """測試建立詳細訊息的存活檢查錯誤。"""
-        message = "Redis 連線超時，無法完成存活檢查"
-        error = create_liveness_check_error(message)
-
-        assert isinstance(error, LivenessCheckError)
-        assert error.message == message
-
-
-class TestCreateReadinessCheckError:
-    """create_readiness_check_error 函數測試。"""
-
-    def test_create_readiness_check_error(self):
-        """測試建立準備就緒檢查錯誤。"""
-        error = create_readiness_check_error("外部服務不可用")
-
-        assert isinstance(error, ReadinessCheckError)
-        assert error.message == "外部服務不可用"
-        assert error.error_code == "READINESS_CHECK_ERROR"
-        assert error.status_code == 503
-
-    def test_create_readiness_check_error_with_service_message(self):
-        """測試建立服務訊息的準備就緒檢查錯誤。"""
-        message = "第三方 API 服務回應超時"
-        error = create_readiness_check_error(message)
-
-        assert isinstance(error, ReadinessCheckError)
-        assert error.message == message
-
-
 class TestErrorHandlerConsistency:
     """錯誤處理器一致性測試。"""
 
@@ -319,8 +273,6 @@ class TestErrorHandlerConsistency:
             ),
             (create_database_error, DatabaseError, "資料庫錯誤"),
             (create_service_unavailable_error, ServiceUnavailableError, "服務不可用"),
-            (create_liveness_check_error, LivenessCheckError, "存活檢查失敗"),
-            (create_readiness_check_error, ReadinessCheckError, "準備就緒檢查失敗"),
         ]
 
         for handler_func, expected_type, arg in handlers:
@@ -364,8 +316,6 @@ class TestErrorHandlerConsistency:
             ),
             (create_database_error("test"), 500),
             (create_service_unavailable_error("test"), 503),
-            (create_liveness_check_error("test"), 500),
-            (create_readiness_check_error("test"), 503),
         ]
 
         for error, expected_status in status_tests:
@@ -387,8 +337,6 @@ class TestErrorHandlerConsistency:
             ),
             (create_database_error("test"), "CRUD_DATABASE_ERROR"),
             (create_service_unavailable_error("test"), "SERVICE_UNAVAILABLE"),
-            (create_liveness_check_error("test"), "LIVENESS_CHECK_ERROR"),
-            (create_readiness_check_error("test"), "READINESS_CHECK_ERROR"),
         ]
 
         for error, expected_code in code_tests:
