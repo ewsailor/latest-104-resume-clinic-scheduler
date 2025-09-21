@@ -109,7 +109,6 @@ class TestTimeSlotGeneration:
         # 驗證效能（應該在合理時間內完成）
         duration = end_time_test - start_time_test
         assert duration < 1.0  # 應該在 1 秒內完成
-        print(f"生成 100 個時段耗時: {duration:.3f} 秒")
 
     def test_time_slot_uniqueness_across_multiple_calls(self):
         """測試多次調用時段唯一性。"""

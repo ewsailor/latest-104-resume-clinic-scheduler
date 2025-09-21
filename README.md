@@ -29,7 +29,10 @@
   - [專案結構](#專案結構)
   - [ERD 實體關聯圖](#ERD-實體關聯圖)
   - [API](#api)
-    - Swagger、API 端點概覽、RESTful 設計原則、API 範例請求與回應、版本控制、成功失敗狀態碼、Postman
+    - [RESTful API](#restful-api)
+    - [Swagger/ReDoc：查看 API 請求與回應範例](#swagger-redoc-請求與回應範例)
+    - [Postman：Collection Runner 一鍵測試所有 API](#postman-一鍵測試所有-api)
+    - [API 分層架構設計](#API-分層架構設計)
   - [測試](#測試)
     - 測試覆蓋率、夾具 Fixtures 集中化管理測試常數、單元測試、整合測試
   - [自動化測試](#cicd)
@@ -107,7 +110,7 @@
 
 ## <a name="架構設計"></a>架構設計 [返回目錄 ↑](#目錄)
 
-主要使用技術為 Python、FastAPI 框架 + SQLAlchemy、MySQL/MariaDB 資料庫，採微服務分層模組避免高耦合，提供時段（Schedule）的 CRUD API 與 Swagger API 文件，用 Postman、pytest、pre-commit、CI/CD 的 CI 確保程式碼品質，並有考量安全性、可維護性與可擴充性、可靠性、效能、開發效率。
+主要使用技術為 Python、FastAPI 框架 + SQLAlchemy、MySQL/MariaDB 資料庫，採分層架構設計避免高耦合，提供時段（Schedule）的 CRUD API 與 Swagger API 文件，用 Postman、pytest、pre-commit、CI/CD 的 CI 確保程式碼品質，並有考量安全性、可維護性與可擴充性、可靠性、效能、開發效率。
 
 ### <a name="安全性"></a>安全性 [返回目錄 ↑](#目錄)
 
@@ -133,7 +136,7 @@
 - **錯誤處理 Decorator**：統一錯誤回傳格式，避免在每個函式中寫重覆的 try...except
 - **自定義錯誤處理**：自定義不同層級可能遇到的錯誤類型，除錯時能快速定位是哪個層級拋出的錯誤
 - **Log Decorator**：統一日誌記錄格式，除錯時能快速定位問題根源
-- **微服務分層模組**：從用戶請求到回應，依職責拆分成 CORS → Routers → Schemas → Service → CRUD → Models → DB
+- **API 分層架構設計**：從用戶請求到回應，依職責拆分成 CORS → Routers → Schemas → Service → CRUD → Models → DB，降低耦合度
 - **SQLAlchemy ORM**：可用直觀的 Python 物件而非 SQL 操作資料庫，且資料庫切換時只需改連線設定，不需重寫資料庫操作程式碼
 - **Alembic 資料庫遷移**：讓資料庫遷移像程式碼版本控制一樣，方便回溯與管理
 - **Poetry 套件管理**：用 `pyproject.toml` 定義依賴的版本範圍，用 `poetry.lock` 鎖定確切依賴版本，確保環境一致性
@@ -170,13 +173,13 @@
 - **熱重載**：Uvicorn 啟動時加上 --reload 參數，修改後自動重新啟動伺服器，立即看到修改效果
 - **Jira**：有助開發團隊管理任務、掌握分工與優先順序、追蹤進度
   - ![Jira 專案管理](static/images/tools/jira/jira.png)
+- **Postman**：提供視覺化介面，有助開發團隊快速測試與驗證 API，且可用 Collection Runner 一鍵運行集合中所有自動測試腳本，即時查看所有 API 的測試結果
+  - ![Postman API 測試](static/images/tools/postman/postman.png)
 - **MySQL Workbench**：提供視覺化介面，有助開發團隊掌握資料表結構、查看資料庫中儲存的資料的值
   - ![MySQL Workbench 資料庫設計](static/images/tools/mysql-workbench/table-structure.png)
   - ![MySQL Workbench 查詢結果](static/images/tools/mysql-workbench/query-results.png)
 - **Sourcetree**：視覺化 Git，有助開發團隊更輕鬆地進行程式碼合併、分支管理、衝突解決
   - ![Sourcetree Git 管理](static/images/tools/sourcetree/sourcetree.png)
-- **Postman**：提供視覺化介面，有助開發團隊測試驗證 API，並可保存測試腳本，一鍵測試所有 API
-  - ![Postman API 測試](static/images/tools/postman/postman.png)
 
 ## <a name="快速開始"></a>快速開始 [返回目錄 ↑](#目錄)
 
@@ -316,15 +319,15 @@
 
 ```
 104-resume-clinic-scheduler/
-├── .github\workflows\ci.yml      # CI/CD 的 CI
+├── .github/workflows/ci.yml      # CI/CD 的 CI
 ├── alembic/                      # 資料庫遷移管理
 ├── app/                          # 應用程式主目錄
 │   ├── core/                     # 設定管理
 │   ├── crud/                     # CRUD 資料庫操作層
 │   ├── database/                 # 資料庫連線管理
 │   ├── decorators/               # 裝飾器
-│   │   ├── logging.py            # 日誌裝飾器
-│   │   └── error_handlers.py     # 錯誤處理裝飾器
+│   │   ├── error_handlers.py     # 錯誤處理裝飾器
+│   │   └── logging.py            # 日誌裝飾器
 │   ├── enums/                    # 列舉型別定義
 │   ├── errors/                   # 錯誤處理系統
 │   │   ├── error_codes           # 各層級錯誤代碼
@@ -346,13 +349,9 @@
 │   └── main.py                   # 應用程式入口點
 ├── database/                     # 資料庫相關檔案
 │   └── schema.sql                # 資料庫結構檔案
-├── docs/                         # 文件目錄
-│   ├── technical/                # 技術文件
-│   │   └── api/                  # API 技術文件
-│   │       ├── api-best-practices.md      # API 最佳實踐
-│   │       ├── api-design.md             # API 設計
-│   │       ├── api-endpoints-reference.md # API 端點參考
-│   │       └── api-layered-architecture.md # API 分層架構
+├── docs/                         # 開發文檔
+│   ├── postman/                  # Postman 測試集合
+│   │   └── 104 Resume Clinic Scheduler.postman_collection.json
 │   ├── testing/                  # 測試相關文件
 │   │   ├── 104_resume_clinic_api_collection.json # Postman 測試集合
 │   │   ├── postman_testing_guide.md       # Postman 測試指南
@@ -365,14 +364,13 @@
 │   ├── clear_cache.py            # 清除快取腳本
 │   └── fix_imports.py            # 修復匯入腳本
 ├── static/                       # 靜態檔案
-│   ├── images/                   # 圖片資源
 │   ├── css/                      # 樣式檔案
+│   ├── images/                   # 圖片資源
 │   └── js/                       # JavaScript 檔案
 ├── tests/                        # 測試檔案
 │   ├── unit/                     # 單元測試
 │   ├── integration/              # 整合測試
 │   ├── utils/                    # 測試工具
-│   │   └── test_utils.py         # 測試工具函式
 │   ├── conftest.py               # 測試配置
 │   └── README.md                 # 測試說明
 ├── .env                          # 環境變數（本地開發）
@@ -381,7 +379,6 @@
 ├── .gitignore                    # Git 忽略檔案
 ├── .pre-commit-config.yaml       # Pre-commit 配置
 ├── coverage.xml                  # 測試覆蓋率報告
-├── openapi.json                  # OpenAPI 規格檔案
 ├── poetry.lock                   # Poetry 依賴鎖定
 ├── pyproject.toml                # Poetry 專案配置
 └── README.md                     # 專案說明文件
@@ -389,19 +386,98 @@
 
 ### <a name="ERD-實體關聯圖"></a>ERD 實體關聯圖 [返回目錄 ↑](#目錄)
 
-視覺化呈現資料庫中各資料表的關聯，減少因資料庫設計問題而產生的反覆修改和重工
+視覺化呈現資料庫中各資料表的關聯，減少因資料庫設計問題而產生的反覆修改和重工。
 
 ![ERD 實體關聯圖](static/images/database/erd.svg)
 
 ### <a name="api"></a>API [返回目錄 ↑](#目錄)
 
-#### **分層架構設計**
+#### <a name="restful-api"></a>RESTful API [返回目錄 ↑](#目錄)
 
-- **API 層** (`routers/`)：處理 HTTP 請求和回應
-- **業務邏輯層** (`services/`)：處理業務規則和邏輯
-- **資料存取層** (`crud/`)：資料庫 CRUD 操作
-- **資料模型層** (`models/`)：SQLAlchemy 模型定義
-- **驗證層** (`schemas/`)：Pydantic 資料驗證
+本專案遵循 `RESTful (Representational State Transfer)` 原則設計 `API`，使用 `HTTP` 方法對資源執行操作。
+
+| 方法   | 端點                     | 描述         | 狀態碼 |
+| ------ | ------------------------ | ------------ | ------ |
+| POST   | `/api/v1/schedules`      | 建立排程     | 201    |
+| GET    | `/api/v1/schedules`      | 取得排程列表 | 200    |
+| GET    | `/api/v1/schedules/{id}` | 取得特定排程 | 200    |
+| PATCH  | `/api/v1/schedules/{id}` | 部分更新排程 | 200    |
+| DELETE | `/api/v1/schedules/{id}` | 刪除排程     | 204    |
+
+#### <a name="swagger-redoc-請求與回應範例"></a>Swagger/ReDoc：查看 API 請求與回應範例 [返回目錄 ↑](#目錄)
+
+FastAPI 會自動依據路由和 Pydantic 型別生成 OpenAPI 規範文檔，提供互動式測試的 Swagger UI、單頁式閱讀介面的 Redoc，請依以下步驟查看 API 請求與回應範例。
+
+1. **啟動服務**
+
+   - 啟動伺服器：
+     ```bash
+     poetry run uvicorn app.main:app --reload --reload-dir app
+     ```
+   - 瀏覽器訪問：http://localhost:8000
+
+2. **訪問 API 文檔**
+
+   - Swagger UI: `http://localhost:8000/docs`
+   - ReDoc: `http://localhost:8000/redoc`
+
+#### <a name="postman-一鍵測試所有-api"></a>Postman：Collection Runner 一鍵測試所有 API [返回目錄 ↑](#目錄)
+
+Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，請依以下步驟啟動 Collection Runner，一鍵運行集合中所有自動測試腳本，即時查看所有 API 的測試結果。
+
+1. **啟動服務**
+
+   - 啟動伺服器：
+     ```bash
+     poetry run uvicorn app.main:app --reload --reload-dir app
+     ```
+   - 瀏覽器訪問：http://localhost:8000
+
+2. **匯入 Collection 至 Postman**
+
+   - 路徑：docs\postman\104 Resume Clinic Scheduler.postman_collection.json
+   - ![匯入 Collection 至 Postman](static/images/tools/postman/01-import-postman-collection.png)
+
+3. **用 Collection Runner 一鍵測試所有 API**
+
+   - 在 Postman 中選擇集合，點擊 Run 啟動 Collection Runner，一鍵運行集合中所有自動測試腳本
+   - ![用 Collection Runner 一鍵測試所有 API](static/images/tools/postman/02-run-postman-tests.png)
+
+4. **即時查看所有 API 的測試結果**
+
+   - ![即時查看所有 API 的測試結果](static/images/tools/postman/03-run-postman-results.png)
+
+#### <a name="API-分層架構設計"></a>API 分層架構設計 [返回目錄 ↑](#目錄)
+
+從用戶請求到回應，依職責拆分成 CORS → Routers → Schemas → Service → CRUD → Models → DB，降低耦合度。
+
+- **Routers 路由層**：處理 HTTP 請求和回應、FastAPI 自動文件生成
+- **Middleware CORS 中介層**：處理跨域請求，只允許經授權的網域訪問後端 API，避免惡意網站存取後端 API
+- **Schemas 驗證層**：Pydantic 資料驗證、型別提示、FastAPI 自動文件生成
+- **Service 服務層**：業務邏輯處理，錯誤處理、事務管理
+- **CRUD 資料存取層**：資料庫 CRUD 操作
+- **Model 資料模型層**：SQLAlchemy ORM 定義資料表結構、Alembic 資料庫遷移
+- **Database 資料庫層**：資料庫連線管理、儲存資料
+
+```
+Client Request 客戶端發送請求
+    ↓
+Routers 路由層：app/routers/api/
+    ↓
+Middleware CORS 中介層：app/middleware/
+    ↓
+Schemas 驗證層：app/schemas/
+    ↓
+Service 服務層：app/services/
+    ↓
+CRUD 資料存取層：app/crud/
+    ↓
+Model 資料模型層：app/models/
+    ↓
+Database 資料庫層：app/database/
+    ↓
+Client Response 客戶端接收回應
+```
 
 ## <a name="測試"></a>測試 [返回目錄 ↑](#目錄)
 

@@ -28,10 +28,8 @@ def create_database_engine() -> tuple[Engine, sessionmaker]:
     # 根據環境選擇資料庫
     if settings.testing or settings.app_env == "testing":
         DATABASE_URL = settings.sqlite_connection_string
-        logger.info("使用 SQLite 資料庫（測試環境）")
     else:
         DATABASE_URL = settings.mysql_connection_string
-        logger.info("使用 MySQL 資料庫（生產/開發環境）")
 
     try:
         # 根據資料庫類型設定不同的引擎參數
@@ -62,12 +60,7 @@ def create_database_engine() -> tuple[Engine, sessionmaker]:
 
         # 測試連線
         with engine.connect():
-            if settings.testing or settings.app_env == "testing":
-                logger.info(f"成功建立 SQLite 資料庫引擎：{settings.sqlite_database}")
-            else:
-                logger.info(
-                    f"成功建立 MySQL 資料庫引擎，並連結到資料庫：{settings.mysql_database}"
-                )
+            logger.info("成功建立資料庫引擎，並連結到資料庫")
 
         # 建立 session 工廠：每次呼叫 SessionLocal()，就生成一個新 Session 實例，確保每個請求，都有一個獨立的資料庫連線，避免共用連線，導致資料庫操作錯亂
         SessionLocal = sessionmaker(

@@ -30,16 +30,12 @@ class TestCorsMiddleware:
         with patch('app.middleware.cors.logger') as mock_logger:
             log_app_startup(app)
 
-            # 驗證 logger.info 被調用了 5 次（啟動開始、環境、版本、除錯模式、啟動完成）
-            assert mock_logger.info.call_count == 5
+            # 驗證 logger.info 被調用了 1 次（啟動完成）
+            assert mock_logger.info.call_count == 1
 
             # 檢查具體的日誌訊息
             calls = mock_logger.info.call_args_list
-            assert "===== 應用程式啟動 =====" in calls[0][0][0]
-            assert "環境:" in calls[1][0][0]
-            assert "版本:" in calls[2][0][0]
-            assert "除錯模式:" in calls[3][0][0]
-            assert "===== 啟動完成 ======" in calls[4][0][0]
+            assert "===== 應用程式啟動完成 ======" in calls[0][0][0]
 
     def test_log_app_startup_with_different_apps(self):
         """測試使用不同 FastAPI 應用程式記錄啟動資訊。"""
@@ -56,8 +52,8 @@ class TestCorsMiddleware:
             second_call_count = mock_logger.info.call_count
 
             # 驗證兩次調用都成功
-            assert first_call_count == 5
-            assert second_call_count == 10  # 5 + 5
+            assert first_call_count == 1
+            assert second_call_count == 2  # 1 + 1
 
     def test_log_app_startup_logger_error_handling(self):
         """測試日誌記錄錯誤處理。"""

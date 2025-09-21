@@ -245,7 +245,7 @@ class TestSettings:
             os.environ,
             {
                 'MYSQL_USER': 'testuser',
-                'MYSQL_PASSWORD': 'testpass',
+                'MYSQL_PASSWORD': '***',
                 'MYSQL_HOST': 'testhost',
                 'MYSQL_PORT': '3306',
                 'MYSQL_DATABASE': 'testdb',
@@ -255,7 +255,7 @@ class TestSettings:
             settings = Settings()
             connection_string = settings.mysql_connection_string
             expected = (
-                "mysql+pymysql://testuser:testpass@testhost:3306/testdb?charset=utf8mb4"
+                "mysql+pymysql://testuser:***@testhost:3306/testdb?charset=utf8mb4"
             )
             assert connection_string == expected
 
@@ -300,12 +300,12 @@ class TestSettings:
                 'REDIS_HOST': 'testhost',
                 'REDIS_PORT': '6379',
                 'REDIS_DB': '1',
-                'REDIS_PASSWORD': 'testpass',
+                'REDIS_PASSWORD': '***',
             },
         ):
             settings = Settings()
             connection_string = settings.redis_connection_string
-            expected = "redis://:testpass@testhost:6379/1"
+            expected = "redis://:***@testhost:6379/1"
             assert connection_string == expected
 
     def test_smtp_config(self):
@@ -428,18 +428,18 @@ class TestSettings:
         with patch.dict(
             os.environ,
             {
-                'SECRET_KEY': 'test-secret-key',
-                'SESSION_SECRET': 'test-session-secret',
-                'AWS_SECRET_ACCESS_KEY': 'test-aws-secret',
-                'API_104_CLIENT_SECRET': 'test-104-secret',
+                'SECRET_KEY': '***',
+                'SESSION_SECRET': '***',
+                'AWS_SECRET_ACCESS_KEY': '***',
+                'API_104_CLIENT_SECRET': '***',
             },
         ):
             settings = Settings()
 
-            assert settings.secret_key_value == "test-secret-key"
-            assert settings.session_secret_value == "test-session-secret"
-            assert settings.aws_secret_key_value == "test-aws-secret"
-            assert settings.api_104_secret_value == "test-104-secret"
+            assert settings.secret_key_value == "***"
+            assert settings.session_secret_value == "***"
+            assert settings.aws_secret_key_value == "***"
+            assert settings.api_104_secret_value == "***"
 
     def test_secret_key_methods_no_secrets(self):
         """測試沒有密鑰時的方法。"""

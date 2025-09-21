@@ -1,0 +1,2594 @@
+{
+	"info": {
+		"_postman_id": "fe85459f-b262-4a62-bdcb-c5b58e9c9847",
+		"name": "104 Resume Clinic Scheduler",
+		"description": "104 履歷診療室 - 站內諮詢時間媒合系統。\n\n讓 Giver（診療服務提供者）與 Taker（診療服務接受者）能在平台內，方便地設定可面談時段並完成配對媒合，同時提供即時通知，以減少等待回應時的不確定與焦慮感。\n\nContact Support:\n Name: 鍾郡荃 Oscar\n Email: ew12136@gmail.com",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "47321447",
+		"_collection_link": "https://ew12136-6957017.postman.co/workspace/%分層架構設計E9%8D%BE%E9%83%A1%E8%8D%83's-Workspace~d68456b2-a7ed-4d8e-8b73-ed7025d0999a/collection/47321447-fe85459f-b262-4a62-bdcb-c5b58e9c9847?action=share&source=collection_link&creator=47321447"
+	},
+	"item": [
+		{
+			"name": "Pages",
+			"item": [
+				{
+					"name": "首頁",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "text/html"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "顯示履歷診療室首頁。"
+					},
+					"response": [
+						{
+							"name": "Successful Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "text/html"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "text",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "text/html"
+								}
+							],
+							"cookie": [],
+							"body": "string"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "存活探測檢查",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// ===== 存活探測 Pre-request Script =====\r",
+									"\r",
+									"// 記錄請求資訊\r",
+									"console.info('=== 存活探測請求準備 ===');\r",
+									"\r",
+									"// 設置全域變數：標記端點類型，供後續測試或環境使用\r",
+									"pm.globals.set('expected_endpoint', 'liveness_probe');\r",
+									"\r",
+									"// 紀錄請求細節，供後續除錯使用\r",
+									"console.info('請求 URL:', pm.request.url.toString());\r",
+									"console.info('請求方法:', pm.request.method);\r",
+									"console.info('請求開始時間:', new Date().toISOString());"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// ===== 存活探測 Post-response Script =====\r",
+									"\r",
+									"// 記錄回應資訊\r",
+									"console.log('=== 存活探測回應分析 ===');\r",
+									"console.log('狀態碼:', pm.response.code);\r",
+									"console.log('回應時間:', pm.response.responseTime + 'ms');\r",
+									"\r",
+									"// 先解析 JSON，避免多次解析\r",
+									"const responseJson = (() => {\r",
+									"    try {\r",
+									"        return pm.response.json();\r",
+									"    } catch (e) {\r",
+									"        // 如果解析失敗，直接標記測試失敗\r",
+									"        pm.test(\"回應內容應為有效的 JSON\", false);\r",
+									"        return {}; // 返回空物件以防止後續錯誤\r",
+									"    }\r",
+									"})();\r",
+									"\r",
+									"// 基礎測試\r",
+									"pm.test('回應時間小於 5 秒', function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"pm.test('Content-Type 是 application/json，回應含 charset=utf-8 也能處理', function () {\r",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.match(/application\\/json/i);\r",
+									"});\r",
+									"\r",
+									"// 回應格式與安全性測試\r",
+									"pm.test('回應格式與安全性檢查', function () {\r",
+									"    // 檢查回應格式\r",
+									"    pm.expect(responseJson).to.be.an(\"object\");    \r",
+									"    pm.expect(responseJson).to.have.property(\"status\").that.is.a(\"string\");\r",
+									"\r",
+									"    // 安全性檢查：不應暴露敏感資訊\r",
+									"    const forbiddenKeys = /(version|app|database|env|password|secret|token)/i;\r",
+									"    pm.expect(JSON.stringify(responseJson)).to.not.match(forbiddenKeys);\r",
+									"});\r",
+									"\r",
+									"// 狀態碼與業務邏輯檢查\r",
+									"pm.test('狀態碼為 200 或 500', function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 500]);\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 200 時，狀態應為 healthy', function () {\r",
+									"    if (pm.response.code === 200) {\r",
+									"        pm.expect(responseJson.status).to.eql('healthy');\r",
+									"        console.info('存活探測通過：應用程式存活、正常運行');\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 500 時，狀態應為 unhealthy', function () {\r",
+									"    if (pm.response.code === 500) {\r",
+									"        pm.expect(responseJson.status).to.eql('unhealthy');\r",
+									"        console.info('存活探測檢查錯誤：應用程式異常、未正常運行');\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"console.info('=== 存活探測檢查完成 ===');\r",
+									"\r",
+									"// ===== 視覺化報告 ====\r",
+									"const template = `\r",
+									"    <h2>檢查結果</h2>\r",
+									"    <p><strong>Status Code:</strong> {{statusCode}}</p>\r",
+									"    <p><strong>Status:</strong> {{status}}</p>\r",
+									"    <p><strong>Response Time:</strong> {{responseTime}} ms</p>\r",
+									"    <p><strong>安全性檢查:</strong> {{security}}</p>\r",
+									"    <p><strong>檢查時間:</strong> {{checkTime}}</p>\r",
+									"`;\r",
+									"\r",
+									"pm.visualizer.set(template, {\r",
+									"    statusCode: pm.response.code,\r",
+									"    status: responseJson.status || 'N/A',\r",
+									"    responseTime: pm.response.responseTime,\r",
+									"    security: /(version|app|database|env|password|secret|token)/i.test(JSON.stringify(responseJson)) ? '有敏感資訊' : '無敏感資訊',\r",
+									"    checkTime: new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/healthz",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"healthz"
+							]
+						},
+						"description": "## 功能簡介\n- 檢查應用程式是否存活、正在運行，用於 Kubernetes 的 liveness probe\n- 不包含外部依資料庫、快取等檢查\n- 僅檢查應用程式進程狀態\n\n### 使用場景\n- Kubernetes 容器健康檢查\n- 負載平衡器健康檢查\n- 應用程式監控系統\n\n### 回應狀態\n- **200 OK**: 應用程式存活、正常運行\n- **500 Internal Server Error**: 應用程式異常、未正常運行"
+					},
+					"response": [
+						{
+							"name": "應用程式存活、正常運行",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/healthz",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"healthz"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"healthy\"\n}"
+						},
+						{
+							"name": "存活探測檢查錯誤：應用程式異常、未正常運行",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/healthz",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"healthz"
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"unhealthy\"\n}"
+						}
+					]
+				},
+				{
+					"name": "就緒探測檢查",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// ===== 就緒探測 Pre-request Script =====\r",
+									"\r",
+									"// 記錄請求資訊\r",
+									"console.info('=== 就緒探測請求準備 ===');\r",
+									"\r",
+									"// 設置全域變數：標記端點類型，供後續測試或環境使用\r",
+									"pm.globals.set('expected_endpoint', 'readiness_probe');\r",
+									"\r",
+									"// 紀錄請求細節，供後續除錯使用\r",
+									"console.info('請求 URL:', pm.request.url.toString());\r",
+									"console.info('請求方法:', pm.request.method);\r",
+									"console.info('請求開始時間:', new Date().toISOString());\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// ===== 就緒探測 Post-response Script =====\r",
+									"\r",
+									"// 記錄回應資訊\r",
+									"console.log('=== 就緒探測回應分析 ===');\r",
+									"console.log('狀態碼:', pm.response.code);\r",
+									"console.log('回應時間:', pm.response.responseTime + 'ms');\r",
+									"\r",
+									"// 先解析 JSON，避免多次解析\r",
+									"const responseJson = (() => {\r",
+									"    try {\r",
+									"        return pm.response.json();\r",
+									"    } catch (e) {\r",
+									"        // 如果解析失敗，直接標記測試失敗\r",
+									"        pm.test(\"回應內容應為有效的 JSON\", false);\r",
+									"        return {}; // 返回空物件以防止後續錯誤\r",
+									"    }\r",
+									"})();\r",
+									"\r",
+									"// 基礎測試\r",
+									"pm.test('回應時間小於 10 秒（包含資料庫檢查）', function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);\r",
+									"});\r",
+									"\r",
+									"pm.test('Content-Type 是 application/json，回應含 charset=utf-8 也能處理', function () {\r",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.match(/application\\/json/i);\r",
+									"});\r",
+									"\r",
+									"// 回應格式與安全性測試\r",
+									"pm.test('回應格式與安全性檢查', function () {\r",
+									"    // 檢查回應格式\r",
+									"    pm.expect(responseJson).to.be.an(\"object\");    \r",
+									"    pm.expect(responseJson).to.have.property(\"status\").that.is.a(\"string\");\r",
+									"\r",
+									"    // 安全性檢查：不應暴露敏感資訊\r",
+									"    const forbiddenKeys = /(version|app|database|env|password|secret|token|connection|host|port|user|db)/i;\r",
+									"    pm.expect(JSON.stringify(responseJson)).to.not.match(forbiddenKeys);\r",
+									"});\r",
+									"\r",
+									"// 狀態碼與業務邏輯檢查\r",
+									"pm.test('狀態碼為 200 或 503', function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 503]);\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 200 時，狀態應為 healthy', function () {\r",
+									"    if (pm.response.code === 200) {\r",
+									"        pm.expect(responseJson.status).to.eql('healthy');\r",
+									"        console.info('就緒探測通過：應用程式準備就緒');\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 503 時，狀態應為 unhealthy', function () {\r",
+									"    if (pm.response.code === 503) {\r",
+									"        pm.expect(responseJson.status).to.eql('unhealthy');\r",
+									"        console.info('就緒探測檢查錯誤：應用程式未準備就緒');\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"console.info('=== 就緒探測檢查完成 ===');\r",
+									"\r",
+									"// ===== 視覺化報告 ====\r",
+									"const template = `\r",
+									"    <h2>就緒探測檢查結果</h2>\r",
+									"    <p><strong>Status Code:</strong> {{statusCode}}</p>\r",
+									"    <p><strong>Status:</strong> {{status}}</p>\r",
+									"    <p><strong>Response Time:</strong> {{responseTime}} ms</p>\r",
+									"    <p><strong>安全性檢查:</strong> {{security}}</p>\r",
+									"    <p><strong>資料庫狀態:</strong> {{databaseStatus}}</p>\r",
+									"    <p><strong>檢查時間:</strong> {{checkTime}}</p>\r",
+									"`;\r",
+									"\r",
+									"pm.visualizer.set(template, {\r",
+									"    statusCode: pm.response.code,\r",
+									"    status: responseJson.status || 'N/A',\r",
+									"    responseTime: pm.response.responseTime,\r",
+									"    security: /(version|app|database|env|password|secret|token|connection|host|port|user|db)/i.test(JSON.stringify(responseJson)) ? '有敏感資訊' : '無敏感資訊',\r",
+									"    databaseStatus: pm.response.code === 200 ? '連線正常' : '連線異常',\r",
+									"    checkTime: new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/readyz",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"readyz"
+							]
+						},
+						"description": "## 功能簡介\n- 檢查應用程式所有外部依賴，是否已準備好處理請求，用於 Kubernetes 的 readiness probe\n- 外部依賴如資料庫、快取、外部 API 等\n- 檢查應用程式進程狀態、資料庫連線、基本查詢，如連線失敗會拋出異常\n\n### 使用場景\n- Kubernetes 容器就緒檢查\n- 藍綠部署時的流量切換\n- 負載平衡器流量分配\n\n### 檢查項目\n- **應用程式**: 檢查應用程式進程狀態\n- **資料庫**: 檢查資料庫連線和基本查詢\n- **快取** (未來): 檢查 Redis 連線狀態\n- **外部 API** (未來): 檢查關鍵外部服務連線\n\n### 回應狀態\n- **200 OK**: 應用程式準備就緒\n- **503 Service Unavailable**: 應用程式未準備就緒"
+					},
+					"response": [
+						{
+							"name": "應用程式準備就緒",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/readyz",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"readyz"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"healthy\"\n}"
+						},
+						{
+							"name": "就緒探測檢查錯誤：應用程式未準備就緒",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/readyz",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"readyz"
+									]
+								}
+							},
+							"status": "Service Unavailable",
+							"code": 503,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"unhealthy\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Schedules",
+			"item": [
+				{
+					"name": "建立多個時段",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// ===== 建立多個時段 Post-response Script =====\r",
+									"\r",
+									"// 記錄回應資訊\r",
+									"console.log('=== 建立多個時段回應分析 ===');\r",
+									"console.log('狀態碼:', pm.response.code);\r",
+									"console.log('回應時間:', pm.response.responseTime + 'ms');\r",
+									"\r",
+									"// 解析 JSON，避免多次解析\r",
+									"let responseJson;\r",
+									"try {\r",
+									"    responseJson = pm.response.json();\r",
+									"} catch (e) {\r",
+									"    pm.test(\"回應內容應為有效的 JSON\", function () {\r",
+									"        pm.expect.fail(\"回應不是有效 JSON\");\r",
+									"    });\r",
+									"    responseJson = [];\r",
+									"}\r",
+									"\r",
+									"// 基礎測試\r",
+									"pm.test('回應時間小於 10 秒', function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);\r",
+									"});\r",
+									"\r",
+									"pm.test('Content-Type 是 application/json，回應含 charset=utf-8 也能處理', function () {\r",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.match(/application\\/json/i);\r",
+									"});\r",
+									"\r",
+									"// 回應格式與安全性檢查\r",
+									"pm.test('回應格式與安全性檢查', function () {\r",
+									"    const code = pm.response.code;\r",
+									"\r",
+									"    if (code === 201) {\r",
+									"        // 成功建立時段 → 回傳陣列\r",
+									"        pm.expect(responseJson).to.be.an(\"array\");\r",
+									"        if (responseJson.length > 0) {\r",
+									"            const firstSchedule = responseJson[0];\r",
+									"            pm.expect(firstSchedule).to.be.an(\"object\");\r",
+									"            pm.expect(firstSchedule).to.have.property(\"id\").that.is.a(\"number\");\r",
+									"            pm.expect(firstSchedule).to.have.property(\"giver_id\").that.is.a(\"number\");\r",
+									"            pm.expect(firstSchedule).to.have.property(\"status\").that.is.a(\"string\");\r",
+									"            pm.expect(firstSchedule).to.have.property(\"date\").that.is.a(\"string\");\r",
+									"            pm.expect(firstSchedule).to.have.property(\"start_time\").that.is.a(\"string\");\r",
+									"            pm.expect(firstSchedule).to.have.property(\"end_time\").that.is.a(\"string\");\r",
+									"        }\r",
+									"    } else if ([400, 409, 422].includes(code)) {\r",
+									"        // 錯誤狀態 → 回傳物件\r",
+									"        pm.expect(responseJson).to.be.an(\"object\");\r",
+									"        pm.expect(responseJson).to.have.property(\"error\");\r",
+									"    }\r",
+									"\r",
+									"    // 安全性檢查\r",
+									"    const forbiddenKeys = /(password|secret|token|connection|host|port|user|db|internal|debug)/i;\r",
+									"    pm.expect(JSON.stringify(responseJson)).to.not.match(forbiddenKeys);\r",
+									"});\r",
+									"\r",
+									"// 狀態碼檢查\r",
+									"pm.test('狀態碼為 201、400、409 或 422', function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([201, 400, 409, 422]);\r",
+									"});\r",
+									"\r",
+									"// 狀態碼業務邏輯檢查\r",
+									"if (pm.response.code === 201 && responseJson.length > 0) {\r",
+									"    pm.test('成功建立時段檢查', function () {\r",
+									"        console.info('成功建立時段，共建立 ' + responseJson.length + ' 個時段');\r",
+									"        responseJson.forEach((schedule, index) => {\r",
+									"            pm.expect(schedule).to.have.property(\"id\").that.is.a(\"number\");\r",
+									"            pm.expect(schedule).to.have.property(\"giver_id\").that.is.a(\"number\");\r",
+									"            pm.expect(schedule).to.have.property(\"status\").that.is.a(\"string\");\r",
+									"            pm.expect(schedule).to.have.property(\"date\").that.is.a(\"string\");\r",
+									"            pm.expect(schedule).to.have.property(\"start_time\").that.is.a(\"string\");\r",
+									"            pm.expect(schedule).to.have.property(\"end_time\").that.is.a(\"string\");\r",
+									"\r",
+									"            // 時間格式檢查\r",
+									"            pm.expect(schedule.date).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);\r",
+									"            pm.expect(schedule.start_time).to.match(/^\\d{2}:\\d{2}:\\d{2}$/);\r",
+									"            pm.expect(schedule.end_time).to.match(/^\\d{2}:\\d{2}:\\d{2}$/);\r",
+									"\r",
+									"            // 時間邏輯檢查\r",
+									"            const startTime = new Date(`2000-01-01T${schedule.start_time}`);\r",
+									"            const endTime = new Date(`2000-01-01T${schedule.end_time}`);\r",
+									"            pm.expect(startTime.getTime()).to.be.below(endTime.getTime());\r",
+									"\r",
+									"            console.info(`時段 ${index + 1}: ID=${schedule.id}, 狀態=${schedule.status}`);\r",
+									"        });\r",
+									"    });\r",
+									"\r",
+									"    // 效能測試\r",
+									"    pm.test('建立時段效能檢查', function () {\r",
+									"        const avgTimePerSchedule = pm.response.responseTime / responseJson.length;\r",
+									"        console.info(`平均每個時段處理時間: ${avgTimePerSchedule.toFixed(2)}ms`);\r",
+									"        pm.expect(avgTimePerSchedule).to.be.below(100);\r",
+									"    });\r",
+									"} else if ([400, 409, 422].includes(pm.response.code)) {\r",
+									"    const messages = {\r",
+									"        400: '時段邏輯錯誤：開始時間必須早於結束時間',\r",
+									"        409: '時段衝突錯誤：時段時間重疊',\r",
+									"        422: '參數驗證錯誤：請檢查請求參數格式'\r",
+									"    };\r",
+									"    pm.test('錯誤狀態檢查', function () {\r",
+									"        console.warn(messages[pm.response.code]);\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"console.info('=== 建立多個時段檢查完成 ===');\r",
+									"\r",
+									"// ===== 視覺化報告 =====\r",
+									"const template = `\r",
+									"    <h2>建立多個時段檢查結果</h2>\r",
+									"    <p><strong>Status Code:</strong> {{statusCode}}</p>\r",
+									"    <p><strong>建立時段數量:</strong> {{scheduleCount}}</p>\r",
+									"    <p><strong>Response Time:</strong> {{responseTime}} ms</p>\r",
+									"    <p><strong>安全性檢查:</strong> {{security}}</p>\r",
+									"    <p><strong>時段狀態:</strong> {{scheduleStatus}}</p>\r",
+									"    <p><strong>檢查時間:</strong> {{checkTime}}</p>\r",
+									"    {{#if schedules}}\r",
+									"    <h3>建立的時段（前5個）</h3>\r",
+									"    <ul>\r",
+									"        {{#each schedules}}\r",
+									"        <li>ID: {{id}}, 狀態: {{status}}, 時間: {{date}} {{start_time}}-{{end_time}}</li>\r",
+									"        {{/each}}\r",
+									"    </ul>\r",
+									"    {{/if}}\r",
+									"`;\r",
+									"\r",
+									"pm.visualizer.set(template, {\r",
+									"    statusCode: pm.response.code,\r",
+									"    scheduleCount: Array.isArray(responseJson) ? responseJson.length : 0,\r",
+									"    responseTime: pm.response.responseTime,\r",
+									"    security: /(password|secret|token|connection|host|port|user|db|internal|debug)/i.test(JSON.stringify(responseJson)) ? '有敏感資訊' : '無敏感資訊',\r",
+									"    scheduleStatus: pm.response.code === 201 ? '成功建立' : '建立失敗',\r",
+									"    checkTime: new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }),\r",
+									"    schedules: Array.isArray(responseJson) ? responseJson.slice(0, 5) : []\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"schedules\": [\n    {\n      \"created_by_role\": \"TAKER\",\n      \"date\": \"2024-01-01\",\n      \"end_time\": \"10:00:00\",\n      \"giver_id\": 1,\n      \"note\": \"建立第 1 個測試時段\",\n      \"start_time\": \"09:00:00\",\n      \"status\": \"PENDING\",\n      \"taker_id\": 1,\n      \"updated_by_role\": \"TAKER\"\n    },\n    {\n      \"created_by_role\": \"TAKER\",\n      \"date\": \"2024-01-01\",\n      \"end_time\": \"12:00:00\",\n      \"giver_id\": 21,\n      \"note\": \"建立第 2 個測試時段\",\n      \"start_time\": \"11:00:00\",\n      \"status\": \"PENDING\",\n      \"taker_id\": 1,\n      \"updated_by_role\": \"TAKER\"\n    }\n  ],\n  \"created_by\": 1,\n  \"created_by_role\": \"TAKER\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/schedules",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"schedules"
+							]
+						},
+						"description": "## 功能簡介\n- Giver、Taker 建立方便面談的時段\n\n### 使用場景\n- Giver 提供可預約的時段，讓 Taker 預約面談\n- Taker 提供方便的時段，待 Giver 回覆是否方便面談\n  - 因 Giver 尚未提供可預約的時段，Taker 無法預約面談\n  - 因 Giver 已提供的方便時段，Taker 均不方便面談\n\n### 回應狀態\n- **201 Created**: 成功建立時段\n- **400 Bad Request**: 時段邏輯錯誤\n- **409 Conflict**: 時段衝突錯誤\n- **422 Unprocessable Entity**: 參數驗證錯誤"
+					},
+					"response": [
+						{
+							"name": "成功建立時段",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"schedules\": [\n    {\n      \"created_by_role\": \"TAKER\",\n      \"date\": \"2024-01-01\",\n      \"end_time\": \"10:00:00\",\n      \"giver_id\": 1,\n      \"note\": \"建立第 1 個測試時段\",\n      \"start_time\": \"09:00:00\",\n      \"status\": \"PENDING\",\n      \"taker_id\": 1,\n      \"updated_by_role\": \"TAKER\"\n    },\n    {\n      \"created_by_role\": \"TAKER\",\n      \"date\": \"2024-01-01\",\n      \"end_time\": \"12:00:00\",\n      \"giver_id\": 21,\n      \"note\": \"建立第 2 個測試時段\",\n      \"start_time\": \"11:00:00\",\n      \"status\": \"PENDING\",\n      \"taker_id\": 1,\n      \"updated_by_role\": \"TAKER\"\n    }\n  ],\n  \"created_by\": 1,\n  \"created_by_role\": \"TAKER\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "[\n  {\n    \"id\": 1,\n    \"giver_id\": 1,\n    \"taker_id\": 1,\n    \"status\": \"PENDING\",\n    \"date\": \"2024-01-01\",\n    \"start_time\": \"09:00:00\",\n    \"end_time\": \"10:00:00\",\n    \"note\": \"成功建立時段\",\n    \"created_at\": \"2024-01-01T00:00:00Z\",\n    \"created_by\": 1,\n    \"created_by_role\": \"TAKER\",\n    \"updated_at\": \"2024-01-01T00:00:00Z\",\n    \"updated_by\": 1,\n    \"updated_by_role\": \"TAKER\",\n    \"deleted_at\": \"null\",\n    \"deleted_by\": \"null\",\n    \"deleted_by_role\": \"null\"\n  }\n]"
+						},
+						{
+							"name": "時段邏輯錯誤",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"schedules\": [\n    {\n      \"created_by_role\": \"TAKER\",\n      \"date\": \"2024-01-01\",\n      \"end_time\": \"10:00:00\",\n      \"giver_id\": 1,\n      \"note\": \"建立第 1 個測試時段\",\n      \"start_time\": \"09:00:00\",\n      \"status\": \"PENDING\",\n      \"taker_id\": 1,\n      \"updated_by_role\": \"TAKER\"\n    },\n    {\n      \"created_by_role\": \"TAKER\",\n      \"date\": \"2024-01-01\",\n      \"end_time\": \"12:00:00\",\n      \"giver_id\": 21,\n      \"note\": \"建立第 2 個測試時段\",\n      \"start_time\": \"11:00:00\",\n      \"status\": \"PENDING\",\n      \"taker_id\": 1,\n      \"updated_by_role\": \"TAKER\"\n    }\n  ],\n  \"created_by\": 1,\n  \"created_by_role\": \"TAKER\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"error\": {\n    \"message\": \"開始時間必須早於結束時間\",\n    \"status_code\": 400,\n    \"code\": \"ROUTER_BAD_REQUEST\",\n    \"timestamp\": \"2024-01-01T00:00:00Z\",\n    \"details\": {}\n  }\n}"
+						},
+						{
+							"name": "時段衝突錯誤（Service 拋出錯誤，由 Route 捕捉）",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"schedules\": [\n    {\n      \"created_by_role\": \"TAKER\",\n      \"date\": \"2024-01-01\",\n      \"end_time\": \"10:00:00\",\n      \"giver_id\": 1,\n      \"note\": \"建立第 1 個測試時段\",\n      \"start_time\": \"09:00:00\",\n      \"status\": \"PENDING\",\n      \"taker_id\": 1,\n      \"updated_by_role\": \"TAKER\"\n    },\n    {\n      \"created_by_role\": \"TAKER\",\n      \"date\": \"2024-01-01\",\n      \"end_time\": \"12:00:00\",\n      \"giver_id\": 21,\n      \"note\": \"建立第 2 個測試時段\",\n      \"start_time\": \"11:00:00\",\n      \"status\": \"PENDING\",\n      \"taker_id\": 1,\n      \"updated_by_role\": \"TAKER\"\n    }\n  ],\n  \"created_by\": 1,\n  \"created_by_role\": \"TAKER\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules"
+									]
+								}
+							},
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"error\": {\n    \"message\": \"檢測到 1 個重疊時段，請調整時段之時間\",\n    \"status_code\": 409,\n    \"code\": \"SERVICE_CONFLICT\",\n    \"timestamp\": \"2024-01-01T00:00:00Z\",\n    \"details\": {\n      \"overlapping_schedules\": [\n        {\n          \"id\": 123,\n          \"giver_id\": 1,\n          \"date\": \"2024-01-01\",\n          \"start_time\": \"08:00:00\",\n          \"end_time\": \"12:00:00\",\n          \"status\": \"AVAILABLE\"\n        }\n      ]\n    }\n  }\n}"
+						},
+						{
+							"name": "參數驗證錯誤",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"schedules\": [\n    {\n      \"created_by_role\": \"TAKER\",\n      \"date\": \"2024-01-01\",\n      \"end_time\": \"10:00:00\",\n      \"giver_id\": 1,\n      \"note\": \"建立第 1 個測試時段\",\n      \"start_time\": \"09:00:00\",\n      \"status\": \"PENDING\",\n      \"taker_id\": 1,\n      \"updated_by_role\": \"TAKER\"\n    },\n    {\n      \"created_by_role\": \"TAKER\",\n      \"date\": \"2024-01-01\",\n      \"end_time\": \"12:00:00\",\n      \"giver_id\": 21,\n      \"note\": \"建立第 2 個測試時段\",\n      \"start_time\": \"11:00:00\",\n      \"status\": \"PENDING\",\n      \"taker_id\": 1,\n      \"updated_by_role\": \"TAKER\"\n    }\n  ],\n  \"created_by\": 1,\n  \"created_by_role\": \"TAKER\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules"
+									]
+								}
+							},
+							"status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+							"code": 422,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"detail\": [\n    {\n      \"type\": \"validation_error_type\",\n      \"loc\": [\n        \"path\",\n        \"to\",\n        \"field\"\n      ],\n      \"msg\": \"具體錯誤訊息\",\n      \"input\": \"無效的輸入值\",\n      \"ctx\": {\n        \"error\": \"錯誤上下文\"\n      }\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "取得時段列表",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"\r",
+									"// ===== 取得時段列表 Post-response Script =====\r",
+									"\r",
+									"// 記錄回應資訊\r",
+									"console.log('=== 取得時段列表回應分析 ===');\r",
+									"console.log('狀態碼:', pm.response.code);\r",
+									"console.log('回應時間:', pm.response.responseTime + 'ms');\r",
+									"\r",
+									"// 先解析 JSON，避免多次解析\r",
+									"const responseJson = (() => {\r",
+									"    try {\r",
+									"        return pm.response.json();\r",
+									"    } catch (e) {\r",
+									"        // 如果解析失敗，直接標記測試失敗\r",
+									"        pm.test(\"回應內容應為有效的 JSON\", false);\r",
+									"        return []; // 返回空陣列以防止後續錯誤\r",
+									"    }\r",
+									"})();\r",
+									"\r",
+									"// 基礎測試\r",
+									"pm.test('回應時間小於 5 秒', function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"pm.test('Content-Type 是 application/json，回應含 charset=utf-8 也能處理', function () {\r",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.match(/application\\/json/i);\r",
+									"});\r",
+									"\r",
+									"// 回應格式與安全性測試\r",
+									"pm.test('回應格式與安全性檢查', function () {\r",
+									"    // 檢查回應格式\r",
+									"    pm.expect(responseJson).to.be.an(\"array\");\r",
+									"    \r",
+									"    if (responseJson.length > 0) {\r",
+									"        const firstSchedule = responseJson[0];\r",
+									"        pm.expect(firstSchedule).to.be.an(\"object\");\r",
+									"        pm.expect(firstSchedule).to.have.property(\"id\").that.is.a(\"number\");\r",
+									"        pm.expect(firstSchedule).to.have.property(\"giver_id\").that.is.a(\"number\");\r",
+									"        pm.expect(firstSchedule).to.have.property(\"status\").that.is.a(\"string\");\r",
+									"        pm.expect(firstSchedule).to.have.property(\"date\").that.is.a(\"string\");\r",
+									"        pm.expect(firstSchedule).to.have.property(\"start_time\").that.is.a(\"string\");\r",
+									"        pm.expect(firstSchedule).to.have.property(\"end_time\").that.is.a(\"string\");\r",
+									"    }\r",
+									"\r",
+									"    // 安全性檢查：不應暴露敏感資訊\r",
+									"    const forbiddenKeys = /(password|secret|token|connection|host|port|user|db|internal|debug)/i;\r",
+									"    pm.expect(JSON.stringify(responseJson)).to.not.match(forbiddenKeys);\r",
+									"});\r",
+									"\r",
+									"// 狀態碼與業務邏輯檢查\r",
+									"pm.test('狀態碼為 200 或 422', function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 422]);\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 200 時，應成功取得時段列表', function () {\r",
+									"    if (pm.response.code === 200) {\r",
+									"        pm.expect(responseJson).to.be.an(\"array\");\r",
+									"        console.info('成功取得時段列表，共 ' + responseJson.length + ' 個時段');\r",
+									"        \r",
+									"        // 檢查每個時段的基本屬性\r",
+									"        responseJson.forEach((schedule, index) => {\r",
+									"            pm.expect(schedule).to.have.property(\"id\");\r",
+									"            pm.expect(schedule).to.have.property(\"giver_id\");\r",
+									"            pm.expect(schedule).to.have.property(\"status\");\r",
+									"            pm.expect(schedule).to.have.property(\"date\");\r",
+									"            pm.expect(schedule).to.have.property(\"start_time\");\r",
+									"            pm.expect(schedule).to.have.property(\"end_time\");\r",
+									"            console.info(`時段 ${index + 1}: ID=${schedule.id}, 狀態=${schedule.status}, 日期=${schedule.date}`);\r",
+									"        });\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 422 時，應為參數驗證錯誤', function () {\r",
+									"    if (pm.response.code === 422) {\r",
+									"        console.warn('參數驗證錯誤：請檢查查詢參數格式');\r",
+									"        pm.expect(responseJson).to.be.an(\"object\");\r",
+									"        pm.expect(responseJson).to.have.property(\"detail\");\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"// 時段資料驗證\r",
+									"pm.test('時段資料完整性檢查', function () {\r",
+									"    if (pm.response.code === 200 && responseJson.length > 0) {\r",
+									"        responseJson.forEach((schedule, index) => {\r",
+									"            // 檢查必要欄位\r",
+									"            pm.expect(schedule.id).to.be.a(\"number\").and.to.be.greaterThan(0);\r",
+									"            pm.expect(schedule.giver_id).to.be.a(\"number\").and.to.be.greaterThan(0);\r",
+									"            pm.expect(schedule.status).to.be.a(\"string\");\r",
+									"            pm.expect(schedule.date).to.be.a(\"string\");\r",
+									"            pm.expect(schedule.start_time).to.be.a(\"string\");\r",
+									"            pm.expect(schedule.end_time).to.be.a(\"string\");\r",
+									"            \r",
+									"            // 檢查時間格式\r",
+									"            pm.expect(schedule.date).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);\r",
+									"            pm.expect(schedule.start_time).to.match(/^\\d{2}:\\d{2}:\\d{2}$/);\r",
+									"            pm.expect(schedule.end_time).to.match(/^\\d{2}:\\d{2}:\\d{2}$/);\r",
+									"            \r",
+									"            // 檢查時間邏輯\r",
+									"            const startTime = new Date(`2000-01-01T${schedule.start_time}`);\r",
+									"            const endTime = new Date(`2000-01-01T${schedule.end_time}`);\r",
+									"            pm.expect(startTime.getTime()).to.be.below(endTime.getTime());\r",
+									"        });\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"// 篩選條件驗證\r",
+									"pm.test('篩選條件驗證', function () {\r",
+									"    if (pm.response.code === 200) {\r",
+									"        const url = pm.request.url.toString();\r",
+									"        const urlParams = new URLSearchParams(url.split('?')[1] || '');\r",
+									"        \r",
+									"        // 檢查 giver_id 篩選\r",
+									"        if (urlParams.has('giver_id')) {\r",
+									"            const giverId = parseInt(urlParams.get('giver_id'));\r",
+									"            responseJson.forEach(schedule => {\r",
+									"                pm.expect(schedule.giver_id).to.equal(giverId);\r",
+									"            });\r",
+									"            console.info('giver_id 篩選條件生效');\r",
+									"        }\r",
+									"        \r",
+									"        // 檢查 taker_id 篩選\r",
+									"        if (urlParams.has('taker_id')) {\r",
+									"            const takerId = parseInt(urlParams.get('taker_id'));\r",
+									"            responseJson.forEach(schedule => {\r",
+									"                if (schedule.taker_id !== null) {\r",
+									"                    pm.expect(schedule.taker_id).to.equal(takerId);\r",
+									"                }\r",
+									"            });\r",
+									"            console.info('taker_id 篩選條件生效');\r",
+									"        }\r",
+									"        \r",
+									"        // 檢查狀態篩選\r",
+									"        if (urlParams.has('status_filter')) {\r",
+									"            const statusFilter = urlParams.get('status_filter');\r",
+									"            responseJson.forEach(schedule => {\r",
+									"                pm.expect(schedule.status).to.equal(statusFilter);\r",
+									"            });\r",
+									"            console.info('status_filter 篩選條件生效');\r",
+									"        }\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"// 效能測試\r",
+									"pm.test('查詢時段列表效能檢查', function () {\r",
+									"    const responseTime = pm.response.responseTime;\r",
+									"    const scheduleCount = responseJson.length;\r",
+									"    \r",
+									"    if (pm.response.code === 200) {\r",
+									"        // 成功時，計算每個時段的平均處理時間\r",
+									"        if (scheduleCount > 0) {\r",
+									"            const avgTimePerSchedule = responseTime / scheduleCount;\r",
+									"            console.info(`平均每個時段處理時間: ${avgTimePerSchedule.toFixed(2)}ms`);\r",
+									"            \r",
+									"            // 效能要求：每個時段不超過 50ms\r",
+									"            pm.expect(avgTimePerSchedule).to.be.below(50);\r",
+									"        }\r",
+									"        \r",
+									"        // 總回應時間要求\r",
+									"        pm.expect(responseTime).to.be.below(3000); // 3秒內\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"console.info('=== 取得時段列表檢查完成 ===');\r",
+									"\r",
+									"// ===== 視覺化報告 ====\r",
+									"const template = `\r",
+									"    <h2>取得時段列表檢查結果</h2>\r",
+									"    <p><strong>Status Code:</strong> {{statusCode}}</p>\r",
+									"    <p><strong>時段數量:</strong> {{scheduleCount}}</p>\r",
+									"    <p><strong>Response Time:</strong> {{responseTime}} ms</p>\r",
+									"    <p><strong>安全性檢查:</strong> {{security}}</p>\r",
+									"    <p><strong>查詢狀態:</strong> {{queryStatus}}</p>\r",
+									"    <p><strong>檢查時間:</strong> {{checkTime}}</p>\r",
+									"    {{#if schedules}}\r",
+									"    <h3>時段列表</h3>\r",
+									"    <ul>\r",
+									"        {{#each schedules}}\r",
+									"        <li>ID: {{id}}, Giver: {{giver_id}}, 狀態: {{status}}, 時間: {{date}} {{start_time}}-{{end_time}}</li>\r",
+									"        {{/each}}\r",
+									"    </ul>\r",
+									"    {{/if}}\r",
+									"`;\r",
+									"\r",
+									"pm.visualizer.set(template, {\r",
+									"    statusCode: pm.response.code,\r",
+									"    scheduleCount: responseJson.length || 0,\r",
+									"    responseTime: pm.response.responseTime,\r",
+									"    security: /(password|secret|token|connection|host|port|user|db|internal|debug)/i.test(JSON.stringify(responseJson)) ? '有敏感資訊' : '無敏感資訊',\r",
+									"    queryStatus: pm.response.code === 200 ? '查詢成功' : '查詢失敗',\r",
+									"    checkTime: new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }),\r",
+									"    schedules: responseJson.length > 0 ? responseJson.slice(0, 10) : [] // 只顯示前10個時段\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/schedules?giver_id=3283&taker_id=3283&status_filter=AVAILABLE",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"schedules"
+							],
+							"query": [
+								{
+									"key": "giver_id",
+									"value": "3283",
+									"description": "Giver ID，必須大於 0"
+								},
+								{
+									"key": "taker_id",
+									"value": "3283",
+									"description": "Taker ID，必須大於 0"
+								},
+								{
+									"key": "status_filter",
+									"value": "AVAILABLE"
+								}
+							]
+						},
+						"description": "## 功能簡介\n- 查詢時段列表，支援多種篩選條件\n- 可根據 Giver、Taker、狀態進行篩選\n\n### 使用場景\n- Taker 查看 Giver 提供的可預約時段，以利預約面談\n- Giver 查看 Taker 提供的時段，以利回覆自己是否方便面談\n- 系統管理員查看所有尚未回覆的時段，以利發送提醒訊息給 Giver、Taker\n\n### 查詢參數\n- 不提供參數：取得所有時段\n- **giver_id**: 篩選特定 Giver 的時段（必須大於 0）\n- **taker_id**: 篩選特定 Taker 的時段（必須大於 0）\n- **status_filter**: 篩選特定狀態的時段（DRAFT、AVAILABLE、PENDING、ACCEPTED、REJECTED、CANCELLED、COMPLETED）\n\n### 回應狀態\n- **200 OK**: 成功取得時段列表\n- **422 Unprocessable Entity**: 參數驗證錯誤"
+					},
+					"response": [
+						{
+							"name": "成功取得時段列表",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules?giver_id=3283&taker_id=3283&status_filter=AVAILABLE",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules"
+									],
+									"query": [
+										{
+											"key": "giver_id",
+											"value": "3283"
+										},
+										{
+											"key": "taker_id",
+											"value": "3283"
+										},
+										{
+											"key": "status_filter",
+											"value": "AVAILABLE"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "[\n  {\n    \"id\": 1,\n    \"giver_id\": 1,\n    \"taker_id\": 1,\n    \"start_time\": \"09:00:00\",\n    \"end_time\": \"10:00:00\",\n    \"status\": \"PENDING\",\n    \"date\": \"2024-01-01\",\n    \"note\": \"成功取得時段列表\",\n    \"created_at\": \"2024-01-01T00:00:00Z\",\n    \"created_by\": 1,\n    \"created_by_role\": \"TAKER\",\n    \"updated_at\": \"2024-01-01T00:00:00Z\",\n    \"updated_by\": 1,\n    \"updated_by_role\": \"TAKER\",\n    \"deleted_at\": \"null\",\n    \"deleted_by\": \"null\",\n    \"deleted_by_role\": \"null\"\n  }\n]"
+						},
+						{
+							"name": "參數驗證錯誤",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules?giver_id=3283&taker_id=3283&status_filter=AVAILABLE",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules"
+									],
+									"query": [
+										{
+											"key": "giver_id",
+											"value": "3283"
+										},
+										{
+											"key": "taker_id",
+											"value": "3283"
+										},
+										{
+											"key": "status_filter",
+											"value": "AVAILABLE"
+										}
+									]
+								}
+							},
+							"status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+							"code": 422,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"detail\": [\n    {\n      \"type\": \"validation_error_type\",\n      \"loc\": [\n        \"path\",\n        \"to\",\n        \"field\"\n      ],\n      \"msg\": \"具體錯誤訊息\",\n      \"input\": \"無效的輸入值\",\n      \"ctx\": {\n        \"error\": \"錯誤上下文\"\n      }\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "取得單一時段",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"\r",
+									"// ===== 取得單一時段 Post-response Script =====\r",
+									"\r",
+									"// 記錄回應資訊\r",
+									"console.log('=== 取得單一時段回應分析 ===');\r",
+									"console.log('狀態碼:', pm.response.code);\r",
+									"console.log('回應時間:', pm.response.responseTime + 'ms');\r",
+									"\r",
+									"// 先解析 JSON，避免多次解析\r",
+									"const responseJson = (() => {\r",
+									"    try {\r",
+									"        return pm.response.json();\r",
+									"    } catch (e) {\r",
+									"        // 如果解析失敗，直接標記測試失敗\r",
+									"        pm.test(\"回應內容應為有效的 JSON\", false);\r",
+									"        return {}; // 返回空物件以防止後續錯誤\r",
+									"    }\r",
+									"})();\r",
+									"\r",
+									"// 基礎測試\r",
+									"pm.test('回應時間小於 5 秒', function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"pm.test('Content-Type 是 application/json，回應含 charset=utf-8 也能處理', function () {\r",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.match(/application\\/json/i);\r",
+									"});\r",
+									"\r",
+									"// 回應格式與安全性測試\r",
+									"pm.test('回應格式與安全性檢查', function () {\r",
+									"    // 檢查回應格式\r",
+									"    pm.expect(responseJson).to.be.an(\"object\");\r",
+									"    \r",
+									"    if (pm.response.code === 200) {\r",
+									"        pm.expect(responseJson).to.have.property(\"id\").that.is.a(\"number\");\r",
+									"        pm.expect(responseJson).to.have.property(\"giver_id\").that.is.a(\"number\");\r",
+									"        pm.expect(responseJson).to.have.property(\"status\").that.is.a(\"string\");\r",
+									"        pm.expect(responseJson).to.have.property(\"date\").that.is.a(\"string\");\r",
+									"        pm.expect(responseJson).to.have.property(\"start_time\").that.is.a(\"string\");\r",
+									"        pm.expect(responseJson).to.have.property(\"end_time\").that.is.a(\"string\");\r",
+									"    }\r",
+									"\r",
+									"    // 安全性檢查：不應暴露敏感資訊\r",
+									"    const forbiddenKeys = /(password|secret|token|connection|host|port|user|db|internal|debug)/i;\r",
+									"    pm.expect(JSON.stringify(responseJson)).to.not.match(forbiddenKeys);\r",
+									"});\r",
+									"\r",
+									"// 狀態碼與業務邏輯檢查\r",
+									"pm.test('狀態碼為 200、404 或 422', function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 404, 422]);\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 200 時，應成功取得時段資訊', function () {\r",
+									"    if (pm.response.code === 200) {\r",
+									"        pm.expect(responseJson).to.be.an(\"object\");\r",
+									"        pm.expect(responseJson).to.have.property(\"id\");\r",
+									"        pm.expect(responseJson).to.have.property(\"giver_id\");\r",
+									"        pm.expect(responseJson).to.have.property(\"status\");\r",
+									"        pm.expect(responseJson).to.have.property(\"date\");\r",
+									"        pm.expect(responseJson).to.have.property(\"start_time\");\r",
+									"        pm.expect(responseJson).to.have.property(\"end_time\");\r",
+									"        console.info('成功取得時段資訊: ID=' + responseJson.id + ', 狀態=' + responseJson.status);\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 404 時，應為時段不存在錯誤', function () {\r",
+									"    if (pm.response.code === 404) {\r",
+									"        console.warn('時段不存在錯誤：指定的時段 ID 不存在');\r",
+									"        pm.expect(responseJson).to.be.an(\"object\");\r",
+									"        pm.expect(responseJson).to.have.property(\"error\");\r",
+									"        pm.expect(responseJson.error).to.have.property(\"message\");\r",
+									"        pm.expect(responseJson.error).to.have.property(\"code\");\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 422 時，應為參數驗證錯誤', function () {\r",
+									"    if (pm.response.code === 422) {\r",
+									"        console.warn('參數驗證錯誤：時段 ID 格式不正確');\r",
+									"        pm.expect(responseJson).to.be.an(\"object\");\r",
+									"        pm.expect(responseJson).to.have.property(\"detail\");\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"// 時段資料驗證\r",
+									"pm.test('時段資料完整性檢查', function () {\r",
+									"    if (pm.response.code === 200) {\r",
+									"        // 檢查必要欄位\r",
+									"        pm.expect(responseJson.id).to.be.a(\"number\").and.to.be.greaterThan(0);\r",
+									"        pm.expect(responseJson.giver_id).to.be.a(\"number\").and.to.be.greaterThan(0);\r",
+									"        pm.expect(responseJson.status).to.be.a(\"string\");\r",
+									"        pm.expect(responseJson.date).to.be.a(\"string\");\r",
+									"        pm.expect(responseJson.start_time).to.be.a(\"string\");\r",
+									"        pm.expect(responseJson.end_time).to.be.a(\"string\");\r",
+									"        \r",
+									"        // 檢查時間格式\r",
+									"        pm.expect(responseJson.date).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);\r",
+									"        pm.expect(responseJson.start_time).to.match(/^\\d{2}:\\d{2}:\\d{2}$/);\r",
+									"        pm.expect(responseJson.end_time).to.match(/^\\d{2}:\\d{2}:\\d{2}$/);\r",
+									"        \r",
+									"        // 檢查時間邏輯\r",
+									"        const startTime = new Date(`2000-01-01T${responseJson.start_time}`);\r",
+									"        const endTime = new Date(`2000-01-01T${responseJson.end_time}`);\r",
+									"        pm.expect(startTime.getTime()).to.be.below(endTime.getTime());\r",
+									"        \r",
+									"        // 檢查審計欄位（如果存在）\r",
+									"        if (responseJson.created_at) {\r",
+									"            pm.expect(responseJson.created_at).to.be.a(\"string\");\r",
+									"        }\r",
+									"        if (responseJson.updated_at) {\r",
+									"            pm.expect(responseJson.updated_at).to.be.a(\"string\");\r",
+									"        }\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"// 時段 ID 驗證\r",
+									"pm.test('時段 ID 驗證', function () {\r",
+									"    if (pm.response.code === 200) {\r",
+									"        // 從 URL 中提取時段 ID\r",
+									"        const url = pm.request.url.toString();\r",
+									"        const scheduleIdMatch = url.match(/\\/schedules\\/(\\d+)/);\r",
+									"        \r",
+									"        if (scheduleIdMatch) {\r",
+									"            const requestedId = parseInt(scheduleIdMatch[1]);\r",
+									"            pm.expect(responseJson.id).to.equal(requestedId);\r",
+									"            console.info('時段 ID 驗證通過: 請求 ID=' + requestedId + ', 回應 ID=' + responseJson.id);\r",
+									"        }\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"// 效能測試\r",
+									"pm.test('取得單一時段效能檢查', function () {\r",
+									"    const responseTime = pm.response.responseTime;\r",
+									"    \r",
+									"    if (pm.response.code === 200) {\r",
+									"        // 成功時，回應時間應該很快\r",
+									"        pm.expect(responseTime).to.be.below(1000); // 1秒內\r",
+									"        console.info('取得單一時段成功，回應時間: ' + responseTime + 'ms');\r",
+									"    } else if (pm.response.code === 404) {\r",
+									"        // 404 錯誤也應該快速回應\r",
+									"        pm.expect(responseTime).to.be.below(2000); // 2秒內\r",
+									"        console.info('時段不存在，回應時間: ' + responseTime + 'ms');\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"console.info('=== 取得單一時段檢查完成 ===');\r",
+									"\r",
+									"// ===== 視覺化報告 ====\r",
+									"const template = `\r",
+									"    <h2>取得單一時段檢查結果</h2>\r",
+									"    <p><strong>Status Code:</strong> {{statusCode}}</p>\r",
+									"    <p><strong>時段 ID:</strong> {{scheduleId}}</p>\r",
+									"    <p><strong>Response Time:</strong> {{responseTime}} ms</p>\r",
+									"    <p><strong>安全性檢查:</strong> {{security}}</p>\r",
+									"    <p><strong>查詢狀態:</strong> {{queryStatus}}</p>\r",
+									"    <p><strong>檢查時間:</strong> {{checkTime}}</p>\r",
+									"    {{#if schedule}}\r",
+									"    <h3>時段詳細資訊</h3>\r",
+									"    <ul>\r",
+									"        <li><strong>ID:</strong> {{schedule.id}}</li>\r",
+									"        <li><strong>Giver ID:</strong> {{schedule.giver_id}}</li>\r",
+									"        <li><strong>Taker ID:</strong> {{schedule.taker_id}}</li>\r",
+									"        <li><strong>狀態:</strong> {{schedule.status}}</li>\r",
+									"        <li><strong>日期:</strong> {{schedule.date}}</li>\r",
+									"        <li><strong>時間:</strong> {{schedule.start_time}} - {{schedule.end_time}}</li>\r",
+									"        <li><strong>備註:</strong> {{schedule.note}}</li>\r",
+									"    </ul>\r",
+									"    {{/if}}\r",
+									"`;\r",
+									"\r",
+									"pm.visualizer.set(template, {\r",
+									"    statusCode: pm.response.code,\r",
+									"    scheduleId: pm.response.code === 200 ? responseJson.id : 'N/A',\r",
+									"    responseTime: pm.response.responseTime,\r",
+									"    security: /(password|secret|token|connection|host|port|user|db|internal|debug)/i.test(JSON.stringify(responseJson)) ? '有敏感資訊' : '無敏感資訊',\r",
+									"    queryStatus: pm.response.code === 200 ? '查詢成功' : pm.response.code === 404 ? '時段不存在' : '查詢失敗',\r",
+									"    checkTime: new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }),\r",
+									"    schedule: pm.response.code === 200 ? responseJson : null\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/schedules/:schedule_id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"schedules",
+								":schedule_id"
+							],
+							"variable": [
+								{
+									"key": "schedule_id",
+									"value": "402",
+									"description": "(Required) 時段 ID，必填，必須大於 0"
+								}
+							]
+						},
+						"description": "## 功能簡介\n- 根據時段 ID 取得單一時段的完整資訊\n\n### 使用場景\n- 查看時段詳細資訊\n- 查看時段回覆狀態是否有更新\n\n### 路徑參數\n- **schedule_id**: 時段 ID（必填，必須大於 0）\n\n### 回應狀態\n- **200 OK**: 成功取得時段資訊\n- **404 Not Found**: 時段不存在錯誤\n- **422 Unprocessable Entity**: 參數驗證錯誤"
+					},
+					"response": [
+						{
+							"name": "成功取得時段資訊",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules/:schedule_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules",
+										":schedule_id"
+									],
+									"variable": [
+										{
+											"key": "schedule_id",
+											"value": "402",
+											"description": "(Required) 時段 ID，必填，必須大於 0"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"id\": 1,\n  \"giver_id\": 1,\n  \"taker_id\": 1,\n  \"start_time\": \"09:00:00\",\n  \"end_time\": \"10:00:00\",\n  \"status\": \"PENDING\",\n  \"date\": \"2024-01-01\",\n  \"note\": \"成功取得時段資訊\",\n  \"created_at\": \"2024-01-01T00:00:00Z\",\n  \"created_by\": 1,\n  \"created_by_role\": \"TAKER\",\n  \"updated_at\": \"2024-01-01T00:00:00Z\",\n  \"updated_by\": 1,\n  \"updated_by_role\": \"TAKER\",\n  \"deleted_at\": \"null\",\n  \"deleted_by\": \"null\",\n  \"deleted_by_role\": \"null\"\n}"
+						},
+						{
+							"name": "時段不存在錯誤（Service 拋出錯誤，由 Route 捕捉）",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules/:schedule_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules",
+										":schedule_id"
+									],
+									"variable": [
+										{
+											"key": "schedule_id",
+											"value": "402",
+											"description": "(Required) 時段 ID，必填，必須大於 0"
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"error\": {\n    \"message\": \"時段不存在: ID=schedule_id\",\n    \"status_code\": 404,\n    \"code\": \"SERVICE_SCHEDULE_NOT_FOUND\",\n    \"timestamp\": \"2024-01-01T00:00:00Z\",\n    \"details\": {}\n  }\n}"
+						},
+						{
+							"name": "參數驗證錯誤",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules/:schedule_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules",
+										":schedule_id"
+									],
+									"variable": [
+										{
+											"key": "schedule_id",
+											"value": "402",
+											"description": "(Required) 時段 ID，必填，必須大於 0"
+										}
+									]
+								}
+							},
+							"status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+							"code": 422,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"detail\": [\n    {\n      \"type\": \"validation_error_type\",\n      \"loc\": [\n        \"path\",\n        \"to\",\n        \"field\"\n      ],\n      \"msg\": \"具體錯誤訊息\",\n      \"input\": \"無效的輸入值\",\n      \"ctx\": {\n        \"error\": \"錯誤上下文\"\n      }\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "部分更新時段",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// ===== 部分更新時段 Post-response Script =====\r",
+									"\r",
+									"// 記錄回應資訊\r",
+									"console.log('=== 部分更新時段回應分析 ===');\r",
+									"console.log('狀態碼:', pm.response.code);\r",
+									"console.log('回應時間:', pm.response.responseTime + 'ms');\r",
+									"\r",
+									"// 先解析 JSON，避免多次解析\r",
+									"const responseJson = (() => {\r",
+									"    try {\r",
+									"        return pm.response.json();\r",
+									"    } catch (e) {\r",
+									"        // 如果解析失敗，直接標記測試失敗\r",
+									"        pm.test(\"回應內容應為有效的 JSON\", false);\r",
+									"        return {}; // 返回空物件以防止後續錯誤\r",
+									"    }\r",
+									"})();\r",
+									"\r",
+									"// 基礎測試\r",
+									"pm.test('回應時間小於 5 秒', function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"pm.test('Content-Type 是 application/json，回應含 charset=utf-8 也能處理', function () {\r",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.match(/application\\/json/i);\r",
+									"});\r",
+									"\r",
+									"// 回應格式與安全性測試\r",
+									"pm.test('回應格式與安全性檢查', function () {\r",
+									"    // 檢查回應格式\r",
+									"    pm.expect(responseJson).to.be.an(\"object\");\r",
+									"    \r",
+									"    if (pm.response.code === 200) {\r",
+									"        pm.expect(responseJson).to.have.property(\"id\").that.is.a(\"number\");\r",
+									"        pm.expect(responseJson).to.have.property(\"giver_id\").that.is.a(\"number\");\r",
+									"        pm.expect(responseJson).to.have.property(\"status\").that.is.a(\"string\");\r",
+									"        pm.expect(responseJson).to.have.property(\"date\").that.is.a(\"string\");\r",
+									"        pm.expect(responseJson).to.have.property(\"start_time\").that.is.a(\"string\");\r",
+									"        pm.expect(responseJson).to.have.property(\"end_time\").that.is.a(\"string\");\r",
+									"    }\r",
+									"\r",
+									"    // 安全性檢查：不應暴露敏感資訊\r",
+									"    const forbiddenKeys = /(password|secret|token|connection|host|port|user|db|internal|debug)/i;\r",
+									"    pm.expect(JSON.stringify(responseJson)).to.not.match(forbiddenKeys);\r",
+									"});\r",
+									"\r",
+									"// 狀態碼與業務邏輯檢查\r",
+									"pm.test('狀態碼為 200、400、404、409 或 422', function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404, 409, 422]);\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 200 時，應成功更新時段', function () {\r",
+									"    if (pm.response.code === 200) {\r",
+									"        pm.expect(responseJson).to.be.an(\"object\");\r",
+									"        pm.expect(responseJson).to.have.property(\"id\");\r",
+									"        pm.expect(responseJson).to.have.property(\"giver_id\");\r",
+									"        pm.expect(responseJson).to.have.property(\"status\");\r",
+									"        pm.expect(responseJson).to.have.property(\"date\");\r",
+									"        pm.expect(responseJson).to.have.property(\"start_time\");\r",
+									"        pm.expect(responseJson).to.have.property(\"end_time\");\r",
+									"        console.info('成功更新時段: ID=' + responseJson.id + ', 狀態=' + responseJson.status);\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 400 時，應為更新資料錯誤', function () {\r",
+									"    if (pm.response.code === 400) {\r",
+									"        console.warn('更新資料錯誤：請求資料格式不正確');\r",
+									"        pm.expect(responseJson).to.be.an(\"object\");\r",
+									"        pm.expect(responseJson).to.have.property(\"error\");\r",
+									"        pm.expect(responseJson.error).to.have.property(\"message\");\r",
+									"        pm.expect(responseJson.error).to.have.property(\"code\");\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 404 時，應為時段不存在錯誤', function () {\r",
+									"    if (pm.response.code === 404) {\r",
+									"        console.warn('時段不存在錯誤：指定的時段 ID 不存在');\r",
+									"        pm.expect(responseJson).to.be.an(\"object\");\r",
+									"        pm.expect(responseJson).to.have.property(\"error\");\r",
+									"        pm.expect(responseJson.error).to.have.property(\"message\");\r",
+									"        pm.expect(responseJson.error).to.have.property(\"code\");\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 409 時，應為時段衝突錯誤', function () {\r",
+									"    if (pm.response.code === 409) {\r",
+									"        console.warn('時段衝突錯誤：更新時段與現有時段時間重疊');\r",
+									"        pm.expect(responseJson).to.be.an(\"object\");\r",
+									"        pm.expect(responseJson).to.have.property(\"error\");\r",
+									"        pm.expect(responseJson.error).to.have.property(\"message\");\r",
+									"        pm.expect(responseJson.error).to.have.property(\"code\");\r",
+									"        pm.expect(responseJson.error).to.have.property(\"details\");\r",
+									"        pm.expect(responseJson.error.details).to.have.property(\"overlapping_schedules\");\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 422 時，應為參數驗證錯誤', function () {\r",
+									"    if (pm.response.code === 422) {\r",
+									"        console.warn('參數驗證錯誤：請求參數格式不正確');\r",
+									"        pm.expect(responseJson).to.be.an(\"object\");\r",
+									"        pm.expect(responseJson).to.have.property(\"detail\");\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"// 時段資料驗證\r",
+									"pm.test('時段資料完整性檢查', function () {\r",
+									"    if (pm.response.code === 200) {\r",
+									"        // 檢查必要欄位\r",
+									"        pm.expect(responseJson.id).to.be.a(\"number\").and.to.be.greaterThan(0);\r",
+									"        pm.expect(responseJson.giver_id).to.be.a(\"number\").and.to.be.greaterThan(0);\r",
+									"        pm.expect(responseJson.status).to.be.a(\"string\");\r",
+									"        pm.expect(responseJson.date).to.be.a(\"string\");\r",
+									"        pm.expect(responseJson.start_time).to.be.a(\"string\");\r",
+									"        pm.expect(responseJson.end_time).to.be.a(\"string\");\r",
+									"        \r",
+									"        // 檢查時間格式\r",
+									"        pm.expect(responseJson.date).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);\r",
+									"        pm.expect(responseJson.start_time).to.match(/^\\d{2}:\\d{2}:\\d{2}$/);\r",
+									"        pm.expect(responseJson.end_time).to.match(/^\\d{2}:\\d{2}:\\d{2}$/);\r",
+									"        \r",
+									"        // 檢查時間邏輯\r",
+									"        const startTime = new Date(`2000-01-01T${responseJson.start_time}`);\r",
+									"        const endTime = new Date(`2000-01-01T${responseJson.end_time}`);\r",
+									"        pm.expect(startTime.getTime()).to.be.below(endTime.getTime());\r",
+									"        \r",
+									"        // 檢查審計欄位（如果存在）\r",
+									"        if (responseJson.created_at) {\r",
+									"            pm.expect(responseJson.created_at).to.be.a(\"string\");\r",
+									"        }\r",
+									"        if (responseJson.updated_at) {\r",
+									"            pm.expect(responseJson.updated_at).to.be.a(\"string\");\r",
+									"        }\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"// 時段 ID 驗證\r",
+									"pm.test('時段 ID 驗證', function () {\r",
+									"    if (pm.response.code === 200) {\r",
+									"        // 從 URL 中提取時段 ID\r",
+									"        const url = pm.request.url.toString();\r",
+									"        const scheduleIdMatch = url.match(/\\/schedules\\/(\\d+)/);\r",
+									"        \r",
+									"        if (scheduleIdMatch) {\r",
+									"            const requestedId = parseInt(scheduleIdMatch[1]);\r",
+									"            pm.expect(responseJson.id).to.equal(requestedId);\r",
+									"            console.info('時段 ID 驗證通過: 請求 ID=' + requestedId + ', 回應 ID=' + responseJson.id);\r",
+									"        }\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"// 更新資料驗證\r",
+									"pm.test('更新資料驗證', function () {\r",
+									"    if (pm.response.code === 200) {\r",
+									"        // 檢查請求資料是否正確更新\r",
+									"        const requestBody = pm.request.body;\r",
+									"        if (requestBody && requestBody.raw) {\r",
+									"            try {\r",
+									"                const requestData = JSON.parse(requestBody.raw);\r",
+									"                if (requestData.schedule) {\r",
+									"                    const scheduleData = requestData.schedule;\r",
+									"                    \r",
+									"                    // 檢查更新的欄位\r",
+									"                    if (scheduleData.status && responseJson.status) {\r",
+									"                        pm.expect(responseJson.status).to.equal(scheduleData.status);\r",
+									"                    }\r",
+									"                    if (scheduleData.date && responseJson.date) {\r",
+									"                        pm.expect(responseJson.date).to.equal(scheduleData.date);\r",
+									"                    }\r",
+									"                    if (scheduleData.start_time && responseJson.start_time) {\r",
+									"                        pm.expect(responseJson.start_time).to.equal(scheduleData.start_time);\r",
+									"                    }\r",
+									"                    if (scheduleData.end_time && responseJson.end_time) {\r",
+									"                        pm.expect(responseJson.end_time).to.equal(scheduleData.end_time);\r",
+									"                    }\r",
+									"                    if (scheduleData.note && responseJson.note) {\r",
+									"                        pm.expect(responseJson.note).to.equal(scheduleData.note);\r",
+									"                    }\r",
+									"                    \r",
+									"                    console.info('更新資料驗證通過：請求資料已正確更新到時段');\r",
+									"                }\r",
+									"            } catch (e) {\r",
+									"                console.warn('無法解析請求資料進行驗證');\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"// 效能測試\r",
+									"pm.test('部分更新時段效能檢查', function () {\r",
+									"    const responseTime = pm.response.responseTime;\r",
+									"    \r",
+									"    if (pm.response.code === 200) {\r",
+									"        // 成功時，回應時間應該很快\r",
+									"        pm.expect(responseTime).to.be.below(1000); // 1秒內\r",
+									"        console.info('部分更新時段成功，回應時間: ' + responseTime + 'ms');\r",
+									"    } else if (pm.response.code === 409) {\r",
+									"        // 衝突檢查需要更多時間\r",
+									"        pm.expect(responseTime).to.be.below(3000); // 3秒內\r",
+									"        console.info('時段衝突檢查完成，回應時間: ' + responseTime + 'ms');\r",
+									"    } else if (pm.response.code === 404) {\r",
+									"        // 404 錯誤也應該快速回應\r",
+									"        pm.expect(responseTime).to.be.below(2000); // 2秒內\r",
+									"        console.info('時段不存在，回應時間: ' + responseTime + 'ms');\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"console.info('=== 部分更新時段檢查完成 ===');\r",
+									"\r",
+									"// ===== 視覺化報告 ====\r",
+									"const template = `\r",
+									"    <h2>部分更新時段檢查結果</h2>\r",
+									"    <p><strong>Status Code:</strong> {{statusCode}}</p>\r",
+									"    <p><strong>時段 ID:</strong> {{scheduleId}}</p>\r",
+									"    <p><strong>Response Time:</strong> {{responseTime}} ms</p>\r",
+									"    <p><strong>安全性檢查:</strong> {{security}}</p>\r",
+									"    <p><strong>更新狀態:</strong> {{updateStatus}}</p>\r",
+									"    <p><strong>檢查時間:</strong> {{checkTime}}</p>\r",
+									"    {{#if schedule}}\r",
+									"    <h3>更新後時段詳細資訊</h3>\r",
+									"    <ul>\r",
+									"        <li><strong>ID:</strong> {{schedule.id}}</li>\r",
+									"        <li><strong>Giver ID:</strong> {{schedule.giver_id}}</li>\r",
+									"        <li><strong>Taker ID:</strong> {{schedule.taker_id}}</li>\r",
+									"        <li><strong>狀態:</strong> {{schedule.status}}</li>\r",
+									"        <li><strong>日期:</strong> {{schedule.date}}</li>\r",
+									"        <li><strong>時間:</strong> {{schedule.start_time}} - {{schedule.end_time}}</li>\r",
+									"        <li><strong>備註:</strong> {{schedule.note}}</li>\r",
+									"        <li><strong>更新時間:</strong> {{schedule.updated_at}}</li>\r",
+									"    </ul>\r",
+									"    {{/if}}\r",
+									"    {{#if error}}\r",
+									"    <h3>錯誤詳細資訊</h3>\r",
+									"    <ul>\r",
+									"        <li><strong>錯誤訊息:</strong> {{error.message}}</li>\r",
+									"        <li><strong>錯誤代碼:</strong> {{error.code}}</li>\r",
+									"        <li><strong>錯誤時間:</strong> {{error.timestamp}}</li>\r",
+									"        {{#if error.details.overlapping_schedules}}\r",
+									"        <li><strong>衝突時段:</strong> {{error.details.overlapping_schedules.length}} 個</li>\r",
+									"        {{/if}}\r",
+									"    </ul>\r",
+									"    {{/if}}\r",
+									"`;\r",
+									"\r",
+									"pm.visualizer.set(template, {\r",
+									"    statusCode: pm.response.code,\r",
+									"    scheduleId: pm.response.code === 200 ? responseJson.id : 'N/A',\r",
+									"    responseTime: pm.response.responseTime,\r",
+									"    security: /(password|secret|token|connection|host|port|user|db|internal|debug)/i.test(JSON.stringify(responseJson)) ? '有敏感資訊' : '無敏感資訊',\r",
+									"    updateStatus: pm.response.code === 200 ? '更新成功' : pm.response.code === 404 ? '時段不存在' : pm.response.code === 409 ? '時段衝突' : '更新失敗',\r",
+									"    checkTime: new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }),\r",
+									"    schedule: pm.response.code === 200 ? responseJson : null,\r",
+									"    error: pm.response.code !== 200 ? responseJson.error : null\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"schedule\": {\n    \"date\": \"2024-01-01\",\n    \"end_time\": \"17:00:00\",\n    \"giver_id\": 1,\n    \"note\": \"時段部分更新\",\n    \"start_time\": \"16:00:00\",\n    \"status\": \"PENDING\",\n    \"taker_id\": 2\n  },\n  \"updated_by\": 1,\n  \"updated_by_role\": \"TAKER\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/schedules/:schedule_id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"schedules",
+								":schedule_id"
+							],
+							"variable": [
+								{
+									"key": "schedule_id",
+									"value": "402",
+									"description": "(Required) 時段 ID，必填，必須大於 0"
+								}
+							]
+						},
+						"description": "## 功能簡介\n- 部分更新時段資訊，只更新提供的欄位\n\n### 使用場景\n- Giver 編輯尚未公開給 Taker 預約的諮詢時間，以利因應行程變動\n- Taker 編輯尚未送出給 Giver 的諮詢時間，以利因應行程變動\n- 系統管理員調整時段資訊\n\n### 路徑參數\n- **schedule_id**: 時段 ID（必填，必須大於 0）\n\n### 回應狀態\n- **200 OK**: 成功更新時段\n- **400 Bad Request**: 更新資料無效\n- **404 Not Found**: 時段不存在錯誤\n- **409 Conflict**: 時段衝突錯誤\n- **422 Unprocessable Entity**: 參數驗證錯誤"
+					},
+					"response": [
+						{
+							"name": "成功更新時段",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"schedule\": {\n    \"date\": \"2024-01-01\",\n    \"end_time\": \"17:00:00\",\n    \"giver_id\": 1,\n    \"note\": \"時段部分更新\",\n    \"start_time\": \"16:00:00\",\n    \"status\": \"PENDING\",\n    \"taker_id\": 2\n  },\n  \"updated_by\": 1,\n  \"updated_by_role\": \"TAKER\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules/:schedule_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules",
+										":schedule_id"
+									],
+									"variable": [
+										{
+											"key": "schedule_id",
+											"value": "402",
+											"description": "(Required) 時段 ID，必填，必須大於 0"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"id\": 1,\n  \"giver_id\": 1,\n  \"taker_id\": 1,\n  \"status\": \"PENDING\",\n  \"date\": \"2024-01-01\",\n  \"start_time\": \"09:00:00\",\n  \"end_time\": \"10:00:00\",\n  \"note\": \"成功更新時段\",\n  \"created_at\": \"2024-01-01T00:00:00Z\",\n  \"created_by\": 1,\n  \"created_by_role\": \"TAKER\",\n  \"updated_at\": \"2024-01-01T09:00:00Z\",\n  \"updated_by\": 1,\n  \"updated_by_role\": \"TAKER\",\n  \"deleted_at\": \"null\",\n  \"deleted_by\": \"null\",\n  \"deleted_by_role\": \"null\"\n}"
+						},
+						{
+							"name": "更新資料錯誤",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"schedule\": {\n    \"date\": \"2024-01-01\",\n    \"end_time\": \"17:00:00\",\n    \"giver_id\": 1,\n    \"note\": \"時段部分更新\",\n    \"start_time\": \"16:00:00\",\n    \"status\": \"PENDING\",\n    \"taker_id\": 2\n  },\n  \"updated_by\": 1,\n  \"updated_by_role\": \"TAKER\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules/:schedule_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules",
+										":schedule_id"
+									],
+									"variable": [
+										{
+											"key": "schedule_id",
+											"value": "402",
+											"description": "(Required) 時段 ID，必填，必須大於 0"
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"error\": {\n    \"message\": \"更新資料錯誤\",\n    \"status_code\": 400,\n    \"code\": \"ROUTER_BAD_REQUEST\",\n    \"timestamp\": \"2024-01-01T00:00:00Z\",\n    \"details\": {}\n  }\n}"
+						},
+						{
+							"name": "時段不存在錯誤（Service 拋出錯誤，由 Route 捕捉）",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"schedule\": {\n    \"date\": \"2024-01-01\",\n    \"end_time\": \"17:00:00\",\n    \"giver_id\": 1,\n    \"note\": \"時段部分更新\",\n    \"start_time\": \"16:00:00\",\n    \"status\": \"PENDING\",\n    \"taker_id\": 2\n  },\n  \"updated_by\": 1,\n  \"updated_by_role\": \"TAKER\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules/:schedule_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules",
+										":schedule_id"
+									],
+									"variable": [
+										{
+											"key": "schedule_id",
+											"value": "402",
+											"description": "(Required) 時段 ID，必填，必須大於 0"
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"error\": {\n    \"message\": \"時段不存在: ID=schedule_id\",\n    \"status_code\": 404,\n    \"code\": \"SERVICE_SCHEDULE_NOT_FOUND\",\n    \"timestamp\": \"2024-01-01T00:00:00Z\",\n    \"details\": {}\n  }\n}"
+						},
+						{
+							"name": "時段衝突錯誤（Service 拋出錯誤，由 Route 捕捉）",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"schedule\": {\n    \"date\": \"2024-01-01\",\n    \"end_time\": \"17:00:00\",\n    \"giver_id\": 1,\n    \"note\": \"時段部分更新\",\n    \"start_time\": \"16:00:00\",\n    \"status\": \"PENDING\",\n    \"taker_id\": 2\n  },\n  \"updated_by\": 1,\n  \"updated_by_role\": \"TAKER\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules/:schedule_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules",
+										":schedule_id"
+									],
+									"variable": [
+										{
+											"key": "schedule_id",
+											"value": "402",
+											"description": "(Required) 時段 ID，必填，必須大於 0"
+										}
+									]
+								}
+							},
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"error\": {\n    \"message\": \"更新時段 ID=schedule_id 時，檢測到 {len(overlapping_schedules)} 個重疊時段，請調整時段之時間\",\n    \"status_code\": 409,\n    \"code\": \"SERVICE_SCHEDULE_OVERLAP\",\n    \"timestamp\": \"2024-01-01T00:00:00Z\",\n    \"details\": {\n      \"overlapping_schedules\": [\n        {\n          \"id\": 1,\n          \"giver_id\": 1,\n          \"date\": \"2024-01-01\",\n          \"start_time\": \"08:00:00\",\n          \"end_time\": \"12:00:00\",\n          \"status\": \"AVAILABLE\"\n        }\n      ]\n    }\n  }\n}"
+						},
+						{
+							"name": "參數驗證錯誤",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"schedule\": {\n    \"date\": \"2024-01-01\",\n    \"end_time\": \"17:00:00\",\n    \"giver_id\": 1,\n    \"note\": \"時段部分更新\",\n    \"start_time\": \"16:00:00\",\n    \"status\": \"PENDING\",\n    \"taker_id\": 2\n  },\n  \"updated_by\": 1,\n  \"updated_by_role\": \"TAKER\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules/:schedule_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules",
+										":schedule_id"
+									],
+									"variable": [
+										{
+											"key": "schedule_id",
+											"value": "402",
+											"description": "(Required) 時段 ID，必填，必須大於 0"
+										}
+									]
+								}
+							},
+							"status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+							"code": 422,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"detail\": [\n    {\n      \"type\": \"validation_error_type\",\n      \"loc\": [\n        \"path\",\n        \"to\",\n        \"field\"\n      ],\n      \"msg\": \"具體錯誤訊息\",\n      \"input\": \"無效的輸入值\",\n      \"ctx\": {\n        \"error\": \"錯誤上下文\"\n      }\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "刪除時段",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"\r",
+									"// ===== 刪除時段 Post-response Script =====\r",
+									"\r",
+									"// 記錄回應資訊\r",
+									"console.log('=== 刪除時段回應分析 ===');\r",
+									"console.log('狀態碼:', pm.response.code);\r",
+									"console.log('回應時間:', pm.response.responseTime + 'ms');\r",
+									"\r",
+									"// 先解析 JSON，避免多次解析\r",
+									"const responseJson = (() => {\r",
+									"    try {\r",
+									"        return pm.response.json();\r",
+									"    } catch (e) {\r",
+									"        // 如果解析失敗，直接標記測試失敗\r",
+									"        pm.test(\"回應內容應為有效的 JSON\", false);\r",
+									"        return {}; // 返回空物件以防止後續錯誤\r",
+									"    }\r",
+									"})();\r",
+									"\r",
+									"// 基礎測試\r",
+									"pm.test('回應時間小於 5 秒', function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);\r",
+									"});\r",
+									"\r",
+									"pm.test('Content-Type 是 application/json，回應含 charset=utf-8 也能處理', function () {\r",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.match(/application\\/json/i);\r",
+									"});\r",
+									"\r",
+									"// 回應格式與安全性測試\r",
+									"pm.test('回應格式與安全性檢查', function () {\r",
+									"    // 檢查回應格式\r",
+									"    pm.expect(responseJson).to.be.an(\"object\");\r",
+									"    \r",
+									"    if (pm.response.code === 204) {\r",
+									"        // 204 No Content 通常沒有回應內容\r",
+									"        pm.expect(responseJson).to.be.empty;\r",
+									"    } else if (pm.response.code !== 204) {\r",
+									"        // 錯誤回應應該有 error 物件\r",
+									"        pm.expect(responseJson).to.have.property(\"error\");\r",
+									"        pm.expect(responseJson.error).to.have.property(\"message\");\r",
+									"        pm.expect(responseJson.error).to.have.property(\"code\");\r",
+									"    }\r",
+									"\r",
+									"    // 安全性檢查：不應暴露敏感資訊\r",
+									"    const forbiddenKeys = /(password|secret|token|connection|host|port|user|db|internal|debug)/i;\r",
+									"    pm.expect(JSON.stringify(responseJson)).to.not.match(forbiddenKeys);\r",
+									"});\r",
+									"\r",
+									"// 狀態碼與業務邏輯檢查\r",
+									"pm.test('狀態碼為 204、404、409 或 422', function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([204, 404, 409, 422]);\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 204 時，應成功刪除時段', function () {\r",
+									"    if (pm.response.code === 204) {\r",
+									"        pm.expect(responseJson).to.be.empty;\r",
+									"        console.info('成功刪除時段: 時段已軟刪除');\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 404 時，應為時段不存在錯誤', function () {\r",
+									"    if (pm.response.code === 404) {\r",
+									"        console.warn('時段不存在錯誤：指定的時段 ID 不存在');\r",
+									"        pm.expect(responseJson).to.be.an(\"object\");\r",
+									"        pm.expect(responseJson).to.have.property(\"error\");\r",
+									"        pm.expect(responseJson.error).to.have.property(\"message\");\r",
+									"        pm.expect(responseJson.error).to.have.property(\"code\");\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 409 時，應為時段無法刪除錯誤', function () {\r",
+									"    if (pm.response.code === 409) {\r",
+									"        console.warn('時段無法刪除錯誤：時段狀態不允許刪除');\r",
+									"        pm.expect(responseJson).to.be.an(\"object\");\r",
+									"        pm.expect(responseJson).to.have.property(\"error\");\r",
+									"        pm.expect(responseJson.error).to.have.property(\"message\");\r",
+									"        pm.expect(responseJson.error).to.have.property(\"code\");\r",
+									"        pm.expect(responseJson.error).to.have.property(\"details\");\r",
+									"        pm.expect(responseJson.error.details).to.have.property(\"reason\");\r",
+									"        pm.expect(responseJson.error.details).to.have.property(\"current_status\");\r",
+									"        pm.expect(responseJson.error.details).to.have.property(\"explanation\");\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"pm.test('狀態碼為 422 時，應為參數驗證錯誤', function () {\r",
+									"    if (pm.response.code === 422) {\r",
+									"        console.warn('參數驗證錯誤：請求參數格式不正確');\r",
+									"        pm.expect(responseJson).to.be.an(\"object\");\r",
+									"        pm.expect(responseJson).to.have.property(\"detail\");\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"// 時段 ID 驗證\r",
+									"pm.test('時段 ID 驗證', function () {\r",
+									"    if (pm.response.code === 204) {\r",
+									"        // 從 URL 中提取時段 ID\r",
+									"        const url = pm.request.url.toString();\r",
+									"        const scheduleIdMatch = url.match(/\\/schedules\\/(\\d+)/);\r",
+									"        \r",
+									"        if (scheduleIdMatch) {\r",
+									"            const requestedId = parseInt(scheduleIdMatch[1]);\r",
+									"            console.info('時段 ID 驗證通過: 請求刪除 ID=' + requestedId);\r",
+									"        }\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"// 刪除請求驗證\r",
+									"pm.test('刪除請求驗證', function () {\r",
+									"    if (pm.response.code === 204) {\r",
+									"        // 檢查請求資料是否正確\r",
+									"        const requestBody = pm.request.body;\r",
+									"        if (requestBody && requestBody.raw) {\r",
+									"            try {\r",
+									"                const requestData = JSON.parse(requestBody.raw);\r",
+									"                \r",
+									"                // 檢查必要的刪除欄位\r",
+									"                pm.expect(requestData).to.have.property(\"deleted_by\");\r",
+									"                pm.expect(requestData).to.have.property(\"deleted_by_role\");\r",
+									"                pm.expect(requestData.deleted_by).to.be.a(\"number\");\r",
+									"                pm.expect(requestData.deleted_by_role).to.be.a(\"string\");\r",
+									"                \r",
+									"                console.info('刪除請求驗證通過：刪除者資訊正確');\r",
+									"            } catch (e) {\r",
+									"                console.warn('無法解析請求資料進行驗證');\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"// 效能測試\r",
+									"pm.test('刪除時段效能檢查', function () {\r",
+									"    const responseTime = pm.response.responseTime;\r",
+									"    \r",
+									"    if (pm.response.code === 204) {\r",
+									"        // 成功時，回應時間應該很快\r",
+									"        pm.expect(responseTime).to.be.below(1000); // 1秒內\r",
+									"        console.info('刪除時段成功，回應時間: ' + responseTime + 'ms');\r",
+									"    } else if (pm.response.code === 409) {\r",
+									"        // 衝突檢查需要更多時間\r",
+									"        pm.expect(responseTime).to.be.below(3000); // 3秒內\r",
+									"        console.info('時段無法刪除檢查完成，回應時間: ' + responseTime + 'ms');\r",
+									"    } else if (pm.response.code === 404) {\r",
+									"        // 404 錯誤也應該快速回應\r",
+									"        pm.expect(responseTime).to.be.below(2000); // 2秒內\r",
+									"        console.info('時段不存在，回應時間: ' + responseTime + 'ms');\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"// 軟刪除驗證\r",
+									"pm.test('軟刪除驗證', function () {\r",
+									"    if (pm.response.code === 204) {\r",
+									"        // 軟刪除成功，時段應該被標記為已刪除\r",
+									"        console.info('軟刪除成功：時段已標記為已刪除，但資料仍保留在資料庫中');\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"// 業務邏輯驗證\r",
+									"pm.test('業務邏輯驗證', function () {\r",
+									"    if (pm.response.code === 409) {\r",
+									"        // 檢查無法刪除的原因\r",
+									"        const error = responseJson.error;\r",
+									"        if (error && error.details) {\r",
+									"            const details = error.details;\r",
+									"            pm.expect(details).to.have.property(\"reason\");\r",
+									"            pm.expect(details).to.have.property(\"current_status\");\r",
+									"            pm.expect(details).to.have.property(\"explanation\");\r",
+									"            \r",
+									"            console.info('無法刪除原因: ' + details.reason);\r",
+									"            console.info('目前狀態: ' + details.current_status);\r",
+									"            console.info('說明: ' + details.explanation);\r",
+									"        }\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"console.info('=== 刪除時段檢查完成 ===');\r",
+									"\r",
+									"// ===== 視覺化報告 ====\r",
+									"const template = `\r",
+									"    <h2>刪除時段檢查結果</h2>\r",
+									"    <p><strong>Status Code:</strong> {{statusCode}}</p>\r",
+									"    <p><strong>時段 ID:</strong> {{scheduleId}}</p>\r",
+									"    <p><strong>Response Time:</strong> {{responseTime}} ms</p>\r",
+									"    <p><strong>安全性檢查:</strong> {{security}}</p>\r",
+									"    <p><strong>刪除狀態:</strong> {{deleteStatus}}</p>\r",
+									"    <p><strong>檢查時間:</strong> {{checkTime}}</p>\r",
+									"    {{#if error}}\r",
+									"    <h3>錯誤詳細資訊</h3>\r",
+									"    <ul>\r",
+									"        <li><strong>錯誤訊息:</strong> {{error.message}}</li>\r",
+									"        <li><strong>錯誤代碼:</strong> {{error.code}}</li>\r",
+									"        <li><strong>錯誤時間:</strong> {{error.timestamp}}</li>\r",
+									"        {{#if error.details}}\r",
+									"        <li><strong>無法刪除原因:</strong> {{error.details.reason}}</li>\r",
+									"        <li><strong>目前狀態:</strong> {{error.details.current_status}}</li>\r",
+									"        <li><strong>說明:</strong> {{error.details.explanation}}</li>\r",
+									"        {{/if}}\r",
+									"    </ul>\r",
+									"    {{/if}}\r",
+									"    {{#if success}}\r",
+									"    <h3>刪除成功</h3>\r",
+									"    <p>時段已成功軟刪除，資料仍保留在資料庫中但標記為已刪除狀態。</p>\r",
+									"    {{/if}}\r",
+									"`;\r",
+									"\r",
+									"pm.visualizer.set(template, {\r",
+									"    statusCode: pm.response.code,\r",
+									"    scheduleId: pm.response.code === 204 ? '已刪除' : 'N/A',\r",
+									"    responseTime: pm.response.responseTime,\r",
+									"    security: /(password|secret|token|connection|host|port|user|db|internal|debug)/i.test(JSON.stringify(responseJson)) ? '有敏感資訊' : '無敏感資訊',\r",
+									"    deleteStatus: pm.response.code === 204 ? '刪除成功' : pm.response.code === 404 ? '時段不存在' : pm.response.code === 409 ? '無法刪除' : '刪除失敗',\r",
+									"    checkTime: new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }),\r",
+									"    error: pm.response.code !== 204 ? responseJson.error : null,\r",
+									"    success: pm.response.code === 204\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"deleted_by\": 1,\n  \"deleted_by_role\": \"TAKER\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/schedules/:schedule_id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"schedules",
+								":schedule_id"
+							],
+							"variable": [
+								{
+									"key": "schedule_id",
+									"value": "402",
+									"description": "(Required) 時段 ID，必填，必須大於 0"
+								}
+							]
+						},
+						"description": "## 功能簡介\n- 軟刪除指定的時段記錄\n\n### 使用場景\n- Giver 刪除不再方便提供的時間\n- Taker 刪除不再方便提供的時間\n- 系統管理員清理無效時段\n- 批量清理過期時段\n\n### 路徑參數\n- **schedule_id**: 時段 ID（必填，必須大於 0）\n\n### 回應狀態\n- **204 No Content**: 成功刪除時段\n- **404 Not Found**: 時段不存在錯誤\n- **409 Conflict**: 時段無法刪除錯誤\n- **422 Unprocessable Entity**: 參數驗證錯誤"
+					},
+					"response": [
+						{
+							"name": "成功刪除時段",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"deleted_by\": 1,\n  \"deleted_by_role\": \"TAKER\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules/:schedule_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules",
+										":schedule_id"
+									],
+									"variable": [
+										{
+											"key": "schedule_id",
+											"value": "402",
+											"description": "(Required) 時段 ID，必填，必須大於 0"
+										}
+									]
+								}
+							},
+							"status": "No Content",
+							"code": 204,
+							"_postman_previewlanguage": "text",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "text/plain"
+								}
+							],
+							"cookie": [],
+							"body": ""
+						},
+						{
+							"name": "時段不存在錯誤（Service 拋出錯誤，由 Route 捕捉）",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"deleted_by\": 1,\n  \"deleted_by_role\": \"TAKER\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules/:schedule_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules",
+										":schedule_id"
+									],
+									"variable": [
+										{
+											"key": "schedule_id",
+											"value": "402",
+											"description": "(Required) 時段 ID，必填，必須大於 0"
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"error\": {\n    \"message\": \"時段不存在: ID=schedule_id\",\n    \"status_code\": 404,\n    \"code\": \"SERVICE_SCHEDULE_NOT_FOUND\",\n    \"timestamp\": \"2024-01-01T00:00:00Z\",\n    \"details\": {}\n  }\n}"
+						},
+						{
+							"name": "時段無法刪除錯誤（Service 拋出錯誤，由 Route 捕捉）",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"deleted_by\": 1,\n  \"deleted_by_role\": \"TAKER\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules/:schedule_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules",
+										":schedule_id"
+									],
+									"variable": [
+										{
+											"key": "schedule_id",
+											"value": "402",
+											"description": "(Required) 時段 ID，必填，必須大於 0"
+										}
+									]
+								}
+							},
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"error\": {\n    \"message\": \"時段無法刪除: ID=schedule_id\",\n    \"status_code\": 409,\n    \"code\": \"SERVICE_SCHEDULE_CANNOT_BE_DELETED\",\n    \"timestamp\": \"2024-01-01T00:00:00Z\",\n    \"details\": {\n      \"reason\": \"狀態不允許刪除\",\n      \"current_status\": \"ACCEPTED\",\n      \"explanation\": \"已接受的時段無法刪除，因為雙方已確認面談時間，刪除會影響約定\"\n    }\n  }\n}"
+						},
+						{
+							"name": "參數驗證錯誤",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"deleted_by\": 1,\n  \"deleted_by_role\": \"TAKER\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/schedules/:schedule_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"schedules",
+										":schedule_id"
+									],
+									"variable": [
+										{
+											"key": "schedule_id",
+											"value": "402",
+											"description": "(Required) 時段 ID，必填，必須大於 0"
+										}
+									]
+								}
+							},
+							"status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+							"code": 422,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"detail\": [\n    {\n      \"type\": \"validation_error_type\",\n      \"loc\": [\n        \"path\",\n        \"to\",\n        \"field\"\n      ],\n      \"msg\": \"具體錯誤訊息\",\n      \"input\": \"無效的輸入值\",\n      \"ctx\": {\n        \"error\": \"錯誤上下文\"\n      }\n    }\n  ]\n}"
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8000"
+		},
+		{
+			"key": "api_version",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
