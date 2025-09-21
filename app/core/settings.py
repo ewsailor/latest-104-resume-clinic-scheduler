@@ -75,7 +75,10 @@ class Settings(BaseSettings):
     # 如果 .env 或系統中沒有 DEBUG，預設回傳 False（布林值）
     debug: bool = Field(default=False, description="是否啟用除錯模式")
     testing: bool = Field(default=False, description="是否處於測試環境")
-    secret_key: SecretStr | None = Field(default=None, description="應用程式密鑰")
+    secret_key: SecretStr | None = Field(
+        default=None,  # 使用 None 作為預設值，強制從 `.env` 檔案讀取避免硬編碼
+        description="應用程式密鑰",
+    )
 
     # ===== API 文件配置 =====
     docs_url: str = Field(default="/docs", description="API 文件 URL")
@@ -114,7 +117,7 @@ class Settings(BaseSettings):
         description="MySQL 使用者名稱（建議使用專用應用程式帳號，不要使用 root）",
     )
     mysql_password: SecretStr | None = Field(
-        default=None,  # 使用 None 作為預設值，強制從環境變數設定
+        default=None,  # 使用 None 作為預設值，強制從 `.env` 檔案讀取避免硬編碼
         description="MySQL 密碼",
     )
     mysql_database: str = Field(default="scheduler_db", description="MySQL 資料庫名稱")
@@ -137,12 +140,16 @@ class Settings(BaseSettings):
     redis_host: str = Field(default="localhost", description="Redis 主機地址")
     redis_port: int = Field(default=6379, description="Redis 連接埠")
     redis_db: int = Field(default=0, description="Redis 資料庫編號")
-    redis_password: SecretStr | None = Field(default=None, description="Redis 密碼")
+    redis_password: SecretStr | None = Field(
+        default=None,  # 使用 None 作為預設值，強制從 `.env` 檔案讀取避免硬編碼
+        description="Redis 密碼",
+    )
 
     # ===== AWS 配置 =====
     aws_access_key_id: str | None = Field(default=None, description="AWS 存取金鑰 ID")
     aws_secret_access_key: SecretStr | None = Field(
-        default=None, description="AWS 秘密存取金鑰"
+        default=None,  # 使用 None 作為預設值，強制從 `.env` 檔案讀取避免硬編碼
+        description="AWS 秘密存取金鑰",
     )
     aws_region: str = Field(default="ap-northeast-1", description="AWS 區域")
     aws_s3_bucket: str | None = Field(default=None, description="AWS S3 儲存桶名稱")
@@ -151,7 +158,8 @@ class Settings(BaseSettings):
     api_104_base_url: str | None = Field(default=None, description="104 API 基礎 URL")
     api_104_client_id: str | None = Field(default=None, description="104 API 客戶端 ID")
     api_104_client_secret: SecretStr | None = Field(
-        default=None, description="104 API 客戶端密鑰"
+        default=None,  # 使用 None 作為預設值，強制從 `.env` 檔案讀取避免硬編碼
+        description="104 API 客戶端密鑰",
     )
 
     # ===== API 超時配置 =====
@@ -163,13 +171,19 @@ class Settings(BaseSettings):
     cors_origins: str = Field(
         default="http://localhost:8000", description="CORS 允許的來源（逗號分隔）"
     )
-    session_secret: SecretStr | None = Field(default=None, description="會話密鑰")
+    session_secret: SecretStr | None = Field(
+        default=None,  # 使用 None 作為預設值，強制從 `.env` 檔案讀取避免硬編碼
+        description="會話密鑰",
+    )
 
     # ===== 郵件配置 =====
     smtp_host: str | None = Field(default=None, description="SMTP 主機地址")
     smtp_port: int = Field(default=587, description="SMTP 連接埠")
     smtp_user: str | None = Field(default=None, description="SMTP 使用者名稱")
-    smtp_password: SecretStr | None = Field(default=None, description="SMTP 密碼")
+    smtp_password: SecretStr | None = Field(
+        default=None,  # 使用 None 作為預設值，強制從 `.env` 檔案讀取避免硬編碼
+        description="SMTP 密碼",
+    )
 
     @property
     def cors_origins_list(self) -> list[str]:
