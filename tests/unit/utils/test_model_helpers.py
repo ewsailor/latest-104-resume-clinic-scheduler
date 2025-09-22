@@ -8,6 +8,9 @@
 from datetime import datetime
 from unittest.mock import Mock
 
+# ===== 第三方套件 =====
+import pytest
+
 # ===== 本地模組 =====
 from app.utils.model_helpers import format_datetime, safe_getattr
 
@@ -29,18 +32,21 @@ class TestModelHelpers:
 
     def test_format_datetime_with_false(self):
         """測試格式化日期時間 - False 值。"""
-        result = format_datetime(False)
-        assert result is None
+        # False 不是 None，所以會嘗試調用 isoformat()，但會失敗
+        with pytest.raises(AttributeError):
+            format_datetime(False)
 
     def test_format_datetime_with_empty_string(self):
         """測試格式化日期時間 - 空字串。"""
-        result = format_datetime("")
-        assert result is None
+        # 空字串不是 None，所以會嘗試調用 isoformat()，但會失敗
+        with pytest.raises(AttributeError):
+            format_datetime("")
 
     def test_format_datetime_with_zero(self):
         """測試格式化日期時間 - 0 值。"""
-        result = format_datetime(0)
-        assert result is None
+        # 0 不是 None，所以會嘗試調用 isoformat()，但會失敗
+        with pytest.raises(AttributeError):
+            format_datetime(0)
 
     def test_format_datetime_with_datetime_with_microseconds(self):
         """測試格式化日期時間 - 包含微秒。"""

@@ -236,27 +236,23 @@ class TestScheduleModel:
 
         # 模擬 safe_getattr 函數拋出異常，觸發錯誤處理
         with patch('app.models.schedule.safe_getattr') as mock_safe_getattr:
-            # 提供足夠的返回值，然後拋出異常
-            mock_safe_getattr.side_effect = [
-                1,
-                1,
-                None,
-                None,
-                Exception("模擬錯誤"),
-            ] + [None] * 20
+            # 模擬 ORM 關聯屬性拋出異常
+            mock_safe_getattr.side_effect = Exception("模擬 ORM 關聯錯誤")
 
             result = schedule.to_dict()
 
             # 驗證錯誤處理
             assert isinstance(result, dict)
-            assert result["id"] is None
-            assert result["giver_id"] is None
-            assert result["taker_id"] is None
-            assert result["status"] is None
-            assert result["date"] is None
-            assert result["start_time"] is None
-            assert result["end_time"] is None
-            assert result["note"] is None
+            assert result["id"] == 1  # 基本欄位使用 getattr，不會被 mock 影響
+            assert result["giver_id"] == 1  # 基本欄位使用 getattr，不會被 mock 影響
+            assert result["taker_id"] is None  # 基本欄位使用 getattr
+            assert result["status"] is None  # 基本欄位使用 getattr
+            assert result["date"] == "2024-01-15"  # 基本欄位使用 getattr，返回實際值
+            assert (
+                result["start_time"] == "09:00:00"
+            )  # 基本欄位使用 getattr，返回實際值
+            assert result["end_time"] == "10:00:00"  # 基本欄位使用 getattr，返回實際值
+            assert result["note"] is None  # 基本欄位使用 getattr
             assert result["error"] == "資料序列化時發生錯誤"
 
     def test_schedule_table_structure(self):

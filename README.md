@@ -16,23 +16,24 @@
   - [使用者流程圖](#使用者流程圖)
   - [使用者介面截圖](#使用者介面截圖)
 - [架構設計](#架構設計)
+  - [技術棧與選型理由](#技術棧與選型理由)
   - [安全性](#安全性)
   - [可維護性與可擴充性](#可維護性與可擴充性)
   - [可靠性](#可靠性)
   - [效能](#效能)
-  - [開發效率提升](#開發效率提升)
+  - [開發效率](#開發效率)
 - [快速開始](#快速開始)
   - [環境需求](#環境需求)
   - [安裝步驟](#安裝步驟)
   - [啟動方式](#啟動方式)
 - [技術架構](#技術架構)
   - [專案結構](#專案結構)
-  - [ERD 實體關聯圖](#ERD-實體關聯圖)
+  - [ERD 實體關聯圖](#erd-實體關聯圖)
   - [API](#api)
     - [RESTful API](#restful-api)
     - [Swagger/ReDoc：查看 API 請求與回應範例](#swagger-redoc-請求與回應範例)
     - [Postman：Collection Runner 一鍵測試所有 API](#postman-一鍵測試所有-api)
-    - [API 分層架構設計](#API-分層架構設計)
+    - [API 分層架構設計](#api-分層架構設計)
   - [測試](#測試)
     - 測試覆蓋率、夾具 Fixtures 集中化管理測試常數、單元測試、整合測試
   - [自動化測試](#cicd)
@@ -110,7 +111,86 @@
 
 ## <a name="架構設計"></a>架構設計 [返回目錄 ↑](#目錄)
 
-主要使用技術為 Python、FastAPI 框架 + SQLAlchemy、MySQL/MariaDB 資料庫，採分層架構設計避免高耦合，提供時段（Schedule）的 CRUD API 與 Swagger API 文件，用 Postman、pytest、pre-commit、CI/CD 的 CI 確保程式碼品質，並有考量安全性、可維護性與可擴充性、可靠性、效能、開發效率。
+### <a name="技術棧與選型理由"></a>技術棧與選型理由 [返回目錄 ↑](#目錄)
+
+本專案主要使用技術為 Python、FastAPI 框架 + SQLAlchemy、MySQL/MariaDB 資料庫，採分層架構設計避免高耦合，提供時段（Schedule）的 CRUD API 與 Swagger/Redoc 自動化文件，用Postman、pytest、pre-commit、CI/CD 的 CI 確保程式碼品質，並有考量安全性、可維護性與可擴充性、可靠性、效能、開發效率。
+
+#### **後端框架**
+
+- **Python 3.12.8**：現代 Python 版本，支援最新語法特性，效能優化
+  - Python 3.9+ 支援語法：
+    - 可用 `dict`、`list`、`set`、`tuple` 替代 `Dict`、`List`、`Set`、`Tuple`，不需額外匯入 `typing` 模組
+  - Python 3.10+ 支援語法：
+    - 可用 `match`/`case` 替代大量 `if-elif-else`
+    - 可用 `X | Y` 替代 `Union[X, Y]` 聯合類型
+    - 可用 `X | None` 替代 `Optional[X]` 可選類型
+- **FastAPI 框架**：高效能非同步框架、自動生成 Swagger/Redoc API 文件、型別檢查支援、依賴注入
+- **Uvicorn 非同步/熱重載**：ASGI 非同步伺服器支援高併發 API 請求、支援修改後
+  自動重新啟動伺服器，立即看到修改效果
+- **Pydantic 輸入驗證**：輸入資料不符合 schema 設定的型別和格式會報錯，確保資料正確性，避免系統崩潰
+
+#### **架構設計**
+
+- **API 分層架構**：從用戶請求到回應，依職責拆分成 CORS → Routers → Schemas → Service → CRUD → Models → DB，降低耦合度
+- **自訂錯誤處理、Log Decorator**：統一錯誤回傳與日誌格式，避免重覆寫 try...except、快速定位問題
+- **Poetry**：用 `pyproject.toml` 定義依賴的版本範圍，用 `poetry.lock` 鎖定確切依賴版本，確保環境一致性
+- **Pydantic Settings 配置管理**：配置參數從 `.env` 讀取避免敏感資訊洩露，且讀取時會驗證每個值的型別，降低錯誤配置風險
+- **健康檢查**：監控應用程式是否存活、就緒，異常發生時自動重啟或流量導向健康的實例，確保服務穩定
+- **CORS 跨域請求控管**：只允許經授權的網域訪問後端 API，避免惡意網站存取後端 API
+
+#### **品質確保：API 與測試**
+
+- **Swagger/OpenAPI**：FastAPI 自動生成的互動式 API 文件，可點擊 Try it out 測試 API 
+- **ReDoc**：FastAPI 自動生成的單頁式閱讀 API，可快速閱覽 API 請求與回應範例
+- **Postman API 測試**：提供 API 測試視覺化介面，有助開發團隊快速測試與驗證
+  API，且可用 Collection Runner 一鍵運行集合中所有自動測試腳本，即時查看所有
+  API 的測試結果
+- **Pre-commit**：每次提交 commit 前自動檢查 fix_imports.py、autoflake、isort、Black、Flake8、MyPy，確保程式碼品質
+- **Pytest**：測試框架，支援單元測試、整合測試
+- **Pytest-cov**：測試覆蓋率分析
+- **CI/CD**：已落實 CI，每次提交程式碼會自動執行 pre-commit hooks、pytest 測試，確保程式碼品質，CD（持續交付、持續部署）將於未來擴充
+
+#### **資料庫與 ORM**
+
+- **MySQL/MariaDB 關聯式資料庫**：適合處理結構化資料如時段預約、支援 ACID 事
+  務確保資料一致性
+- **SQLAlchemy ORM**：以 Python 物件而非 SQL 操作資料庫、使用參數化查
+  詢避免 SQL 注入，切換資料庫方便因只需改連線設定資料庫，降低 SQL 拼接錯誤，方便切換資料庫
+- **Alembic**：讓資料庫遷移像程式碼版本控制一樣，方便回溯與管理
+- **SQLite 測試環境**：不需啟動完整資料庫伺服器即可運行，確保測試失敗代表程式
+  碼問題，而不是環境問題
+
+#### **資料庫優化**
+
+- **資料庫連線池 & 事務管理**：連線池事先準備好一定數量的連線，確保高併發狀況下
+  仍能穩定回應請求，落實 ACID 原則，避免資料不一致
+- **Eager loading 解決 N+1**：JOIN 查詢時載入所需關聯資料，避免多次查詢的 N+1 問題，適用高頻率查詢場景如查詢時段列表、Giver 資訊、Taker 資訊
+- **Lazy loading**：需要時才載入子表，避免不必要資料抓取，適用低頻率查詢場景如
+  審計欄位
+- **資料庫索引**：為高頻率查詢場景建立索引避免全表掃描、低頻率查詢場景不建立索引避免系統負擔
+- **外鍵約束避免孤兒紀錄**：確保子表的外鍵都有對應到父表中存在的主鍵，避免因父表刪除產生孤兒紀錄
+- **最小權限原則**：避免使用 root 進行資料庫操作，而是建立使用者，並只授予其在資料庫上所有資料表必要的權限
+
+#### **前端技術**
+
+- **Jinja2 模板引擎**：將模板先編譯成 Python 程式碼避免每次請求都解析原始模板、支援快取已編譯的模板
+- **HTML5**：語義化標籤、無障礙功能 (ARIA)、rel="preload" 資源預載入
+- **CSS3**：使用 :root 管理 CSS 變數、Flexbox 彈性布局系統簡化排版和對齊問題
+- **JavaScript (ES6+)**：非同步處理、箭頭函式、用 const 和 let 替代 var
+- **Bootstrap 響應式網格**：網站依不同裝置（手機、平板、桌面）自動調整版面，減
+  少因不同裝置重新渲染導致頁面載入變慢
+- **分頁機制**：避免大量資料一次載入，提高頁面渲染速度
+- **靜態資源預載入**：透過 HTML preload、prefetch，在瀏覽器解析 HTML 時即開始下載關鍵資源，避免資源使用時才開始下載造成阻塞，提高頁面渲染速度
+
+#### **選型理由**
+
+以下摘要本專案，落實安全性、可維護性與可擴充性、可靠性、效能、開發效率之技術。
+
+- **安全性**：.env 管理環境變數、Pydantic Settings 配置管理、SecretStr 敏感資料保護、CORS 跨域請求控管、ORM 避免 SQL 注入、最小權限原則
+- **可維護性與可擴充性**：FastAPI 自動生成文件、FastAPI 依賴注入、CI/CD、Pre-commit、自定義錯誤處理、錯誤處理 Decorator、Log Decorator、API 分層架構、SQLAlchemy ORM、Alembic 資料庫遷移、Poetry 套件管理、Enum 列舉型別、軟刪除
+- **可靠性**：FastAPI 型別檢查、測試覆蓋率 80%、Pydantic 輸入驗證、健康檢查、錯誤處理 Decorator、Log Decorator、資料庫事務管理、資料庫連線池、外鍵約束避免孤兒紀錄、SQLite 測試環境、safe_getattr
+- **效能**：FastAPI 非同步框架、Eager loading 解決 N+1、Lazy loading、資料庫索引、Jinja2 模板引擎、分頁、Bootstrap 響應式網格、靜態資源預載入
+- **開發效率**：Cursor AI 輔助開發、熱重載、Jira 專案管理、Postman API 測試視覺化、MySQL Workbench 資料庫視覺化、Sourcetree Git 視覺化
 
 ### <a name="安全性"></a>安全性 [返回目錄 ↑](#目錄)
 
@@ -125,7 +205,7 @@
 
 - **FastAPI 自動生成文件**：自動依據路由和 Pydantic 型別生成 OpenAPI 規範文檔，提供互動式測試的 Swagger UI、單頁式閱讀介面的 Redoc，減少維護 API 文件的工作量
 - **FastAPI 依賴注入**：將資料庫連線、權限驗證、設定檔讀取等邏輯封裝在一個獨立函式（依賴）中，並在需要的地方透過 Depends() 注入，需升級某功能時只需修改注入的依賴
-- **CI/CD 的 CI**：每次提交程式碼前，會自動執行 pre-commit hooks、pytest 測試，確保程式碼品質
+- **CI/CD**：已落實 CI，每次提交程式碼會自動執行 pre-commit hooks、pytest 測試的 ，確保程式碼品質，CD（持續交付、持續部署）將於未來擴充
 - **Pre-commit**：每次提交 commit 前自動檢查以下項目，確保程式碼品質
   - **fix_imports.py**：自定義腳本，將函式內部的 import 語句移到檔案頂部
   - **autoflake**：移除所有未使用的 import、變數
@@ -133,28 +213,29 @@
   - **Black**：統一程式碼風格，如縮排、換行、空格、行長度等
   - **Flake8**：檢查程式碼是否符合 PEP8 規範，避免語法錯誤、潛在錯誤
   - **MyPy**：確保程式碼都有型別標註，並在程式執行前就檢查型別錯誤
-- **錯誤處理 Decorator**：統一錯誤回傳格式，避免在每個函式中寫重覆的 try...except
 - **自定義錯誤處理**：自定義不同層級可能遇到的錯誤類型，除錯時能快速定位是哪個層級拋出的錯誤
+- **錯誤處理 Decorator**：統一錯誤回傳格式，避免在每個函式中寫重覆的 try...except
 - **Log Decorator**：統一日誌記錄格式，除錯時能快速定位問題根源
-- **API 分層架構設計**：從用戶請求到回應，依職責拆分成 CORS → Routers → Schemas → Service → CRUD → Models → DB，降低耦合度
-- **SQLAlchemy ORM**：可用直觀的 Python 物件而非 SQL 操作資料庫，且資料庫切換時只需改連線設定，不需重寫資料庫操作程式碼
+- **API 分層架構**：從用戶請求到回應，依職責拆分成 CORS → Routers → Schemas → Service → CRUD → Models → DB，降低耦合度
+- **SQLAlchemy ORM**：可用直觀的 Python 物件而非 SQL 操作資料庫，且資料庫切換方便因只需改連線設定，不需重寫資料庫操作程式碼
 - **Alembic 資料庫遷移**：讓資料庫遷移像程式碼版本控制一樣，方便回溯與管理
 - **Poetry 套件管理**：用 `pyproject.toml` 定義依賴的版本範圍，用 `poetry.lock` 鎖定確切依賴版本，確保環境一致性
 - **Enum 列舉型別**：修改選項時只需改 Enum 定義，使用的地方會自動更新，降低維護成本
-- **軟刪除**：避免誤刪資料，方便未來還原資料
+- **軟刪除**：避免誤刪資料、方便未來還原資料
 
 ### <a name="可靠性"></a>可靠性 [返回目錄 ↑](#目錄)
 
 - **FastAPI 型別檢查**：自動檢查傳入資料的型別，確保符合 Pydantic 模型定義，避免非法資料導致系統錯誤或崩潰
 - **測試覆蓋率 80％**：透過 pytest 進行單元測試、整合測試，測試覆蓋率 80%，確保各模組正常運作
-- **Pydantic 輸入驗證**：輸入資料不符合 schema 設定的型別和格式會報錯，避免程式因不正確資料而導致的程式崩潰或非預期行為
+- **Pydantic 輸入驗證**：輸入資料不符合 schema 設定的型別和格式會報錯，確保資料正確性，避免系統崩潰
 - **健康檢查**：監控應用程式是否存活、就緒，異常發生時自動重啟或流量導向健康的實例，確保服務穩定
 - **錯誤處理 Decorator**：攔截錯誤與例外，避免未捕捉錯誤導致服務中斷
 - **Log Decorator**：藉日誌監控應用程式的運行狀態，以提早發現效能瓶頸或不正常行為，如被頻繁呼叫的 API、處理時間過長的請求
-- **資料庫事務管理**：透過回滾 Rollback 裝飾器，落實 ACID 原則，防範資料不一致性問題
+- **資料庫事務管理**：透過回滾 Rollback 裝飾器，落實 ACID 原則（Atomicity 原子性、Consistency 一致性、Isolation 隔離性、Durability 永續性），避免資料不一致
 - **資料庫連線池**：連線池事先準備好一定數量的連線，確保高併發狀況下仍能穩定回應請求
 - **外鍵約束避免孤兒紀錄**：確保子表的外鍵都有對應到父表中存在的主鍵，避免因父表刪除產生孤兒紀錄
 - **SQLite 測試環境**：不需啟動完整資料庫伺服器即可運行，確保測試失敗代表程式碼問題，而不是環境問題
+- **safe_getattr**：自定義此函式，主要用於 ORM 關聯屬性，相比 getattr，能捕獲所有異常並返回預設值，避免沒被捕捉的異常導致 API 失敗。
 
 ### <a name="效能"></a>效能 [返回目錄 ↑](#目錄)
 
@@ -167,18 +248,19 @@
 - **Bootstrap 響應式網格**：網站依不同裝置（手機、平板、桌面）自動調整版面，減少因不同裝置重新渲染導致頁面載入變慢
 - **靜態資源預載入**：透過 HTML preload、prefetch，在瀏覽器解析 HTML 時即開始下載關鍵資源，避免資源使用時才開始下載造成阻塞，提高頁面渲染速度
 
-### <a name="開發效率提升"></a>開發效率提升 [返回目錄 ↑](#目錄)
+### <a name="開發效率"></a>開發效率 [返回目錄 ↑](#目錄)
 
-- **Cursor**：能根據上下文即時生成或補全程式碼、排除語法錯誤和潛在邏輯問題、快速重新命名變數提取函式、降低拼寫錯誤造成的 bug 等
+- **Cursor AI 輔助開發**：能根據上下文即時生成或補全程式碼、排除語法錯誤和潛在邏輯問題、快速重新命名變數提取函式、降低拼寫錯誤造成的 bug 等
 - **熱重載**：Uvicorn 啟動時加上 --reload 參數，修改後自動重新啟動伺服器，立即看到修改效果
-- **Jira**：有助開發團隊管理任務、掌握分工與優先順序、追蹤進度
+- **Jira 專案管理**：有助開發團隊管理任務、掌握分工與優先順序、追蹤進度
   - ![Jira 專案管理](static/images/tools/jira/jira.png)
-- **Postman**：提供視覺化介面，有助開發團隊快速測試與驗證 API，且可用 Collection Runner 一鍵運行集合中所有自動測試腳本，即時查看所有 API 的測試結果
-  - ![Postman API 測試](static/images/tools/postman/postman.png)
-- **MySQL Workbench**：提供視覺化介面，有助開發團隊掌握資料表結構、查看資料庫中儲存的資料的值
+- **Postman API 測試視覺化**：提供 API 測試視覺化介面，有助開發團隊快速測試與驗證 API，且可用 Collection Runner 一鍵運行集合中所有自動測試腳本，即時查看所有 API 的測試結果
+  - 路徑：docs\postman\104 Resume Clinic Scheduler.postman_collection.json
+  - ![即時查看所有 API 的測試結果](static/images/tools/postman/03-run-postman-results.png)
+- **MySQL Workbench 資料庫視覺化**：提供資料庫視覺化介面，有助開發團隊掌握資料表結構、查看資料庫中儲存的資料的值
   - ![MySQL Workbench 資料庫設計](static/images/tools/mysql-workbench/table-structure.png)
   - ![MySQL Workbench 查詢結果](static/images/tools/mysql-workbench/query-results.png)
-- **Sourcetree**：視覺化 Git，有助開發團隊更輕鬆地進行程式碼合併、分支管理、衝突解決
+- **Sourcetree Git 視覺化**：提供 Git 視覺化介面，有助開發團隊更輕鬆地進行程式碼合併、分支管理、衝突解決
   - ![Sourcetree Git 管理](static/images/tools/sourcetree/sourcetree.png)
 
 ## <a name="快速開始"></a>快速開始 [返回目錄 ↑](#目錄)
@@ -187,9 +269,9 @@
 
 - **Python**：3.9+
   - Python 3.9+ 支援語法：
-    - 可用 `dict`、`list`、`set`、`tuple` 取代 `Dict`、`List`、`Set`、`Tuple`，不需額外匯入 `typing` 模組
+    - 可用 `dict`、`list`、`set`、`tuple` 替代 `Dict`、`List`、`Set`、`Tuple`，不需額外匯入 `typing` 模組
   - Python 3.10+ 支援語法：
-    - 可用 `match`/`case` 減少大量 `if-elif-else`
+    - 可用 `match`/`case` 替代大量 `if-elif-else`
     - 可用 `X | Y` 替代 `Union[X, Y]` 聯合類型
     - 可用 `X | None` 替代 `Optional[X]` 可選類型
 - **FastAPI**
@@ -384,7 +466,7 @@
 └── README.md                     # 專案說明文件
 ```
 
-### <a name="ERD-實體關聯圖"></a>ERD 實體關聯圖 [返回目錄 ↑](#目錄)
+### <a name="erd-實體關聯圖"></a>ERD 實體關聯圖 [返回目錄 ↑](#目錄)
 
 視覺化呈現資料庫中各資料表的關聯，減少因資料庫設計問題而產生的反覆修改和重工。
 
@@ -396,13 +478,13 @@
 
 本專案遵循 `RESTful (Representational State Transfer)` 原則設計 `API`，使用 `HTTP` 方法對資源執行操作。
 
-| 方法   | 端點                     | 描述         | 狀態碼 |
-| ------ | ------------------------ | ------------ | ------ |
-| POST   | `/api/v1/schedules`      | 建立排程     | 201    |
-| GET    | `/api/v1/schedules`      | 取得排程列表 | 200    |
-| GET    | `/api/v1/schedules/{id}` | 取得特定排程 | 200    |
-| PATCH  | `/api/v1/schedules/{id}` | 部分更新排程 | 200    |
-| DELETE | `/api/v1/schedules/{id}` | 刪除排程     | 204    |
+| 方法   | 端點                     | 描述         | 回應成功狀態碼 |
+| ------ | ------------------------ | ------------ | -------------- |
+| POST   | `/api/v1/schedules`      | 建立排程     | 201            |
+| GET    | `/api/v1/schedules`      | 取得排程列表 | 200            |
+| GET    | `/api/v1/schedules/{id}` | 取得特定排程 | 200            |
+| PATCH  | `/api/v1/schedules/{id}` | 部分更新排程 | 200            |
+| DELETE | `/api/v1/schedules/{id}` | 刪除排程     | 204            |
 
 #### <a name="swagger-redoc-請求與回應範例"></a>Swagger/ReDoc：查看 API 請求與回應範例 [返回目錄 ↑](#目錄)
 
@@ -447,7 +529,7 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 
    - ![即時查看所有 API 的測試結果](static/images/tools/postman/03-run-postman-results.png)
 
-#### <a name="API-分層架構設計"></a>API 分層架構設計 [返回目錄 ↑](#目錄)
+#### <a name="api-分層架構設計"></a>API 分層架構設計 [返回目錄 ↑](#目錄)
 
 從用戶請求到回應，依職責拆分成 CORS → Routers → Schemas → Service → CRUD → Models → DB，降低耦合度。
 
@@ -612,6 +694,8 @@ pre-commit install
 - 單元測試（pytest）
 
 成功後會顯示綠色的 CI Badge，代表程式碼與測試通過。
+
+> **技術說明**：目前實現了 CI（持續整合），包含自動化測試、程式碼品質檢查。CD（持續部署）部分規劃在未來擴充階段實現。
 
 ### **API 端點概覽**
 
@@ -950,27 +1034,3 @@ refactor: 重構資料庫模型
   - 優化 Pydantic v2 模型配置，支援 ORM 轉換和欄位名稱對應
   - 完善軟刪除機制，支援系統自動操作和審計追蹤
   - 確保所有測試通過，達到 221 passed, 2 skipped 的測試覆蓋率
-
-### v1.1.0 (2025-01-10)
-
-- **新增 Alembic 資料庫遷移工具**
-  - 完整的資料庫版本控制
-  - 自動檢測模型變更
-  - 支援向前和向後遷移
-  - 團隊協作資料庫同步
-- **新增詳細文檔**
-  - Alembic 使用指南
-  - 遷移最佳實踐
-  - 故障排除指南
-- **開發工具改進**
-  - 新增 Alembic 版本清理工具
-  - 更新專案結構文檔
-
-### v0.0.0 (2024-12-20)
-
-- **初始版本發布**
-  - 實現時間媒合系統核心功能
-  - 建立 FastAPI 後端架構
-  - 整合 MySQL 資料庫
-  - 添加開發者工具和伺服器監控
-  - 完善文件和使用說明

@@ -15,7 +15,7 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 
 # ===== 本地模組 =====
-from app.utils.model_helpers import format_datetime, safe_getattr
+from app.utils.model_helpers import format_datetime
 from app.utils.timezone import get_local_now_naive
 
 
@@ -113,12 +113,13 @@ class User(Base):  # type: ignore[misc,valid-type]
         """轉換為字典格式，用於 API 和資料傳輸給前端。"""
         try:
             return {
-                "id": safe_getattr(self, 'id'),
-                "name": safe_getattr(self, 'name'),
-                "email": safe_getattr(self, 'email'),
-                "created_at": format_datetime(safe_getattr(self, 'created_at')),
-                "updated_at": format_datetime(safe_getattr(self, 'updated_at')),
-                "deleted_at": format_datetime(safe_getattr(self, 'deleted_at')),
+                # 基本欄位：使用 getattr，避免不必要的 try/except
+                "id": getattr(self, 'id', None),
+                "name": getattr(self, 'name', None),
+                "email": getattr(self, 'email', None),
+                "created_at": format_datetime(getattr(self, 'created_at', None)),
+                "updated_at": format_datetime(getattr(self, 'updated_at', None)),
+                "deleted_at": format_datetime(getattr(self, 'deleted_at', None)),
                 # 便利屬性
                 "is_active": self.is_active,
                 "is_deleted": self.is_deleted,
@@ -130,8 +131,8 @@ class User(Base):  # type: ignore[misc,valid-type]
 
             # 返回基本資訊，避免 API 完全失敗
             return {
-                "id": safe_getattr(self, 'id'),
-                "name": safe_getattr(self, 'name', '未知'),
-                "email": safe_getattr(self, 'email', '未知'),
+                "id": getattr(self, 'id', None),
+                "name": getattr(self, 'name', '未知'),
+                "email": getattr(self, 'email', '未知'),
                 "error": "資料序列化時發生錯誤",
             }

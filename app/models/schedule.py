@@ -222,33 +222,35 @@ class Schedule(Base):  # type: ignore[misc,valid-type]
         """轉換為字典格式，用於 API 和資料傳輸給前端。"""
         try:
             return {
-                "id": safe_getattr(self, 'id'),
-                "giver_id": safe_getattr(self, 'giver_id'),
-                "taker_id": safe_getattr(self, 'taker_id'),
-                "status": safe_getattr(self, 'status'),
-                "date": format_datetime(safe_getattr(self, 'date')),
-                "start_time": format_datetime(safe_getattr(self, 'start_time')),
-                "end_time": format_datetime(safe_getattr(self, 'end_time')),
-                "note": safe_getattr(self, 'note'),
-                "created_at": format_datetime(safe_getattr(self, 'created_at')),
-                "created_by": safe_getattr(self, 'created_by'),
-                "created_by_role": safe_getattr(self, 'created_by_role'),
+                # 基本欄位：使用 getattr，避免不必要的 try/except
+                "id": getattr(self, 'id', None),
+                "giver_id": getattr(self, 'giver_id', None),
+                "taker_id": getattr(self, 'taker_id', None),
+                "status": getattr(self, 'status', None),
+                "date": format_datetime(getattr(self, 'date', None)),
+                "start_time": format_datetime(getattr(self, 'start_time', None)),
+                "end_time": format_datetime(getattr(self, 'end_time', None)),
+                "note": getattr(self, 'note', None),
+                "created_at": format_datetime(getattr(self, 'created_at', None)),
+                "created_by": getattr(self, 'created_by', None),
+                "created_by_role": getattr(self, 'created_by_role', None),
+                "updated_at": format_datetime(getattr(self, 'updated_at', None)),
+                "updated_by": getattr(self, 'updated_by', None),
+                "updated_by_role": getattr(self, 'updated_by_role', None),
+                "deleted_at": format_datetime(getattr(self, 'deleted_at', None)),
+                "deleted_by": getattr(self, 'deleted_by', None),
+                "deleted_by_role": getattr(self, 'deleted_by_role', None),
+                # ORM 關聯：使用 safe_getattr，避免 session 關閉等問題
                 "created_by_user": (
                     safe_getattr(self, 'created_by_user').name
                     if safe_getattr(self, 'created_by_user')
                     else None
                 ),
-                "updated_at": format_datetime(safe_getattr(self, 'updated_at')),
-                "updated_by": safe_getattr(self, 'updated_by'),
-                "updated_by_role": safe_getattr(self, 'updated_by_role'),
                 "updated_by_user": (
                     safe_getattr(self, 'updated_by_user').name
                     if safe_getattr(self, 'updated_by_user')
                     else None
                 ),
-                "deleted_at": format_datetime(safe_getattr(self, 'deleted_at')),
-                "deleted_by": safe_getattr(self, 'deleted_by'),
-                "deleted_by_role": safe_getattr(self, 'deleted_by_role'),
                 "deleted_by_user": (
                     safe_getattr(self, 'deleted_by_user').name
                     if safe_getattr(self, 'deleted_by_user')
@@ -266,13 +268,13 @@ class Schedule(Base):  # type: ignore[misc,valid-type]
 
             # 返回基本資訊，避免 API 完全失敗
             return {
-                "id": safe_getattr(self, 'id'),
-                "giver_id": safe_getattr(self, 'giver_id'),
-                "taker_id": safe_getattr(self, 'taker_id'),
-                "status": safe_getattr(self, 'status', 'unknown'),
-                "date": format_datetime(safe_getattr(self, 'date')),
-                "start_time": format_datetime(safe_getattr(self, 'start_time')),
-                "end_time": format_datetime(safe_getattr(self, 'end_time')),
-                "note": safe_getattr(self, 'note', ''),
+                "id": getattr(self, 'id', None),
+                "giver_id": getattr(self, 'giver_id', None),
+                "taker_id": getattr(self, 'taker_id', None),
+                "status": getattr(self, 'status', ScheduleStatusEnum.DRAFT),
+                "date": format_datetime(getattr(self, 'date', None)),
+                "start_time": format_datetime(getattr(self, 'start_time', None)),
+                "end_time": format_datetime(getattr(self, 'end_time', None)),
+                "note": getattr(self, 'note', ''),
                 "error": "資料序列化時發生錯誤",
             }

@@ -153,23 +153,22 @@ class TestUserModel:
             email="test@example.com",
         )
 
-        # 模擬 safe_getattr 函數拋出異常，觸發錯誤處理
-        with patch('app.models.user.safe_getattr') as mock_safe_getattr:
-            # 提供足夠的返回值，然後拋出異常
-            mock_safe_getattr.side_effect = [
-                1,
-                "測試使用者",
-                "test@example.com",
-                Exception("模擬錯誤"),
-            ] + [None] * 10
+        # 模擬 format_datetime 函數拋出異常，觸發錯誤處理
+        with patch('app.models.user.format_datetime') as mock_format_datetime:
+            # 模擬 format_datetime 拋出異常
+            mock_format_datetime.side_effect = Exception("模擬 format_datetime 錯誤")
 
             result = user.to_dict()
 
             # 驗證錯誤處理
             assert isinstance(result, dict)
-            assert result["id"] is None
-            assert result["name"] is None
-            assert result["email"] is None
+            assert result["id"] == 1  # 基本欄位使用 getattr，不會被 mock 影響
+            assert (
+                result["name"] == "測試使用者"
+            )  # 基本欄位使用 getattr，不會被 mock 影響
+            assert (
+                result["email"] == "test@example.com"
+            )  # 基本欄位使用 getattr，不會被 mock 影響
             assert result["error"] == "資料序列化時發生錯誤"
 
     def test_user_table_structure(self):
