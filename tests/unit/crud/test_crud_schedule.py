@@ -5,93 +5,163 @@
 """
 
 # ===== 標準函式庫 =====
-from datetime import date, time  # 日期和時間處理
+from datetime import date, time
 
 # ===== 第三方套件 =====
-import pytest  # 測試框架
-from sqlalchemy.orm import Session  # 資料庫會話
+import pytest
+from sqlalchemy.orm import Session
 
 # ===== 本地模組 =====
-from app.crud.schedule import ScheduleCRUD  # CRUD 操作
-from app.enums.models import ScheduleStatusEnum, UserRoleEnum  # 角色枚舉
-from app.enums.operations import DeletionResult, OperationContext  # 操作相關的 ENUM
+from app.crud.schedule import ScheduleCRUD
+from app.enums.models import ScheduleStatusEnum, UserRoleEnum
+from app.enums.operations import DeletionResult
 from app.errors import (
     ScheduleNotFoundError,
 )
-from app.models.schedule import Schedule  # 時段模型
-from app.models.user import User  # 使用者模型
-from app.utils.timezone import get_local_now_naive  # 時區工具
-
-# 移除 ScheduleData 導入，直接使用 Schedule 模型
+from app.models.schedule import Schedule
+from app.models.user import User
+from app.utils.timezone import get_local_now_naive
 
 
 class TestScheduleCRUD:
     """時段 CRUD 操作測試類別。"""
 
-    def test_create_user_success(self, db_session: Session):
-        """測試成功建立使用者。"""
-        # 直接使用 User 模型建立使用者
-        user = User(name="測試使用者", email="test@example.com")
-        db_session.add(user)
-        db_session.commit()
-
-        assert user.name == "測試使用者"
-        assert user.email == "test@example.com"
-        assert user.id is not None
-
-    def test_create_user_duplicate_email(self, db_session: Session):
-        """測試建立重複 email 的使用者。"""
-        # 建立第一個使用者
-        user1 = User(name="測試使用者1", email="test@example.com")
-        db_session.add(user1)
-        db_session.commit()
-
-        # 嘗試建立第二個相同 email 的使用者
-        user2 = User(name="測試使用者2", email="test@example.com")
-        db_session.add(user2)
-
-        # 這會在提交時拋出資料庫約束錯誤，這是預期的行為
-        with pytest.raises(Exception):  # 可以是 IntegrityError 或其他資料庫錯誤
-            db_session.commit()
-
-    def test_create_schedules_success(self, db_session: Session):
-        """測試成功建立多個時段。"""
+    def test_create_single_giver_schedule_success(
+        self, db_session: Session, test_giver_schedule: Schedule
+    ):
+        """測試 Giver 成功建立單一時段。"""
         crud = ScheduleCRUD()
 
-        # 建立測試使用者
-        user = User(name="測試 Giver", email="giver@example.com")
-        db_session.add(user)
-        db_session.commit()
+        schedules = crud.create_schedules(db_session, [test_giver_schedule])
 
+        assert len(schedules) == 1
+        assert schedules[0].giver_id == test_giver_schedule.giver_id
+        assert schedules[0].taker_id is None
+        assert schedules[0].is_available is True
+
+    def test_create_schedule_validation_error(self, db_session: Session):
+        """測試建立時段資料驗證錯誤。"""
+        crud = ScheduleCRUD()
+
+        # 測試無效資料
+        invalid_schedule = Schedule(
+            giver_id=None,  # 無效的 giver_id
+            taker_id=None,
+            date=date(2024, 1, 1),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+        )
+
+        # 應該拋出驗證錯誤
+        with pytest.raises(Exception):
+            crud.create_schedules(db_session, [invalid_schedule])
+
+    def test_create_multiple_giver_schedules_success(self, db_session: Session):
+        """測試 Giver 成功建立多個時段。"""
+        crud = ScheduleCRUD()
+
+        # 建立多個 Giver 時段
         schedules_data = [
             Schedule(
-                giver_id=user.id,
-                date=date(2025, 9, 15),
+                giver_id=1,
+                taker_id=None,
+                date=date(2024, 1, 1),
                 start_time=time(9, 0),
                 end_time=time(10, 0),
-                note="測試時段1",
+                note="Giver 時段 1",
                 status=ScheduleStatusEnum.AVAILABLE,
             ),
             Schedule(
-                giver_id=user.id,
-                date=date(2025, 9, 16),
+                giver_id=1,
+                taker_id=None,
+                date=date(2024, 1, 2),
                 start_time=time(14, 0),
                 end_time=time(15, 0),
-                note="測試時段2",
+                note="Giver 時段 2",
                 status=ScheduleStatusEnum.AVAILABLE,
             ),
         ]
 
-        schedules = crud.create_schedules(
-            db_session,
-            schedules_data,
-        )
+        schedules = crud.create_schedules(db_session, schedules_data)
 
         assert len(schedules) == 2
-        assert schedules[0].giver_id == user.id
-        assert schedules[0].date == date(2025, 9, 15)
-        assert schedules[1].giver_id == user.id
-        assert schedules[1].date == date(2025, 9, 16)
+        assert all(s.giver_id == 1 for s in schedules)
+        assert all(s.taker_id is None for s in schedules)
+        assert all(s.is_available is True for s in schedules)
+
+    def test_create_single_taker_schedule_success(
+        self, db_session: Session, test_taker_schedule: Schedule
+    ):
+        """測試 Taker 成功建立單一時段。"""
+        crud = ScheduleCRUD()
+
+        schedules = crud.create_schedules(db_session, [test_taker_schedule])
+
+        assert len(schedules) == 1
+        assert schedules[0].giver_id == test_taker_schedule.giver_id
+        assert schedules[0].taker_id == test_taker_schedule.taker_id
+        assert schedules[0].is_available is False
+
+    def test_create_multiple_taker_schedules_success(self, db_session: Session):
+        """測試 Taker 成功建立多個時段。"""
+        crud = ScheduleCRUD()
+
+        # 建立多個 Taker 時段
+        schedules_data = [
+            Schedule(
+                giver_id=1,
+                taker_id=2,
+                date=date(2024, 1, 1),
+                start_time=time(9, 0),
+                end_time=time(10, 0),
+                note="Taker 時段 1",
+                status=ScheduleStatusEnum.PENDING,
+            ),
+            Schedule(
+                giver_id=1,
+                taker_id=2,
+                date=date(2024, 1, 2),
+                start_time=time(14, 0),
+                end_time=time(15, 0),
+                note="Taker 時段 2",
+                status=ScheduleStatusEnum.PENDING,
+            ),
+        ]
+
+        schedules = crud.create_schedules(db_session, schedules_data)
+
+        assert len(schedules) == 2
+        assert all(s.giver_id == 1 for s in schedules)
+        assert all(s.taker_id == 2 for s in schedules)
+        assert all(s.is_available is False for s in schedules)
+
+    def test_schedule_availability_logic(
+        self, test_giver_schedule: Schedule, test_taker_schedule: Schedule
+    ):
+        """測試時段可用性邏輯。"""
+        # 測試可預約時段（Giver 提供的時段）
+        assert test_giver_schedule.taker_id is None
+        assert test_giver_schedule.status == ScheduleStatusEnum.AVAILABLE
+        assert test_giver_schedule.is_available is True
+
+        # 測試已預約時段（Taker 請求的時段）
+        assert test_taker_schedule.taker_id is not None
+        assert test_taker_schedule.status == ScheduleStatusEnum.PENDING
+        assert test_taker_schedule.is_available is False
+
+    def test_role_based_schedule_creation(
+        self, test_giver_schedule: Schedule, test_taker_schedule: Schedule
+    ):
+        """測試基於角色的時段建立。"""
+        # 驗證 Giver 提供的時段
+        assert test_giver_schedule.giver_id is not None
+        assert test_giver_schedule.taker_id is None
+        assert test_giver_schedule.is_available is True
+
+        # 驗證 Taker 提出的時段
+        assert test_taker_schedule.giver_id is not None
+        assert test_taker_schedule.taker_id is not None
+        assert test_taker_schedule.is_available is False
 
     def test_check_schedule_overlap_no_overlap(self, db_session: Session):
         """測試檢查時段重疊 - 無重疊。"""

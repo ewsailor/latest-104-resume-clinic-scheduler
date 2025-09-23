@@ -12,8 +12,23 @@ import pytest  # 測試框架
 # 匯入單元測試的 fixtures
 from tests.fixtures.unit.database import (  # noqa: F401
     db_session,
-    test_schedule_data,
+)
+from tests.fixtures.unit.schedules import (  # noqa: F401
+    test_giver_schedule,
+    test_giver_schedule_data,
+    test_taker_schedule,
+    test_taker_schedule_data,
+)
+from tests.fixtures.unit.user import (  # noqa: F401
+    test_giver_and_taker,
+    test_giver_data,
+    test_giver_user,
+    test_system_data,
+    test_taker_data,
+    test_taker_user,
+    test_user,
     test_user_data,
+    test_users,
 )
 
 # 匯入整合測試的 fixtures（可選，根據需要啟用）

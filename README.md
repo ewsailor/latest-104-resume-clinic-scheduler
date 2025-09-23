@@ -11,8 +11,7 @@
 ## <a name="目錄"></a>目錄
 
 - [專案概述](#專案概述)
-  - [核心目標](#核心目標)
-  - [使用者故事](#使用者故事)
+  - [使用者故事與核心功能](#使用者故事與核心功能)
   - [使用者流程圖](#使用者流程圖)
   - [使用者介面截圖](#使用者介面截圖)
 - [架構設計](#架構設計)
@@ -35,39 +34,22 @@
     - [Postman：Collection Runner 一鍵測試所有 API](#postman-一鍵測試所有-api)
     - [API 分層架構設計](#api-分層架構設計)
   - [Pytest 測試](#pytest-測試)
-  - [自動化測試](#cicd)
-    - CI/CD 的 CI、pre-commit
-  - [測試覆蓋率](#測試覆蓋率)
-  - [夾具 Fixtures 集中化管理測試常數](#夾具-fixtures-集中化管理測試常數)
-  - [單元測試](#單元測試)
-  - [整合測試](#整合測試)
+    - [測試資料管理：夾具 Fixtures](#夾具-fixtures)
+    - [單元測試](#單元測試)
+    - [整合測試](#整合測試)
+    - [測試覆蓋率](#測試覆蓋率)
   - [自動化測試](#自動化測試)
-  - [CI/CD 的 CI、pre-commit](#cicd-的-ci-pre-commit)
+    - [pre-commit](#pre-commit)
+    - [CI/CD](#cicd)
 - [未來規劃](#未來規劃)
-- **端到端測試** (`tests/e2e/`)：測試完整的用戶工作流程
-  - 專案的潛在發展與改進方向、JWT、Redis、MongoDB、Docker、AWS 部署
-  - **Docker**：容器化部署 (資源優化)
-  - **AWS**：雲端擴充性
-- **資料庫**:
-  - **MongoDB**: 彈性資料儲存（日誌、使用者偏好等）
-  - **Redis**: 快取和即時資料
-- **部署和 DevOps**:
-
-  - **容器化**: Docker 支援
-  - **CI/CD**: GitHub Actions
-  - **監控**: 整合日誌系統
-  - **AWS 整合**: Boto3 SDK 支援
-
+  - JWT 登入功能、Redis、WebSocket 通知功能、MongoDB、Docker、AWS、端對端測試
 - [開發者](#開發者)
-  - Email、LinkedIn、GitHub
 
 ## <a name="專案概述"></a>專案概述 [返回目錄 ↑](#目錄)
 
-### <a name="核心目標"></a>核心目標 [返回目錄 ↑](#目錄)
+### <a name="使用者故事與核心功能"></a>使用者故事與核心功能 [返回目錄 ↑](#目錄)
 
 讓 Giver（診療服務提供者）與 Taker（診療服務接受者）能在平台內，方便地設定可面談時段並完成配對媒合，同時提供即時通知，以減少等待回應時的不確定與焦慮感。
-
-### <a name="使用者故事"></a>使用者故事 User Stories [返回目錄 ↑](#目錄)
 
 完整使用者故事請[點此](./docs/user-stories.md)查看，以下簡述本專案的主要使用者故事：
 
@@ -86,7 +68,7 @@
 
 #### **待開發功能**
 
-- 登入功能
+- 登入功能：能快速註冊並登入系統，以開始進行預約
 - 通知系統：即時訊息通知、預計回覆時間通知、自動提醒功能（逾期回覆提醒）
 - 鎖定已被預約的時段，避免時段被重複預約
 - 媒合與使用數據報表
@@ -152,7 +134,7 @@
 
 - **`Swagger`/`OpenAPI`**：`FastAPI` 自動生成的互動式 `API` 文件，可點擊 `Try it out` 測試 `API`
 - **`ReDoc`**：`FastAPI` 自動生成的單頁式閱讀 `API`，可快速閱覽 `API` 請求與回應範例
-- **`Postman` `API` 測試**：提供 `API` 測試視覺化介面，有助開發團隊快速測試與驗證 `API`，且可用 Collection Runner 一鍵運行集合中所有自動測試腳本，即時查看所有 `API` 的測試結果
+- **`Postman` `API` 測試**：提供 `API` 測試視覺化介面，有助開發團隊快速測試與驗證 `API`，且可用 `Collection Runner` 一鍵運行集合中所有自動測試腳本，即時查看所有 `API` 的測試結果
 - **`pre-commit`**：每次提交 `commit` 前自動檢查 `fix_imports.py`、`autoflake`、`isort`、`black`、`flake8`、`mypy`，確保程式碼品質
 - **`Pytest`**：測試框架，支援單元測試、整合測試
 - **`Pytest-cov`**：測試覆蓋率分析
@@ -168,38 +150,38 @@
 #### **資料庫優化**
 
 - **資料庫連線池 & 事務管理**：連線池事先準備好一定數量的連線，確保高併發狀況下仍能穩定回應請求，落實 `ACID` 原則，避免資料不一致
-- **Eager loading 解決 N+1**：JOIN 查詢時載入所需關聯資料，避免多次查詢的 N+1 問題，適用高頻率查詢場景如查詢時段列表、Giver 資訊、Taker 資訊
-- **Lazy loading**：需要時才載入子表，避免不必要資料抓取，適用低頻率查詢場景如
+- **`Eager loading` 解決 `N+1`**：`JOIN` 查詢時載入所需關聯資料，避免多次查詢的 `N+1` 問題，適用高頻率查詢場景如查詢時段列表、Giver 資訊、Taker 資訊
+- **`Lazy loading`**：需要時才載入子表，避免不必要資料抓取，適用低頻率查詢場景如
   審計欄位
 - **資料庫索引**：為高頻率查詢場景建立索引避免全表掃描、低頻率查詢場景不建立索引避免系統負擔
 - **外鍵約束避免孤兒紀錄**：確保子表的外鍵都有對應到父表中存在的主鍵，避免因父表刪除產生孤兒紀錄
-- **最小權限原則**：避免使用 root 進行資料庫操作，而是建立使用者，並只授予其在資料庫上所有資料表必要的權限
+- **最小權限原則**：避免使用 `root 管理者` 進行資料庫操作，而是建立使用者，並只授予其在資料庫上所有資料表必要的權限
 
 #### **前端技術**
 
 - **`Jinja2` 模板引擎**：將模板先編譯成 `Python` 程式碼避免每次請求都解析原始模板、支援快取已編譯的模板
 - **`HTML5`**：語義化標籤、無障礙功能 (`ARIA`)、`rel="preload"` 資源預載入
 - **`CSS3`**：使用 `:root` 管理 `CSS` 變數、`Flexbox` 彈性布局系統簡化排版和對齊問題
-- **`JavaScript` (ES6+)**：非同步處理、箭頭函式、用 const 和 let 替代 var
+- **`JavaScript` (ES6+)**：非同步處理、箭頭函式、用 `const` 和 `let` 替代 `var`
 - **`Bootstrap` 響應式網格**：網站依不同裝置（手機、平板、桌面）自動調整版面，減少因不同裝置重新渲染導致頁面載入變慢
 - **分頁機制**：避免大量資料一次載入，提高頁面渲染速度
-- **靜態資源預載入**：透過 HTML preload、prefetch，在瀏覽器解析 HTML 時即開始下載關鍵資源，避免資源使用時才開始下載造成阻塞，提高頁面渲染速度
+- **靜態資源預載入**：透過 `HTML preload`、`prefetch`，在瀏覽器解析 `HTML` 時即開始下載關鍵資源，避免資源使用時才開始下載造成阻塞，提高頁面渲染速度
 
 #### **選型理由**
 
 以下摘要本專案，落實安全性、可維護性與可擴充性、可靠性、效能、開發效率之技術。
 
-- **安全性**：.env 管理環境變數、Pydantic Settings 配置管理、SecretStr 敏感資料保護、CORS 跨域請求控管、ORM 避免 SQL 注入、最小權限原則
-- **可維護性與可擴充性**：FastAPI 自動生成文件、FastAPI 依賴注入、CI/CD、Pre-commit、自定義錯誤處理、錯誤處理 Decorator、Log Decorator、API 分層架構、SQLAlchemy ORM、Alembic 資料庫遷移、Poetry 套件管理、Enum 列舉型別、軟刪除
-- **可靠性**：FastAPI 型別檢查、測試覆蓋率 80%、Pydantic 輸入驗證、健康檢查、錯誤處理 Decorator、Log Decorator、資料庫事務管理、資料庫連線池、外鍵約束避免孤兒紀錄、SQLite 測試環境、safe_getattr
-- **效能**：FastAPI 非同步框架、Eager loading 解決 N+1、Lazy loading、資料庫索引、Jinja2 模板引擎、分頁、Bootstrap 響應式網格、靜態資源預載入
-- **開發效率**：Cursor AI 輔助開發、熱重載、Jira 專案管理、Postman API 測試視覺化、MySQL Workbench 資料庫視覺化、Sourcetree Git 視覺化
+- **安全性**：`.env` 管理環境變數、`Pydantic Settings` 配置管理、`SecretStr` 敏感資料保護、`CORS` 跨域請求控管、`ORM` 避免 `SQL 注入`、最小權限原則
+- **可維護性與可擴充性**：`FastAPI` 自動生成文件、`FastAPI` 依賴注入、`CI/CD`、`pre-commit`、自定義錯誤處理、錯誤處理 `Decorator`、`Log` `Decorator`、`API` 分層架構、`SQLAlchemy ORM`、`Alembic` 資料庫遷移、`Poetry` 套件管理、`Enum` 列舉型別、軟刪除
+- **可靠性**：`FastAPI` 型別檢查、測試覆蓋率 80%、`Pydantic` 輸入驗證、健康檢查、錯誤處理 `Decorator`、`Log` `Decorator`、資料庫事務管理、資料庫連線池、外鍵約束避免孤兒紀錄、`SQLite` 測試環境、`safe_getattr`
+- **效能**：`FastAPI` 非同步框架、`Eager loading` 解決 `N+1`、`Lazy loading`、資料庫索引、`Jinja2` 模板引擎、分頁、`Bootstrap` 響應式網格、靜態資源預載入
+- **開發效率**：`Cursor` AI 輔助開發、熱重載、`Jira` 專案管理、`Postman` `API` 測試視覺化、`MySQL Workbench` 資料庫視覺化、`Sourcetree` `Git` 視覺化
 
 ### <a name="安全性"></a>安全性 [返回目錄 ↑](#目錄)
 
-- **.env 管理環境變數**：`.env` 檔案被 `.gitignore` 忽略，避免敏感資訊被提交到公開的 GitHub
-- **Pydantic Settings 配置管理**：配置參數從 `.env` 讀取避免敏感資訊洩露，且讀取時會驗證每個值的型別，降低錯誤配置風險
-- **SecretStr 敏感資料保護**：使用 `SecretStr` 型別包裝敏感資訊如資料庫密碼，防止在日誌、除錯輸出、錯誤訊息中意外洩露，並強制從 `.env` 檔案讀取避免硬編碼
+- **.env 管理環境變數**：.env 檔案被 .gitignore 忽略，避免敏感資訊被提交到公開的 GitHub
+- **Pydantic Settings 配置管理**：配置參數從 .env 讀取避免敏感資訊洩露，且讀取時會驗證每個值的型別，降低錯誤配置風險
+- **SecretStr 敏感資料保護**：使用 SecretStr 型別包裝敏感資訊如資料庫密碼，防止在日誌、除錯輸出、錯誤訊息中意外洩露，並強制從 .env 檔案讀取避免硬編碼
 - **CORS 跨域請求控管**：只允許經授權的網域訪問後端 API，避免惡意網站存取後端 API
 - **ORM 避免 SQL 注入**：ORM 使用參數化查詢，將傳入資料視為「參數」而不是「指令」，故傳入的惡意資料，即使被拼接也不會被當作 SQL 指令執行而避免 SQL 注入
 - **最小權限原則**：避免使用 root 進行資料庫操作，而是建立使用者，並只授予其在資料庫上所有資料表必要的權限
@@ -409,10 +391,6 @@
 │   │   └── logging.py            # 日誌裝飾器
 │   ├── enums/                    # 列舉型別定義
 │   ├── errors/                   # 錯誤處理系統
-│   │   ├── error_codes           # 各層級錯誤代碼
-│   │   ├── exceptions.py         # 自定義異常
-│   │   ├── formatters.py         # 錯誤格式化
-│   │   └── handlers.py           # 錯誤處理器
 │   ├── middleware/               # 中間件 CORS
 │   ├── models/                   # SQLAlchemy 資料模型
 │   ├── routers/                  # API 路由模組
@@ -447,8 +425,41 @@
 │   ├── images/                   # 圖片資源
 │   └── js/                       # JavaScript 檔案
 ├── tests/                        # 測試檔案
-│   ├── unit/                     # 單元測試
+│   ├── fixtures/                 # 測試固定裝置
+│   │   ├── integration/          # 整合測試固定裝置
+│   │   │   └── database.py       # 資料庫測試固定裝置
+│   │   └── unit/                 # 單元測試固定裝置
+│   │       └── database.py       # 資料庫單元測試固定裝置
 │   ├── integration/              # 整合測試
+│   ├── unit/                     # 單元測試
+│   │   ├── crud/                 # CRUD 測試
+│   │   │   └── test_crud_schedule.py
+│   │   ├── errors/               # 錯誤處理測試
+│   │   │   ├── test_error_codes.py
+│   │   │   ├── test_exceptions.py
+│   │   │   ├── test_formatters.py
+│   │   │   └── test_handlers.py
+│   │   ├── middleware/           # 中間件測試
+│   │   │   ├── test_cors_middleware.py
+│   │   │   └── test_error_handler.py
+│   │   ├── models/               # 模型測試
+│   │   │   ├── test_database.py
+│   │   │   ├── test_schedule.py
+│   │   │   └── test_user.py
+│   │   ├── routers/              # 路由測試
+│   │   │   ├── api/
+│   │   │   │   └── test_schedule.py
+│   │   │   ├── test_health.py
+│   │   │   └── test_main.py
+│   │   ├── schemas/              # 資料驗證測試
+│   │   │   └── test_schedule.py
+│   │   ├── services/             # 服務測試
+│   │   │   ├── test_schedule_service.py
+│   │   │   └── test_schedule.py
+│   │   └── utils/                # 工具測試
+│   │       ├── test_model_helpers.py
+│   │       ├── test_time_slot_generation.py
+│   │       └── test_timezone.py
 │   ├── utils/                    # 測試工具
 │   ├── conftest.py               # 測試配置
 │   └── README.md                 # 測試說明
@@ -556,7 +567,7 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 
 2. **匯入 Collection 至 Postman**
 
-   - 路徑：docs\postman\104 Resume Clinic Scheduler.postman_collection.json
+   - 路徑：`docs\postman\104 Resume Clinic Scheduler.postman_collection.json`
    - ![匯入 Collection 至 Postman](static/images/tools/postman/01-import-postman-collection.png)
 
 3. **用 Collection Runner 一鍵測試所有 API**
@@ -619,15 +630,16 @@ Client Response 客戶端接收回應
   pytest tests/integration/api/ # API 測試
   ```
 
-#### 測試資料管理：夾具 Fixtures
+#### <a name="夾具-fixtures"></a>測試資料管理：夾具 Fixtures [返回目錄 ↑](#目錄)
 
 - 路徑：`tests/fixtures/`
 - 說明：集中管理為測試準備的常數、測試環境、測試資料、初始化資源、測試用的資料庫會話
 
-#### 單元測試
+#### <a name="單元測試"></a>單元測試 [返回目錄 ↑](#目錄)
 
 - 路徑：`tests/fixtures/`
 - 說明：測試程式碼中最小的可獨立測試單元（通常是一個函式、方法或類別）之正常狀況、錯誤狀況、邊界條件，以確保程式碼按照預期運作，使用 SQLite 作為測試環境提高測試效率
+
   - **CRUD 資料存取層**：測試資料庫 CRUD 操作
   - **錯誤處理**：測試發生特定錯誤時，API 能返回正確的 HTTP 狀態碼和錯誤訊息，並正確格式化
   - **Model 資料模型層**：驗證模型欄位、關聯是否正確（透過 migration + fixture 測試 DB 結構）
@@ -644,13 +656,13 @@ Client Response 客戶端接收回應
   pytest tests/unit/services/
   ```
 
-#### 整合測試
+#### <a name="整合測試"></a>整合測試 [返回目錄 ↑](#目錄)
 
 - 路徑：`tests/integration/`
 - 說明：測試多個組件組合在一起後，能否正確協同工作
   - **Routers 路由層**：測試 API 路由能正確處理 HTTP 請求，並返回預期的狀態碼與回應格式
   - 使用 TestClient 檢查回應狀態碼、JSON 格式
-  用 TestClient（FastAPI 測試工具）模擬請求，驗證回應狀態碼、JSON 格式。
+    用 TestClient（FastAPI 測試工具）模擬請求，驗證回應狀態碼、JSON 格式。
 - 執行測試
 
   ```bash
@@ -661,7 +673,7 @@ Client Response 客戶端接收回應
   pytest tests/integration/api/
   ```
 
-#### 測試覆蓋率
+#### <a name="測試覆蓋率"></a>測試覆蓋率 [返回目錄 ↑](#目錄)
 
 - 覆蓋率配置：`.coveragerc`
 - 使用 pytest-cov 進行覆蓋率分析，確保關鍵功能、邏輯分支被完整測試
@@ -670,9 +682,9 @@ Client Response 客戶端接收回應
   pytest --cov=app --cov-report=html --cov-report=term
   ```
 
-### 自動化測試
+### <a name="自動化測試"></a>自動化測試 [返回目錄 ↑](#目錄)
 
-#### pre-commit
+#### <a name="pre-commit"></a>pre-commit [返回目錄 ↑](#目錄)
 
 - 路徑：`.pre-commit-config.yaml`
 - 說明：每次提交 commit 前自動檢查以下項目，確保程式碼品質
@@ -698,18 +710,23 @@ Client Response 客戶端接收回應
   poetry run mypy app/
   ```
 
-#### CI/CD
+#### <a name="cicd"></a>CI/CD [返回目錄 ↑](#目錄)
 
 - 路徑：`.github\workflows\ci.yml`
-- 說明：已落實 CI，每次提交程式碼後 GitHub Actions 會自動執行 pre-commit hooks、pytest 測試，確保程式碼變更後沒有破壞現有功能，CD（持續交付、持續部署）將於未來擴充
-  - **autoflake**：移除所有未使用的 import、變數
-  - **isort**：自動整理 import 語句的順序
-  - **black**：格式化程式碼，如縮排、換行、空格、行長度等
-  - **flake8**：程式碼風格檢查，檢查程式碼是否符合 PEP8 規範，避免語法錯誤、潛在錯誤
-  - **mypy**：確保程式碼都有型別標註，並在程式執行前就檢查型別錯誤
-- 提供 CI/CD 流水線的截圖或簡單說明。
+- 說明：已落實 CI，每次提交程式碼後 GitHub Actions 會自動執行 pre-commit hooks、pytest 測試，確保程式碼變更後沒有破壞
 
+## <a name="未來規劃"></a>未來規劃 [返回目錄 ↑](#目錄)
+
+- **JWT 登入功能**: 無狀態 stateless 的使用者認證方式、伺服器不用維護 session 不會有會話共享問題，有助水平擴展，適合前後端分離與雲端環境
+- **Redis**: 快取與 session 管理工具，減少 MySQL 查詢壓力，並確保即時通知在高併發場景下的效能表現
+- **WebSocket 通知功能**: 讓使用者能即時看到資料變動、收到即時訊息通知、預計回覆時間通知、自動提醒功能（逾期回覆提醒），減少等待回應時的不確定與焦慮感
+- **MongoDB**: NoSQL 資料庫，適合儲存非結構化資料（如使用者行為紀錄、聊天室訊息），掌握用戶偏好以改善產品體驗
+- **Docker**：將應用程式及其所有依賴打包成容器，確保開發環境一致性，解決『我的電腦上可以跑，你的電腦上卻不行』的問題，提升開發效率、加速部署
+- **AWS**: 支援自動化部署與擴展，減少本地端伺服器維護成本。如使用 EC2 或 ECS 部署 FastAPI 伺服器、RDS 提供 MySQL 資料庫、CloudWatch 監控日誌與 CPU/記憶體使用率、S3 儲存靜態資源等
+- **端到端測試**：測試從前端用戶操作，到後端系統、資料庫、外部 API 回應的完整流程
 
 ## <a name="開發者"></a>開發者 [返回目錄 ↑](#目錄)
 
-**Oscar Chung** - [GitHub](https://github.com/ewsailor)
+- **Oscar Chung** - [GitHub](https://github.com/ewsailor)
+- **email**：ew12136@gmail.com
+- **LinkedIn**：https://www.linkedin.com/in/oscar-chung1/
