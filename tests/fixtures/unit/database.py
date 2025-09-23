@@ -1,7 +1,8 @@
 """
-資料庫相關的測試 Fixtures。
+單元測試資料庫相關的測試 Fixtures。
 
 提供單元測試用的資料庫會話和相關工具。
+使用記憶體資料庫，適合快速單元測試。
 """
 
 # ===== 第三方套件 =====
@@ -21,7 +22,10 @@ from app.models.user import User  # 使用者模型
 @pytest.fixture
 def db_session() -> Session:
     """
-    提供測試用的資料庫會話。
+    提供單元測試用的資料庫會話。
+
+    使用記憶體 SQLite 資料庫，適合快速單元測試。
+    每個測試都會獲得一個乾淨的資料庫狀態。
 
     Returns:
         Session: 測試用的資料庫會話
@@ -43,3 +47,34 @@ def db_session() -> Session:
     finally:
         # 清理測試資料
         session.close()
+
+
+@pytest.fixture
+def test_user_data():
+    """
+    提供測試用的使用者資料。
+
+    Returns:
+        dict: 測試使用者資料
+    """
+    return {"id": 1, "name": "測試使用者", "email": "test@example.com", "role": "TAKER"}
+
+
+@pytest.fixture
+def test_schedule_data():
+    """
+    提供測試用的時段資料。
+
+    Returns:
+        dict: 測試時段資料
+    """
+    return {
+        "id": 1,
+        "giver_id": 1,
+        "taker_id": None,
+        "status": "AVAILABLE",
+        "date": "2024-01-01",
+        "start_time": "09:00:00",
+        "end_time": "10:00:00",
+        "note": "測試時段",
+    }
