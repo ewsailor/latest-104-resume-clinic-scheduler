@@ -27,9 +27,9 @@ def test_giver_schedule_data():
         "giver_id": 1,
         "taker_id": None,
         "status": ScheduleStatusEnum.AVAILABLE,
-        "date": "2024-01-01",
-        "start_time": "09:00:00",
-        "end_time": "10:00:00",
+        "date": date(2024, 1, 1),
+        "start_time": time(9, 0),
+        "end_time": time(10, 0),
         "note": "Giver 提供的可預約時段",
     }
 
@@ -44,9 +44,9 @@ def test_taker_schedule_data():
         "giver_id": 1,
         "taker_id": 1,
         "status": ScheduleStatusEnum.PENDING,
-        "date": "2024-01-02",
-        "start_time": "14:00:00",
-        "end_time": "15:00:00",
+        "date": date(2024, 1, 2),
+        "start_time": time(14, 0),
+        "end_time": time(15, 0),
         "note": "Taker 提出的時段請求",
     }
 
