@@ -138,7 +138,7 @@
 - **`pre-commit`**：每次提交 `commit` 前自動檢查 `fix_imports.py`、`autoflake`、`isort`、`black`、`flake8`、`mypy`，確保程式碼品質
 - **`Pytest`**：測試框架，支援單元測試、整合測試
 - **`Pytest-cov`**：測試覆蓋率分析
-- **`CI/CD`**：已落實 `CI`，每次提交程式碼後 `GitHub Actions` 會自動執行 `pre-commit` hooks、`pytest` 測試，確保程式碼變更後沒有破壞現有功能，`CD`（持續交付、持續部署）將於未來擴充
+- **`CI/CD`**：已落實 `CI`，每次提交程式碼後 `GitHub Actions` 會自動執行 `pre-commit`、`pytest` 測試，確保程式碼變更後沒有破壞現有功能，`CD`（持續交付、持續部署）將於未來擴充
 
 #### **資料庫與 `ORM`**
 
@@ -172,7 +172,7 @@
 以下摘要本專案，落實安全性、可維護性與可擴充性、可靠性、效能、開發效率之技術。
 
 - **安全性**：`.env` 管理環境變數、`Pydantic Settings` 配置管理、`SecretStr` 敏感資料保護、`CORS` 跨域請求控管、`ORM` 避免 `SQL 注入`、最小權限原則
-- **可維護性與可擴充性**：`FastAPI` 自動生成文件、`FastAPI` 依賴注入、`CI/CD`、`pre-commit`、自定義錯誤處理、錯誤處理 `Decorator`、`Log` `Decorator`、`API` 分層架構、`SQLAlchemy ORM`、`Alembic` 資料庫遷移、`Poetry` 套件管理、`Enum` 列舉型別、軟刪除
+- **可維護性與可擴充性**：`FastAPI` 自動生成文件、依賴注入、`CI/CD`、`pre-commit`、自定義錯誤處理、錯誤處理 `Decorator`、`Log` `Decorator`、`API` 分層架構、`SQLAlchemy ORM`、`Alembic` 資料庫遷移、`Poetry` 套件管理、`Enum` 列舉型別、軟刪除
 - **可靠性**：`FastAPI` 型別檢查、測試覆蓋率 80%、`Pydantic` 輸入驗證、健康檢查、錯誤處理 `Decorator`、`Log` `Decorator`、資料庫事務管理、資料庫連線池、外鍵約束避免孤兒紀錄、`SQLite` 測試環境、`safe_getattr`
 - **效能**：`FastAPI` 非同步框架、`Eager loading` 解決 `N+1`、`Lazy loading`、資料庫索引、`Jinja2` 模板引擎、分頁、`Bootstrap` 響應式網格、靜態資源預載入
 - **開發效率**：`Cursor` AI 輔助開發、熱重載、`Jira` 專案管理、`Postman` `API` 測試視覺化、`MySQL Workbench` 資料庫視覺化、`Sourcetree` `Git` 視覺化
@@ -189,9 +189,9 @@
 ### <a name="可維護性與可擴充性"></a>可維護性與可擴充性 [返回目錄 ↑](#目錄)
 
 - **FastAPI 自動生成文件**：自動依據路由和 Pydantic 型別生成 OpenAPI 規範文檔，提供互動式測試的 Swagger UI、單頁式閱讀介面的 Redoc，減少維護 API 文件的工作量
-- **FastAPI 依賴注入**：將資料庫連線、權限驗證、設定檔讀取等邏輯封裝在一個獨立函式（依賴）中，並在需要的地方透過 Depends() 注入，需升級某功能時只需修改注入的依賴
-- **Pre-commit**：每次提交 commit 前自動檢查 fix_imports.py、autoflake、isort、Black、Flake8、MyPy，確保程式碼品質
-- **CI/CD**：已落實 CI，每次提交程式碼後 GitHub Actions 會自動執行 pre-commit hooks、pytest 測試，確保程式碼變更後沒有破壞現有功能，CD（持續交付、持續部署）將於未來擴充
+- **依賴注入**：將依賴（資料庫連線、權限驗證、設定檔讀取等邏輯）封裝在一個獨立函式中，需要時透過 Depends() 注入，需升級某功能時只需修改注入的依賴
+- **pre-commit**：每次提交 commit 前自動檢查 fix_imports.py、autoflake、isort、black、flake8、mypy，確保程式碼品質
+- **CI/CD**：已落實 CI，每次提交程式碼後 GitHub Actions 會自動執行 pre-commit、pytest 測試，確保程式碼變更後沒有破壞現有功能，CD（持續交付、持續部署）將於未來擴充
 - **自定義錯誤處理**：自定義不同層級可能遇到的錯誤類型，除錯時能快速定位是哪個層級拋出的錯誤
 - **錯誤處理 Decorator**：統一錯誤回傳格式，避免在每個函式中寫重覆的 try...except
 - **Log Decorator**：統一日誌記錄格式，除錯時能快速定位問題根源
@@ -467,7 +467,7 @@
 ├── .env.example                  # 環境變數範本
 ├── .flake8                       # Flake8 配置
 ├── .gitignore                    # Git 忽略檔案
-├── .pre-commit-config.yaml       # Pre-commit 配置
+├── .pre-commit-config.yaml       # pre-commit 配置
 ├── coverage.xml                  # 測試覆蓋率報告
 ├── poetry.lock                   # Poetry 依賴鎖定
 ├── pyproject.toml                # Poetry 專案配置
@@ -618,8 +618,8 @@ Client Response 客戶端接收回應
 
   ```bash
   # 執行所有測試
-  poetry run pytest # 確保測試環境的一致性和可靠性
-  pytest            # 使用系統預設的環境，可能與專案所需套件版本不一致
+  poetry run pytest # 建議使用：確保測試環境的一致性和可靠性
+  pytest            # 使用系統預設的環境，快速，但可能與專案所需套件版本不一致
 
   # 執行特定類型的測試
   pytest tests/unit/           # 單元測試
@@ -639,7 +639,6 @@ Client Response 客戶端接收回應
 
 - 路徑：`tests/fixtures/`
 - 說明：測試程式碼中最小的可獨立測試單元（通常是一個函式、方法或類別）之正常狀況、錯誤狀況、邊界條件，以確保程式碼按照預期運作，使用 SQLite 作為測試環境提高測試效率
-
   - **CRUD 資料存取層**：測試資料庫 CRUD 操作
   - **錯誤處理**：測試發生特定錯誤時，API 能返回正確的 HTTP 狀態碼和錯誤訊息，並正確格式化
   - **Model 資料模型層**：驗證模型欄位、關聯是否正確（透過 migration + fixture 測試 DB 結構）
@@ -647,6 +646,7 @@ Client Response 客戶端接收回應
   - **Service 服務層**：測試業務邏輯，例如「建立時段 → 檢查衝突 → 儲存」流程
   - **utils 工具函式**：測試工具函式在各種被使用的情況下，都能正確運作
   - **健康檢查**：測試健康檢查 API 回傳正確格式、狀態碼
+- 執行測試
 
   ```bash
   # 執行整個單元測試
@@ -678,6 +678,7 @@ Client Response 客戶端接收回應
 - 覆蓋率配置：`.coveragerc`
 - 使用 pytest-cov 進行覆蓋率分析，確保關鍵功能、邏輯分支被完整測試
 - 執行測試並生成覆蓋率報告
+
   ```bash
   pytest --cov=app --cov-report=html --cov-report=term
   ```
@@ -713,7 +714,16 @@ Client Response 客戶端接收回應
 #### <a name="cicd"></a>CI/CD [返回目錄 ↑](#目錄)
 
 - 路徑：`.github\workflows\ci.yml`
-- 說明：已落實 CI，每次提交程式碼後 GitHub Actions 會自動執行 pre-commit hooks、pytest 測試，確保程式碼變更後沒有破壞
+- 說明：已落實 CI，每次提交程式碼後 GitHub Actions 會自動執行 pre-commit、pytest 測試，確保程式碼變更後沒有破壞現有功能，CD（持續交付、持續部署）將於未來擴充
+  - **CI（Continuous Integration）**
+    - 安裝環境：Python、Poetry、環境變數等
+    - 安裝依賴
+    - 執行 pre-commit：`fix_imports.py`、`autoflake`、`isort`、`black`、`flake8`、`mypy`等
+    - 執行測試：pytest
+    - 報告測試結果：測試覆蓋率
+  - **CD（Continuous Delivery / Deployment）**
+    - 若 CI 綠燈 → 自動部署到 staging / production
+    - 可能包括 Docker build & push, k8s apply, AWS/GCP 部署等
 
 ## <a name="未來規劃"></a>未來規劃 [返回目錄 ↑](#目錄)
 

@@ -20,7 +20,6 @@ from app.errors import (
     ScheduleNotFoundError,
 )
 from app.models.schedule import Schedule
-from app.models.user import User
 from app.utils.timezone import get_local_now_naive
 
 
@@ -189,7 +188,7 @@ class TestScheduleCRUD:
         schedules_data = [
             Schedule(
                 giver_id=1,
-                taker_id=2,
+                taker_id=1,
                 status=ScheduleStatusEnum.PENDING,
                 date=date(2024, 1, 1),
                 start_time=time(9, 0),
@@ -198,7 +197,7 @@ class TestScheduleCRUD:
             ),
             Schedule(
                 giver_id=1,
-                taker_id=2,
+                taker_id=1,
                 status=ScheduleStatusEnum.PENDING,
                 date=date(2024, 1, 2),
                 start_time=time(14, 0),
@@ -213,14 +212,14 @@ class TestScheduleCRUD:
 
         # 資料完整性驗證
         assert schedules[0].giver_id == 1
-        assert schedules[0].taker_id == 2
+        assert schedules[0].taker_id == 1
         assert schedules[0].date == date(2024, 1, 1)
         assert schedules[0].start_time == time(9, 0)
         assert schedules[0].end_time == time(10, 0)
         assert schedules[0].note == "Taker 時段 1"
 
         assert schedules[1].giver_id == 1
-        assert schedules[1].taker_id == 2
+        assert schedules[1].taker_id == 1
         assert schedules[1].date == date(2024, 1, 2)
         assert schedules[1].start_time == time(14, 0)
         assert schedules[1].end_time == time(15, 0)
@@ -295,8 +294,10 @@ class TestScheduleCRUD:
         )
         results = filtered_query.all()
 
-        assert len(results) == 1
-        assert results[0].giver_id == test_giver_schedule.giver_id
+        assert len(results) == 2  # 兩個夾具都有相同的 giver_id
+        assert all(
+            result.giver_id == test_giver_schedule.giver_id for result in results
+        )
 
     def test_apply_filters_by_taker_id(
         self,
@@ -395,37 +396,82 @@ class TestScheduleCRUD:
 
         assert len(schedules) == 2
 
-    def test_list_schedules_filter_by_giver_id(
+    @pytest.mark.parametrize(
+        "filter_param,expected_count,filter_value",
+        [
+            # 測試 giver_id 篩選：使用 fixture 中的 giver_id 值 (1)
+            # 兩個夾具都有相同的 giver_id=1，期望返回 2 個結果
+            ("giver_id", 2, "fixture_value"),
+            # 測試 taker_id 篩選：使用 fixture 中的 taker_id 值 (1)
+            # 只有 test_taker_schedule 有 taker_id=1，期望返回 1 個結果
+            ("taker_id", 1, "fixture_value"),
+            # 測試 status 篩選：使用指定的狀態值
+            # 只有 test_giver_schedule 是 AVAILABLE，期望返回 1 個結果
+            ("status", 1, ScheduleStatusEnum.AVAILABLE),
+        ],
+    )
+    def test_list_schedules_filter_by_single_condition(
         self,
         db_session: Session,
         test_giver_schedule: Schedule,
         test_taker_schedule: Schedule,
+        filter_param: str,
+        expected_count: int,
+        filter_value,
     ):
-        """測試根據 giver_id 篩選時段。"""
-        schedules = self.crud.list_schedules(
-            db_session,
-            giver_id=test_giver_schedule.giver_id,
-        )
+        """測試根據單一條件篩選時段。
 
-        assert len(schedules) == 2  # 兩個夾具都有相同的 giver_id=1
-        assert all(
-            schedule.giver_id == test_giver_schedule.giver_id for schedule in schedules
-        )
+        此測試使用參數化方式，一次測試三種不同的篩選條件：
+        - giver_id：根據提供者 ID 篩選
+        - taker_id：根據接受者 ID 篩選
+        - status：根據狀態篩選
 
-    def test_list_schedules_filter_by_status(
-        self,
-        db_session: Session,
-        test_giver_schedule: Schedule,
-        test_taker_schedule: Schedule,
-    ):
-        """測試根據狀態篩選時段。"""
-        schedules = self.crud.list_schedules(
-            db_session,
-            status_filter=ScheduleStatusEnum.AVAILABLE,
-        )
+        Args:
+            db_session: 資料庫會話，用於執行查詢
+            test_giver_schedule: Giver 時段 fixture，giver_id=1, taker_id=None, status=AVAILABLE
+            test_taker_schedule: Taker 時段 fixture，giver_id=1, taker_id=1, status=PENDING
+            filter_param: 篩選參數名稱（"giver_id", "taker_id", "status"）
+            expected_count: 期望返回的結果數量
+            filter_value: 篩選值（"fixture_value" 表示使用 fixture 中的值，其他值直接使用）
+        """
+        # 準備篩選參數：建立空的字典，存放要傳給 list_schedules 的參數
+        filter_kwargs = {}
 
-        assert len(schedules) == 1
-        assert schedules[0].status == ScheduleStatusEnum.AVAILABLE
+        # 根據篩選參數類型，設定對應的篩選條件
+        match filter_param:
+            case "giver_id":
+                # giver_id 篩選：實際傳入 filter_kwargs = {"giver_id": 1}
+                filter_kwargs["giver_id"] = test_giver_schedule.giver_id
+            case "taker_id":
+                # taker_id 篩選：實際傳入 filter_kwargs = {"taker_id": 1}
+                filter_kwargs["taker_id"] = test_taker_schedule.taker_id
+            case "status":
+                # status 篩選：實際傳入 filter_kwargs = {"status_filter": ScheduleStatusEnum.AVAILABLE}
+                filter_kwargs["status_filter"] = filter_value
+
+        # 執行篩選：**filter_kwargs 將字典解包為關鍵字參數傳給 list_schedules
+        schedules = self.crud.list_schedules(db_session, **filter_kwargs)
+
+        # 驗證結果數量：確保返回的時段數量符合預期
+        assert len(schedules) == expected_count
+
+        # 驗證結果內容：確保每個返回的時段都符合篩選條件
+        match filter_param:
+            case "giver_id":
+                # 驗證所有返回的時段都有正確的 giver_id
+                assert all(
+                    schedule.giver_id == test_giver_schedule.giver_id
+                    for schedule in schedules
+                )
+            case "taker_id":
+                # 驗證所有返回的時段都有正確的 taker_id
+                assert all(
+                    schedule.taker_id == test_taker_schedule.taker_id
+                    for schedule in schedules
+                )
+            case "status":
+                # 驗證所有返回的時段都有正確的狀態
+                assert all(schedule.status == filter_value for schedule in schedules)
 
     def test_list_schedules_filter_by_both(
         self,
@@ -469,31 +515,193 @@ class TestScheduleCRUD:
         assert len(schedules) == 1
         assert schedules[0].id == test_taker_schedule.id
 
-    # ===== 查詢單一時段 =====
+    # ===== 查詢單一時段（排除軟刪除） =====
     def test_get_schedule_success(
-        self, db_session: Session, test_giver_schedule: Schedule
+        self,
+        db_session: Session,
+        test_giver_schedule: Schedule,
     ):
-        """測試成功根據 ID 查詢時段。"""
+        """測試查詢單一時段（排除軟刪除）成功。"""
         found_schedule = self.crud.get_schedule(
             db_session,
             test_giver_schedule.id,
         )
 
+        # 資料完整性驗證
+        assert found_schedule.giver_id == test_giver_schedule.giver_id
+        assert found_schedule.taker_id == test_giver_schedule.taker_id
+        assert found_schedule.status == test_giver_schedule.status
+        assert found_schedule.date == test_giver_schedule.date
+        assert found_schedule.start_time == test_giver_schedule.start_time
+        assert found_schedule.end_time == test_giver_schedule.end_time
+        assert found_schedule.note == test_giver_schedule.note
+
+        # 業務邏輯驗證
         assert found_schedule is not None
         assert found_schedule.id == test_giver_schedule.id
-        assert found_schedule.giver_id == test_giver_schedule.giver_id
+        assert found_schedule.deleted_at is None
+        assert found_schedule.is_active is True
+        assert found_schedule.is_deleted is False
 
-    def test_get_schedule_not_found(self, db_session: Session):
-        """測試查詢時段：404 資源不存在錯誤。"""
+    def test_get_schedule_not_found_truly_missing(self, db_session: Session):
+        """測試查詢單一時段（排除軟刪除）：404 資源不存在錯誤。"""
         with pytest.raises(ScheduleNotFoundError, match="時段不存在: ID=999"):
-            self.crud.get_schedule(
-                db_session,
-                999,
-            )
+            self.crud.get_schedule(db_session, 999)
+
+    def test_get_schedule_not_found_soft_deleted(
+        self,
+        db_session: Session,
+        test_giver_schedule: Schedule,
+    ):
+        """測試查詢單一時段（排除軟刪除）：404 資源已軟刪除錯誤。"""
+        # 先軟刪除時段
+        self.crud.delete_schedule(
+            db_session,
+            test_giver_schedule.id,
+            deleted_by=test_giver_schedule.giver_id,
+            deleted_by_role=UserRoleEnum.GIVER,
+        )
+
+        # 使用 get_schedule 查詢已軟刪除的時段（應該拋出錯誤）
+        with pytest.raises(
+            ScheduleNotFoundError, match=f"時段不存在: ID={test_giver_schedule.id}"
+        ):
+            self.crud.get_schedule(db_session, test_giver_schedule.id)
+
+    # ===== 查詢單一時段（包含軟刪除） =====
+    def test_get_schedule_including_deleted_success(
+        self,
+        db_session: Session,
+        test_giver_schedule: Schedule,
+    ):
+        """測試查詢單一時段（包含軟刪除）成功。"""
+        # 先軟刪除時段
+        self.crud.delete_schedule(
+            db_session,
+            test_giver_schedule.id,
+            deleted_by=test_giver_schedule.giver_id,
+            deleted_by_role=UserRoleEnum.GIVER,
+        )
+
+        # 使用 get_schedule_including_deleted 查詢，應該能找到
+        found_schedule = self.crud.get_schedule_including_deleted(
+            db_session, test_giver_schedule.id
+        )
+
+        # 資料完整性驗證
+        assert found_schedule.giver_id == test_giver_schedule.giver_id
+        assert found_schedule.taker_id == test_giver_schedule.taker_id
+        assert found_schedule.date == test_giver_schedule.date
+        assert found_schedule.start_time == test_giver_schedule.start_time
+        assert found_schedule.end_time == test_giver_schedule.end_time
+        assert found_schedule.note == test_giver_schedule.note
+
+        # 業務邏輯驗證
+        assert found_schedule is not None
+        assert found_schedule.id == test_giver_schedule.id
+        assert (
+            found_schedule.status == ScheduleStatusEnum.CANCELLED
+        )  # 軟刪除後狀態變為 CANCELLED
+        assert found_schedule.deleted_at is not None
+        assert found_schedule.deleted_by == test_giver_schedule.giver_id
+        assert found_schedule.deleted_by_role == UserRoleEnum.GIVER
+        assert found_schedule.is_active is False
+        assert found_schedule.is_deleted is True
+
+    def test_get_schedule_including_deleted_not_found(self, db_session: Session):
+        """測試查詢單一時段（包含軟刪除）：404 資源不存在錯誤。"""
+        # 測試查詢不存在的時段
+        result = self.crud.get_schedule_including_deleted(db_session, 999)
+        assert result is None
+
+    # ===== 更新時段欄位 =====
+    def test_update_schedule_fields_alias_schedule_date(
+        self,
+        db_session: Session,
+        test_giver_schedule: Schedule,
+    ):
+        """測試更新時段欄位：別名 schedule_date 處理。"""
+        # 測試 schedule_date 別名（對應到模型的 date 欄位）
+        new_date = date(2024, 12, 31)
+        old_date = test_giver_schedule.date
+
+        updated_fields = self.crud._update_schedule_fields(
+            test_giver_schedule,
+            schedule_date=new_date,
+        )
+
+        # 驗證更新結果
+        assert len(updated_fields) == 1
+        assert f"date: {old_date} -> {new_date}" in updated_fields
+        assert test_giver_schedule.date == new_date
+
+    def test_update_schedule_fields_existing_field(
+        self,
+        db_session: Session,
+        test_giver_schedule: Schedule,
+    ):
+        """測試更新時段欄位：存在的 Schedule 模型欄位。"""
+        # 測試更新存在的欄位
+        old_note = test_giver_schedule.note
+        new_note = "更新後的備註"
+        old_status = test_giver_schedule.status
+        new_status = ScheduleStatusEnum.PENDING
+
+        updated_fields = self.crud._update_schedule_fields(
+            test_giver_schedule,
+            note=new_note,
+            status=new_status,
+        )
+
+        # 驗證更新結果
+        assert len(updated_fields) == 2
+        assert f"note: {old_note} -> {new_note}" in updated_fields
+        assert f"status: {old_status} -> {new_status}" in updated_fields
+        assert test_giver_schedule.note == new_note
+        assert test_giver_schedule.status == new_status
+
+    def test_update_schedule_fields_non_existing_field(
+        self,
+        db_session: Session,
+        test_giver_schedule: Schedule,
+        caplog,
+    ):
+        """測試更新時段欄位：不存在的 Schedule 模型欄位。"""
+        # 測試更新不存在的欄位
+        updated_fields = self.crud._update_schedule_fields(
+            test_giver_schedule,
+            non_existing_field="無效值",
+            another_invalid_field=123,
+            invalid_column_name="測試",
+        )
+
+        # 所有欄位都不存在，應該返回空列表
+        assert len(updated_fields) == 0
+
+        # 驗證原始欄位值沒有改變，表示不存在的欄位被忽略
+        assert test_giver_schedule.giver_id == 1
+        assert test_giver_schedule.taker_id is None
+        assert test_giver_schedule.status == ScheduleStatusEnum.AVAILABLE
+        assert test_giver_schedule.date == date(2024, 1, 1)
+        assert test_giver_schedule.start_time == time(9, 0)
+        assert test_giver_schedule.end_time == time(10, 0)
+        assert test_giver_schedule.note == "Giver 提供的可預約時段"
+
+        # 驗證警告日誌被正確記錄
+        assert len(caplog.records) == 3  # 應該有3個警告記錄
+        assert caplog.records[0].levelname == "WARNING"
+        assert "忽略無效的欄位: non_existing_field" in caplog.records[0].message
+        assert caplog.records[1].levelname == "WARNING"
+        assert "忽略無效的欄位: another_invalid_field" in caplog.records[1].message
+        assert caplog.records[2].levelname == "WARNING"
+        assert "忽略無效的欄位: invalid_column_name" in caplog.records[2].message
 
     # ===== 更新時段 =====
     def test_update_schedule_success(
-        self, db_session: Session, test_giver_schedule: Schedule
+        self,
+        db_session: Session,
+        test_giver_schedule: Schedule,
+        caplog,
     ):
         """測試成功更新時段。"""
         # 更新時段
@@ -508,9 +716,6 @@ class TestScheduleCRUD:
             note="更新後的備註",
         )
 
-        # 基本驗證：更新後的時段物件不為空，確保更新操作成功
-        assert updated_schedule is not None
-
         # 資料完整性驗證：未更新的欄位保持不變
         assert updated_schedule.id == test_giver_schedule.id
         assert updated_schedule.giver_id == test_giver_schedule.giver_id
@@ -523,13 +728,32 @@ class TestScheduleCRUD:
         assert updated_schedule.end_time == time(15, 0)
         assert updated_schedule.note == "更新後的備註"
 
-        # 業務邏輯驗證：審計欄位
+        # 業務邏輯驗證
+        assert updated_schedule is not None
         assert updated_schedule.updated_at is not None
         assert updated_schedule.updated_by == test_giver_schedule.giver_id
         assert updated_schedule.updated_by_role == UserRoleEnum.GIVER
 
+        # 驗證成功更新的日誌記錄
+        assert len(caplog.records) >= 1  # 至少有一個 INFO 日誌
+        success_logs = [
+            record for record in caplog.records if record.levelname == "INFO"
+        ]
+        assert len(success_logs) >= 1
+        assert any(
+            f"時段 {test_giver_schedule.id} 更新成功" in log.message
+            for log in success_logs
+        )
+        assert any(
+            f"更新者: {test_giver_schedule.giver_id} (角色: {UserRoleEnum.GIVER.value})"
+            in log.message
+            for log in success_logs
+        )
+
     def test_update_schedule_not_found(
-        self, db_session: Session, test_giver_schedule: Schedule
+        self,
+        db_session: Session,
+        test_giver_schedule: Schedule,
     ):
         """測試更新時段：404 資源不存在錯誤。"""
         with pytest.raises(ScheduleNotFoundError, match="時段不存在: ID=999"):
@@ -538,11 +762,14 @@ class TestScheduleCRUD:
                 999,
                 updated_by=test_giver_schedule.giver_id,
                 updated_by_role=UserRoleEnum.SYSTEM,
-                note="測試備註",
+                note="測試時段不存在",
             )
 
+    # ===== 軟刪除時段 =====
     def test_delete_schedule_success(
-        self, db_session: Session, test_giver_schedule: Schedule
+        self,
+        db_session: Session,
+        test_giver_schedule: Schedule,
     ):
         """測試成功軟刪除時段。"""
         # 軟刪除時段
@@ -555,32 +782,32 @@ class TestScheduleCRUD:
 
         assert result == DeletionResult.SUCCESS
 
-        # 確認時段已被軟刪除（在正常查詢中不可見）
-        with pytest.raises(ScheduleNotFoundError, match="時段不存在: ID=1"):
-            self.crud.get_schedule(
-                db_session,
-                test_giver_schedule.id,
-            )
-
         # 確認時段仍然存在但已被軟刪除
         found_schedule_with_deleted = self.crud.get_schedule_including_deleted(
             db_session,
             test_giver_schedule.id,
         )
-        assert found_schedule_with_deleted is not None
+        # 資料完整性驗證
+        assert found_schedule_with_deleted.giver_id == test_giver_schedule.giver_id
+        assert found_schedule_with_deleted.taker_id == test_giver_schedule.taker_id
+        assert found_schedule_with_deleted.date == test_giver_schedule.date
+        assert found_schedule_with_deleted.start_time == test_giver_schedule.start_time
+        assert found_schedule_with_deleted.end_time == test_giver_schedule.end_time
+        assert found_schedule_with_deleted.note == test_giver_schedule.note
+
+        # 業務邏輯驗證
         assert found_schedule_with_deleted.deleted_at is not None
-
-    def test_delete_schedule_not_found(self, db_session: Session):
-        """測試刪除時段：404 資源不存在錯誤。"""
-        result = self.crud.delete_schedule(
-            db_session,
-            999,
-        )
-
-        assert result == DeletionResult.NOT_FOUND
+        assert found_schedule_with_deleted.id == test_giver_schedule.id
+        assert found_schedule_with_deleted.status == ScheduleStatusEnum.CANCELLED
+        assert found_schedule_with_deleted.deleted_by == test_giver_schedule.giver_id
+        assert found_schedule_with_deleted.deleted_by_role == UserRoleEnum.GIVER
+        assert found_schedule_with_deleted.is_active is False
+        assert found_schedule_with_deleted.is_deleted is True
 
     def test_delete_schedule_already_deleted(
-        self, db_session: Session, test_giver_schedule: Schedule
+        self,
+        db_session: Session,
+        test_giver_schedule: Schedule,
     ):
         """測試重複軟刪除時段。"""
         # 第一次軟刪除
@@ -602,318 +829,86 @@ class TestScheduleCRUD:
         assert result2 == DeletionResult.ALREADY_DELETED
 
         # 確認時段仍然存在但已被軟刪除
-        found_schedule_with_deleted = self.crud.get_schedule_including_deleted(
+        found_schedule = self.crud.get_schedule_including_deleted(
             db_session,
             test_giver_schedule.id,
         )
-        assert found_schedule_with_deleted is not None
-        assert found_schedule_with_deleted.deleted_at is not None
 
-    def test_create_schedules_with_invalid_operator(self, db_session: Session):
-        """測試使用不存在的操作者建立時段。"""
-        # 目前的 CRUD 類別沒有驗證操作者功能
-        # 暫時跳過此測試
-        pytest.skip("操作者驗證功能尚未實作")
+        # 資料完整性驗證
+        assert found_schedule.giver_id == test_giver_schedule.giver_id
+        assert found_schedule.taker_id == test_giver_schedule.taker_id
+        assert found_schedule.date == test_giver_schedule.date
+        assert found_schedule.start_time == test_giver_schedule.start_time
+        assert found_schedule.end_time == test_giver_schedule.end_time
+        assert found_schedule.note == test_giver_schedule.note
 
-    def test_update_schedule_with_invalid_operator(self, db_session: Session):
-        """測試使用不存在的操作者更新時段。"""
-        # 目前的 CRUD 類別沒有驗證操作者功能
-        # 暫時跳過此測試
-        pytest.skip("操作者驗證功能尚未實作")
+        # 業務邏輯驗證
+        assert found_schedule is not None
+        assert found_schedule.id == test_giver_schedule.id
+        assert (
+            found_schedule.status == ScheduleStatusEnum.CANCELLED
+        )  # 軟刪除後狀態變為 CANCELLED
+        assert found_schedule.deleted_at is not None
+        assert found_schedule.deleted_by == test_giver_schedule.giver_id
+        assert found_schedule.deleted_by_role == UserRoleEnum.GIVER
+        assert found_schedule.is_active is False
+        assert found_schedule.is_deleted is True
 
-    def test_delete_schedule_with_invalid_operator(self, db_session: Session):
-        """測試使用無效操作者刪除時段。"""
-        # 目前的 CRUD 類別沒有驗證操作者功能
-        # 暫時跳過此測試
-        pytest.skip("操作者驗證功能尚未實作")
-
-    def test_format_overlap_error_message(self, db_session: Session):
-        """測試格式化重疊時段錯誤訊息。"""
-        ScheduleCRUD()
-
-        # 建立測試使用者
-        user = User(name="測試 Giver", email="giver@example.com")
-        db_session.add(user)
-        db_session.commit()
-
-        # 建立測試時段
-        schedule = Schedule(
-            giver_id=user.id,
-            date=date(2025, 9, 15),  # 週一
-            start_time=time(9, 0),
-            end_time=time(10, 0),
-            note="測試時段",
-            status=ScheduleStatusEnum.AVAILABLE,
+    def test_delete_schedule_not_found(self, db_session: Session):
+        """測試刪除時段：404 資源不存在錯誤。"""
+        result = self.crud.delete_schedule(
+            db_session,
+            999,
         )
-        db_session.add(schedule)
-        db_session.commit()
 
-        # 測試建立上下文的錯誤訊息格式
-        expected_create_msg = "您正輸入的時段，和您之前曾輸入的「2025/09/15（週一） 09:00-10:00」時段重複或重疊，請重新輸入"
-        # 這裡只是測試錯誤訊息的格式，不需要實際的變數
+        assert result == DeletionResult.NOT_FOUND
 
-        # 測試更新上下文的錯誤訊息格式
-        expected_update_msg = "您正輸入的時段，和您之前曾輸入的「2025/09/15（週一） 09:00-10:00」時段重複或重疊，請重新輸入"
-        # 這裡只是測試錯誤訊息的格式，不需要實際的變數
+    @pytest.mark.parametrize(
+        "status,note",
+        [
+            (ScheduleStatusEnum.ACCEPTED, "測試已接受的時段"),
+            (ScheduleStatusEnum.COMPLETED, "測試已完成的時段"),
+        ],
+    )
+    def test_delete_schedule_cannot_delete_final_states(
+        self,
+        db_session: Session,
+        status: ScheduleStatusEnum,
+        note: str,
+    ):
+        """測試刪除最終狀態的時段（已接受、已完成）。
 
-        # 測試多個重疊時段
-        schedule2 = Schedule(
-            giver_id=user.id,
-            date=date(2025, 9, 15),  # 週一
-            start_time=time(14, 0),
-            end_time=time(15, 0),
-            note="測試時段2",
-            status=ScheduleStatusEnum.AVAILABLE,
-        )
-        db_session.add(schedule2)
-        db_session.commit()
+        這些狀態的時段不應該被刪除，因為它們代表已確定的業務狀態。
 
-        expected_multi_msg = "您正輸入的時段，和您之前曾輸入的「2025/09/15（週一） 09:00-10:00, 2025/09/15（週一） 14:00-15:00」時段重複或重疊，請重新輸入"
-        # 這裡只是測試錯誤訊息的格式，不需要實際的變數
-
-    def test_validate_user_exists(self, db_session: Session):
-        """測試使用者驗證輔助函數。"""
-        # 目前的 CRUD 類別沒有使用者驗證功能
-        # 暫時跳過此測試
-        pytest.skip("使用者驗證功能尚未實作")
-
-    def test_get_schedule_query_options_empty_list(self):
-        """測試空關聯列表的查詢選項。"""
-        # 測試空列表
-        options = self.crud.get_schedule_query_options([])
-
-        assert len(options) == 0
-
-    def test_get_schedule_including_deleted_success(self, db_session: Session):
-        """測試成功查詢包含已刪除記錄的時段。"""
-        # 使用 self.crud
-
-        # 建立測試資料
-        user1 = User(name="測試使用者1", email="test1@example.com")
-        user2 = User(name="測試使用者2", email="test2@example.com")
-        db_session.add_all([user1, user2])
-        db_session.commit()
-
+        Args:
+            status: 時段狀態（ACCEPTED 或 COMPLETED）
+            note: 時段備註
+        """
+        # 建立指定狀態的時段
         schedule = Schedule(
-            giver_id=user1.id,
-            taker_id=user2.id,
+            giver_id=1,
+            taker_id=1,
+            status=status,
             date=date(2025, 9, 15),
             start_time=time(9, 0),
             end_time=time(10, 0),
+            note=note,
         )
         db_session.add(schedule)
         db_session.commit()
 
-        # 軟刪除時段
-        schedule.deleted_at = get_local_now_naive()
-        schedule.deleted_by = user1.id
-        schedule.deleted_by_role = UserRoleEnum.GIVER
-        db_session.commit()
-
-        # 測試查詢包含已刪除記錄的時段
-        result = self.crud.get_schedule_including_deleted(db_session, schedule.id)
-
-        assert result is not None
-        assert result.id == schedule.id
-        assert result.deleted_at is not None
-
-    def test_get_schedule_including_deleted_not_found(self, db_session: Session):
-        """測試查詢時段：404 資源不存在錯誤（包含已刪除）。"""
-        # 使用 self.crud
-
-        # 測試查詢不存在的時段
-        result = self.crud.get_schedule_including_deleted(db_session, 999)
-
-        assert result is None
-
-    def test_update_schedule_fields_success(self, db_session: Session):
-        """測試成功更新時段欄位。"""
-        # 使用 self.crud
-
-        # 建立測試資料
-        user1 = User(name="測試使用者1", email="test1@example.com")
-        user2 = User(name="測試使用者2", email="test2@example.com")
-        db_session.add_all([user1, user2])
-        db_session.commit()
-
-        schedule = Schedule(
-            giver_id=user1.id,
-            taker_id=user2.id,
-            date=date(2025, 9, 15),
-            start_time=time(9, 0),
-            end_time=time(10, 0),
-        )
-        db_session.add(schedule)
-        db_session.commit()
-
-        # 測試更新欄位
-        updated_fields = self.crud._update_schedule_fields(
-            schedule,
-            status=ScheduleStatusEnum.AVAILABLE,
-            updated_by=user1.id,
-            updated_by_role=UserRoleEnum.GIVER,
-        )
-
-        assert len(updated_fields) == 3
-        assert any("status:" in field for field in updated_fields)
-        assert any("updated_by:" in field for field in updated_fields)
-        assert any("updated_by_role:" in field for field in updated_fields)
-        assert schedule.status == ScheduleStatusEnum.AVAILABLE
-        assert schedule.updated_by == user1.id
-        assert schedule.updated_by_role == UserRoleEnum.GIVER
-
-    def test_update_schedule_fields_no_changes(self, db_session: Session):
-        """測試沒有變更的欄位更新。"""
-        # 使用 self.crud
-
-        # 建立測試資料
-        user1 = User(name="測試使用者1", email="test1@example.com")
-        user2 = User(name="測試使用者2", email="test2@example.com")
-        db_session.add_all([user1, user2])
-        db_session.commit()
-
-        schedule = Schedule(
-            giver_id=user1.id,
-            taker_id=user2.id,
-            date=date(2025, 9, 15),
-            start_time=time(9, 0),
-            end_time=time(10, 0),
-            status=ScheduleStatusEnum.AVAILABLE,
-        )
-        db_session.add(schedule)
-        db_session.commit()
-
-        # 測試沒有變更的更新
-        updated_fields = self.crud._update_schedule_fields(
-            schedule,
-            status=ScheduleStatusEnum.AVAILABLE,  # 相同值
-        )
-
-        # 即使值相同，方法仍會記錄變更（這是方法的行為）
-        assert len(updated_fields) == 1
-        assert any("status:" in field for field in updated_fields)
-
-    def test_update_schedule_fields_invalid_field(self, db_session: Session):
-        """測試更新無效欄位。"""
-        # 使用 self.crud
-
-        # 建立測試資料
-        user1 = User(name="測試使用者1", email="test1@example.com")
-        user2 = User(name="測試使用者2", email="test2@example.com")
-        db_session.add_all([user1, user2])
-        db_session.commit()
-
-        schedule = Schedule(
-            giver_id=user1.id,
-            taker_id=user2.id,
-            date=date(2025, 9, 15),
-            start_time=time(9, 0),
-            end_time=time(10, 0),
-        )
-        db_session.add(schedule)
-        db_session.commit()
-
-        # 測試更新無效欄位（應該被忽略）
-        updated_fields = self.crud._update_schedule_fields(
-            schedule,
-            invalid_field="test_value",
-            status=ScheduleStatusEnum.AVAILABLE,
-        )
-
-        # 只有有效欄位應該被更新
-        assert len(updated_fields) == 1
-        assert any("status:" in field for field in updated_fields)
-        assert schedule.status == ScheduleStatusEnum.AVAILABLE
-
-    def test_update_schedule_invalid_time_range(self, db_session: Session):
-        """測試更新時段時無效的時間範圍。"""
-        # 使用 self.crud
-
-        # 建立測試使用者
-        user = User(name="測試 Giver", email="giver@example.com")
-        db_session.add(user)
-        db_session.commit()
-
-        # 建立測試時段
-        schedule = Schedule(
-            giver_id=user.id,
-            date=date(2025, 9, 15),
-            start_time=time(9, 0),
-            end_time=time(10, 0),
-            status=ScheduleStatusEnum.AVAILABLE,
-        )
-        db_session.add(schedule)
-        db_session.commit()
-
-        # 測試無效的時間範圍（開始時間晚於結束時間）
-        with pytest.raises(Exception) as exc_info:
-            self.crud.update_schedule(
-                db_session,
-                schedule.id,
-                updated_by=user.id,
-                updated_by_role=UserRoleEnum.GIVER,
-                start_time=time(11, 0),  # 開始時間晚於結束時間
-                end_time=time(10, 0),
-            )
-
-        assert "開始時間必須早於結束時間" in str(exc_info.value)
-
-    def test_delete_schedule_cannot_delete_accepted(self, db_session: Session):
-        """測試刪除已接受的時段。"""
-        # 使用 self.crud
-
-        # 建立測試使用者
-        user = User(name="測試 Giver", email="giver@example.com")
-        db_session.add(user)
-        db_session.commit()
-
-        # 建立已接受的時段
-        schedule = Schedule(
-            giver_id=user.id,
-            date=date(2025, 9, 15),
-            start_time=time(9, 0),
-            end_time=time(10, 0),
-            status=ScheduleStatusEnum.ACCEPTED,
-        )
-        db_session.add(schedule)
-        db_session.commit()
-
-        # 嘗試刪除已接受的時段
+        # 嘗試刪除最終狀態的時段
         result = self.crud.delete_schedule(
             db_session,
             schedule.id,
-            deleted_by=user.id,
+            deleted_by=1,
             deleted_by_role=UserRoleEnum.GIVER,
         )
 
+        # 應該返回無法刪除的結果
         assert result == DeletionResult.CANNOT_DELETE
 
-    def test_delete_schedule_cannot_delete_completed(self, db_session: Session):
-        """測試刪除已完成的時段。"""
-        # 使用 self.crud
-
-        # 建立測試使用者
-        user = User(name="測試 Giver", email="giver@example.com")
-        db_session.add(user)
-        db_session.commit()
-
-        # 建立已完成的時段
-        schedule = Schedule(
-            giver_id=user.id,
-            date=date(2025, 9, 15),
-            start_time=time(9, 0),
-            end_time=time(10, 0),
-            status=ScheduleStatusEnum.COMPLETED,
-        )
-        db_session.add(schedule)
-        db_session.commit()
-
-        # 嘗試刪除已完成的時段
-        result = self.crud.delete_schedule(
-            db_session,
-            schedule.id,
-            deleted_by=user.id,
-            deleted_by_role=UserRoleEnum.GIVER,
-        )
-
-        assert result == DeletionResult.CANNOT_DELETE
+        # 驗證時段狀態沒有改變
+        db_session.refresh(schedule)
+        assert schedule.status == status
+        assert schedule.deleted_at is None

@@ -188,21 +188,34 @@ class ScheduleCRUD:
 
         return schedule
 
-    def _update_schedule_fields(self, schedule: Schedule, **kwargs: Any) -> list[str]:
+    def _update_schedule_fields(
+        self,
+        schedule: Schedule,
+        **kwargs: Any,
+    ) -> list[str]:
         """更新時段欄位並返回更新的欄位記錄。"""
         updated_fields = []
 
         for field, value in kwargs.items():
+            # 檢查 API 傳入的參數名稱，是否為 schedule_date 別名，如果是則更新資料庫模型 date 欄位的值
             if field == "schedule_date":
-                # 處理 schedule_date 別名，對應到模型的 date 欄位
+                # 取得欄位更新前的舊值（如果不存在則為 None）
                 old_value = getattr(schedule, "date", None)
+                # 設定欄位的新值到資料庫模型的 date 屬性
                 setattr(schedule, "date", value)
+                # 記錄欄位變更日誌：格式為 "欄位名: 舊值 -> 新值"
                 updated_fields.append(f"date: {old_value} -> {value}")
+            # 檢查欄位是否在 Schedule 模型中存在
             elif hasattr(schedule, field):
+                # 取得欄位更新前的舊值（如果不存在則為 None）
                 old_value = getattr(schedule, field, None)
+                # 設定欄位的新值到資料庫模型
                 setattr(schedule, field, value)
+                # 記錄欄位變更日誌：格式為 "欄位名: 舊值 -> 新值"
                 updated_fields.append(f"{field}: {old_value} -> {value}")
+            # 如果欄位不存在於 Schedule 模型中
             else:
+                # 記錄警告日誌，忽略無效的欄位
                 logger.warning(f"忽略無效的欄位: {field}")
 
         return updated_fields
