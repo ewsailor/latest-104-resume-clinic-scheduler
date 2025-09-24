@@ -9,9 +9,10 @@ Create Date: 2025-08-09 16:28:42.089378
 from typing import Sequence, Union
 
 import sqlalchemy as sa
+from sqlalchemy import text
 from sqlalchemy.dialects import mysql
 
-from alembic import op
+from alembic import context, op
 
 # revision identifiers, used by Alembic.
 revision: str = '1b8e77816819'
@@ -26,7 +27,6 @@ def upgrade() -> None:
     # schedules 表格的 updated_by 欄位已經存在，只處理 users 表格
 
     # 檢查是否為 offline 模式
-    from alembic import context
 
     if context.is_offline_mode():
         # 在 offline 模式下，假設需要新增所有欄位
@@ -49,7 +49,6 @@ def upgrade() -> None:
         )
     else:
         # 在 online 模式下，檢查欄位是否存在
-        from sqlalchemy import text
 
         connection = context.get_context().bind
         result = connection.execute(
@@ -114,9 +113,6 @@ def downgrade() -> None:
     op.drop_column('users', 'updated_by')
 
     # 檢查 schedules.updated_by 是否存在，存在才刪除
-    from sqlalchemy import text
-
-    from alembic import context
 
     connection = context.get_context().bind
     result = connection.execute(
