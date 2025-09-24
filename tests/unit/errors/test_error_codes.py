@@ -12,88 +12,35 @@ from app.errors.error_codes.service import ServiceErrorCode
 from app.errors.error_codes.system import SystemErrorCode
 
 
-class TestRouterErrorCode:
-    """RouterErrorCode 測試。"""
+class TestCORSErrorCode:
+    """CORSErrorCode 測試。"""
 
-    def test_router_error_code_values(self):
-        """測試路由錯誤代碼值。"""
+    def test_cors_error_code_values(self):
+        """測試 CORS 錯誤代碼值。"""
         # 測試所有錯誤代碼都有值
-        assert RouterErrorCode.BAD_REQUEST == "ROUTER_BAD_REQUEST"
-        assert RouterErrorCode.INVALID_METHOD == "ROUTER_INVALID_METHOD"
-        assert RouterErrorCode.AUTHENTICATION_ERROR == "ROUTER_AUTHENTICATION_ERROR"
-        assert RouterErrorCode.AUTHORIZATION_ERROR == "ROUTER_AUTHORIZATION_ERROR"
-        assert RouterErrorCode.ENDPOINT_NOT_FOUND == "ROUTER_ENDPOINT_NOT_FOUND"
-        assert RouterErrorCode.VALIDATION_ERROR == "ROUTER_VALIDATION_ERROR"
+        assert CORSErrorCode.ORIGIN_NOT_ALLOWED == "CORS_ORIGIN_NOT_ALLOWED"
+        assert CORSErrorCode.METHOD_NOT_ALLOWED == "CORS_METHOD_NOT_ALLOWED"
+        assert CORSErrorCode.HEADER_NOT_ALLOWED == "CORS_HEADER_NOT_ALLOWED"
 
-    def test_router_error_code_format(self):
-        """測試路由錯誤代碼格式。"""
-        # 所有錯誤代碼都應該以 ROUTER_ 開頭
+    def test_cors_error_code_format(self):
+        """測試 CORS 錯誤代碼格式。"""
+        # 所有錯誤代碼都應該以 CORS_ 開頭
         error_codes = [
-            RouterErrorCode.BAD_REQUEST,
-            RouterErrorCode.INVALID_METHOD,
-            RouterErrorCode.AUTHENTICATION_ERROR,
-            RouterErrorCode.AUTHORIZATION_ERROR,
-            RouterErrorCode.ENDPOINT_NOT_FOUND,
-            RouterErrorCode.VALIDATION_ERROR,
+            CORSErrorCode.ORIGIN_NOT_ALLOWED,
+            CORSErrorCode.METHOD_NOT_ALLOWED,
+            CORSErrorCode.HEADER_NOT_ALLOWED,
         ]
 
         for code in error_codes:
-            assert code.startswith("ROUTER_")
+            assert code.startswith("CORS_")
             assert code.isupper()
 
-    def test_router_error_code_uniqueness(self):
-        """測試路由錯誤代碼唯一性。"""
+    def test_cors_error_code_uniqueness(self):
+        """測試 CORS 錯誤代碼唯一性。"""
         error_codes = [
-            RouterErrorCode.BAD_REQUEST,
-            RouterErrorCode.INVALID_METHOD,
-            RouterErrorCode.AUTHENTICATION_ERROR,
-            RouterErrorCode.AUTHORIZATION_ERROR,
-            RouterErrorCode.ENDPOINT_NOT_FOUND,
-            RouterErrorCode.VALIDATION_ERROR,
-        ]
-
-        # 確保所有錯誤代碼都是唯一的
-        assert len(error_codes) == len(set(error_codes))
-
-
-class TestServiceErrorCode:
-    """ServiceErrorCode 測試。"""
-
-    def test_service_error_code_values(self):
-        """測試服務錯誤代碼值。"""
-        # 測試所有錯誤代碼都有值
-        assert ServiceErrorCode.BUSINESS_LOGIC_ERROR == "SERVICE_BUSINESS_LOGIC_ERROR"
-        assert ServiceErrorCode.SCHEDULE_OVERLAP == "SERVICE_SCHEDULE_OVERLAP"
-        assert ServiceErrorCode.INVALID_OPERATION == "SERVICE_INVALID_OPERATION"
-        assert ServiceErrorCode.USER_NOT_FOUND == "SERVICE_USER_NOT_FOUND"
-        assert ServiceErrorCode.SCHEDULE_NOT_FOUND == "SERVICE_SCHEDULE_NOT_FOUND"
-        assert ServiceErrorCode.CONFLICT == "SERVICE_CONFLICT"
-
-    def test_service_error_code_format(self):
-        """測試服務錯誤代碼格式。"""
-        # 所有錯誤代碼都應該以 SERVICE_ 開頭
-        error_codes = [
-            ServiceErrorCode.BUSINESS_LOGIC_ERROR,
-            ServiceErrorCode.SCHEDULE_OVERLAP,
-            ServiceErrorCode.INVALID_OPERATION,
-            ServiceErrorCode.USER_NOT_FOUND,
-            ServiceErrorCode.SCHEDULE_NOT_FOUND,
-            ServiceErrorCode.CONFLICT,
-        ]
-
-        for code in error_codes:
-            assert code.startswith("SERVICE_")
-            assert code.isupper()
-
-    def test_service_error_code_uniqueness(self):
-        """測試服務錯誤代碼唯一性。"""
-        error_codes = [
-            ServiceErrorCode.BUSINESS_LOGIC_ERROR,
-            ServiceErrorCode.SCHEDULE_OVERLAP,
-            ServiceErrorCode.INVALID_OPERATION,
-            ServiceErrorCode.USER_NOT_FOUND,
-            ServiceErrorCode.SCHEDULE_NOT_FOUND,
-            ServiceErrorCode.CONFLICT,
+            CORSErrorCode.ORIGIN_NOT_ALLOWED,
+            CORSErrorCode.METHOD_NOT_ALLOWED,
+            CORSErrorCode.HEADER_NOT_ALLOWED,
         ]
 
         # 確保所有錯誤代碼都是唯一的
@@ -141,35 +88,99 @@ class TestCRUDErrorCode:
         assert len(error_codes) == len(set(error_codes))
 
 
-class TestCORSErrorCode:
-    """CORSErrorCode 測試。"""
+class TestRouterErrorCode:
+    """RouterErrorCode 測試。"""
 
-    def test_cors_error_code_values(self):
-        """測試 CORS 錯誤代碼值。"""
+    def test_router_error_code_values(self):
+        """測試路由錯誤代碼值。"""
         # 測試所有錯誤代碼都有值
-        assert CORSErrorCode.ORIGIN_NOT_ALLOWED == "CORS_ORIGIN_NOT_ALLOWED"
-        assert CORSErrorCode.METHOD_NOT_ALLOWED == "CORS_METHOD_NOT_ALLOWED"
-        assert CORSErrorCode.HEADER_NOT_ALLOWED == "CORS_HEADER_NOT_ALLOWED"
+        assert RouterErrorCode.BAD_REQUEST == "ROUTER_BAD_REQUEST"
+        assert RouterErrorCode.INVALID_METHOD == "ROUTER_INVALID_METHOD"
+        assert RouterErrorCode.INVALID_SCHEDULE_TIME == "ROUTER_INVALID_SCHEDULE_TIME"
+        assert RouterErrorCode.AUTHENTICATION_ERROR == "ROUTER_AUTHENTICATION_ERROR"
+        assert RouterErrorCode.AUTHORIZATION_ERROR == "ROUTER_AUTHORIZATION_ERROR"
+        assert RouterErrorCode.ENDPOINT_NOT_FOUND == "ROUTER_ENDPOINT_NOT_FOUND"
+        assert RouterErrorCode.SCHEDULE_NOT_FOUND == "ROUTER_SCHEDULE_NOT_FOUND"
+        assert RouterErrorCode.VALIDATION_ERROR == "ROUTER_VALIDATION_ERROR"
 
-    def test_cors_error_code_format(self):
-        """測試 CORS 錯誤代碼格式。"""
-        # 所有錯誤代碼都應該以 CORS_ 開頭
+    def test_router_error_code_format(self):
+        """測試路由錯誤代碼格式。"""
+        # 所有錯誤代碼都應該以 ROUTER_ 開頭
         error_codes = [
-            CORSErrorCode.ORIGIN_NOT_ALLOWED,
-            CORSErrorCode.METHOD_NOT_ALLOWED,
-            CORSErrorCode.HEADER_NOT_ALLOWED,
+            RouterErrorCode.BAD_REQUEST,
+            RouterErrorCode.INVALID_METHOD,
+            RouterErrorCode.INVALID_SCHEDULE_TIME,
+            RouterErrorCode.AUTHENTICATION_ERROR,
+            RouterErrorCode.AUTHORIZATION_ERROR,
+            RouterErrorCode.ENDPOINT_NOT_FOUND,
+            RouterErrorCode.SCHEDULE_NOT_FOUND,
+            RouterErrorCode.VALIDATION_ERROR,
         ]
 
         for code in error_codes:
-            assert code.startswith("CORS_")
+            assert code.startswith("ROUTER_")
             assert code.isupper()
 
-    def test_cors_error_code_uniqueness(self):
-        """測試 CORS 錯誤代碼唯一性。"""
+    def test_router_error_code_uniqueness(self):
+        """測試路由錯誤代碼唯一性。"""
         error_codes = [
-            CORSErrorCode.ORIGIN_NOT_ALLOWED,
-            CORSErrorCode.METHOD_NOT_ALLOWED,
-            CORSErrorCode.HEADER_NOT_ALLOWED,
+            RouterErrorCode.BAD_REQUEST,
+            RouterErrorCode.INVALID_METHOD,
+            RouterErrorCode.INVALID_SCHEDULE_TIME,
+            RouterErrorCode.AUTHENTICATION_ERROR,
+            RouterErrorCode.AUTHORIZATION_ERROR,
+            RouterErrorCode.ENDPOINT_NOT_FOUND,
+            RouterErrorCode.SCHEDULE_NOT_FOUND,
+            RouterErrorCode.VALIDATION_ERROR,
+        ]
+
+        # 確保所有錯誤代碼都是唯一的
+        assert len(error_codes) == len(set(error_codes))
+
+
+class TestServiceErrorCode:
+    """ServiceErrorCode 測試。"""
+
+    def test_service_error_code_values(self):
+        """測試服務錯誤代碼值。"""
+        # 測試所有錯誤代碼都有值
+        assert ServiceErrorCode.BUSINESS_LOGIC_ERROR == "SERVICE_BUSINESS_LOGIC_ERROR"
+        assert ServiceErrorCode.SCHEDULE_OVERLAP == "SERVICE_SCHEDULE_OVERLAP"
+        assert ServiceErrorCode.INVALID_OPERATION == "SERVICE_INVALID_OPERATION"
+        assert ServiceErrorCode.USER_NOT_FOUND == "SERVICE_USER_NOT_FOUND"
+        assert ServiceErrorCode.SCHEDULE_NOT_FOUND == "SERVICE_SCHEDULE_NOT_FOUND"
+        assert ServiceErrorCode.CONFLICT == "SERVICE_CONFLICT"
+        assert ServiceErrorCode.SCHEDULE_CANNOT_BE_DELETED == (
+            "SERVICE_SCHEDULE_CANNOT_BE_DELETED"
+        )
+
+    def test_service_error_code_format(self):
+        """測試服務錯誤代碼格式。"""
+        # 所有錯誤代碼都應該以 SERVICE_ 開頭
+        error_codes = [
+            ServiceErrorCode.BUSINESS_LOGIC_ERROR,
+            ServiceErrorCode.SCHEDULE_OVERLAP,
+            ServiceErrorCode.INVALID_OPERATION,
+            ServiceErrorCode.USER_NOT_FOUND,
+            ServiceErrorCode.SCHEDULE_NOT_FOUND,
+            ServiceErrorCode.CONFLICT,
+            ServiceErrorCode.SCHEDULE_CANNOT_BE_DELETED,
+        ]
+
+        for code in error_codes:
+            assert code.startswith("SERVICE_")
+            assert code.isupper()
+
+    def test_service_error_code_uniqueness(self):
+        """測試服務錯誤代碼唯一性。"""
+        error_codes = [
+            ServiceErrorCode.BUSINESS_LOGIC_ERROR,
+            ServiceErrorCode.SCHEDULE_OVERLAP,
+            ServiceErrorCode.INVALID_OPERATION,
+            ServiceErrorCode.USER_NOT_FOUND,
+            ServiceErrorCode.SCHEDULE_NOT_FOUND,
+            ServiceErrorCode.CONFLICT,
+            ServiceErrorCode.SCHEDULE_CANNOT_BE_DELETED,
         ]
 
         # 確保所有錯誤代碼都是唯一的
@@ -182,19 +193,19 @@ class TestSystemErrorCode:
     def test_system_error_code_values(self):
         """測試系統錯誤代碼值。"""
         # 測試所有錯誤代碼都有值
+        assert SystemErrorCode.INTERNAL_ERROR == "INTERNAL_ERROR"
         assert SystemErrorCode.SERVICE_UNAVAILABLE == "SERVICE_UNAVAILABLE"
         assert SystemErrorCode.LIVENESS_CHECK_ERROR == "LIVENESS_CHECK_ERROR"
         assert SystemErrorCode.READINESS_CHECK_ERROR == "READINESS_CHECK_ERROR"
-        assert SystemErrorCode.INTERNAL_ERROR == "INTERNAL_ERROR"
 
     def test_system_error_code_format(self):
         """測試系統錯誤代碼格式。"""
         # 系統錯誤代碼沒有統一前綴
         error_codes = [
+            SystemErrorCode.INTERNAL_ERROR,
             SystemErrorCode.SERVICE_UNAVAILABLE,
             SystemErrorCode.LIVENESS_CHECK_ERROR,
             SystemErrorCode.READINESS_CHECK_ERROR,
-            SystemErrorCode.INTERNAL_ERROR,
         ]
 
         for code in error_codes:
@@ -203,10 +214,10 @@ class TestSystemErrorCode:
     def test_system_error_code_uniqueness(self):
         """測試系統錯誤代碼唯一性。"""
         error_codes = [
+            SystemErrorCode.INTERNAL_ERROR,
             SystemErrorCode.SERVICE_UNAVAILABLE,
             SystemErrorCode.LIVENESS_CHECK_ERROR,
             SystemErrorCode.READINESS_CHECK_ERROR,
-            SystemErrorCode.INTERNAL_ERROR,
         ]
 
         # 確保所有錯誤代碼都是唯一的
@@ -221,27 +232,12 @@ class TestErrorCodeConsistency:
         # 收集所有錯誤代碼
         all_codes = []
 
-        # Router 錯誤代碼
+        # CORS 錯誤代碼
         all_codes.extend(
             [
-                RouterErrorCode.BAD_REQUEST,
-                RouterErrorCode.INVALID_METHOD,
-                RouterErrorCode.AUTHENTICATION_ERROR,
-                RouterErrorCode.AUTHORIZATION_ERROR,
-                RouterErrorCode.ENDPOINT_NOT_FOUND,
-                RouterErrorCode.VALIDATION_ERROR,
-            ]
-        )
-
-        # Service 錯誤代碼
-        all_codes.extend(
-            [
-                ServiceErrorCode.BUSINESS_LOGIC_ERROR,
-                ServiceErrorCode.SCHEDULE_OVERLAP,
-                ServiceErrorCode.INVALID_OPERATION,
-                ServiceErrorCode.USER_NOT_FOUND,
-                ServiceErrorCode.SCHEDULE_NOT_FOUND,
-                ServiceErrorCode.CONFLICT,
+                CORSErrorCode.ORIGIN_NOT_ALLOWED,
+                CORSErrorCode.METHOD_NOT_ALLOWED,
+                CORSErrorCode.HEADER_NOT_ALLOWED,
             ]
         )
 
@@ -256,22 +252,40 @@ class TestErrorCodeConsistency:
             ]
         )
 
-        # CORS 錯誤代碼
+        # Router 錯誤代碼
         all_codes.extend(
             [
-                CORSErrorCode.ORIGIN_NOT_ALLOWED,
-                CORSErrorCode.METHOD_NOT_ALLOWED,
-                CORSErrorCode.HEADER_NOT_ALLOWED,
+                RouterErrorCode.BAD_REQUEST,
+                RouterErrorCode.INVALID_METHOD,
+                RouterErrorCode.INVALID_SCHEDULE_TIME,
+                RouterErrorCode.AUTHENTICATION_ERROR,
+                RouterErrorCode.AUTHORIZATION_ERROR,
+                RouterErrorCode.ENDPOINT_NOT_FOUND,
+                RouterErrorCode.SCHEDULE_NOT_FOUND,
+                RouterErrorCode.VALIDATION_ERROR,
+            ]
+        )
+
+        # Service 錯誤代碼
+        all_codes.extend(
+            [
+                ServiceErrorCode.BUSINESS_LOGIC_ERROR,
+                ServiceErrorCode.SCHEDULE_OVERLAP,
+                ServiceErrorCode.INVALID_OPERATION,
+                ServiceErrorCode.USER_NOT_FOUND,
+                ServiceErrorCode.SCHEDULE_NOT_FOUND,
+                ServiceErrorCode.CONFLICT,
+                ServiceErrorCode.SCHEDULE_CANNOT_BE_DELETED,
             ]
         )
 
         # System 錯誤代碼
         all_codes.extend(
             [
+                SystemErrorCode.INTERNAL_ERROR,
                 SystemErrorCode.SERVICE_UNAVAILABLE,
                 SystemErrorCode.LIVENESS_CHECK_ERROR,
                 SystemErrorCode.READINESS_CHECK_ERROR,
-                SystemErrorCode.INTERNAL_ERROR,
             ]
         )
 
@@ -283,22 +297,10 @@ class TestErrorCodeConsistency:
     def test_error_code_prefixes(self):
         """測試錯誤代碼前綴。"""
         # 測試各層級的錯誤代碼前綴
-        router_codes = [
-            RouterErrorCode.BAD_REQUEST,
-            RouterErrorCode.INVALID_METHOD,
-            RouterErrorCode.AUTHENTICATION_ERROR,
-            RouterErrorCode.AUTHORIZATION_ERROR,
-            RouterErrorCode.ENDPOINT_NOT_FOUND,
-            RouterErrorCode.VALIDATION_ERROR,
-        ]
-
-        service_codes = [
-            ServiceErrorCode.BUSINESS_LOGIC_ERROR,
-            ServiceErrorCode.SCHEDULE_OVERLAP,
-            ServiceErrorCode.INVALID_OPERATION,
-            ServiceErrorCode.USER_NOT_FOUND,
-            ServiceErrorCode.SCHEDULE_NOT_FOUND,
-            ServiceErrorCode.CONFLICT,
+        cors_codes = [
+            CORSErrorCode.ORIGIN_NOT_ALLOWED,
+            CORSErrorCode.METHOD_NOT_ALLOWED,
+            CORSErrorCode.HEADER_NOT_ALLOWED,
         ]
 
         crud_codes = [
@@ -309,31 +311,46 @@ class TestErrorCodeConsistency:
             CRUDErrorCode.CONNECTION_ERROR,
         ]
 
-        cors_codes = [
-            CORSErrorCode.ORIGIN_NOT_ALLOWED,
-            CORSErrorCode.METHOD_NOT_ALLOWED,
-            CORSErrorCode.HEADER_NOT_ALLOWED,
+        router_codes = [
+            RouterErrorCode.BAD_REQUEST,
+            RouterErrorCode.INVALID_METHOD,
+            RouterErrorCode.INVALID_SCHEDULE_TIME,
+            RouterErrorCode.AUTHENTICATION_ERROR,
+            RouterErrorCode.AUTHORIZATION_ERROR,
+            RouterErrorCode.ENDPOINT_NOT_FOUND,
+            RouterErrorCode.SCHEDULE_NOT_FOUND,
+            RouterErrorCode.VALIDATION_ERROR,
+        ]
+
+        service_codes = [
+            ServiceErrorCode.BUSINESS_LOGIC_ERROR,
+            ServiceErrorCode.SCHEDULE_OVERLAP,
+            ServiceErrorCode.INVALID_OPERATION,
+            ServiceErrorCode.USER_NOT_FOUND,
+            ServiceErrorCode.SCHEDULE_NOT_FOUND,
+            ServiceErrorCode.CONFLICT,
+            ServiceErrorCode.SCHEDULE_CANNOT_BE_DELETED,
         ]
 
         system_codes = [
+            SystemErrorCode.INTERNAL_ERROR,
             SystemErrorCode.SERVICE_UNAVAILABLE,
             SystemErrorCode.LIVENESS_CHECK_ERROR,
             SystemErrorCode.READINESS_CHECK_ERROR,
-            SystemErrorCode.INTERNAL_ERROR,
         ]
 
         # 檢查前綴
+        for code in cors_codes:
+            assert code.startswith("CORS_")
+
+        for code in crud_codes:
+            assert code.startswith("CRUD_")
+
         for code in router_codes:
             assert code.startswith("ROUTER_")
 
         for code in service_codes:
             assert code.startswith("SERVICE_")
-
-        for code in crud_codes:
-            assert code.startswith("CRUD_")
-
-        for code in cors_codes:
-            assert code.startswith("CORS_")
 
         for code in system_codes:
             # 系統錯誤代碼沒有統一前綴
@@ -346,23 +363,28 @@ class TestErrorCodeConsistency:
 
         # 使用反射獲取所有錯誤代碼
         for error_code_class in [
+            CORSErrorCode,
+            CRUDErrorCode,
             RouterErrorCode,
             ServiceErrorCode,
-            CRUDErrorCode,
-            CORSErrorCode,
             SystemErrorCode,
         ]:
+            # 使用 dir() 函數遍歷錯誤代碼類別中的所有屬性名稱
             for attr_name in dir(error_code_class):
-                if not attr_name.startswith('_'):
+                # 過濾掉私有屬性（以底線開頭的屬性，如 __init__, __doc__ 等）
+                if not attr_name.startswith("_"):
+                    # 使用 getattr() 動態取得該屬性的值
                     attr_value = getattr(error_code_class, attr_name)
+                    # 確保屬性值是字串類型（錯誤代碼應該是字串）
                     if isinstance(attr_value, str):
+                        # 將符合條件的錯誤代碼字串加入到收集列表中
                         all_codes.append(attr_value)
 
         # 檢查命名慣例
         for code in all_codes:
             # 應該是大寫字母和底線
-            assert code.isupper() or '_' in code
+            assert code.isupper() or "_" in code
             # 不應該包含空格
-            assert ' ' not in code
+            assert " " not in code
             # 不應該包含特殊字符（除了底線）
-            assert code.replace('_', '').isalnum()
+            assert code.replace("_", "").isalnum()
