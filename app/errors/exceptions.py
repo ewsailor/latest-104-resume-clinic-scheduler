@@ -9,9 +9,8 @@ from typing import Any
 # ===== 第三方套件 =====
 from fastapi import status
 
-from .error_codes.crud import CRUDErrorCode
-
 # ===== 本地模組 =====
+from .error_codes.crud import CRUDErrorCode
 from .error_codes.router import RouterErrorCode
 from .error_codes.service import ServiceErrorCode
 from .error_codes.system import SystemErrorCode
@@ -34,6 +33,23 @@ class APIError(Exception):
         super().__init__(self.message)
 
 
+# ===== CRUD 層級錯誤 =====
+class DatabaseError(APIError):
+    """資料庫錯誤。"""
+
+    def __init__(
+        self,
+        message: str,
+        details: dict[str, Any] | None = None,
+    ):
+        super().__init__(
+            message=message,
+            error_code=CRUDErrorCode.DATABASE_ERROR,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            details=details,
+        )
+
+
 # ===== Router 層級錯誤 =====
 class BadRequestError(APIError):
     """路由層請求錯誤。"""
@@ -47,22 +63,6 @@ class BadRequestError(APIError):
             message=message,
             error_code=RouterErrorCode.BAD_REQUEST,
             status_code=status.HTTP_400_BAD_REQUEST,
-            details=details,
-        )
-
-
-class ValidationError(APIError):
-    """資料驗證錯誤。"""
-
-    def __init__(
-        self,
-        message: str,
-        details: dict[str, Any] | None = None,
-    ):
-        super().__init__(
-            message=message,
-            error_code=RouterErrorCode.VALIDATION_ERROR,
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             details=details,
         )
 
@@ -95,6 +95,22 @@ class AuthorizationError(APIError):
             message=message,
             error_code=RouterErrorCode.AUTHORIZATION_ERROR,
             status_code=status.HTTP_403_FORBIDDEN,
+            details=details,
+        )
+
+
+class ValidationError(APIError):
+    """資料驗證錯誤。"""
+
+    def __init__(
+        self,
+        message: str,
+        details: dict[str, Any] | None = None,
+    ):
+        super().__init__(
+            message=message,
+            error_code=RouterErrorCode.VALIDATION_ERROR,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             details=details,
         )
 
@@ -195,23 +211,6 @@ class ScheduleOverlapError(APIError):
             message=message,
             error_code=ServiceErrorCode.SCHEDULE_OVERLAP,
             status_code=status.HTTP_409_CONFLICT,
-            details=details,
-        )
-
-
-# ===== CRUD 層級錯誤 =====
-class DatabaseError(APIError):
-    """資料庫錯誤。"""
-
-    def __init__(
-        self,
-        message: str,
-        details: dict[str, Any] | None = None,
-    ):
-        super().__init__(
-            message=message,
-            error_code=CRUDErrorCode.DATABASE_ERROR,
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             details=details,
         )
 

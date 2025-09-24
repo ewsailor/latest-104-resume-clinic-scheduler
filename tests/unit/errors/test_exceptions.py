@@ -4,26 +4,28 @@
 測試各種自定義異常類別的功能。
 """
 
-# ===== 標準函式庫 =====
-
 # ===== 第三方套件 =====
 from fastapi import status
 
 # ===== 本地模組 =====
-from app.errors.exceptions import (
+from app.errors.exceptions import (  # 基礎異常類別; CRUD 層級異常 (500); Router 層級異常 (400/401/403/422); Service 層級異常 (400/404/409); System 層級異常 (503)
     APIError,
     AuthenticationError,
     AuthorizationError,
+    BadRequestError,
     BusinessLogicError,
     ConflictError,
     DatabaseError,
+    ScheduleCannotBeDeletedError,
     ScheduleNotFoundError,
+    ScheduleOverlapError,
     ServiceUnavailableError,
     UserNotFoundError,
     ValidationError,
 )
 
 
+# ===== APIError 基礎類別測試 =====
 class TestAPIError:
     """APIError 基礎類別測試。"""
 
@@ -62,31 +64,48 @@ class TestAPIError:
         assert isinstance(error, APIError)
 
 
-class TestValidationError:
-    """ValidationError 測試。"""
+# ===== CRUD 層級錯誤 =====
+class TestDatabaseError:
+    """DatabaseError 測試。"""
 
-    def test_validation_error_basic(self):
-        """測試 ValidationError 基本功能。"""
-        error = ValidationError("驗證失敗")
+    def test_database_error(self):
+        """測試 DatabaseError 基本功能。"""
+        error = DatabaseError("資料庫操作失敗")
 
-        assert error.message == "驗證失敗"
-        assert error.error_code == "ROUTER_VALIDATION_ERROR"
-        assert error.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-        assert error.details == {}
+        assert error.message == "資料庫操作失敗"
+        assert error.error_code == "CRUD_DATABASE_ERROR"
+        assert error.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
-    def test_validation_error_with_details(self):
-        """測試 ValidationError 帶詳細資訊。"""
-        details = {"field": "email", "error": "格式不正確"}
-        error = ValidationError("驗證失敗", details)
+    def test_database_error_with_details(self):
+        """測試 DatabaseError 帶詳細資訊。"""
+        details = {
+            "operation": "INSERT",
+            "table": "users",
+            "constraint": "unique_email",
+        }
+        error = DatabaseError("資料庫操作失敗", details)
 
         assert error.details == details
 
-    def test_validation_error_inheritance(self):
-        """測試 ValidationError 繼承關係。"""
-        error = ValidationError("驗證失敗")
 
-        assert isinstance(error, APIError)
-        assert isinstance(error, ValidationError)
+# ===== Router 層級錯誤 =====
+class TestBadRequestError:
+    """BadRequestError 測試。"""
+
+    def test_bad_request_error(self):
+        """測試 BadRequestError 基本功能。"""
+        error = BadRequestError("請求格式錯誤")
+
+        assert error.message == "請求格式錯誤"
+        assert error.error_code == "ROUTER_BAD_REQUEST"
+        assert error.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_bad_request_error_with_details(self):
+        """測試 BadRequestError 帶詳細資訊。"""
+        details = {"field": "request_body", "error": "格式不正確"}
+        error = BadRequestError("請求格式錯誤", details)
+
+        assert error.details == details
 
 
 class TestAuthenticationError:
@@ -136,6 +155,34 @@ class TestAuthorizationError:
         assert error.status_code == status.HTTP_403_FORBIDDEN
 
 
+class TestValidationError:
+    """ValidationError 測試。"""
+
+    def test_validation_error_basic(self):
+        """測試 ValidationError 基本功能。"""
+        error = ValidationError("驗證失敗")
+
+        assert error.message == "驗證失敗"
+        assert error.error_code == "ROUTER_VALIDATION_ERROR"
+        assert error.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert error.details == {}
+
+    def test_validation_error_with_details(self):
+        """測試 ValidationError 帶詳細資訊。"""
+        details = {"field": "email", "error": "格式不正確"}
+        error = ValidationError("驗證失敗", details)
+
+        assert error.details == details
+
+    def test_validation_error_inheritance(self):
+        """測試 ValidationError 繼承關係。"""
+        error = ValidationError("驗證失敗")
+
+        assert isinstance(error, APIError)
+        assert isinstance(error, ValidationError)
+
+
+# ===== Service 層級錯誤 =====
 class TestBusinessLogicError:
     """BusinessLogicError 測試。"""
 
@@ -221,29 +268,57 @@ class TestConflictError:
         assert error.details == details
 
 
-class TestDatabaseError:
-    """DatabaseError 測試。"""
+class TestScheduleCannotBeDeletedError:
+    """ScheduleCannotBeDeletedError 測試。"""
 
-    def test_database_error(self):
-        """測試 DatabaseError 基本功能。"""
-        error = DatabaseError("資料庫操作失敗")
+    def test_schedule_cannot_be_deleted_error_with_int_id(self):
+        """測試 ScheduleCannotBeDeletedError 整數 ID。"""
+        error = ScheduleCannotBeDeletedError(123)
 
-        assert error.message == "資料庫操作失敗"
-        assert error.error_code == "CRUD_DATABASE_ERROR"
-        assert error.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert error.message == "時段無法刪除: ID=123"
+        assert error.error_code == "SERVICE_SCHEDULE_CANNOT_BE_DELETED"
+        assert error.status_code == status.HTTP_409_CONFLICT
 
-    def test_database_error_with_details(self):
-        """測試 DatabaseError 帶詳細資訊。"""
-        details = {
-            "operation": "INSERT",
-            "table": "users",
-            "constraint": "unique_email",
-        }
-        error = DatabaseError("資料庫操作失敗", details)
+    def test_schedule_cannot_be_deleted_error_with_str_id(self):
+        """測試 ScheduleCannotBeDeletedError 字串 ID。"""
+        error = ScheduleCannotBeDeletedError("abc123")
+
+        assert error.message == "時段無法刪除: ID=abc123"
+        assert error.error_code == "SERVICE_SCHEDULE_CANNOT_BE_DELETED"
+        assert error.status_code == status.HTTP_409_CONFLICT
+
+    def test_schedule_cannot_be_deleted_error_with_details(self):
+        """測試 ScheduleCannotBeDeletedError 帶詳細資訊。"""
+        details = {"reason": "schedule_already_accepted"}
+        error = ScheduleCannotBeDeletedError(123, details)
 
         assert error.details == details
 
 
+class TestScheduleOverlapError:
+    """ScheduleOverlapError 測試。"""
+
+    def test_schedule_overlap_error(self):
+        """測試 ScheduleOverlapError 基本功能。"""
+        error = ScheduleOverlapError("時段時間重疊")
+
+        assert error.message == "時段時間重疊"
+        assert error.error_code == "SERVICE_SCHEDULE_OVERLAP"
+        assert error.status_code == status.HTTP_409_CONFLICT
+
+    def test_schedule_overlap_error_with_details(self):
+        """測試 ScheduleOverlapError 帶詳細資訊。"""
+        details = {
+            "existing_schedule_id": 123,
+            "overlap_start": "09:00",
+            "overlap_end": "10:00",
+        }
+        error = ScheduleOverlapError("時段時間重疊", details)
+
+        assert error.details == details
+
+
+# ===== System 層級錯誤 =====
 class TestServiceUnavailableError:
     """ServiceUnavailableError 測試。"""
 
@@ -264,6 +339,7 @@ class TestServiceUnavailableError:
         assert error.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
 
 
+# ===== 錯誤層級測試 =====
 class TestErrorHierarchy:
     """錯誤層級測試。"""
 
@@ -271,6 +347,7 @@ class TestErrorHierarchy:
         """測試錯誤繼承層級。"""
         # 所有自定義錯誤都應該繼承自 APIError
         errors = [
+            BadRequestError("test"),
             ValidationError("test"),
             AuthenticationError("test"),
             AuthorizationError("test"),
@@ -278,6 +355,8 @@ class TestErrorHierarchy:
             ScheduleNotFoundError(1),
             UserNotFoundError(1),
             ConflictError("test"),
+            ScheduleCannotBeDeletedError(1),
+            ScheduleOverlapError("test"),
             DatabaseError("test"),
             ServiceUnavailableError("test"),
         ]
@@ -289,6 +368,7 @@ class TestErrorHierarchy:
     def test_error_status_codes(self):
         """測試錯誤狀態碼。"""
         # 測試各種錯誤的狀態碼
+        assert BadRequestError("test").status_code == status.HTTP_400_BAD_REQUEST
         assert (
             ValidationError("test").status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         )
@@ -298,6 +378,8 @@ class TestErrorHierarchy:
         assert ScheduleNotFoundError(1).status_code == status.HTTP_404_NOT_FOUND
         assert UserNotFoundError(1).status_code == status.HTTP_404_NOT_FOUND
         assert ConflictError("test").status_code == status.HTTP_409_CONFLICT
+        assert ScheduleCannotBeDeletedError(1).status_code == status.HTTP_409_CONFLICT
+        assert ScheduleOverlapError("test").status_code == status.HTTP_409_CONFLICT
         assert (
             DatabaseError("test").status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         )
@@ -310,6 +392,7 @@ class TestErrorHierarchy:
         """測試錯誤代碼格式。"""
         # 測試錯誤代碼的格式一致性
         errors = [
+            BadRequestError("test"),
             ValidationError("test"),
             AuthenticationError("test"),
             AuthorizationError("test"),
@@ -317,6 +400,8 @@ class TestErrorHierarchy:
             ScheduleNotFoundError(1),
             UserNotFoundError(1),
             ConflictError("test"),
+            ScheduleCannotBeDeletedError(1),
+            ScheduleOverlapError("test"),
             DatabaseError("test"),
             ServiceUnavailableError("test"),
         ]

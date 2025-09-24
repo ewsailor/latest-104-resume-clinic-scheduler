@@ -19,6 +19,12 @@ from app.errors.exceptions import (
 )
 
 
+# ===== CRUD 層級錯誤 =====
+def create_database_error(message: str) -> DatabaseError:
+    """建立資料庫錯誤。"""
+    return DatabaseError(message)
+
+
 # ===== Router 層級錯誤 =====
 def create_bad_request_error(message: str) -> BadRequestError:
     """建立路由層請求錯誤。"""
@@ -99,12 +105,6 @@ def create_schedule_cannot_be_deleted_error(
         details["explanation"] = get_deletion_explanation(schedule_status)
 
     return ScheduleCannotBeDeletedError(schedule_id, details=details)
-
-
-# ===== CRUD 層級錯誤 =====
-def create_database_error(message: str) -> DatabaseError:
-    """建立資料庫錯誤。"""
-    return DatabaseError(message)
 
 
 # ===== System 層級錯誤 =====
