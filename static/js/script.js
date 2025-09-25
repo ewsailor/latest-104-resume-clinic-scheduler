@@ -2993,102 +2993,6 @@ const BusinessLogic = {
 // ======================================================
 
 const TEMPLATES = {
-  // Giver 卡片模板
-  giverCard: (giver) => {
-    Logger.debug('TEMPLATES.giverCard called', { giver });
-      const {
-        id,
-        name = CONFIG.DEFAULTS.GIVER.NAME,
-        title = CONFIG.DEFAULTS.GIVER.TITLE,
-        company = CONFIG.DEFAULTS.GIVER.COMPANY,
-        consulted = CONFIG.DEFAULTS.GIVER.CONSULTED,
-        average_responding_time = CONFIG.DEFAULTS.GIVER.RESPONDING_TIME,
-        experience = CONFIG.DEFAULTS.GIVER.EXPERIENCE,
-        image,
-        giverCard__topic = []
-      } = giver;
-    Logger.debug('giverCard template variables:', {
-      id,
-      name,
-      title,
-      company,
-      consulted,
-      average_responding_time,
-      experience,
-      image,
-      giverCard__topic
-    });
-
-    // 生成服務項目按鈕 HTML
-      const topicButtonsHTML = Array.isArray(giverCard__topic) 
-        ? giverCard__topic.map(topic => 
-            `<span class="${CONFIG.CLASSES.GIVER_CARD_TOPIC_BUTTON}" data-topic="${topic}">${topic}</span>`
-          ).join('')
-        : '';
-
-      const imageUrl = image || CONFIG.API.POSTER_URL + CONFIG.DEFAULTS.GIVER.IMAGE;
-
-      return `
-        <article class="${CONFIG.CLASSES.GIVER_CARD_WRAPPER}"> 
-          <button class="${CONFIG.CLASSES.GIVER_CARD} ${CONFIG.CLASSES.GIVER_CARD_POINTER}" data-id="${id}" type="button" aria-label="選擇${name}進行諮詢">
-            <div class="${CONFIG.CLASSES.GIVER_CARD_AVATAR}"> 
-              <div class="${CONFIG.CLASSES.GIVER_CARD_AVATAR_CONTAINER}">
-                <img
-                  src="${imageUrl}"
-                  alt="${name} 的頭像" 
-                  class="${CONFIG.CLASSES.GIVER_CARD_AVATAR_IMG}"
-                >
-              </div>
-
-              <div class="${CONFIG.CLASSES.GIVER_CARD_USER_INFO}">
-                <div class="${CONFIG.CLASSES.GIVER_CARD_NAME}">
-                  <span>${name}</span>
-                  <i class="fa-solid fa-chevron-right ${CONFIG.CLASSES.GIVER_CARD_ICON_GRAY}" aria-hidden="true"></i>
-                </div>
-                <div class="${CONFIG.CLASSES.GIVER_CARD_TITLE}">${title}</div>
-                <div class="${CONFIG.CLASSES.GIVER_CARD_COMPANY}">${company}</div>
-              </div> 
-            </div>
-
-            <div class="${CONFIG.CLASSES.GIVER_CARD_COUNT}">
-              <div class="${CONFIG.CLASSES.GIVER_CARD_COUNT_ITEM}">
-                <span class="${CONFIG.CLASSES.GIVER_CARD_COUNT_VALUE}">${consulted} 人</span>
-                <p class="${CONFIG.CLASSES.GIVER_CARD_COUNT_LABEL}">已諮詢</p>
-              </div>
-              <div class="${CONFIG.CLASSES.GIVER_CARD_DIVIDER}" aria-hidden="true"></div>
-              <div class="${CONFIG.CLASSES.GIVER_CARD_COUNT_ITEM}">
-                <span class="${CONFIG.CLASSES.GIVER_CARD_COUNT_VALUE}">${average_responding_time} 天</span>
-                <p class="${CONFIG.CLASSES.GIVER_CARD_COUNT_LABEL}">平均回覆時間</p>
-              </div>
-              <div class="${CONFIG.CLASSES.GIVER_CARD_DIVIDER}" aria-hidden="true"></div>
-              <div class="${CONFIG.CLASSES.GIVER_CARD_COUNT_ITEM}">
-                <span class="${CONFIG.CLASSES.GIVER_CARD_COUNT_VALUE}">${experience} 年</span>
-                <p class="${CONFIG.CLASSES.GIVER_CARD_COUNT_LABEL}">工作經驗</p>
-              </div>
-            </div>
-
-            <div class="${CONFIG.CLASSES.GIVER_CARD_TOPIC}">                            
-              ${topicButtonsHTML}
-              <i class="fa-solid fa-chevron-right ${CONFIG.CLASSES.GIVER_CARD_ICON_GRAY}" aria-hidden="true"></i>
-          </div>
-
-          <div class="${CONFIG.CLASSES.GIVER_CARD_ACTION}">
-            <button 
-              data-gtm-check="Giver列表_我要諮詢" 
-              class="btn btn-orange ${CONFIG.CLASSES.GIVER_CARD_ACTION_BUTTON}"
-              data-id="${id}" aria-label="我要諮詢${name}">
-              我要諮詢
-            </button>
-          </div>
-        </button>
-      </article>
-    `;
-  },
-
-  // Giver 卡片包裝器模板
-  giverCardWrapper: (cardHTML) => `
-  <div class="col-sm-3">${cardHTML}</div>
-  `,
 
   // 分頁導覽模板
   paginator: {
@@ -6599,10 +6503,9 @@ const DOM = {
         DOM.dataLoader.cacheData('givers', giversData);
         DOM.dataLoader.cacheData('givers_total', totalCount);
         
-        // 渲染 UI
-        console.log('DOM.dataLoader.loadGivers: 開始渲染 UI', { giversDataLength: giversData.length, totalCount });
-        renderGiverList(getGiversByPage(1));
-        console.log('DOM.dataLoader.loadGivers: Giver 列表渲染完成，開始渲染分頁器');
+        // 注意：由於使用伺服器端渲染，不需要重新渲染 UI
+        // 只需要渲染分頁器
+        console.log('DOM.dataLoader.loadGivers: 開始渲染分頁器');
         renderPaginator(totalCount);
         console.log('DOM.dataLoader.loadGivers: 分頁器渲染完成');
         
@@ -6965,41 +6868,6 @@ const DOM = {
   
   // Giver 相關功能
   giver: {
-    // 渲染 Giver 列表
-    renderGiverList: (givers) => {
-      console.log('DOM.giver.renderGiverList called：渲染 Giver 列表', { givers });
-      
-      const giverPanel = DOM.getElement(CONFIG.SELECTORS.GIVER_PANEL);
-      if (!giverPanel) {
-        console.error('DOM.giver.renderGiverList: Giver 面板元素未找到:', CONFIG.SELECTORS.GIVER_PANEL);
-        return;
-      }
-      
-      // 清空面板
-      giverPanel.innerHTML = '';
-      
-      // 檢查是否有資料
-      if (!givers || givers.length === 0) {
-        giverPanel.innerHTML = TEMPLATES.noDataMessage();
-        return;
-      }
-      
-      // 渲染每個 Giver 卡片
-      const giverCardsHTML = givers.map(giver => {
-        const cardHTML = TEMPLATES.giverCard(giver);
-        // 使用 TEMPLATES 中的包裝器模板
-        return TEMPLATES.giverCardWrapper(cardHTML);
-      }).join('');
-      giverPanel.innerHTML = giverCardsHTML;
-      
-      // 設定卡片點擊事件
-      DOM.giver.setupCardEvents();
-      
-      // 檢查服務項目是否超出範圍
-      DOM.giver.checkAllTopicsOverflow();
-      
-      console.log('DOM.giver.renderGiverList: Giver 列表渲染完成:', givers.length, '筆資料');
-    },
     
     // 設定卡片事件
     setupCardEvents: () => {
@@ -7247,8 +7115,8 @@ const DOM = {
         
         console.log('DOM.pagination.goToPage: 載入第', page, '頁資料，共', pageGivers.length, '筆（Mock 模式）');
         
-        // 重新渲染列表（不更新 appState.givers，保持完整資料集）
-        DOM.giver.renderGiverList(pageGivers);
+        // 注意：由於使用伺服器端渲染，不需要重新渲染列表
+        // 分頁功能需要重新設計為 AJAX 請求或頁面重新載入
         
         // 重新渲染分頁器
         DOM.pagination.renderPaginator(appState.totalGivers || appState.givers.length);
@@ -7259,8 +7127,7 @@ const DOM = {
       } catch (error) {
         console.error('DOM.pagination.goToPage: 載入頁面資料失敗:', error);
         // 如果載入失敗，回退到本地分頁
-        const pageGivers = DOM.pagination.getGiversByPage(page);
-        DOM.giver.renderGiverList(pageGivers);
+        // 注意：由於使用伺服器端渲染，分頁功能需要重新設計
       }
     }
   },
@@ -9080,7 +8947,6 @@ const Initializer = {
 
 const renderPaginator = DOM.pagination.renderPaginator;
 const getGiversByPage = DOM.pagination.getGiversByPage;
-const renderGiverList = DOM.giver.renderGiverList;
 const checkTopicOverflow = DOM.utils.checkTopicOverflow;
 const scrollToBottom = DOM.utils.scrollToBottom;
 const cleanupModal = DOM.utils.cleanupModal;
