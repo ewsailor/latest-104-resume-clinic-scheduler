@@ -31,6 +31,8 @@ async def show_index(request: Request) -> HTMLResponse:
         HTMLResponse: 渲染後的 HTML 頁面。
     """
     templates: Jinja2Templates = request.app.state.templates
-    result = templates.TemplateResponse(request, "index.html", {"givers": MOCK_GIVERS})
+    result = templates.TemplateResponse(
+        request, "giver_list.html", {"givers": MOCK_GIVERS}
+    )
 
     return result
