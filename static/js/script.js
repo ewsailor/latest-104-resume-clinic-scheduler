@@ -6509,6 +6509,48 @@ const DOM = {
   
   // 資料載入管理工具
   dataLoader: {
+    // 從 DOM 中提取 Giver 資料
+    extractGiversFromDOM() {
+      const giverCards = document.querySelectorAll('.giverCard[data-id]');
+      const givers = [];
+      
+      giverCards.forEach(card => {
+        const id = parseInt(card.getAttribute('data-id'));
+        const name = card.querySelector('.giverCard__name span')?.textContent?.trim();
+        const title = card.querySelector('.giverCard__title')?.textContent?.trim();
+        const company = card.querySelector('.giverCard__company')?.textContent?.trim();
+        const image = card.querySelector('.giverCard__avatar-img')?.src;
+        
+        // 提取統計資料
+        const countValues = card.querySelectorAll('.giverCard__count-value');
+        const consulted = countValues[0]?.textContent?.replace(/[^\d]/g, '') || '0';
+        const average_responding_time = countValues[1]?.textContent?.replace(/[^\d]/g, '') || '0';
+        const experience = countValues[2]?.textContent?.replace(/[^\d]/g, '') || '0';
+        
+        // 提取服務項目
+        const topics = [];
+        const topicElements = card.querySelectorAll('.giverCard__topic .btn-topic-sm');
+        topicElements.forEach(topic => {
+          topics.push(topic.textContent.trim());
+        });
+        
+        givers.push({
+          id,
+          name,
+          title,
+          company,
+          image,
+          consulted,
+          average_responding_time,
+          experience,
+          giverCard__topic: topics
+        });
+      });
+      
+      console.log('DOM.dataLoader.extractGiversFromDOM: 從 DOM 中提取到', givers.length, '筆 Giver 資料');
+      return givers;
+    },
+    
     // 載入狀態管理
     state: {
       isLoading: false,
@@ -6544,8 +6586,8 @@ const DOM = {
         
         console.log('DOM.dataLoader.loadGivers: 開始載入 Mock Giver 資料');
         
-        // 直接使用 Mock 資料，模擬 API 回應格式
-        const giversData = MOCK_GIVERS || [];
+        // 從已渲染的 HTML 中讀取 Giver 資料
+        const giversData = DOM.dataLoader.extractGiversFromDOM();
         const totalCount = giversData.length;
         console.log('DOM.dataLoader.loadGivers: Mock Giver 資料載入成功:', giversData.length, '筆資料，總數:', totalCount);
         
@@ -6618,8 +6660,8 @@ const DOM = {
       try {
         console.log('DOM.dataLoader.loadGiverById: 載入特定 Mock Giver 資料:', giverId);
         
-        // 直接從 Mock 資料中查找
-        const giverData = MOCK_GIVERS.find(giver => giver.id === parseInt(giverId));
+        // 從已載入的應用狀態中查找
+        const giverData = appState.givers?.find(giver => giver.id === parseInt(giverId));
         
         if (!giverData) {
           throw new Error(`找不到 ID 為 ${giverId} 的 Giver`);
@@ -6671,8 +6713,8 @@ const DOM = {
       try {
         console.log('DOM.dataLoader.searchGivers: 搜尋 Mock Giver 資料:', searchParams);
         
-        // 在 Mock 資料中進行搜尋
-        let searchResults = [...MOCK_GIVERS];
+        // 在已載入的應用狀態中進行搜尋
+        let searchResults = [...(appState.givers || [])];
         
         // 根據搜尋參數過濾資料
         if (searchParams.name) {
@@ -7197,7 +7239,7 @@ const DOM = {
       try {
         // 確保 appState.givers 包含完整的資料集
         if (!appState.givers || appState.givers.length === 0) {
-          appState.givers = MOCK_GIVERS;
+          appState.givers = DOM.dataLoader.extractGiversFromDOM();
         }
         
         // 使用本地 Mock 資料進行分頁，不發送 API 請求
@@ -7209,7 +7251,7 @@ const DOM = {
         DOM.giver.renderGiverList(pageGivers);
         
         // 重新渲染分頁器
-        DOM.pagination.renderPaginator(appState.totalGivers || MOCK_GIVERS.length);
+        DOM.pagination.renderPaginator(appState.totalGivers || appState.givers.length);
         
         // 滾動到頂部
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -9000,15 +9042,23 @@ const Initializer = {
       // 初始化效能監控
       PerformanceMonitor.init();
       
-      // 清空靜態的 Giver 卡片，確保動態載入的卡片能正確顯示
-      const giverPanel = DOM.getElement(CONFIG.SELECTORS.GIVER_PANEL);
-      if (giverPanel) {
-        console.log('DOM.Initializer.init: 清空靜態 Giver 卡片');
-        giverPanel.innerHTML = '';
+      // 從已渲染的 DOM 中提取 Giver 資料並設定到應用狀態
+      const giversData = DOM.dataLoader.extractGiversFromDOM();
+      if (giversData.length > 0) {
+        console.log('DOM.Initializer.init: 從伺服器端渲染的 HTML 中提取到', giversData.length, '筆 Giver 資料');
+        appState.givers = giversData;
+        appState.totalGivers = giversData.length;
+        
+        // 設定卡片事件（重要：伺服器端渲染的卡片需要設定事件）
+        DOM.giver.setupCardEvents();
+        
+        // 渲染分頁器
+        DOM.pagination.renderPaginator(giversData.length);
+      } else {
+        // 如果沒有找到已渲染的資料，則嘗試載入
+        console.log('DOM.Initializer.init: 未找到已渲染的 Giver 資料，嘗試載入');
+        await DOM.dataLoader.utils.preloadData(['givers']);
       }
-      
-      // 初始化資料載入器 - 等待資料載入完成
-      await DOM.dataLoader.utils.preloadData(['givers']);
       
       // 設定定期清理
       setInterval(() => {

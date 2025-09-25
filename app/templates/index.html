@@ -89,61 +89,60 @@
     <main class="container-fluid mt-5 mr-5 ml-5" role="main">
         <!-- Giver 列表 -->
         <section class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" id="giver-panel" aria-label="諮詢師列表">
+            {% for giver in givers %}
             <div class="col-sm-3">
                 <article class="mb-4">
-                    <button class="giverCard giverCard__pointer" data-id="1" type="button" aria-label="選擇王零一進行諮詢">
+                    <button class="giverCard giverCard__pointer" data-id="{{ giver.id }}" type="button" aria-label="選擇{{ giver.name }}進行諮詢">
                         <div class="giverCard__avatar">
                             <div class="giverCard__avatar-container">
-                                <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="王零一的頭像"
+                                <img src="{{ giver.image }}" alt="{{ giver.name }}的頭像"
                                     class="giverCard__avatar-img">
                             </div>
 
                             <div class="giverCard__user-info">
                                 <div class="giverCard__name">
-                                    <span>王零一</span>
+                                    <span>{{ giver.name }}</span>
                                     <i class="fa-solid fa-chevron-right giverCard__icon-gray" aria-hidden="true"></i>
                                 </div>
-                                <div class="giverCard__title">Python 工程師</div>
-                                <div class="giverCard__company">王零一-資訊科技公司</div>
+                                <div class="giverCard__title">{{ giver.title }}</div>
+                                <div class="giverCard__company">{{ giver.company }}</div>
                             </div>
                         </div>
 
                         <div class="giverCard__count">
                             <div class="giverCard__count-item">
-                                <span class="giverCard__count-value">106 人</span>
+                                <span class="giverCard__count-value">{{ giver.consulted }} 人</span>
                                 <p class="giverCard__count-label">已諮詢</p>
                             </div>
                             <div class="giverCard__divider" aria-hidden="true"></div>
                             <div class="giverCard__count-item">
-                                <span class="giverCard__count-value">2 天</span>
+                                <span class="giverCard__count-value">{{ giver.average_responding_time }} 天</span>
                                 <p class="giverCard__count-label">平均回覆時間</p>
                             </div>
                             <div class="giverCard__divider" aria-hidden="true"></div>
                             <div class="giverCard__count-item">
-                                <span class="giverCard__count-value">4 年</span>
+                                <span class="giverCard__count-value">{{ giver.experience }} 年</span>
                                 <p class="giverCard__count-label">工作經驗</p>
                             </div>
                         </div>
 
                         <div class="giverCard__topic">
-                            <span class="btn-topic-sm" data-topic="履歷健診">履歷健診</span>
-                            <span class="btn-topic-sm" data-topic="模擬面試">模擬面試</span>
-                            <span class="btn-topic-sm" data-topic="職涯諮詢">職涯諮詢</span>
-                            <span class="btn-topic-sm" data-topic="職業/產業經驗分享">職業/產業經驗分享</span>
-                            <span class="btn-topic-sm" data-topic="英文履歷健診">英文履歷健診</span>
-                            <span class="btn-topic-sm" data-topic="英文模擬面試">英文模擬面試</span>
+                            {% for topic in giver.giverCard__topic %}
+                            <span class="btn-topic-sm" data-topic="{{ topic }}">{{ topic }}</span>
+                            {% endfor %}
                             <i class="fa-solid fa-chevron-right giverCard__icon-gray" aria-hidden="true"></i>
                         </div>
 
                         <div class="giverCard__action">
                             <button data-gtm-check="Giver列表_我要諮詢" class="btn btn-orange giverCard__action-button"
-                                data-id="1" aria-label="我要諮詢王零一">
+                                data-id="{{ giver.id }}" aria-label="我要諮詢{{ giver.name }}">
                                 我要諮詢
                             </button>
                         </div>
                     </button>
                 </article>
             </div>
+            {% endfor %}
         </section>
 
         <!-- 分頁器 -->
@@ -341,21 +340,23 @@
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
         crossorigin="anonymous"></script>
 
-    <!-- 先載入 Mock 資料 -->
-    <script src="/static/js/mock-data.js"></script>
-    
-    <!-- 再載入自定義腳本 --> 
+    <!-- 載入自定義腳本 --> 
     <script src="/static/js/script.js" defer></script>
     
     <!-- 性能優化：延遲載入非關鍵資源 -->
     <script>
+        // 設定 JavaScript 開始時間標記
+        window.performance.mark('js-start');
+        
         // 延遲載入非關鍵功能
         window.addEventListener('load', () => {
             window.performance.mark('js-end');
             window.performance.measure('js-load-time', 'js-start', 'js-end');
             
             const measure = window.performance.getEntriesByName('js-load-time')[0];
-            console.log(`JavaScript 載入時間: ${measure.duration.toFixed(2)}ms`);
+            if (measure) {
+                console.log(`JavaScript 載入時間: ${measure.duration.toFixed(2)}ms`);
+            }
         });
     </script>
 </body>

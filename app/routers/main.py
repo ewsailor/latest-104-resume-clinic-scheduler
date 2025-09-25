@@ -8,6 +8,9 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+# ===== 本地模組 =====
+from app.core.giver_data import MOCK_GIVERS
+
 router = APIRouter()
 
 
@@ -28,6 +31,6 @@ async def show_index(request: Request) -> HTMLResponse:
         HTMLResponse: 渲染後的 HTML 頁面。
     """
     templates: Jinja2Templates = request.app.state.templates
-    result = templates.TemplateResponse(request, "index.html")
+    result = templates.TemplateResponse(request, "index.html", {"givers": MOCK_GIVERS})
 
     return result
