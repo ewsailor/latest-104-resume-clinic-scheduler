@@ -6475,25 +6475,22 @@ const DOM = {
       cacheExpiry: 5 * 60 * 1000 // 5分鐘
     },
     
-    // 載入 Giver 資料（直接使用 Mock 資料）
-    loadGivers: async ({ onSuccess, onError, onComplete, showLoading = true } = {}) => {
-      console.log('DOM.dataLoader.loadGivers called：載入 Giver 資料（Mock 模式）');
-      
-      // 顯示載入狀態
-      if (showLoading) {
-        DOM.dataLoader.showLoading();
-      }
+    // 簡化的 Giver 資料載入（僅從 DOM 提取）
+    loadGivers: async ({ onSuccess, onError, onComplete } = {}) => {
+      console.log('DOM.dataLoader.loadGivers called：從伺服器端渲染的 DOM 中提取 Giver 資料');
       
       try {
-        DOM.dataLoader.state.isLoading = true;
-        DOM.dataLoader.state.lastLoadTime = new Date();
-        
-        console.log('DOM.dataLoader.loadGivers: 開始載入 Mock Giver 資料');
-        
         // 從已渲染的 HTML 中讀取 Giver 資料
         const giversData = DOM.dataLoader.extractGiversFromDOM();
         const totalCount = giversData.length;
-        console.log('DOM.dataLoader.loadGivers: Mock Giver 資料載入成功:', giversData.length, '筆資料，總數:', totalCount);
+        
+        if (giversData.length === 0) {
+          console.warn('DOM.dataLoader.loadGivers: 未找到 Giver 資料');
+          onError?.(new Error('未找到 Giver 資料'));
+          return [];
+        }
+        
+        console.log('DOM.dataLoader.loadGivers: 成功提取', giversData.length, '筆 Giver 資料');
         
         // 更新應用狀態
         appState.givers = giversData;
@@ -6503,15 +6500,8 @@ const DOM = {
         DOM.dataLoader.cacheData('givers', giversData);
         DOM.dataLoader.cacheData('givers_total', totalCount);
         
-        // 注意：由於使用伺服器端渲染，不需要重新渲染 UI
-        // 只需要渲染分頁器
-        console.log('DOM.dataLoader.loadGivers: 開始渲染分頁器');
+        // 渲染分頁器
         renderPaginator(totalCount);
-        console.log('DOM.dataLoader.loadGivers: 分頁器渲染完成');
-        
-        // 重置重試計數
-        DOM.dataLoader.state.retryCount = 0;
-        DOM.dataLoader.state.loadCount++;
         
         // 回調函數
         onSuccess?.(giversData);
@@ -6519,103 +6509,47 @@ const DOM = {
         return giversData;
         
       } catch (error) {
-        console.error('DOM.dataLoader.loadGivers: Mock Giver 資料載入失敗:', error);
-        
-        DOM.dataLoader.state.errorCount++;
+        console.error('DOM.dataLoader.loadGivers: 提取 Giver 資料失敗:', error);
         onError?.(error);
-        
         throw error;
-        
       } finally {
-        DOM.dataLoader.state.isLoading = false;
-        if (showLoading) {
-          DOM.dataLoader.hideLoading();
-        }
         onComplete?.();
       }
     },
     
-    // 載入特定 Giver 資料
+    // 簡化的特定 Giver 資料載入
     loadGiverById: async (giverId, options = {}) => {
-      console.log('DOM.dataLoader.loadGiverById called：載入特定 Giver 資料（Mock 模式）', { giverId });
-      const {
-        forceRefresh = false,
-        showLoading = true,
-        onSuccess = null,
-        onError = null
-      } = options;
-      
-      const cacheKey = `giver_${giverId}`;
-      
-      // 檢查快取
-      if (!forceRefresh && DOM.dataLoader.isCached(cacheKey)) {
-        const cachedData = DOM.dataLoader.getCached(cacheKey);
-        console.log('DOM.dataLoader.loadGiverById: 使用快取的 Giver 資料:', giverId);
-        if (onSuccess) onSuccess(cachedData);
-        return cachedData;
-      }
-      
-      // 顯示載入狀態
-      if (showLoading) {
-        DOM.dataLoader.showLoading();
-      }
+      console.log('DOM.dataLoader.loadGiverById called：從應用狀態中查找 Giver 資料', { giverId });
+      const { onSuccess = null, onError = null } = options;
       
       try {
-        console.log('DOM.dataLoader.loadGiverById: 載入特定 Mock Giver 資料:', giverId);
-        
         // 從已載入的應用狀態中查找
         const giverData = appState.givers?.find(giver => giver.id === parseInt(giverId));
         
         if (!giverData) {
-          throw new Error(`找不到 ID 為 ${giverId} 的 Giver`);
+          const error = new Error(`找不到 ID 為 ${giverId} 的 Giver`);
+          console.error('DOM.dataLoader.loadGiverById:', error.message);
+          onError?.(error);
+          throw error;
         }
         
-        console.log('DOM.dataLoader.loadGiverById: Mock Giver 資料載入成功:', giverData);
-        
-        // 快取資料
-        DOM.dataLoader.cacheData(cacheKey, giverData);
-        
-        if (onSuccess) onSuccess(giverData);
+        console.log('DOM.dataLoader.loadGiverById: 成功找到 Giver 資料:', giverData.name);
+        onSuccess?.(giverData);
         return giverData;
         
       } catch (error) {
-        console.error('DOM.dataLoader.loadGiverById: Mock Giver 資料載入失敗:', error);
-        if (onError) onError(error);
+        console.error('DOM.dataLoader.loadGiverById: 查找 Giver 資料失敗:', error);
+        onError?.(error);
         throw error;
-        
-      } finally {
-        if (showLoading) {
-          DOM.dataLoader.hideLoading();
-        }
       }
     },
     
-    // 搜尋 Giver 資料（Mock 模式）
+    // 簡化的 Giver 搜尋功能
     searchGivers: async (searchParams, options = {}) => {
-      const {
-        showLoading = true,
-        onSuccess = null,
-        onError = null
-      } = options;
-      
-      const cacheKey = `search_${JSON.stringify(searchParams)}`;
-      
-      // 檢查快取
-      if (DOM.dataLoader.isCached(cacheKey)) {
-        const cachedData = DOM.dataLoader.getCached(cacheKey);
-        console.log('DOM.dataLoader.searchGivers: 使用快取的搜尋結果');
-        if (onSuccess) onSuccess(cachedData);
-        return cachedData;
-      }
-      
-      // 顯示載入狀態
-      if (showLoading) {
-        DOM.dataLoader.showLoading();
-      }
+      console.log('DOM.dataLoader.searchGivers called：在應用狀態中搜尋 Giver 資料', searchParams);
+      const { onSuccess = null, onError = null } = options;
       
       try {
-        console.log('DOM.dataLoader.searchGivers: 搜尋 Mock Giver 資料:', searchParams);
-        
         // 在已載入的應用狀態中進行搜尋
         let searchResults = [...(appState.givers || [])];
         
@@ -6638,23 +6572,15 @@ const DOM = {
           );
         }
         
-        console.log('DOM.dataLoader.searchGivers: Mock 搜尋結果:', searchResults.length, '筆資料');
+        console.log('DOM.dataLoader.searchGivers: 搜尋結果:', searchResults.length, '筆資料');
         
-        // 快取資料
-        DOM.dataLoader.cacheData(cacheKey, searchResults);
-        
-        if (onSuccess) onSuccess(searchResults);
+        onSuccess?.(searchResults);
         return searchResults;
         
       } catch (error) {
-        console.error('DOM.dataLoader.searchGivers: Mock 搜尋失敗:', error);
-        if (onError) onError(error);
+        console.error('DOM.dataLoader.searchGivers: 搜尋失敗:', error);
+        onError?.(error);
         throw error;
-        
-      } finally {
-        if (showLoading) {
-          DOM.dataLoader.hideLoading();
-        }
       }
     },
     
