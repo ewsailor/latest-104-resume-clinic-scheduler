@@ -48,13 +48,20 @@ class TestAPIError:
         assert error.message == "測試錯誤"
         assert error.error_code == "TEST_ERROR"
         assert error.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert error.details == {}
+        assert str(error) == "測試錯誤"
 
     def test_api_error_with_details(self):
         """測試 APIError 帶詳細資訊。"""
         details = {"field": "value", "code": 123}
         error = APIError("測試錯誤", "TEST_ERROR", details=details)
 
+        assert error.message == "測試錯誤"
+        assert error.error_code == "TEST_ERROR"
         assert error.details == details
+        assert error.status_code == status.HTTP_400_BAD_REQUEST
+        assert error.details == {"field": "value", "code": 123}
+        assert str(error) == "測試錯誤"
 
     def test_api_error_inheritance(self):
         """測試 APIError 繼承關係。"""

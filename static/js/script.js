@@ -383,8 +383,7 @@ const CONFIG = {
     },
     INFO: {
       LOADING: '載入中...',
-      NO_DATA: '暫無資料',
-      EMPTY_RESULT: '搜尋結果為空'
+      NO_DATA: '暫無資料'
     }
   },
   
@@ -6539,46 +6538,6 @@ const DOM = {
         
       } catch (error) {
         console.error('DOM.dataLoader.loadGiverById: 查找 Giver 資料失敗:', error);
-        onError?.(error);
-        throw error;
-      }
-    },
-    
-    // 簡化的 Giver 搜尋功能
-    searchGivers: async (searchParams, options = {}) => {
-      console.log('DOM.dataLoader.searchGivers called：在應用狀態中搜尋 Giver 資料', searchParams);
-      const { onSuccess = null, onError = null } = options;
-      
-      try {
-        // 在已載入的應用狀態中進行搜尋
-        let searchResults = [...(appState.givers || [])];
-        
-        // 根據搜尋參數過濾資料
-        if (searchParams.name) {
-          searchResults = searchResults.filter(giver => 
-            giver.name.toLowerCase().includes(searchParams.name.toLowerCase())
-          );
-        }
-        
-        if (searchParams.title) {
-          searchResults = searchResults.filter(giver => 
-            giver.title.toLowerCase().includes(searchParams.title.toLowerCase())
-          );
-        }
-        
-        if (searchParams.company) {
-          searchResults = searchResults.filter(giver => 
-            giver.company.toLowerCase().includes(searchParams.company.toLowerCase())
-          );
-        }
-        
-        console.log('DOM.dataLoader.searchGivers: 搜尋結果:', searchResults.length, '筆資料');
-        
-        onSuccess?.(searchResults);
-        return searchResults;
-        
-      } catch (error) {
-        console.error('DOM.dataLoader.searchGivers: 搜尋失敗:', error);
         onError?.(error);
         throw error;
       }
