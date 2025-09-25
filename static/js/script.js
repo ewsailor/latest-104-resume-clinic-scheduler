@@ -7036,13 +7036,13 @@ const DOM = {
           appState.givers = DOM.dataLoader.extractGiversFromDOM();
         }
         
-        // 使用本地 Mock 資料進行分頁，不發送 API 請求
+        // 使用本地資料進行分頁
         const pageGivers = DOM.pagination.getGiversByPage(page);
         
-        console.log('DOM.pagination.goToPage: 載入第', page, '頁資料，共', pageGivers.length, '筆（Mock 模式）');
+        console.log('DOM.pagination.goToPage: 載入第', page, '頁資料，共', pageGivers.length, '筆');
         
-        // 注意：由於使用伺服器端渲染，不需要重新渲染列表
-        // 分頁功能需要重新設計為 AJAX 請求或頁面重新載入
+        // 顯示對應頁面的 Giver 卡片
+        DOM.pagination.showPageGivers(pageGivers);
         
         // 重新渲染分頁器
         DOM.pagination.renderPaginator(appState.totalGivers || appState.givers.length);
@@ -7052,8 +7052,62 @@ const DOM = {
         
       } catch (error) {
         console.error('DOM.pagination.goToPage: 載入頁面資料失敗:', error);
-        // 如果載入失敗，回退到本地分頁
-        // 注意：由於使用伺服器端渲染，分頁功能需要重新設計
+        // 如果載入失敗，顯示錯誤訊息
+        DOM.pagination.showError('載入頁面資料失敗，請重新整理頁面');
+      }
+    },
+    
+    // 顯示指定頁面的 Giver 卡片
+    showPageGivers: (pageGivers) => {
+      console.log('DOM.pagination.showPageGivers called：顯示頁面 Giver 卡片', { count: pageGivers.length });
+      
+      const giverPanel = DOM.getElement(CONFIG.SELECTORS.GIVER_PANEL);
+      if (!giverPanel) {
+        console.error('DOM.pagination.showPageGivers: Giver 面板元素未找到');
+        return;
+      }
+      
+      // 隱藏所有 Giver 卡片（包括父容器）
+      const allGiverCards = giverPanel.querySelectorAll('.giverCard[data-id]');
+      allGiverCards.forEach(card => {
+        // 隱藏整個卡片容器（包括 col-sm-3 包裝器）
+        const cardContainer = card.closest('.col-sm-3');
+        if (cardContainer) {
+          cardContainer.style.display = 'none';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      
+      // 顯示當前頁面的 Giver 卡片
+      pageGivers.forEach(giver => {
+        const card = giverPanel.querySelector(`.giverCard[data-id="${giver.id}"]`);
+        if (card) {
+          // 顯示整個卡片容器（包括 col-sm-3 包裝器）
+          const cardContainer = card.closest('.col-sm-3');
+          if (cardContainer) {
+            cardContainer.style.display = 'block';
+          } else {
+            card.style.display = 'block';
+          }
+        }
+      });
+      
+      console.log('DOM.pagination.showPageGivers: 已顯示', pageGivers.length, '筆 Giver 卡片');
+    },
+    
+    // 顯示錯誤訊息
+    showError: (message) => {
+      console.error('DOM.pagination.showError:', message);
+      
+      const giverPanel = DOM.getElement(CONFIG.SELECTORS.GIVER_PANEL);
+      if (giverPanel) {
+        giverPanel.innerHTML = `
+          <div class="alert alert-warning text-center" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            ${message}
+          </div>
+        `;
       }
     }
   },
@@ -8844,6 +8898,10 @@ const Initializer = {
         
         // 設定卡片事件（重要：伺服器端渲染的卡片需要設定事件）
         DOM.giver.setupCardEvents();
+        
+        // 顯示第一頁的資料
+        const firstPageGivers = DOM.pagination.getGiversByPage(1);
+        DOM.pagination.showPageGivers(firstPageGivers);
         
         // 渲染分頁器
         DOM.pagination.renderPaginator(giversData.length);
