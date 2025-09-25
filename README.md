@@ -12,8 +12,8 @@
 
 - [專案概述](#專案概述)
   - [使用者故事與核心功能](#使用者故事與核心功能)
-  - [使用者流程圖](#使用者流程圖)
   - [使用者介面截圖](#使用者介面截圖)
+  - [使用者流程圖](#使用者流程圖)
 - [架構設計](#架構設計)
   - [技術棧與選型理由](#技術棧與選型理由)
   - [安全性](#安全性)
@@ -42,7 +42,7 @@
     - [pre-commit](#pre-commit)
     - [CI/CD](#cicd)
 - [未來規劃](#未來規劃)
-  - JWT 登入功能、Redis、WebSocket 通知功能、MongoDB、Docker、AWS、端對端測試
+  - JWT 登入功能、Redis、WebSocket 通知功能、MongoDB、Docker、端對端測試、AWS 部署
 - [開發者](#開發者)
 
 ## <a name="專案概述"></a>專案概述 [返回目錄 ↑](#目錄)
@@ -73,6 +73,17 @@
 - 鎖定已被預約的時段，避免時段被重複預約
 - 媒合與使用數據報表
 
+### <a name="使用者介面截圖"></a>使用者介面截圖 [返回目錄 ↑](#目錄)
+
+- Giver 列表
+  - ![Giver 列表總覽](./static/images/ui/01-giver-list-overview.png)
+- Taker 預約 Giver 時段
+  - ![Taker 預約 Giver 時段](./static/images/ui/02-taker-scheduling-giver-time.png)
+  - ![Taker 預約 Giver 時段結果](./static/images/ui/03-taker-scheduling-giver-time-result.png)
+- Taker 提供方便時段給 Giver
+  - ![Taker 提供方便時段給 Giver](./static/images/ui/04-taker-provide-available-time.png)
+  - ![Taker 提供方便時段給 Giver 結果](./static/images/ui/05-taker-provide-available-time-result.png)
+
 ### <a name="使用者流程圖"></a>使用者流程圖 [返回目錄 ↑](#目錄)
 
 完整流程請詳下圖，以下簡述本專案的主要使用者流程：
@@ -91,22 +102,11 @@
 
 ![104 履歷診療室 - 平台內諮詢時間媒合系統用戶流程](./static/images/flows/user-flow.png)
 
-### <a name="使用者介面截圖"></a>使用者介面截圖 [返回目錄 ↑](#目錄)
-
-- Giver 列表
-  - ![Giver 列表總覽](./static/images/ui/01-giver-list-overview.png)
-- Taker 預約 Giver 時段
-  - ![Taker 預約 Giver 時段](./static/images/ui/02-taker-scheduling-giver-time.png)
-  - ![Taker 預約 Giver 時段結果](./static/images/ui/03-taker-scheduling-giver-time-result.png)
-- Taker 提供方便時段給 Giver
-  - ![Taker 提供方便時段給 Giver](./static/images/ui/04-taker-provide-available-time.png)
-  - ![Taker 提供方便時段給 Giver 結果](./static/images/ui/05-taker-provide-available-time-result.png)
-
 ## <a name="架構設計"></a>架構設計 [返回目錄 ↑](#目錄)
 
 ### <a name="技術棧與選型理由"></a>技術棧與選型理由 [返回目錄 ↑](#目錄)
 
-本專案主要使用技術為 `Python`、`FastAPI` 框架 + `SQLAlchemy`、`MySQL`/`MariaDB`資料庫，採分層架構設計避免高耦合，提供時段（Schedule）的 `CRUD API` 與 `Swagger`/`ReDoc`自動化文件，用 `Postman`、`pytest`、`pre-commit`、`CI/CD` 的 `CI` 確保程式碼品質，並有考量安全性、可維護性與可擴充性、可靠性、效能、開發效率。
+本專案主要使用技術為 `Python`、`FastAPI` 框架 + `SQLAlchemy`、`MySQL`/`MariaDB`資料庫，採分層架構設計避免高耦合，依 RESTful 原則設計時段（Schedule）的 `CRUD API`，可於 `Swagger`/`ReDoc`查看 API 請求與回應範例，用 `Postman`、`pytest`、`pre-commit`、`CI/CD` 確保程式碼品質，並有考量安全性、可維護性與可擴充性、可靠性、效能、開發效率。
 
 #### **後端框架**
 
@@ -129,6 +129,8 @@
 - **`Pydantic Settings` 配置管理**：配置參數從 `.env` 讀取避免敏感資訊洩露，且讀取時會驗證每個值的型別，降低錯誤配置風險
 - **健康檢查**：監控應用程式是否存活、就緒，異常發生時自動重啟或流量導向健康的實例，確保服務穩定
 - **`CORS` 跨域請求控管**：只允許經授權的網域訪問後端 `API`，避免惡意網站存取後端 `API`
+- **`Jinja2` 模板引擎**：在伺服器端，將資料動態渲染到 `HTML` 模板並回傳給用戶，使用模板繼承保持 `HTML` 結構一致、對變數自動轉義防止 `XSS 攻擊`、支援快取已編譯的模板提高效能
+
 
 #### **品質確保：`API` 與測試**
 
@@ -159,7 +161,6 @@
 
 #### **前端技術**
 
-- **`Jinja2` 模板引擎**：將模板先編譯成 `Python` 程式碼避免每次請求都解析原始模板、支援快取已編譯的模板
 - **`HTML5`**：語義化標籤、無障礙功能 (`ARIA`)、`rel="preload"` 資源預載入
 - **`CSS3`**：使用 `:root` 管理 `CSS` 變數、`Flexbox` 彈性布局系統簡化排版和對齊問題
 - **`JavaScript` (ES6+)**：非同步處理、箭頭函式、用 `const` 和 `let` 替代 `var`
@@ -190,6 +191,7 @@
 
 - **FastAPI 自動生成文件**：自動依據路由和 Pydantic 型別生成 OpenAPI 規範文檔，提供互動式測試的 Swagger UI、單頁式閱讀介面的 Redoc，減少維護 API 文件的工作量
 - **依賴注入**：將依賴（資料庫連線、權限驗證、設定檔讀取等邏輯）封裝在一個獨立函式中，需要時透過 Depends() 注入，需升級某功能時只需修改注入的依賴
+- **參數化測試裝飾器**：使用 @pytest.mark.parametrize 裝飾器，用同一段測試程式碼，測試不同輸入參數，避免撰寫大量重複且結構相似的測試案例
 - **pre-commit**：每次提交 commit 前自動檢查 fix_imports.py、autoflake、isort、black、flake8、mypy，確保程式碼品質
 - **CI/CD**：已落實 CI，每次提交程式碼後 GitHub Actions 會自動執行 pre-commit、pytest 測試，確保程式碼變更後沒有破壞現有功能，CD（持續交付、持續部署）將於未來擴充
 - **自定義錯誤處理**：自定義不同層級可能遇到的錯誤類型，除錯時能快速定位是哪個層級拋出的錯誤
@@ -222,7 +224,7 @@
 - **Eager loading 解決 N+1**：JOIN 查詢時載入所需關聯資料，避免多次查詢的 N+1 問題，適用高頻率查詢場景如查詢時段列表、Giver 資訊、Taker 資訊
 - **Lazy loading**：需要時才載入子表，避免不必要資料抓取，適用低頻率查詢場景如審計欄位
 - **資料庫索引**：為高頻率查詢場景建立索引避免全表掃描、低頻率查詢場景不建立索引避免系統負擔、選擇性高欄位放複合索引前面提高效率、覆蓋索引盡可能涵蓋查詢所需欄位
-- **Jinja2 模板引擎**：將模板先編譯成 Python 程式碼避免每次請求都解析原始模板、支援快取已編譯的模板
+- **Jinja2 模板引擎**：在伺服器端，將資料動態渲染到 HTML 模板並回傳給用戶，使用模板繼承保持 HTML 結構一致、對變數自動轉義防止 XSS 攻擊、支援快取已編譯的模板提高效能
 - **分頁**：使用分頁避免大量資料載入
 - **Bootstrap 響應式網格**：網站依不同裝置（手機、平板、桌面）自動調整版面，減少因不同裝置重新渲染導致頁面載入變慢
 - **靜態資源預載入**：透過 HTML preload、prefetch，在瀏覽器解析 HTML 時即開始下載關鍵資源，避免資源使用時才開始下載造成阻塞，提高頁面渲染速度
@@ -296,16 +298,31 @@
 
 6. **設定環境變數**
 
-   1. 複製 .env.example 檔案，命名為 .env，並填入密碼、資料庫設定等資訊
+   1. 複製 .env.example 檔案，命名為 .env
 
       ```bash
       cp .env.example .env
       ```
 
-   2. 確保 `.env` 被 `.gitignore` 忽略：在專案根目錄建立 .gitignore，並在 .gitignore 中加入以下程式碼
+   2. 更新 .env 的密碼、資料庫設定等資訊，例如更新以下欄位
       ```bash
-      .env
+      # ===== 應用程式基本設定 =====
+      APP_NAME="104 Resume Clinic Scheduler"
+      APP_ENV=development  # development, staging, production
+      DEBUG=true
+      SECRET_KEY=your-secret-key-here  # 請在 .env 中設定實際的密鑰
+
+      # ===== 資料庫設定 =====
+      # MySQL 設定
+      MYSQL_HOST=localhost
+      MYSQL_PORT=3306
+      MYSQL_DATABASE=your_database_name
+      MYSQL_USER=your_mysql_user # ⚠️ 安全提醒：不要使用 root，請建立專用帳號如：fastapi_user
+      MYSQL_PASSWORD=your_mysql_password # 建議至少 12 個字元，包含大小寫字母、數字、特殊符號
+      MYSQL_CHARSET=utf8mb4
       ```
+
+   3. 在 .gitignore 檔案中加入 .env，確保 .env 被 Git 忽略，避免提交敏感資訊到公開的 GitHub
 
 7. **以 root 身份登入 MySQL**
 
@@ -482,6 +499,38 @@
 
 ### <a name="api"></a>API [返回目錄 ↑](#目錄)
 
+#### <a name="api-分層架構設計"></a>API 分層架構設計 [返回目錄 ↑](#目錄)
+
+從用戶請求到回應，依職責拆分成 CORS → Routers → Schemas → Service → CRUD → Models → DB，降低耦合度。
+
+- **Routers 路由層**：處理 HTTP 請求和回應、FastAPI 自動文件生成
+- **Middleware CORS 中介層**：處理跨域請求，只允許經授權的網域訪問後端 API，避免惡意網站存取後端 API
+- **Schemas 驗證層**：Pydantic 資料驗證、型別提示、FastAPI 自動文件生成
+- **Service 服務層**：業務邏輯處理，錯誤處理、事務管理
+- **CRUD 資料存取層**：資料庫 CRUD 操作
+- **Model 資料模型層**：SQLAlchemy ORM 定義資料表結構、Alembic 資料庫遷移
+- **Database 資料庫層**：資料庫連線管理、儲存資料
+
+```
+Client Request 客戶端發送請求
+    ↓
+Routers 路由層：app/routers/api/
+    ↓
+Middleware CORS 中介層：app/middleware/
+    ↓
+Schemas 驗證層：app/schemas/
+    ↓
+Service 服務層：app/services/
+    ↓
+CRUD 資料存取層：app/crud/
+    ↓
+Model 資料模型層：app/models/
+    ↓
+Database 資料庫層：app/database/
+    ↓
+Client Response 客戶端接收回應
+```
+
 #### <a name="restful-api"></a>RESTful API [返回目錄 ↑](#目錄)
 
 本專案遵循 `RESTful (Representational State Transfer)` 原則設計 `API`，使用 `HTTP` 方法對資源執行操作。
@@ -579,38 +628,6 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 
    - ![即時查看所有 API 的測試結果](static/images/tools/postman/03-run-postman-results.png)
 
-#### <a name="api-分層架構設計"></a>API 分層架構設計 [返回目錄 ↑](#目錄)
-
-從用戶請求到回應，依職責拆分成 CORS → Routers → Schemas → Service → CRUD → Models → DB，降低耦合度。
-
-- **Routers 路由層**：處理 HTTP 請求和回應、FastAPI 自動文件生成
-- **Middleware CORS 中介層**：處理跨域請求，只允許經授權的網域訪問後端 API，避免惡意網站存取後端 API
-- **Schemas 驗證層**：Pydantic 資料驗證、型別提示、FastAPI 自動文件生成
-- **Service 服務層**：業務邏輯處理，錯誤處理、事務管理
-- **CRUD 資料存取層**：資料庫 CRUD 操作
-- **Model 資料模型層**：SQLAlchemy ORM 定義資料表結構、Alembic 資料庫遷移
-- **Database 資料庫層**：資料庫連線管理、儲存資料
-
-```
-Client Request 客戶端發送請求
-    ↓
-Routers 路由層：app/routers/api/
-    ↓
-Middleware CORS 中介層：app/middleware/
-    ↓
-Schemas 驗證層：app/schemas/
-    ↓
-Service 服務層：app/services/
-    ↓
-CRUD 資料存取層：app/crud/
-    ↓
-Model 資料模型層：app/models/
-    ↓
-Database 資料庫層：app/database/
-    ↓
-Client Response 客戶端接收回應
-```
-
 ### <a name="pytest-測試"></a>Pytest 測試 [返回目錄 ↑](#目錄)
 
 - 測試框架使用 pytest，因其語法簡單、失敗時顯示「實際值 vs 預期值」可讀性高，支援 fixture 易重覆利用、plugin 生態系豐富如支援 CI/CD 流程、pytest-cov（測試覆蓋率）等
@@ -634,6 +651,46 @@ Client Response 客戶端接收回應
 
 - 路徑：`tests/fixtures/`
 - 說明：集中管理為測試準備的常數、測試環境、測試資料、初始化資源、測試用的資料庫會話
+
+#### <a name="參數化測試裝飾器"></a>參數化測試裝飾器 [返回目錄 ↑](#目錄)
+
+- 說明：使用 `@pytest.mark.parametrize` 裝飾器，用同一段測試程式碼，測試不同輸入參數，避免撰寫大量重複且結構相似的測試案例
+	- **參數名稱字串**：可有多個參數名稱，並用逗號隔開
+	- **參數值清單**：每個參數名稱實際傳入的值，包含所有測試案例的資料
+- 範例程式碼
+
+  ```bash
+  @pytest.mark.parametrize(
+      "field_name,invalid_value",
+      [
+          ("giver_id", None),
+          ("date", None),
+          ("start_time", None),
+          ("end_time", None),
+      ],
+  )
+  def test_create_single_giver_schedule_null_constraint_errors(
+      self,
+      db_session: Session,
+      test_giver_schedule_data: dict,
+      field_name: str,
+      invalid_value: None,
+  ) -> None:
+      """測試 Giver 建立單一時段：非空約束錯誤。
+
+      使用參數化測試來測試所有 nullable=False 的欄位。
+      """
+      # 使用夾具的基本有效時段資料
+      schedule_data = test_giver_schedule_data.copy()
+
+      # 將指定欄位設為無效值
+      schedule_data[field_name] = invalid_value
+
+      # 測試應該拋出 IntegrityError
+      with pytest.raises(IntegrityError):
+          invalid_schedule = Schedule(**schedule_data)
+          self.crud.create_schedules(db_session, [invalid_schedule])
+  ```
 
 #### <a name="單元測試"></a>單元測試 [返回目錄 ↑](#目錄)
 
@@ -732,8 +789,8 @@ Client Response 客戶端接收回應
 - **WebSocket 通知功能**: 讓使用者能即時看到資料變動、收到即時訊息通知、預計回覆時間通知、自動提醒功能（逾期回覆提醒），減少等待回應時的不確定與焦慮感
 - **MongoDB**: NoSQL 資料庫，適合儲存非結構化資料（如使用者行為紀錄、聊天室訊息），掌握用戶偏好以改善產品體驗
 - **Docker**：將應用程式及其所有依賴打包成容器，確保開發環境一致性，解決『我的電腦上可以跑，你的電腦上卻不行』的問題，提升開發效率、加速部署
-- **AWS**: 支援自動化部署與擴展，減少本地端伺服器維護成本。如使用 EC2 或 ECS 部署 FastAPI 伺服器、RDS 提供 MySQL 資料庫、CloudWatch 監控日誌與 CPU/記憶體使用率、S3 儲存靜態資源等
 - **端到端測試**：測試從前端用戶操作，到後端系統、資料庫、外部 API 回應的完整流程
+- **AWS**: 支援自動化部署與擴展，減少本地端伺服器維護成本。如使用 EC2 或 ECS 部署 FastAPI 伺服器、RDS 提供 MySQL 資料庫、CloudWatch 監控日誌與 CPU/記憶體使用率、S3 儲存靜態資源等
 
 ## <a name="開發者"></a>開發者 [返回目錄 ↑](#目錄)
 
