@@ -23,176 +23,7 @@ const PERFORMANCE_CONFIG = {
 };
 
 // ======================================================
-//   1-2. 日誌記錄模組 (Logger Module)
-// ======================================================
-
-// 日誌級別常數：用於數值比較，決定是否輸出日誌
-// 例如：if (currentLevel >= LOGGER_LEVELS.INFO)，表示輸出 INFO 級別及以上的日誌
-const LOGGER_LEVELS = {
-  DEBUG: 0,
-  INFO: 1,
-  WARN: 2,
-  ERROR: 3,
-  FATAL: 4
-};
-
-// 日誌級別名稱常數，使用 Object.keys() 反轉映射
-// 用於日誌輸出時，將日誌級別數值轉換為可讀的字串名稱，例如: `LOGGER_LEVEL_NAMES[currentLevel]`
-const LOGGER_LEVEL_NAMES = Object.fromEntries(
-  Object.entries(LOGGER_LEVELS).map(([name, level]) => [level, name])
-);
-
-// 環境檢測函數，用於控制日誌輸出
-const isDevelopment = () => {
-  // 性能優化：減少不必要的檢查
-  if (typeof window === 'undefined' || !window.location) {
-    return false;
-  }
-  
-  const isDev = window.location.search.includes('debug=true') || 
-         window.location.hostname === 'localhost' ||
-         window.location.hostname === '127.0.0.1';
-  
-  return isDev;
-};
-
-// 簡化日誌介面，使用環境變數控制
-const SimpleLogger = {
-  // 環境檢測
-  isDevelopment,
-  
-  // 日誌方法 - 性能優化版本
-  log: (...args) => PERFORMANCE_CONFIG.enableDebugLogs && isDevelopment() && console.log(...args),
-  warn: (...args) => PERFORMANCE_CONFIG.enableWarnLogs && console.warn(...args),
-  error: (...args) => PERFORMANCE_CONFIG.enableErrorLogs && console.error(...args),
-  debug: (...args) => PERFORMANCE_CONFIG.enableDebugLogs && isDevelopment() && console.debug(...args),
-  info: (...args) => PERFORMANCE_CONFIG.enableInfoLogs && isDevelopment() && console.info(...args),
-  
-  // 效能監控 - 只在開發環境啟用
-  time: (label) => isDevelopment() && console.time(label),
-  timeEnd: (label) => isDevelopment() && console.timeEnd(label),
-  
-  // 群組日誌 - 只在開發環境啟用
-  group: (label) => isDevelopment() && console.group(label),
-  groupEnd: () => isDevelopment() && console.groupEnd(),
-  
-  // 表格日誌 - 只在開發環境啟用
-  table: (data) => isDevelopment() && console.table(data)
-};
-
-// 完整日誌記錄模組 - 性能優化版本
-const Logger = {
-  LEVELS: LOGGER_LEVELS,
-  LEVEL_NAMES: LOGGER_LEVEL_NAMES,
-
-  // 配置
-  config: {
-    level: LOGGER_LEVELS.WARN, // 提高預設級別以減少日誌
-    enableConsole: true,
-    enableStorage: false, // 關閉儲存以提高性能
-    maxLogs: 100, // 減少日誌數量
-    storageKey: 'app_logs',
-    // 環境檢測：自動檢測開發/生產環境
-    isDebug: isDevelopment(),
-    isProduction: !isDevelopment()
-  },
-
-  // 日誌記錄
-  logs: [],
-
-  // 記錄日誌
-  log: (level, message, data = null, context = {}) => {
-    // 在生產環境中，只記錄錯誤和致命錯誤
-    if (Logger.config.isProduction && level < LOGGER_LEVELS.ERROR) {
-      return null;
-    }
-    
-    // 如果關閉調試模式，跳過調試和資訊日誌
-    if (!Logger.config.isDebug && level < LOGGER_LEVELS.WARN) {
-      return null;
-    }
-    
-    if (level < Logger.config.level) {
-      return null;
-    }
-
-    const logEntry = {
-      level,
-      levelName: Logger.LEVEL_NAMES[level],
-      message,
-      data,
-      context,
-      timestamp: new Date(),
-      timestampISO: new Date().toISOString()
-    };
-
-    // 添加到日誌記錄
-    Logger.logs.push(logEntry);
-
-    // 限制日誌數量
-    if (Logger.logs.length > Logger.config.maxLogs) {
-      Logger.logs = Logger.logs.slice(-Logger.config.maxLogs / 2);
-    }
-
-    // 控制台輸出
-    if (Logger.config.enableConsole) {
-      const consoleMethod = Logger.getConsoleMethod(level);
-      const prefix = `[${logEntry.levelName}] ${logEntry.timestamp.toLocaleString()}`;
-      
-      if (data) {
-        console[consoleMethod](prefix, message, data);
-      } else {
-        console[consoleMethod](prefix, message);
-      }
-    }
-
-    return logEntry;
-  },
-
-  // 獲取控制台方法
-  getConsoleMethod: (level) => {
-    switch (level) {
-      case LOGGER_LEVELS.DEBUG:
-        return 'debug';
-      case LOGGER_LEVELS.INFO:
-        return 'info';
-      case LOGGER_LEVELS.WARN:
-        return 'warn';
-      case LOGGER_LEVELS.ERROR:
-      case LOGGER_LEVELS.FATAL:
-        return 'error';
-      default:
-        return 'log';
-    }
-  },
-
-  // 便捷方法 - 性能優化版本
-  debug: (message, data = null, context = {}) => {
-    return PERFORMANCE_CONFIG.enableDebugLogs ? Logger.log(LOGGER_LEVELS.DEBUG, message, data, context) : null;
-  },
-
-  info: (message, data = null, context = {}) => {
-    return PERFORMANCE_CONFIG.enableInfoLogs ? Logger.log(LOGGER_LEVELS.INFO, message, data, context) : null;
-  },
-
-  warn: (message, data = null, context = {}) => {
-    return PERFORMANCE_CONFIG.enableWarnLogs ? Logger.log(LOGGER_LEVELS.WARN, message, data, context) : null;
-  },
-
-  error: (message, data = null, context = {}) => {
-    return PERFORMANCE_CONFIG.enableErrorLogs ? Logger.log(LOGGER_LEVELS.ERROR, message, data, context) : null;
-  },
-
-  fatal: (message, data = null, context = {}) => {
-    return PERFORMANCE_CONFIG.enableErrorLogs ? Logger.log(LOGGER_LEVELS.FATAL, message, data, context) : null;
-  }
-};
-
-// 全域日誌實例
-const LoggerInstance = Logger;  
-
-// ======================================================
-//   1-3. 全域常數設定 (Global Constants)
+//   1-2. 全域常數設定 (Global Constants)
 // ======================================================
 
 // 全域常數設定
@@ -390,15 +221,15 @@ const CONFIG = {
   // Demo 預約時間配置
   DEMO_TIME_SLOTS: {
     "demo-time-1": {
-      label: "2025/10/01（週三）20:00~22:00",
-      date: "2025/10/01",
-      weekday: "週三",
+      label: "2025/11/01（週六）20:00~22:00",
+      date: "2025/11/01",
+      weekday: "週六",
       time: "20:00~22:00"
     },
     "demo-time-2": {
-      label: "2025/10/02（週四）20:00~22:00",
-      date: "2025/10/02",
-      weekday: "週四",
+      label: "2025/11/02（週日）20:00~22:00",
+      date: "2025/11/02",
+      weekday: "週日",
       time: "20:00~22:00"
     }
   },
@@ -584,15 +415,12 @@ const DOM_CACHE = {
   
   // 重設快取方法
   resetChatMessages() {
-    Logger.debug('DOM_CACHE.resetChatMessages called: 重設聊天訊息快取');
     this._chatMessages = null;
   },
   resetScheduleForm() {
-    Logger.debug('DOM_CACHE.resetScheduleForm called: 重設表單快取');
     this._scheduleForm = null;
   },
   resetFormInputs() {
-    Logger.debug('DOM_CACHE.resetFormInputs called: 重設表單輸入欄位快取');
     this._dateInput = null;
     this._startTimeInput = null;
     this._endTimeInput = null;
@@ -602,7 +430,6 @@ const DOM_CACHE = {
 
   // 清空表單輸入欄位值
   clearFormInputs() {
-    Logger.debug('DOM_CACHE.clearFormInputs called: 清空表單輸入欄位值');
     const inputs = this.getFormInputs();
     
     // 使用通用設定器清空所有輸入欄位
@@ -618,7 +445,6 @@ const DOM_CACHE = {
   
   // 一次性取得所有表單輸入欄位
   getFormInputs() {
-    Logger.debug('DOM_CACHE.getFormInputs called: 取得所有表單輸入欄位');
     return {
       dateInput: this.dateInput,
       startTimeInput: this.startTimeInput,
@@ -630,7 +456,6 @@ const DOM_CACHE = {
   
   // 取得表單資料
   getFormData() {
-    Logger.debug('DOM_CACHE.getFormData called: 取得表單資料');
     const inputs = this.getFormInputs();
     return {
       date: inputs.dateInput?.value || '',
@@ -642,7 +467,6 @@ const DOM_CACHE = {
   
   // 重置日期選擇器快取
   resetDatePicker() {
-    Logger.debug('DOM_CACHE.resetDatePicker called: 重置日期選擇器快取');
     this._datePickerModal = null;
     this._currentMonthYear = null;
     this._datePickerCalendar = null;
@@ -653,7 +477,6 @@ const DOM_CACHE = {
 
   // 重置所有快取
   resetAll() {
-    Logger.debug('DOM_CACHE.resetAll called: 重置所有快取');
     this._chatMessages = null;
     this._scheduleForm = null;
     this._dateInput = null;
@@ -735,13 +558,11 @@ const DELAY_TIMES = {
 
 // Promise 版本的延遲函數，替代 setTimeout
 const delay = (ms) => {
-  Logger.debug('delay called: 延遲執行', { ms });
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
 // 非阻塞延遲函數，用於不需要等待的延遲操作
 const nonBlockingDelay = async (ms, callback) => {
-  Logger.debug('nonBlockingDelay called: 非阻塞延遲', { ms });
   await delay(ms);
   callback();
 };
@@ -1110,18 +931,14 @@ const generateScheduleTable = (allSchedules, includeButtons = false) => {
 
 // Demo 預約時間函數：根據 option 取得對應的 demo 時間標籤
 function getDemoTimeLabel(option) {
-  Logger.debug('getDemoTimeLabel called', { option });
   const result = CONFIG.DEMO_TIME_SLOTS[option]?.label || "";
-  Logger.debug('getDemoTimeLabel result', { option, result });
   return result;
 }
 
 // 取得統一的提示文字：用於在聊天訊息中顯示提示文字
 function getPromptText(key, className = 'mt-2') {
-  Logger.debug('getPromptText called', { key, className });
   const text = CONFIG.UI_TEXT.PROMPTS[key] || '';
   const result = `<p class="${className}">${text}</p>`;
-  Logger.debug('getPromptText result', { key, className, result });
   return result;
 }
 
@@ -1167,7 +984,6 @@ const extractButtonData = (btn, dataAttributes = []) => {
 const createButtonHandler = (handlerType, config) => {
   return async (btn, e) => {
     const data = extractButtonData(btn, config.dataAttributes);
-    Logger.info(`EventManager: ${config.logMessage}`, data);
     
     try {
       // // 執行預處理（如果有的話）
@@ -1183,9 +999,7 @@ const createButtonHandler = (handlerType, config) => {
         config.onSuccess(data, btn, e);
       }
       
-      Logger.info(`EventManager: ${config.logMessage} 完成`, data);
     } catch (error) {
-      Logger.error(`EventManager: ${config.logMessage} 失敗`, error);
       
       // 執行錯誤回調
       if (config.onError) {
@@ -1880,14 +1694,6 @@ const ChatStateManager = {
   
   // 調試功能
   debug: () => {
-    Logger.group('ChatStateManager.debug called：聊天狀態調試資訊');
-    Logger.log('當前狀態:', ChatStateManager.getState());
-    Logger.log('統計資料:', ChatStateManager.getStats());
-    Logger.log('訊息歷史:', ChatStateManager.getMessageHistory());
-    Logger.log('已提供時段:', ChatStateManager.getProvidedSchedules());
-    Logger.log('已預約時段:', ChatStateManager.getBookedSchedules());
-    Logger.log('監聽器數量:', ChatStateManager._listeners.size);
-    Logger.groupEnd();
   },
   
   // 匯出狀態（用於持久化）
@@ -2013,13 +1819,11 @@ const DateUtils = {
     const day = String(d.getDate()).padStart(CONFIG.DATE_PICKER.FORMAT.PADDING_LENGTH, CONFIG.DATE_PICKER.FORMAT.PADDING_CHAR);
     
     const formatted = `${year}${CONFIG.DATE_PICKER.SEPARATORS.DATE}${month}${CONFIG.DATE_PICKER.SEPARATORS.DATE}${day}`;
-    Logger.debug('DateUtils.formatDate: 格式化結果', { original: date, formatted });
     return formatted;
   },
   
   // 格式化時間為 HH:MM:SS
   formatTime: (date) => {
-    Logger.debug('DateUtils.formatTime called', { date });
     if (!date) return '';
     
     const d = new Date(date);
@@ -2030,34 +1834,28 @@ const DateUtils = {
     const seconds = String(d.getSeconds()).padStart(CONFIG.DATE_PICKER.FORMAT.PADDING_LENGTH, CONFIG.DATE_PICKER.FORMAT.PADDING_CHAR);
     
     const formatted = `${hours}${CONFIG.DATE_PICKER.SEPARATORS.TIME}${minutes}${CONFIG.DATE_PICKER.SEPARATORS.TIME}${seconds}`;
-    Logger.debug('DateUtils.formatTime: 格式化結果', { original: date, formatted });
     return formatted;
   },
   
   // 將時間格式化為 HH:MM 格式（移除秒數）
   formatTimeWithoutSeconds: (timeStr) => {
-    Logger.debug('DateUtils.formatTimeWithoutSeconds called', { timeStr });
     
     // 如果是 HH:MM:SS 格式，移除秒數
     if (timeStr.includes(':') && timeStr.split(':').length === 3) {
       const [hours, minutes] = timeStr.split(':');
       const formatted = `${hours}:${minutes}`;
-      Logger.debug('DateUtils.formatTimeWithoutSeconds: 移除秒數', { original: timeStr, formatted });
       return formatted;
     }
     // 如果已經是 HH:MM 格式，直接返回
     if (timeStr.includes(':') && timeStr.split(':').length === 2) {
-      Logger.debug('DateUtils.formatTimeWithoutSeconds: 已是 HH:MM 格式', { timeStr });
       return timeStr;
     }
     // 如果是其他格式，嘗試解析並格式化
-    Logger.debug('DateUtils.formatTimeWithoutSeconds: 其他格式', { timeStr });
     return timeStr;
   },
   
   // 格式化為本地時間字串
   formatToLocalTime: (date) => {
-    Logger.debug('DateUtils.formatToLocalTime called', { date });
     if (!date) return '';
     
     const d = new Date(date);
@@ -2069,30 +1867,24 @@ const DateUtils = {
       hour12: CONFIG.DATE_PICKER.LOCALE_OPTIONS.HOUR12
     });
     
-    Logger.debug('DateUtils.formatToLocalTime: 格式化結果', { original: date, formatted });
     return formatted;
   },
   
   // 獲取今天的日期
   getToday: () => {
-    Logger.debug('DateUtils.getToday called');
     const today = new Date();
-    Logger.debug('DateUtils.getToday: 今天日期', today);
     return today;
   },
   
   // 比較兩個時間字串 (HH:MM 格式)
   compareTimes: (time1, time2) => {
-    Logger.debug('DateUtils.compareTimes called', { time1, time2 });
     
     if (!time1 || !time2) {
-      Logger.warn('DateUtils.compareTimes: 時間參數為空', { time1, time2 });
       return 0;
     }
     
     // 將時間字串轉換為分鐘數（內部工具函式）
     const parseTime = (timeStr) => {
-      Logger.debug('DateUtils.compareTimes.parseTime called', { timeStr });
       const [hours, minutes] = timeStr.split(CONFIG.DATE_PICKER.SEPARATORS.TIME).map(Number);
       return hours * CONFIG.DATE_PICKER.CALCULATION.MINUTES_PER_HOUR + minutes;
     };
@@ -2101,7 +1893,6 @@ const DateUtils = {
     const minutes2 = parseTime(time2);
     
     const result = minutes1 - minutes2;
-    Logger.debug('DateUtils.compareTimes: 比較結果', { time1, time2, minutes1, minutes2, result });
     return result;
   },
   
@@ -2203,11 +1994,9 @@ const DateUtils = {
   
   // 新增：取得一週後日期的格式化字串
   getNextWeekFormatted: () => {
-    Logger.debug('DateUtils.getNextWeekFormatted called');
     const today = DateUtils.getToday();
     const nextWeek = new Date(today.getTime() + CONFIG.DATE_PICKER.DEFAULT_OFFSET_DAYS * 24 * 60 * 60 * 1000);
     const result = DateUtils.formatDate(nextWeek);
-    Logger.debug('DateUtils.getNextWeekFormatted: 一週後日期', { today, nextWeek, result });
     return result;
   },
   
@@ -2965,7 +2754,6 @@ const BusinessLogic = {
   chat: {
     // 驗證訊息
     validateMessage: (message) => {
-      Logger.debug('BusinessLogic.chat.validateMessage called', { message });
       if (!message || typeof message !== 'string') return false;
       if (message.trim().length === 0) return false;
       if (message.length > CONFIG.CHAT.MAX_MESSAGE_LENGTH) return false;
@@ -2973,7 +2761,6 @@ const BusinessLogic = {
     },
     // 生成回應
     generateResponse: (userMessage) => {
-      Logger.debug('BusinessLogic.chat.generateResponse called', { userMessage });
       const responses = [
         '如未來有需要預約 Giver 時間，請使用聊天輸入區域下方的功能按鈕。',
       ];
@@ -3283,7 +3070,6 @@ const TEMPLATES = {
 
     // 時段表格模板
     scheduleTable: (schedules) => {
-      Logger.debug('TEMPLATES.chat.scheduleTable called', { schedules });
       let tableRows = '';
       schedules.forEach((schedule, index) => {
         // 使用通用函數生成表格行
@@ -3411,7 +3197,6 @@ const TEMPLATES = {
     
     // 新增：預約成功訊息和表格模板
     reservationSuccessMessageAndTable: (demoTimeOptions, provideMyTimeOption) => {
-      Logger.debug('TEMPLATES.chat.reservationSuccessMessageAndTable called', { demoTimeOptions, provideMyTimeOption });
       const totalCount = demoTimeOptions.length + (provideMyTimeOption ? 1 : 0);
       
       // 準備所有項目 - 處理 demoTimeOptions 的資料結構
@@ -3443,7 +3228,6 @@ const TEMPLATES = {
 
     // 新增：已預約時間訊息和表格模板
     bookedTimesMessageAndTable: (bookedSchedules) => {
-      Logger.debug('TEMPLATES.chat.bookedTimesMessageAndTable called', { bookedSchedules });
       
       // 使用通用函數生成表格行
       const tableRows = generateReservationTableRows(bookedSchedules);
@@ -3503,13 +3287,11 @@ const DOM = {
   
   // 創建元素
   createElement: (tag, className = '', innerHTML = '') => {
-    Logger.debug('DOM.createElement called', { tag, className, innerHTML });
     
     const element = document.createElement(tag);
     if (className) element.className = className;
     if (innerHTML) element.innerHTML = innerHTML;
     
-    Logger.debug('元素創建完成:', element);
     return element;
   },
   
@@ -3517,41 +3299,33 @@ const DOM = {
   utils: {
     // 安全地設置文字內容（防止 XSS）
     setTextContent: (element, text) => {
-      Logger.debug('DOM.utils.setTextContent called', { element, text });
       if (element) {
         element.textContent = text;
       } else {
-        Logger.error('無法設置文字內容，元素不存在');
       }
     },
     
     // 安全地設置 HTML 內容
     setInnerHTML: (element, html) => {
-      Logger.debug('DOM.utils.setInnerHTML called', { element, html });
       if (element) {
         element.innerHTML = html;
       } else {
-        Logger.error('無法設置 HTML 內容，元素不存在');
       }
     },
     
     // 添加事件監聽器
     addEventListener: (element, event, handler, options = {}) => {
-      Logger.debug('DOM.utils.addEventListener called', { element, event, handler, options });
       if (element) {
         element.addEventListener(event, handler, options);
       } else {
-        Logger.error('無法添加事件監聽器，元素不存在');
       }
     },
     
     // 移除事件監聽器
     removeEventListener: (element, event, handler, options = {}) => {
-      Logger.debug('DOM.utils.removeEventListener called', { element, event, handler, options });
       if (element) {
         element.removeEventListener(event, handler, options);
       } else {
-        Logger.error('無法移除事件監聽器，元素不存在');
       }    
     },
     
@@ -4588,7 +4362,6 @@ const DOM = {
       e.preventDefault();
       e.stopPropagation();
       
-      Logger.debug('取消表單按鈕被點擊');
       
       // 隱藏表單
       const scheduleForm = document.getElementById('schedule-form');
@@ -4992,7 +4765,6 @@ const DOM = {
     
     // 設定表單事件
     setupScheduleForm: (editIndex = null, editData = null) => {
-      Logger.info('DOM.chat.setupScheduleForm called: 設定表單事件', { editIndex, editData });
       const form = DOM_CACHE.timeScheduleForm;
       if (form) {
         // 設定編輯索引（用於事件委派處理）
@@ -5755,7 +5527,6 @@ const DOM = {
           console.warn('mountTable() error: 找不到新插入的表格');
           return;
         }
-        Logger.info('mountTable() 按鈕事件由 EventManager 統一處理');
         console.log('mountTable() 滾動到底部');
         // 滾動到底部
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -7774,11 +7545,9 @@ const EventManager = {
   
   // 處理表單提交
   async handleScheduleFormSubmit(form, e) {
-    Logger.info('EventManager: 表單提交事件觸發');
     
     const formData = DOM_CACHE.getFormData();
     
-    Logger.debug('EventManager: 表單資料', formData);
     
     // 驗證表單
     const validationResult = FormValidator.validateScheduleForm(formData);
@@ -8044,7 +7813,6 @@ const EventManager = {
   // 處理日曆日期點擊
   handleCalendarDayClick(dayElement, e) {
     const date = dayElement.getAttribute('data-date');
-    Logger.info('EventManager: 日曆日期被點擊', { date });
     
     // 立即驗證選擇的日期
     if (date && !DateUtils.validateDateWithinAllowedMonths(date, true)) {
@@ -8056,7 +7824,6 @@ const EventManager = {
   
   // 處理日期輸入框點擊
   handleDateInputClick(input, e) {
-    Logger.info('EventManager: 日期輸入框被點擊');
     DOM.chat.showDatePicker();
   },
   
@@ -8064,7 +7831,6 @@ const EventManager = {
   handleScheduleInputChange(input, e) {
     const field = input.id;
     const value = input.value;
-    Logger.debug('EventManager: 表單輸入變更', { field, value });
     
     // 當使用者修改任何輸入欄位時，清除重複時段錯誤
     FormValidator.clearDuplicateScheduleError();
@@ -8524,7 +8290,6 @@ const PerformanceMonitor = {
       name
     });
     
-    Logger.debug(`開始計時: ${name}`);
   },
 
   // 結束計時
@@ -8534,7 +8299,6 @@ const PerformanceMonitor = {
     
     const timer = PerformanceMonitor.timers.get(name);
     if (!timer) {
-      Logger.warn(`找不到計時器: ${name}`);
       return;
     }
 
@@ -8560,7 +8324,6 @@ const PerformanceMonitor = {
     }
 
     PerformanceMonitor.timers.delete(name);
-    Logger.debug(`結束計時: ${name} (${duration.toFixed(2)}ms)`);
     
     return metric;
   },
@@ -8753,7 +8516,6 @@ const PerformanceMonitor = {
     } else {
       window.addEventListener('load', () => {
         PerformanceMonitor.metrics.pageLoad = performance.now();
-        Logger.info('頁面載入完成', { loadTime: PerformanceMonitor.metrics.pageLoad });
       });
     }
 
@@ -8767,10 +8529,8 @@ const PerformanceMonitor = {
     // 定期生成報告
     setInterval(() => {
       const report = PerformanceMonitor.getReport();
-      Logger.info('效能監控報告', report.summary);
     }, PerformanceMonitor.config.reportInterval);
 
-    Logger.info('效能監控已初始化');
   },
 
   // 工具方法
@@ -8783,21 +8543,18 @@ const PerformanceMonitor = {
       PerformanceMonitor.metrics.memoryUsage = [];
       PerformanceMonitor.metrics.errors = [];
       PerformanceMonitor.timers.clear();
-      Logger.info('效能監控資料已清理');
     },
 
     // 啟用/停用監控
     setEnabled: (enabled) => {
       console.log('DOM.PerformanceMonitor.utils.setEnabled called：啟用/停用監控', { enabled });
       PerformanceMonitor.config.enableMonitoring = enabled;
-      Logger.info(`效能監控已${enabled ? '啟用' : '停用'}`);
     },
 
     // 設定報告間隔
     setReportInterval: (interval) => {
       console.log('DOM.PerformanceMonitor.utils.setReportInterval called：設定報告間隔', { interval });
       PerformanceMonitor.config.reportInterval = interval;
-      Logger.info(`效能監控報告間隔已設定為: ${interval}ms`);
     },
 
     // 匯出效能資料
@@ -8901,7 +8658,6 @@ const showConfirmDialog = UIInteraction.showConfirmDialog;
 // ======================================================
 
 DOM.events.add(document, 'DOMContentLoaded', async function() {
-  Logger.info('DOM.events.add called：頁面載入時設定全域事件監聽器');
   
   // 初始化事件委派管理器
   EventManager.init();
@@ -8967,15 +8723,9 @@ DOM.events.add(document, 'DOMContentLoaded', async function() {
 // 通用輸入欄位設定器
 const setupInputField = (inputElement, config) => {
   if (!inputElement) {
-    Logger.warn('setupInputField: 輸入元素不存在', { config });
     return false;
   }
 
-  Logger.debug('setupInputField: 設定輸入欄位', { 
-    elementId: inputElement.id, 
-    elementType: inputElement.type,
-    config 
-  });
 
   // 設定預設值
   inputElement.value = config.defaultValue || '';
@@ -8986,7 +8736,6 @@ const setupInputField = (inputElement, config) => {
       try {
         config.onInput(e.target);
       } catch (error) {
-        Logger.error('setupInputField: input 事件處理失敗', error);
       }
     });
   }
@@ -8997,7 +8746,6 @@ const setupInputField = (inputElement, config) => {
       try {
         config.onBlur(e.target);
       } catch (error) {
-        Logger.error('setupInputField: blur 事件處理失敗', error);
       }
     });
   }
@@ -9010,7 +8758,6 @@ const setupInputField = (inputElement, config) => {
         e.stopPropagation();
         config.onClick(e.target);
       } catch (error) {
-        Logger.error('setupInputField: click 事件處理失敗', error);
       }
     });
   }
@@ -9022,7 +8769,6 @@ const setupInputField = (inputElement, config) => {
         e.preventDefault();
         config.onFocus(e.target);
       } catch (error) {
-        Logger.error('setupInputField: focus 事件處理失敗', error);
       }
     });
   }
@@ -9033,26 +8779,19 @@ const setupInputField = (inputElement, config) => {
       try {
         config.onChange(e.target);
       } catch (error) {
-        Logger.error('setupInputField: change 事件處理失敗', error);
       }
     });
   }
 
-  Logger.debug('setupInputField: 輸入欄位設定完成', { elementId: inputElement.id });
   return true;
 };
 
 // 批量設定輸入欄位
 const setupMultipleInputFields = (formElement, fieldConfigs) => {
   if (!formElement) {
-    Logger.warn('setupMultipleInputFields: 表單元素不存在');
     return false;
   }
 
-  Logger.debug('setupMultipleInputFields: 開始批量設定輸入欄位', { 
-    formId: formElement.id,
-    fieldCount: Object.keys(fieldConfigs).length 
-  });
 
   // 清除所有錯誤訊息
   const inputs = formElement.querySelectorAll('input, textarea');
@@ -9067,13 +8806,11 @@ const setupMultipleInputFields = (formElement, fieldConfigs) => {
     results[selector] = setupInputField(element, config);
   }
 
-  Logger.debug('setupMultipleInputFields: 批量設定完成', { results });
   return results;
 };
 
 // 初始化表單欄位
 const initScheduleFormInputs = (formElement) => {
-  Logger.debug('initScheduleFormInputs called: 初始化表單欄位', { formElement });
   
   // 定義所有輸入欄位的配置
   const fieldConfigs = {
@@ -9133,7 +8870,6 @@ const initScheduleFormInputs = (formElement) => {
   // 使用通用設定器批量設定所有欄位
   const results = setupMultipleInputFields(formElement, fieldConfigs);
   
-  Logger.debug('initScheduleFormInputs: 表單欄位初始化完成', { results });
   return results;
 }
 
