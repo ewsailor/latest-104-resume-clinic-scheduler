@@ -21,8 +21,8 @@
   - [可靠性](#可靠性)
   - [效能](#效能)
   - [開發效率](#開發效率)
-    - [速懂新技術與選型理由 AI Prompt 模板](#tech-quickstart-insight.md)
-    - [實作功能 AI Prompt 模板](#tech-quickstart-insight.md)
+    - [速懂新技術與選型理由 AI Prompt 模板](#tech-quickstart-insight)
+    - [實作功能 AI Prompt 模板](#feature-implementation)
 - [快速開始](#快速開始)
   - [環境需求](#環境需求)
   - [安裝步驟](#安裝步驟)
@@ -254,6 +254,14 @@
 2. 在模板中【新名詞】處，填寫想瞭解的【新名詞】
 3. 更新【專案情境】
 4. 將模板中所有 Prompt 內容，複製貼上到 AI 工具的聊天對話框中，即可速懂新技術與選型理由
+
+#### <a name="feature-implementation"></a>實作功能 AI Prompt 模板 [返回目錄 ↑](#目錄)
+
+使用方法說明：
+1. [點此](./docs/feature-implementation.md)前往實作功能 AI Prompt 模板
+2. 在模板中【實作功能】處，填寫欲【實作的功能】
+3. 更新【專案情境】
+4. 將模板中所有 Prompt 內容，複製貼上到 AI 工具的聊天對話框中，即可加速實作出功能
 
 ## <a name="快速開始"></a>快速開始 [返回目錄 ↑](#目錄)
 
