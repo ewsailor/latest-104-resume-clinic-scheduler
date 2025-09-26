@@ -1,6 +1,6 @@
 # 使用者故事
 
-[← 返回根目錄 README.md](../README.md)
+[← 返回根目錄 README.md](../README.md#使用者故事與核心功能)
 
 ## 目錄
 

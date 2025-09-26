@@ -21,6 +21,8 @@
   - [可靠性](#可靠性)
   - [效能](#效能)
   - [開發效率](#開發效率)
+    - [速懂新技術與選型理由 AI Prompt 模板](#tech-quickstart-insight.md)
+    - [實作功能 AI Prompt 模板](#tech-quickstart-insight.md)
 - [快速開始](#快速開始)
   - [環境需求](#環境需求)
   - [安裝步驟](#安裝步驟)
@@ -29,12 +31,13 @@
   - [專案結構](#專案結構)
   - [ERD 實體關聯圖](#erd-實體關聯圖)
   - [API](#api)
+    - [API 分層架構設計](#api-分層架構設計)
     - [RESTful API](#restful-api)
     - [Swagger/ReDoc：查看 API 請求與回應範例](#swagger-redoc-請求與回應範例)
     - [Postman：Collection Runner 一鍵測試所有 API](#postman-一鍵測試所有-api)
-    - [API 分層架構設計](#api-分層架構設計)
   - [Pytest 測試](#pytest-測試)
     - [測試資料管理：夾具 Fixtures](#夾具-fixtures)
+    - [參數化測試裝飾器](#參數化測試裝飾器)
     - [單元測試](#單元測試)
     - [整合測試](#整合測試)
     - [測試覆蓋率](#測試覆蓋率)
@@ -243,6 +246,14 @@
   - ![MySQL Workbench 查詢結果](static/images/tools/mysql-workbench/query-results.png)
 - **Sourcetree Git 視覺化**：提供 Git 視覺化介面，有助開發團隊更輕鬆地進行程式碼合併、分支管理、衝突解決
   - ![Sourcetree Git 管理](static/images/tools/sourcetree/sourcetree.png)
+
+#### <a name="tech-quickstart-insight"></a>速懂新技術與選型理由 AI Prompt 模板 [返回目錄 ↑](#目錄)
+
+使用方法說明：
+1. [點此](./docs/tech-quickstart-insight.md)前往速懂新技術與選型理由 AI Prompt 模板
+2. 在模板中【新名詞】處，填寫想瞭解的【新名詞】
+3. 更新【專案情境】
+4. 將模板中所有 Prompt 內容，複製貼上到 AI 工具的聊天對話框中，即可速懂新技術與選型理由
 
 ## <a name="快速開始"></a>快速開始 [返回目錄 ↑](#目錄)
 
