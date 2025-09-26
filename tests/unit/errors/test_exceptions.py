@@ -29,6 +29,13 @@ from app.errors.exceptions import (  # 基礎異常類別; CRUD 層級異常 (50
 class TestAPIError:
     """APIError 基礎類別測試。"""
 
+    def test_api_error_inheritance(self):
+        """測試 APIError 繼承關係。"""
+        error = APIError("測試錯誤", "TEST_ERROR")
+
+        assert isinstance(error, Exception)  # 檢查是否繼承自 Exception
+        assert isinstance(error, APIError)  # 檢查是否繼承自 APIError 實例
+
     def test_api_error_basic(self):
         """測試 APIError 基本功能。"""
         error = APIError("測試錯誤", "TEST_ERROR")
@@ -38,7 +45,7 @@ class TestAPIError:
         assert error.error_code == "TEST_ERROR"
         assert str(error) == "測試錯誤"
 
-        # 業務邏輯驗證
+        # 功能驗證
         assert error.status_code == status.HTTP_400_BAD_REQUEST  # 檢查預設狀態碼
         assert error.details == {}  # 檢查預設詳細資訊
 
@@ -54,6 +61,7 @@ class TestAPIError:
         assert error.details == {}
         assert str(error) == "測試錯誤"
 
+        # 功能驗證
         assert (
             error.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         )  # 檢查自定義狀態碼
@@ -63,19 +71,15 @@ class TestAPIError:
         details = {"field": "value", "code": 123}
         error = APIError("測試錯誤", "TEST_ERROR", details=details)
 
+        # 資料完整性驗證
         assert error.message == "測試錯誤"
         assert error.error_code == "TEST_ERROR"
         assert error.details == details
         assert error.status_code == status.HTTP_400_BAD_REQUEST
-        assert error.details == {"field": "value", "code": 123}
         assert str(error) == "測試錯誤"
 
-    def test_api_error_inheritance(self):
-        """測試 APIError 繼承關係。"""
-        error = APIError("測試錯誤", "TEST_ERROR")
-
-        assert isinstance(error, Exception)
-        assert isinstance(error, APIError)
+        # 功能驗證
+        assert error.details == {"field": "value", "code": 123}
 
 
 # ===== CRUD 層級錯誤 =====
@@ -86,9 +90,13 @@ class TestDatabaseError:
         """測試 DatabaseError 基本功能。"""
         error = DatabaseError("資料庫操作失敗")
 
+        # 資料完整性驗證
         assert error.message == "資料庫操作失敗"
+
+        # 功能驗證
         assert error.error_code == "CRUD_DATABASE_ERROR"
         assert error.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert error.details == {}
 
     def test_database_error_with_details(self):
         """測試 DatabaseError 帶詳細資訊。"""
@@ -99,6 +107,13 @@ class TestDatabaseError:
         }
         error = DatabaseError("資料庫操作失敗", details)
 
+        # 資料完整性驗證
+        assert error.message == "資料庫操作失敗"
+        assert error.error_code == "CRUD_DATABASE_ERROR"
+        assert error.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert error.details == details
+
+        # 功能驗證
         assert error.details == details
 
 
@@ -110,15 +125,25 @@ class TestBadRequestError:
         """測試 BadRequestError 基本功能。"""
         error = BadRequestError("請求格式錯誤")
 
+        # 資料完整性驗證
         assert error.message == "請求格式錯誤"
+
+        # 功能驗證
         assert error.error_code == "ROUTER_BAD_REQUEST"
         assert error.status_code == status.HTTP_400_BAD_REQUEST
+        assert error.details == {}
 
     def test_bad_request_error_with_details(self):
         """測試 BadRequestError 帶詳細資訊。"""
         details = {"field": "request_body", "error": "格式不正確"}
         error = BadRequestError("請求格式錯誤", details)
 
+        # 資料完整性驗證
+        assert error.message == "請求格式錯誤"
+        assert error.error_code == "ROUTER_BAD_REQUEST"
+        assert error.status_code == status.HTTP_400_BAD_REQUEST
+
+        # 功能驗證
         assert error.details == details
 
 
@@ -129,23 +154,34 @@ class TestAuthenticationError:
         """測試 AuthenticationError 預設訊息。"""
         error = AuthenticationError()
 
+        # 資料完整性驗證
         assert error.message == "認證失敗"
         assert error.error_code == "ROUTER_AUTHENTICATION_ERROR"
         assert error.status_code == status.HTTP_401_UNAUTHORIZED
+        assert error.details == {}
 
     def test_authentication_error_custom_message(self):
         """測試 AuthenticationError 自定義訊息。"""
         error = AuthenticationError("自定義認證錯誤")
 
+        # 資料完整性驗證
         assert error.message == "自定義認證錯誤"
         assert error.error_code == "ROUTER_AUTHENTICATION_ERROR"
         assert error.status_code == status.HTTP_401_UNAUTHORIZED
+        assert error.details == {}
 
     def test_authentication_error_with_details(self):
         """測試 AuthenticationError 帶詳細資訊。"""
         details = {"token": "invalid"}
         error = AuthenticationError("認證失敗", details)
 
+        # 資料完整性驗證
+        assert error.message == "認證失敗"
+        assert error.error_code == "ROUTER_AUTHENTICATION_ERROR"
+        assert error.status_code == status.HTTP_401_UNAUTHORIZED
+        assert error.details == details
+
+        # 功能驗證
         assert error.details == details
 
 
@@ -156,17 +192,21 @@ class TestAuthorizationError:
         """測試 AuthorizationError 預設訊息。"""
         error = AuthorizationError()
 
+        # 資料完整性驗證
         assert error.message == "權限不足"
         assert error.error_code == "ROUTER_AUTHORIZATION_ERROR"
         assert error.status_code == status.HTTP_403_FORBIDDEN
+        assert error.details == {}
 
     def test_authorization_error_custom_message(self):
         """測試 AuthorizationError 自定義訊息。"""
         error = AuthorizationError("自定義權限錯誤")
 
+        # 資料完整性驗證
         assert error.message == "自定義權限錯誤"
         assert error.error_code == "ROUTER_AUTHORIZATION_ERROR"
         assert error.status_code == status.HTTP_403_FORBIDDEN
+        assert error.details == {}
 
 
 class TestValidationError:
@@ -176,6 +216,7 @@ class TestValidationError:
         """測試 ValidationError 基本功能。"""
         error = ValidationError("驗證失敗")
 
+        # 資料完整性驗證
         assert error.message == "驗證失敗"
         assert error.error_code == "ROUTER_VALIDATION_ERROR"
         assert error.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -186,6 +227,13 @@ class TestValidationError:
         details = {"field": "email", "error": "格式不正確"}
         error = ValidationError("驗證失敗", details)
 
+        # 資料完整性驗證
+        assert error.message == "驗證失敗"
+        assert error.error_code == "ROUTER_VALIDATION_ERROR"
+        assert error.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert error.details == details
+
+        # 功能驗證
         assert error.details == details
 
     def test_validation_error_inheritance(self):
@@ -204,15 +252,24 @@ class TestBusinessLogicError:
         """測試 BusinessLogicError 基本功能。"""
         error = BusinessLogicError("業務邏輯錯誤")
 
+        # 資料完整性驗證
         assert error.message == "業務邏輯錯誤"
         assert error.error_code == "SERVICE_BUSINESS_LOGIC_ERROR"
         assert error.status_code == status.HTTP_400_BAD_REQUEST
+        assert error.details == {}
 
     def test_business_logic_error_with_details(self):
         """測試 BusinessLogicError 帶詳細資訊。"""
         details = {"operation": "create", "reason": "conflict"}
         error = BusinessLogicError("業務邏輯錯誤", details)
 
+        # 資料完整性驗證
+        assert error.message == "業務邏輯錯誤"
+        assert error.error_code == "SERVICE_BUSINESS_LOGIC_ERROR"
+        assert error.status_code == status.HTTP_400_BAD_REQUEST
+        assert error.details == details
+
+        # 功能驗證
         assert error.details == details
 
 
@@ -223,17 +280,21 @@ class TestScheduleNotFoundError:
         """測試 ScheduleNotFoundError 整數 ID。"""
         error = ScheduleNotFoundError(123)
 
+        # 資料完整性驗證
         assert error.message == "時段不存在: ID=123"
         assert error.error_code == "SERVICE_SCHEDULE_NOT_FOUND"
         assert error.status_code == status.HTTP_404_NOT_FOUND
+        assert error.details == {}
 
     def test_schedule_not_found_error_with_str_id(self):
         """測試 ScheduleNotFoundError 字串 ID。"""
         error = ScheduleNotFoundError("abc123")
 
+        # 資料完整性驗證
         assert error.message == "時段不存在: ID=abc123"
         assert error.error_code == "SERVICE_SCHEDULE_NOT_FOUND"
         assert error.status_code == status.HTTP_404_NOT_FOUND
+        assert error.details == {}
 
     def test_schedule_not_found_error_with_details(self):
         """測試 ScheduleNotFoundError 帶詳細資訊。"""
@@ -250,17 +311,21 @@ class TestUserNotFoundError:
         """測試 UserNotFoundError 整數 ID。"""
         error = UserNotFoundError(456)
 
+        # 資料完整性驗證
         assert error.message == "使用者不存在: ID=456"
         assert error.error_code == "SERVICE_USER_NOT_FOUND"
         assert error.status_code == status.HTTP_404_NOT_FOUND
+        assert error.details == {}
 
     def test_user_not_found_error_with_str_id(self):
         """測試 UserNotFoundError 字串 ID。"""
         error = UserNotFoundError("user123")
 
+        # 資料完整性驗證
         assert error.message == "使用者不存在: ID=user123"
         assert error.error_code == "SERVICE_USER_NOT_FOUND"
         assert error.status_code == status.HTTP_404_NOT_FOUND
+        assert error.details == {}
 
 
 class TestConflictError:
@@ -270,15 +335,24 @@ class TestConflictError:
         """測試 ConflictError 基本功能。"""
         error = ConflictError("資源衝突")
 
+        # 資料完整性驗證
         assert error.message == "資源衝突"
         assert error.error_code == "SERVICE_CONFLICT"
         assert error.status_code == status.HTTP_409_CONFLICT
+        assert error.details == {}
 
     def test_conflict_error_with_details(self):
         """測試 ConflictError 帶詳細資訊。"""
         details = {"conflicting_field": "email", "existing_value": "test@example.com"}
         error = ConflictError("資源衝突", details)
 
+        # 資料完整性驗證
+        assert error.message == "資源衝突"
+        assert error.error_code == "SERVICE_CONFLICT"
+        assert error.status_code == status.HTTP_409_CONFLICT
+        assert error.details == details
+
+        # 功能驗證
         assert error.details == details
 
 
@@ -289,23 +363,34 @@ class TestScheduleCannotBeDeletedError:
         """測試 ScheduleCannotBeDeletedError 整數 ID。"""
         error = ScheduleCannotBeDeletedError(123)
 
+        # 資料完整性驗證
         assert error.message == "時段無法刪除: ID=123"
         assert error.error_code == "SERVICE_SCHEDULE_CANNOT_BE_DELETED"
         assert error.status_code == status.HTTP_409_CONFLICT
+        assert error.details == {}
 
     def test_schedule_cannot_be_deleted_error_with_str_id(self):
         """測試 ScheduleCannotBeDeletedError 字串 ID。"""
         error = ScheduleCannotBeDeletedError("abc123")
 
+        # 資料完整性驗證
         assert error.message == "時段無法刪除: ID=abc123"
         assert error.error_code == "SERVICE_SCHEDULE_CANNOT_BE_DELETED"
         assert error.status_code == status.HTTP_409_CONFLICT
+        assert error.details == {}
 
     def test_schedule_cannot_be_deleted_error_with_details(self):
         """測試 ScheduleCannotBeDeletedError 帶詳細資訊。"""
         details = {"reason": "schedule_already_accepted"}
         error = ScheduleCannotBeDeletedError(123, details)
 
+        # 資料完整性驗證
+        assert error.message == "時段無法刪除: ID=123"
+        assert error.error_code == "SERVICE_SCHEDULE_CANNOT_BE_DELETED"
+        assert error.status_code == status.HTTP_409_CONFLICT
+        assert error.details == details
+
+        # 功能驗證
         assert error.details == details
 
 
@@ -316,9 +401,11 @@ class TestScheduleOverlapError:
         """測試 ScheduleOverlapError 基本功能。"""
         error = ScheduleOverlapError("時段時間重疊")
 
+        # 資料完整性驗證
         assert error.message == "時段時間重疊"
         assert error.error_code == "SERVICE_SCHEDULE_OVERLAP"
         assert error.status_code == status.HTTP_409_CONFLICT
+        assert error.details == {}
 
     def test_schedule_overlap_error_with_details(self):
         """測試 ScheduleOverlapError 帶詳細資訊。"""
@@ -329,6 +416,13 @@ class TestScheduleOverlapError:
         }
         error = ScheduleOverlapError("時段時間重疊", details)
 
+        # 資料完整性驗證
+        assert error.message == "時段時間重疊"
+        assert error.error_code == "SERVICE_SCHEDULE_OVERLAP"
+        assert error.status_code == status.HTTP_409_CONFLICT
+        assert error.details == details
+
+        # 功能驗證
         assert error.details == details
 
 
@@ -340,17 +434,21 @@ class TestServiceUnavailableError:
         """測試 ServiceUnavailableError 預設訊息。"""
         error = ServiceUnavailableError()
 
+        # 資料完整性驗證
         assert error.message == "服務暫時不可用"
         assert error.error_code == "SERVICE_UNAVAILABLE"
         assert error.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+        assert error.details == {}
 
     def test_service_unavailable_error_custom_message(self):
         """測試 ServiceUnavailableError 自定義訊息。"""
         error = ServiceUnavailableError("維護中")
 
+        # 資料完整性驗證
         assert error.message == "維護中"
         assert error.error_code == "SERVICE_UNAVAILABLE"
         assert error.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+        assert error.details == {}
 
 
 # ===== 錯誤層級測試 =====
