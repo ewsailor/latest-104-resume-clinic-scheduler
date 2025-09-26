@@ -1,6 +1,6 @@
 # 實作功能 AI Prompt 模板
 
-[← 返回根目錄 README.md](../README.md)
+[← 返回根目錄 README.md](../README.md#feature-implementation)
 
 使用方法說明：
 1. 在下方【實作功能】處，填寫欲【實作的功能】
