@@ -219,7 +219,7 @@ class Schedule(Base):  # type: ignore[misc,valid-type]
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """轉換為字典格式，用於 API 和資料傳輸給前端。"""
+        """資料序列化：轉換為字典格式，用於 API 和資料傳輸給前端。"""
         try:
             return {
                 # 基本欄位：使用 getattr，避免不必要的 try/except
@@ -231,12 +231,14 @@ class Schedule(Base):  # type: ignore[misc,valid-type]
                 "start_time": format_datetime(getattr(self, 'start_time', None)),
                 "end_time": format_datetime(getattr(self, 'end_time', None)),
                 "note": getattr(self, 'note', None),
+                # 審計欄位
                 "created_at": format_datetime(getattr(self, 'created_at', None)),
                 "created_by": getattr(self, 'created_by', None),
                 "created_by_role": getattr(self, 'created_by_role', None),
                 "updated_at": format_datetime(getattr(self, 'updated_at', None)),
                 "updated_by": getattr(self, 'updated_by', None),
                 "updated_by_role": getattr(self, 'updated_by_role', None),
+                # 系統欄位
                 "deleted_at": format_datetime(getattr(self, 'deleted_at', None)),
                 "deleted_by": getattr(self, 'deleted_by', None),
                 "deleted_by_role": getattr(self, 'deleted_by_role', None),
