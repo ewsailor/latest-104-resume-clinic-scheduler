@@ -3737,9 +3737,7 @@ const DOM = {
     },
     
     // 事件監聽器管理工具
-    utils: {
-      // 獲取事件監聽器統計資訊
-      
+    utils: {      
       // 清理所有事件監聽器
       clearAll: () => {
         console.log('DOM.events.utils.clearAll called');
@@ -5853,9 +5851,7 @@ const DOM = {
     },
     
     // 聊天功能工具
-    utils: {
-      // 獲取聊天統計
-      
+    utils: {      
       // 獲取聊天歷史
       getHistory: () => {
         console.log('DOM.chat.utils.getHistory called：獲取聊天歷史');
@@ -6372,9 +6368,7 @@ const DOM = {
     },
     
     // 資料載入工具
-    utils: {
-      // 獲取載入統計
-      
+    utils: {      
       // 檢查網路狀態
       checkNetworkStatus: () => {
         console.log('DOM.dataLoader.utils.checkNetworkStatus called：檢查網路狀態');

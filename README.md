@@ -680,7 +680,9 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 
   ```bash
   @pytest.mark.parametrize(
+      # 參數名稱字串
       "field_name,invalid_value",
+      # 參數值清單
       [
           ("giver_id", None),
           ("date", None),
