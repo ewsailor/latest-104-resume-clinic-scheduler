@@ -109,7 +109,7 @@
 
 ### <a name="技術棧與選型理由"></a>技術棧與選型理由 [返回目錄 ↑](#目錄)
 
-本專案主要使用技術為 `Python`、`FastAPI` 框架 + `SQLAlchemy`、`MySQL`/`MariaDB`資料庫，採分層架構設計避免高耦合，依 RESTful 原則設計時段（Schedule）的 `CRUD API`，可於 `Swagger`/`ReDoc`查看 API 請求與回應範例，用 `Postman`、`pytest`、`pre-commit`、`CI/CD` 確保程式碼品質，並有考量安全性、可維護性與可擴充性、可靠性、效能、開發效率。
+本專案主要使用技術為 `Python`、`FastAPI` 框架 + `SQLAlchemy`、`MySQL`/`MariaDB`資料庫，採分層架構設計避免高耦合，依 `RESTful` 原則設計時段（Schedule）的 `CRUD API`，可於 `Swagger`/`ReDoc`查看 API 請求與回應範例，用 `Postman`、`pytest`、`pre-commit`、`CI/CD` 確保程式碼品質，並有考量安全性、可維護性與可擴充性、可靠性、效能、開發效率。
 
 #### **後端框架**
 

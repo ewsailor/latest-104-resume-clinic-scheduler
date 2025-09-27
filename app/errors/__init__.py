@@ -67,25 +67,24 @@ __all__ = [
     "ScheduleOverlapError",
     # System 層級
     "ServiceUnavailableError",
-    # ===== 錯誤處理函式 =====
-    # Router 層級
-    "create_bad_request_error",
-    "create_validation_error",
-    "create_authentication_error",
-    "create_authorization_error",
-    # Service 層級
-    "create_business_logic_error",
-    "create_conflict_error",
-    "create_schedule_cannot_be_deleted_error",
-    "create_schedule_not_found_error",
-    "create_user_not_found_error",
-    "create_schedule_overlap_error",
-    # CRUD 層級
-    "create_database_error",
-    # System 層級
-    "create_service_unavailable_error",
     # ===== 錯誤格式化 =====
     "format_error_response",
-    # ===== 工具函式 =====
-    "get_deletion_explanation",
+    # ===== 錯誤處理函式 =====
+    # CRUD 層級
+    "create_database_error",
+    # Router 層級
+    "create_bad_request_error",
+    "create_authentication_error",
+    "create_authorization_error",
+    "create_validation_error",
+    # Service 層級
+    "create_business_logic_error",
+    "create_schedule_not_found_error",
+    "create_user_not_found_error",
+    "create_conflict_error",
+    "get_deletion_explanation",  # 解釋刪除時段的原因
+    "create_schedule_cannot_be_deleted_error",
+    "create_schedule_overlap_error",
+    # System 層級
+    "create_service_unavailable_error",
 ]

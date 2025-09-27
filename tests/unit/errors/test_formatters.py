@@ -437,11 +437,8 @@ class TestFormatErrorResponse:
         expected_details,
     ):
         """測試格式化各種錯誤類型。"""
+        # Given: 準備測試環境和預期結果
         mock_timestamp.return_value = "2024-01-01T00:00:00Z"
-
-        error = error_factory()
-        result = format_error_response(error)
-
         expected = {
             "error": {
                 "message": expected_message,
@@ -451,6 +448,12 @@ class TestFormatErrorResponse:
                 "details": expected_details,
             }
         }
+
+        # When: 建立錯誤並格式化
+        error = error_factory()
+        result = format_error_response(error)
+
+        # Then: 驗證格式化結果
         assert result == expected
 
     @pytest.mark.parametrize(
@@ -483,21 +486,23 @@ class TestFormatErrorResponse:
     @patch('app.errors.formatters.get_utc_timestamp')
     def test_format_error_response_structure(self, mock_timestamp, error_factory):
         """測試錯誤回應結構。"""
+        # Given: 準備測試環境
         mock_timestamp.return_value = "2024-01-01T00:00:00Z"
+        required_fields = ["message", "status_code", "code", "timestamp", "details"]
 
+        # When: 建立錯誤並格式化
         error = error_factory()
         result = format_error_response(error)
 
-        # 檢查回應結構
+        # Then: 驗證回應結構
         assert "error" in result
         error_obj = result["error"]
 
-        # 檢查必要欄位
-        required_fields = ["message", "status_code", "code", "timestamp", "details"]
+        # 驗證必要欄位存在
         for field in required_fields:
             assert field in error_obj
 
-        # 檢查欄位類型
+        # 驗證欄位類型
         assert isinstance(error_obj["message"], str)
         assert isinstance(error_obj["status_code"], int)
         assert isinstance(error_obj["code"], str)

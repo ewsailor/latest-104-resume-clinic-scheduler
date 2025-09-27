@@ -10,7 +10,7 @@ from fastapi import status
 import pytest
 
 # ===== 本地模組 =====
-from app.errors.exceptions import (
+from app.errors.exceptions import (  # CRUD 層級; Router 層級; Service 層級; System 層級
     APIError,
     AuthenticationError,
     AuthorizationError,
@@ -33,71 +33,86 @@ class TestErrorHierarchy:
 
     def test_error_inheritance_hierarchy(self):
         """測試錯誤繼承層級。"""
-        # 所有自定義錯誤都應該繼承自 APIError
+        # Given: 準備所有自定義錯誤實例
         errors = [
+            # CRUD 層級
+            DatabaseError("test"),
+            # Router 層級
             BadRequestError("test"),
-            ValidationError("test"),
             AuthenticationError("test"),
             AuthorizationError("test"),
+            ValidationError("test"),
+            # Service 層級
             BusinessLogicError("test"),
             ScheduleNotFoundError(1),
             UserNotFoundError(1),
             ConflictError("test"),
             ScheduleCannotBeDeletedError(1),
             ScheduleOverlapError("test"),
-            DatabaseError("test"),
+            # System 層級
             ServiceUnavailableError("test"),
         ]
 
+        # When: 檢查每個錯誤的繼承關係
         for error in errors:
+            # Then: 驗證所有錯誤都繼承自 APIError 和 Exception
             assert isinstance(error, APIError)
             assert isinstance(error, Exception)
 
     def test_error_status_codes(self):
         """測試錯誤狀態碼。"""
-        # 測試各種錯誤的狀態碼
-        assert BadRequestError("test").status_code == status.HTTP_400_BAD_REQUEST
-        assert (
-            ValidationError("test").status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-        )
-        assert AuthenticationError("test").status_code == status.HTTP_401_UNAUTHORIZED
-        assert AuthorizationError("test").status_code == status.HTTP_403_FORBIDDEN
-        assert BusinessLogicError("test").status_code == status.HTTP_400_BAD_REQUEST
-        assert ScheduleNotFoundError(1).status_code == status.HTTP_404_NOT_FOUND
-        assert UserNotFoundError(1).status_code == status.HTTP_404_NOT_FOUND
-        assert ConflictError("test").status_code == status.HTTP_409_CONFLICT
-        assert ScheduleCannotBeDeletedError(1).status_code == status.HTTP_409_CONFLICT
-        assert ScheduleOverlapError("test").status_code == status.HTTP_409_CONFLICT
-        assert (
-            DatabaseError("test").status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-        assert (
-            ServiceUnavailableError("test").status_code
-            == status.HTTP_503_SERVICE_UNAVAILABLE
-        )
-
-    def test_error_codes_format(self):
-        """測試錯誤代碼格式。"""
-        # 測試錯誤代碼的格式一致性
+        # Given: 測試各種錯誤的狀態碼
         errors = [
+            # CRUD 層級
+            DatabaseError("test"),
+            # Router 層級
             BadRequestError("test"),
-            ValidationError("test"),
             AuthenticationError("test"),
             AuthorizationError("test"),
+            ValidationError("test"),
+            # Service 層級
             BusinessLogicError("test"),
             ScheduleNotFoundError(1),
             UserNotFoundError(1),
             ConflictError("test"),
             ScheduleCannotBeDeletedError(1),
             ScheduleOverlapError("test"),
-            DatabaseError("test"),
+            # System 層級
             ServiceUnavailableError("test"),
         ]
 
+        # When: 檢查每個錯誤的狀態碼
         for error in errors:
-            # 錯誤代碼應該包含層級前綴
+            # Then: 驗證錯誤的狀態碼
+            assert error.status_code == error.status_code
+
+    def test_error_codes_format(self):
+        """測試錯誤代碼格式。"""
+        # Given: 測試錯誤代碼的格式一致性
+        errors = [
+            # CRUD 層級
+            DatabaseError("test"),
+            # Router 層級
+            BadRequestError("test"),
+            AuthenticationError("test"),
+            AuthorizationError("test"),
+            ValidationError("test"),
+            # Service 層級
+            BusinessLogicError("test"),
+            ScheduleNotFoundError(1),
+            UserNotFoundError(1),
+            ConflictError("test"),
+            ScheduleCannotBeDeletedError(1),
+            ScheduleOverlapError("test"),
+            # System 層級
+            ServiceUnavailableError("test"),
+        ]
+
+        # When: 檢查每個錯誤的錯誤代碼格式
+        for error in errors:
+            # Then: 錯誤代碼應該包含層級前綴
             assert "_" in error.error_code
-            # 錯誤代碼應該是大寫
+            # Then: 錯誤代碼應該是大寫，或包含底線
             assert error.error_code.isupper() or "_" in error.error_code
 
 
@@ -107,11 +122,15 @@ class TestAPIError:
 
     def test_api_error_inheritance(self):
         """測試 APIError 繼承關係。"""
-        error = APIError("測試錯誤", "TEST_ERROR")
+        # Given: 準備測試資料
+        message = "測試錯誤"
+        error_code = "TEST_ERROR"
 
-        # 確認 error 繼承自 APIError 實例，可被 except APIError 捕獲
+        # When: 建立 APIError 實例
+        error = APIError(message, error_code)
+
+        # Then: 驗證 error 繼承自 APIError 實例，可被 except APIError 捕獲
         assert isinstance(error, APIError)
-        # 確認 error 繼承自 Exception，可被 except Exception 捕獲
         assert isinstance(error, Exception)
 
     @pytest.mark.parametrize(
@@ -145,7 +164,9 @@ class TestAPIError:
 
         使用參數化測試來覆蓋各種建立場景。
         """
-        # 建立錯誤實例
+        # Given: 準備測試參數，由參數化測試提供
+
+        # When: 建立 APIError 實例
         error = APIError(
             message=message,
             error_code=error_code,
@@ -153,7 +174,7 @@ class TestAPIError:
             details=details,
         )
 
-        # 資料完整性驗證
+        # Then: 驗證資料完整性
         assert error.message == message
         assert error.error_code == error_code
         assert error.status_code == status_code
@@ -167,13 +188,15 @@ class TestDatabaseError:
 
     def test_database_error_inheritance(self) -> None:
         """測試 DatabaseError 繼承關係。"""
-        error = DatabaseError("測試錯誤")
+        # Given: 準備測試資料
+        message = "測試錯誤"
 
-        # 測試繼承關係
+        # When: 建立 DatabaseError 實例
+        error = DatabaseError(message)
+
+        # Then: 驗證繼承關係和固定屬性
         assert isinstance(error, APIError)
         assert isinstance(error, Exception)
-
-        # 測試固定屬性
         assert error.error_code == "CRUD_DATABASE_ERROR"
         assert error.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
@@ -195,8 +218,12 @@ class TestDatabaseError:
         expected_details: dict,
     ) -> None:
         """測試 DatabaseError 建立功能。"""
+        # Given: 準備測試參數，由參數化測試提供
+
+        # When: 建立 DatabaseError 實例
         error = DatabaseError(message, details)
 
+        # Then: 驗證錯誤屬性
         assert error.message == message
         assert error.error_code == "CRUD_DATABASE_ERROR"
         assert error.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -210,13 +237,15 @@ class TestBadRequestError:
 
     def test_bad_request_error_inheritance(self) -> None:
         """測試 BadRequestError 繼承關係。"""
-        error = BadRequestError("測試錯誤")
+        # Given: 準備測試資料
+        message = "測試錯誤"
 
-        # 測試繼承關係
+        # When: 建立 BadRequestError 實例
+        error = BadRequestError(message)
+
+        # Then: 驗證繼承關係和固定屬性
         assert isinstance(error, APIError)
         assert isinstance(error, Exception)
-
-        # 測試固定屬性
         assert error.error_code == "ROUTER_BAD_REQUEST"
         assert error.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -242,8 +271,12 @@ class TestBadRequestError:
         expected_details: dict,
     ) -> None:
         """測試 BadRequestError 建立功能。"""
+        # Given: 準備測試參數，由參數化測試提供
+
+        # When: 建立 BadRequestError 實例
         error = BadRequestError(message, details)
 
+        # Then: 驗證錯誤屬性
         assert error.message == message
         assert error.error_code == "ROUTER_BAD_REQUEST"
         assert error.status_code == status.HTTP_400_BAD_REQUEST
@@ -256,13 +289,15 @@ class TestAuthenticationError:
 
     def test_authentication_error_inheritance(self) -> None:
         """測試 AuthenticationError 繼承關係。"""
-        error = AuthenticationError("測試錯誤")
+        # Given: 準備測試資料
+        message = "測試錯誤"
 
-        # 測試繼承關係
+        # When: 建立 AuthenticationError 實例
+        error = AuthenticationError(message)
+
+        # Then: 驗證繼承關係和固定屬性
         assert isinstance(error, APIError)
         assert isinstance(error, Exception)
-
-        # 測試固定屬性
         assert error.error_code == "ROUTER_AUTHENTICATION_ERROR"
         assert error.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -284,8 +319,12 @@ class TestAuthenticationError:
         expected_details: dict,
     ) -> None:
         """測試 AuthenticationError 建立功能。"""
+        # Given: 準備測試參數，由參數化測試提供
+
+        # When: 建立 AuthenticationError 實例
         error = AuthenticationError(message, details)
 
+        # Then: 驗證錯誤屬性
         assert error.message == message
         assert error.error_code == "ROUTER_AUTHENTICATION_ERROR"
         assert error.status_code == status.HTTP_401_UNAUTHORIZED
@@ -298,13 +337,15 @@ class TestAuthorizationError:
 
     def test_authorization_error_inheritance(self) -> None:
         """測試 AuthorizationError 繼承關係。"""
-        error = AuthorizationError("測試錯誤")
+        # Given: 準備測試資料
+        message = "測試錯誤"
 
-        # 測試繼承關係
+        # When: 建立 AuthorizationError 實例
+        error = AuthorizationError(message)
+
+        # Then: 驗證繼承關係和固定屬性
         assert isinstance(error, APIError)
         assert isinstance(error, Exception)
-
-        # 測試固定屬性
         assert error.error_code == "ROUTER_AUTHORIZATION_ERROR"
         assert error.status_code == status.HTTP_403_FORBIDDEN
 
@@ -326,8 +367,12 @@ class TestAuthorizationError:
         expected_details: dict,
     ) -> None:
         """測試 AuthorizationError 建立功能。"""
+        # Given: 準備測試參數，由參數化測試提供
+
+        # When: 建立 AuthorizationError 實例
         error = AuthorizationError(message, details)
 
+        # Then: 驗證錯誤屬性
         assert error.message == message
         assert error.error_code == "ROUTER_AUTHORIZATION_ERROR"
         assert error.status_code == status.HTTP_403_FORBIDDEN
@@ -340,13 +385,15 @@ class TestValidationError:
 
     def test_validation_error_inheritance(self) -> None:
         """測試 ValidationError 繼承關係。"""
-        error = ValidationError("測試錯誤")
+        # Given: 準備測試資料
+        message = "測試錯誤"
 
-        # 測試繼承關係
+        # When: 建立 ValidationError 實例
+        error = ValidationError(message)
+
+        # Then: 驗證繼承關係和固定屬性
         assert isinstance(error, APIError)
         assert isinstance(error, Exception)
-
-        # 測試固定屬性
         assert error.error_code == "ROUTER_VALIDATION_ERROR"
         assert error.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
@@ -372,8 +419,12 @@ class TestValidationError:
         expected_details: dict,
     ) -> None:
         """測試 ValidationError 建立功能。"""
+        # Given: 準備測試參數，由參數化測試提供
+
+        # When: 建立 ValidationError 實例
         error = ValidationError(message, details)
 
+        # Then: 驗證錯誤屬性
         assert error.message == message
         assert error.error_code == "ROUTER_VALIDATION_ERROR"
         assert error.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -387,13 +438,15 @@ class TestBusinessLogicError:
 
     def test_business_logic_error_inheritance(self) -> None:
         """測試 BusinessLogicError 繼承關係。"""
-        error = BusinessLogicError("測試錯誤")
+        # Given: 準備測試資料
+        message = "測試錯誤"
 
-        # 測試繼承關係
+        # When: 建立 BusinessLogicError 實例
+        error = BusinessLogicError(message)
+
+        # Then: 驗證繼承關係和固定屬性
         assert isinstance(error, APIError)
         assert isinstance(error, Exception)
-
-        # 測試固定屬性
         assert error.error_code == "SERVICE_BUSINESS_LOGIC_ERROR"
         assert error.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -419,8 +472,12 @@ class TestBusinessLogicError:
         expected_details: dict,
     ) -> None:
         """測試 BusinessLogicError 建立功能。"""
+        # Given: 準備測試參數，由參數化測試提供
+
+        # When: 建立 BusinessLogicError 實例
         error = BusinessLogicError(message, details)
 
+        # Then: 驗證錯誤屬性
         assert error.message == message
         assert error.error_code == "SERVICE_BUSINESS_LOGIC_ERROR"
         assert error.status_code == status.HTTP_400_BAD_REQUEST
@@ -433,13 +490,15 @@ class TestScheduleNotFoundError:
 
     def test_schedule_not_found_error_inheritance(self) -> None:
         """測試 ScheduleNotFoundError 繼承關係。"""
-        error = ScheduleNotFoundError(123)
+        # Given: 準備測試資料
+        schedule_id = 123
 
-        # 測試繼承關係
+        # When: 建立 ScheduleNotFoundError 實例
+        error = ScheduleNotFoundError(schedule_id)
+
+        # Then: 驗證繼承關係和固定屬性
         assert isinstance(error, APIError)
         assert isinstance(error, Exception)
-
-        # 測試固定屬性
         assert error.error_code == "SERVICE_SCHEDULE_NOT_FOUND"
         assert error.status_code == status.HTTP_404_NOT_FOUND
 
@@ -466,8 +525,12 @@ class TestScheduleNotFoundError:
         expected_details: dict,
     ) -> None:
         """測試 ScheduleNotFoundError 建立功能。"""
+        # Given: 準備測試參數，由參數化測試提供
+
+        # When: 建立 ScheduleNotFoundError 實例
         error = ScheduleNotFoundError(schedule_id, details)
 
+        # Then: 驗證錯誤屬性
         assert error.message == f"時段不存在: ID={schedule_id}"
         assert error.error_code == "SERVICE_SCHEDULE_NOT_FOUND"
         assert error.status_code == status.HTTP_404_NOT_FOUND
@@ -480,13 +543,15 @@ class TestUserNotFoundError:
 
     def test_user_not_found_error_inheritance(self) -> None:
         """測試 UserNotFoundError 繼承關係。"""
-        error = UserNotFoundError(456)
+        # Given: 準備測試資料
+        user_id = 456
 
-        # 測試繼承關係
+        # When: 建立 UserNotFoundError 實例
+        error = UserNotFoundError(user_id)
+
+        # Then: 驗證繼承關係和固定屬性
         assert isinstance(error, APIError)
         assert isinstance(error, Exception)
-
-        # 測試固定屬性
         assert error.error_code == "SERVICE_USER_NOT_FOUND"
         assert error.status_code == status.HTTP_404_NOT_FOUND
 
@@ -509,8 +574,12 @@ class TestUserNotFoundError:
         expected_details: dict,
     ) -> None:
         """測試 UserNotFoundError 建立功能。"""
+        # Given: 準備測試參數，由參數化測試提供
+
+        # When: 建立 UserNotFoundError 實例
         error = UserNotFoundError(user_id, details)
 
+        # Then: 驗證錯誤屬性
         assert error.message == f"使用者不存在: ID={user_id}"
         assert error.error_code == "SERVICE_USER_NOT_FOUND"
         assert error.status_code == status.HTTP_404_NOT_FOUND
@@ -523,13 +592,15 @@ class TestConflictError:
 
     def test_conflict_error_inheritance(self) -> None:
         """測試 ConflictError 繼承關係。"""
-        error = ConflictError("測試錯誤")
+        # Given: 準備測試資料
+        message = "測試錯誤"
 
-        # 測試繼承關係
+        # When: 建立 ConflictError 實例
+        error = ConflictError(message)
+
+        # Then: 驗證繼承關係和固定屬性
         assert isinstance(error, APIError)
         assert isinstance(error, Exception)
-
-        # 測試固定屬性
         assert error.error_code == "SERVICE_CONFLICT"
         assert error.status_code == status.HTTP_409_CONFLICT
 
@@ -555,8 +626,12 @@ class TestConflictError:
         expected_details: dict,
     ) -> None:
         """測試 ConflictError 建立功能。"""
+        # Given: 準備測試參數，由參數化測試提供
+
+        # When: 建立 ConflictError 實例
         error = ConflictError(message, details)
 
+        # Then: 驗證錯誤屬性
         assert error.message == message
         assert error.error_code == "SERVICE_CONFLICT"
         assert error.status_code == status.HTTP_409_CONFLICT
@@ -569,13 +644,15 @@ class TestScheduleCannotBeDeletedError:
 
     def test_schedule_cannot_be_deleted_error_inheritance(self) -> None:
         """測試 ScheduleCannotBeDeletedError 繼承關係。"""
-        error = ScheduleCannotBeDeletedError(123)
+        # Given: 準備測試資料
+        schedule_id = 123
 
-        # 測試繼承關係
+        # When: 建立 ScheduleCannotBeDeletedError 實例
+        error = ScheduleCannotBeDeletedError(schedule_id)
+
+        # Then: 驗證繼承關係和固定屬性
         assert isinstance(error, APIError)
         assert isinstance(error, Exception)
-
-        # 測試固定屬性
         assert error.error_code == "SERVICE_SCHEDULE_CANNOT_BE_DELETED"
         assert error.status_code == status.HTTP_409_CONFLICT
 
@@ -602,8 +679,12 @@ class TestScheduleCannotBeDeletedError:
         expected_details: dict,
     ) -> None:
         """測試 ScheduleCannotBeDeletedError 建立功能。"""
+        # Given: 準備測試參數，由參數化測試提供
+
+        # When: 建立 ScheduleCannotBeDeletedError 實例
         error = ScheduleCannotBeDeletedError(schedule_id, details)
 
+        # Then: 驗證錯誤屬性
         assert error.message == f"時段無法刪除: ID={schedule_id}"
         assert error.error_code == "SERVICE_SCHEDULE_CANNOT_BE_DELETED"
         assert error.status_code == status.HTTP_409_CONFLICT
@@ -616,13 +697,15 @@ class TestScheduleOverlapError:
 
     def test_schedule_overlap_error_inheritance(self) -> None:
         """測試 ScheduleOverlapError 繼承關係。"""
-        error = ScheduleOverlapError("測試錯誤")
+        # Given: 準備測試資料
+        message = "測試錯誤"
 
-        # 測試繼承關係
+        # When: 建立 ScheduleOverlapError 實例
+        error = ScheduleOverlapError(message)
+
+        # Then: 驗證繼承關係和固定屬性
         assert isinstance(error, APIError)
         assert isinstance(error, Exception)
-
-        # 測試固定屬性
         assert error.error_code == "SERVICE_SCHEDULE_OVERLAP"
         assert error.status_code == status.HTTP_409_CONFLICT
 
@@ -656,8 +739,12 @@ class TestScheduleOverlapError:
         expected_details: dict,
     ) -> None:
         """測試 ScheduleOverlapError 建立功能。"""
+        # Given: 準備測試參數，由參數化測試提供
+
+        # When: 建立 ScheduleOverlapError 實例
         error = ScheduleOverlapError(message, details)
 
+        # Then: 驗證錯誤屬性
         assert error.message == message
         assert error.error_code == "SERVICE_SCHEDULE_OVERLAP"
         assert error.status_code == status.HTTP_409_CONFLICT
@@ -671,13 +758,15 @@ class TestServiceUnavailableError:
 
     def test_service_unavailable_error_inheritance(self) -> None:
         """測試 ServiceUnavailableError 繼承關係。"""
-        error = ServiceUnavailableError("測試錯誤")
+        # Given: 準備測試資料
+        message = "測試錯誤"
 
-        # 測試繼承關係
+        # When: 建立 ServiceUnavailableError 實例
+        error = ServiceUnavailableError(message)
+
+        # Then: 驗證繼承關係和固定屬性
         assert isinstance(error, APIError)
         assert isinstance(error, Exception)
-
-        # 測試固定屬性
         assert error.error_code == "SERVICE_UNAVAILABLE"
         assert error.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
 
@@ -699,8 +788,12 @@ class TestServiceUnavailableError:
         expected_details: dict,
     ) -> None:
         """測試 ServiceUnavailableError 建立功能。"""
+        # Given: 準備測試參數，由參數化測試提供
+
+        # When: 建立 ServiceUnavailableError 實例
         error = ServiceUnavailableError(message, details)
 
+        # Then: 驗證錯誤屬性
         assert error.message == message
         assert error.error_code == "SERVICE_UNAVAILABLE"
         assert error.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
