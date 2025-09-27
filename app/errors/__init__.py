@@ -30,6 +30,7 @@ from .handlers import (
     create_authorization_error,
     create_bad_request_error,
     create_business_logic_error,
+    create_conflict_error,
     create_database_error,
     create_schedule_cannot_be_deleted_error,
     create_schedule_not_found_error,
@@ -50,20 +51,20 @@ __all__ = [
     # ===== 錯誤類別 =====
     # 基礎錯誤類別
     "APIError",
-    # Router 層級
-    "BadRequestError",
-    "ValidationError",
-    "AuthenticationError",
-    "AuthorizationError",
-    # Service 層級
-    "BusinessLogicError",
-    "ScheduleCannotBeDeletedError",
-    "ScheduleNotFoundError",
-    "ScheduleOverlapError",
-    "UserNotFoundError",
-    "ConflictError",
     # CRUD 層級
     "DatabaseError",
+    # Router 層級
+    "BadRequestError",
+    "AuthenticationError",
+    "AuthorizationError",
+    "ValidationError",
+    # Service 層級
+    "BusinessLogicError",
+    "ScheduleNotFoundError",
+    "UserNotFoundError",
+    "ConflictError",
+    "ScheduleCannotBeDeletedError",
+    "ScheduleOverlapError",
     # System 層級
     "ServiceUnavailableError",
     # ===== 錯誤處理函式 =====
@@ -74,6 +75,7 @@ __all__ = [
     "create_authorization_error",
     # Service 層級
     "create_business_logic_error",
+    "create_conflict_error",
     "create_schedule_cannot_be_deleted_error",
     "create_schedule_not_found_error",
     "create_user_not_found_error",

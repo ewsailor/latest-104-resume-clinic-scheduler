@@ -7,14 +7,25 @@
 # ===== 標準函式庫 =====
 from unittest.mock import patch
 
-# ===== 第三方套件 =====
 from fastapi import HTTPException
+
+# ===== 第三方套件 =====
+import pytest
 
 # ===== 本地模組 =====
 from app.errors.exceptions import (
+    APIError,
     AuthenticationError,
+    AuthorizationError,
+    BadRequestError,
     BusinessLogicError,
+    ConflictError,
     DatabaseError,
+    ScheduleCannotBeDeletedError,
+    ScheduleNotFoundError,
+    ScheduleOverlapError,
+    ServiceUnavailableError,
+    UserNotFoundError,
     ValidationError,
 )
 from app.errors.formatters import format_error_response
@@ -23,182 +34,458 @@ from app.errors.formatters import format_error_response
 class TestFormatErrorResponse:
     """format_error_response 函數測試。"""
 
+    @pytest.mark.parametrize(
+        "error_factory,expected_message,expected_status_code,expected_code,expected_details",
+        [
+            # ===== APIError 基礎類別測試 =====
+            # 基本測試
+            (
+                lambda: APIError("基礎錯誤", "TEST_ERROR"),
+                "基礎錯誤",
+                400,
+                "TEST_ERROR",
+                {},
+            ),
+            # 邊界測試：空詳細資訊
+            (
+                lambda: APIError("基礎錯誤", "TEST_ERROR", 400, {}),
+                "基礎錯誤",
+                400,
+                "TEST_ERROR",
+                {},
+            ),
+            # 自定義狀態碼測試
+            (
+                lambda: APIError("基礎錯誤", "TEST_ERROR", 500),
+                "基礎錯誤",
+                500,
+                "TEST_ERROR",
+                {},
+            ),
+            # 帶詳細資訊測試
+            (
+                lambda: APIError("基礎錯誤", "TEST_ERROR", 400, {"test": "value"}),
+                "基礎錯誤",
+                400,
+                "TEST_ERROR",
+                {"test": "value"},
+            ),
+            # ===== CRUD 層級錯誤測試 =====
+            # DatabaseError 測試
+            # 基本測試
+            (
+                lambda: DatabaseError("資料庫錯誤"),
+                "資料庫錯誤",
+                500,
+                "CRUD_DATABASE_ERROR",
+                {},
+            ),
+            # 邊界測試：空詳細資訊
+            (
+                lambda: DatabaseError("資料庫錯誤", {}),
+                "資料庫錯誤",
+                500,
+                "CRUD_DATABASE_ERROR",
+                {},
+            ),
+            # 帶詳細資訊測試
+            (
+                lambda: DatabaseError("資料庫錯誤", {"table": "users"}),
+                "資料庫錯誤",
+                500,
+                "CRUD_DATABASE_ERROR",
+                {"table": "users"},
+            ),
+            # ===== Router 層級錯誤測試 =====
+            # BadRequestError 測試
+            # 基本測試
+            (
+                lambda: BadRequestError("請求錯誤"),
+                "請求錯誤",
+                400,
+                "ROUTER_BAD_REQUEST",
+                {},
+            ),
+            # 邊界測試：空詳細資訊
+            (
+                lambda: BadRequestError("請求錯誤", {}),
+                "請求錯誤",
+                400,
+                "ROUTER_BAD_REQUEST",
+                {},
+            ),
+            # 帶詳細資訊測試
+            (
+                lambda: BadRequestError("請求錯誤", {"field": "body"}),
+                "請求錯誤",
+                400,
+                "ROUTER_BAD_REQUEST",
+                {"field": "body"},
+            ),
+            # AuthenticationError 測試
+            # 基本測試
+            (
+                lambda: AuthenticationError("認證錯誤"),
+                "認證錯誤",
+                401,
+                "ROUTER_AUTHENTICATION_ERROR",
+                {},
+            ),
+            # 邊界測試：空詳細資訊
+            (
+                lambda: AuthenticationError("認證錯誤", {}),
+                "認證錯誤",
+                401,
+                "ROUTER_AUTHENTICATION_ERROR",
+                {},
+            ),
+            # 帶詳細資訊測試
+            (
+                lambda: AuthenticationError("認證錯誤", {"token": "invalid"}),
+                "認證錯誤",
+                401,
+                "ROUTER_AUTHENTICATION_ERROR",
+                {"token": "invalid"},
+            ),
+            # AuthorizationError 測試
+            # 基本測試
+            (
+                lambda: AuthorizationError("權限錯誤"),
+                "權限錯誤",
+                403,
+                "ROUTER_AUTHORIZATION_ERROR",
+                {},
+            ),
+            # 邊界測試：空詳細資訊
+            (
+                lambda: AuthorizationError("權限錯誤", {}),
+                "權限錯誤",
+                403,
+                "ROUTER_AUTHORIZATION_ERROR",
+                {},
+            ),
+            # 帶詳細資訊測試
+            (
+                lambda: AuthorizationError("權限錯誤", {"resource": "admin"}),
+                "權限錯誤",
+                403,
+                "ROUTER_AUTHORIZATION_ERROR",
+                {"resource": "admin"},
+            ),
+            # ValidationError 測試
+            # 基本測試
+            (
+                lambda: ValidationError("驗證錯誤"),
+                "驗證錯誤",
+                422,
+                "ROUTER_VALIDATION_ERROR",
+                {},
+            ),
+            # 邊界測試：空詳細資訊
+            (
+                lambda: ValidationError("驗證錯誤", {}),
+                "驗證錯誤",
+                422,
+                "ROUTER_VALIDATION_ERROR",
+                {},
+            ),
+            # 帶詳細資訊測試
+            (
+                lambda: ValidationError("驗證錯誤", {"field": "email"}),
+                "驗證錯誤",
+                422,
+                "ROUTER_VALIDATION_ERROR",
+                {"field": "email"},
+            ),
+            # ===== Service 層級錯誤測試 =====
+            # BusinessLogicError 測試
+            # 基本測試
+            (
+                lambda: BusinessLogicError("業務邏輯錯誤"),
+                "業務邏輯錯誤",
+                400,
+                "SERVICE_BUSINESS_LOGIC_ERROR",
+                {},
+            ),
+            # 邊界測試：空詳細資訊
+            (
+                lambda: BusinessLogicError("業務邏輯錯誤", {}),
+                "業務邏輯錯誤",
+                400,
+                "SERVICE_BUSINESS_LOGIC_ERROR",
+                {},
+            ),
+            # 帶詳細資訊測試
+            (
+                lambda: BusinessLogicError("業務邏輯錯誤", {"operation": "create"}),
+                "業務邏輯錯誤",
+                400,
+                "SERVICE_BUSINESS_LOGIC_ERROR",
+                {"operation": "create"},
+            ),
+            # ScheduleNotFoundError 測試
+            # 基本測試
+            (
+                lambda: ScheduleNotFoundError(123),
+                "時段不存在: ID=123",
+                404,
+                "SERVICE_SCHEDULE_NOT_FOUND",
+                {},
+            ),
+            # 邊界測試：空詳細資訊
+            (
+                lambda: ScheduleNotFoundError(123, {}),
+                "時段不存在: ID=123",
+                404,
+                "SERVICE_SCHEDULE_NOT_FOUND",
+                {},
+            ),
+            # 帶詳細資訊測試
+            (
+                lambda: ScheduleNotFoundError(123, {"search": "date=2024-01-01"}),
+                "時段不存在: ID=123",
+                404,
+                "SERVICE_SCHEDULE_NOT_FOUND",
+                {"search": "date=2024-01-01"},
+            ),
+            # UserNotFoundError 測試
+            # 基本測試
+            (
+                lambda: UserNotFoundError(456),
+                "使用者不存在: ID=456",
+                404,
+                "SERVICE_USER_NOT_FOUND",
+                {},
+            ),
+            # 邊界測試：空詳細資訊
+            (
+                lambda: UserNotFoundError(456, {}),
+                "使用者不存在: ID=456",
+                404,
+                "SERVICE_USER_NOT_FOUND",
+                {},
+            ),
+            # 帶詳細資訊測試
+            (
+                lambda: UserNotFoundError(456, {"email": "test@example.com"}),
+                "使用者不存在: ID=456",
+                404,
+                "SERVICE_USER_NOT_FOUND",
+                {"email": "test@example.com"},
+            ),
+            # ConflictError 測試
+            # 基本測試
+            (
+                lambda: ConflictError("衝突錯誤"),
+                "衝突錯誤",
+                409,
+                "SERVICE_CONFLICT",
+                {},
+            ),
+            # 邊界測試：空詳細資訊
+            (
+                lambda: ConflictError("衝突錯誤", {}),
+                "衝突錯誤",
+                409,
+                "SERVICE_CONFLICT",
+                {},
+            ),
+            # 帶詳細資訊測試
+            (
+                lambda: ConflictError("衝突錯誤", {"field": "email"}),
+                "衝突錯誤",
+                409,
+                "SERVICE_CONFLICT",
+                {"field": "email"},
+            ),
+            # ScheduleCannotBeDeletedError 測試
+            # 基本測試
+            (
+                lambda: ScheduleCannotBeDeletedError(123),
+                "時段無法刪除: ID=123",
+                409,
+                "SERVICE_SCHEDULE_CANNOT_BE_DELETED",
+                {},
+            ),
+            # 邊界測試：空詳細資訊
+            (
+                lambda: ScheduleCannotBeDeletedError(123, {}),
+                "時段無法刪除: ID=123",
+                409,
+                "SERVICE_SCHEDULE_CANNOT_BE_DELETED",
+                {},
+            ),
+            # 帶詳細資訊測試
+            (
+                lambda: ScheduleCannotBeDeletedError(123, {"reason": "accepted"}),
+                "時段無法刪除: ID=123",
+                409,
+                "SERVICE_SCHEDULE_CANNOT_BE_DELETED",
+                {"reason": "accepted"},
+            ),
+            # ScheduleOverlapError 測試
+            # 基本測試
+            (
+                lambda: ScheduleOverlapError("時段重疊錯誤"),
+                "時段重疊錯誤",
+                409,
+                "SERVICE_SCHEDULE_OVERLAP",
+                {},
+            ),
+            # 邊界測試：空詳細資訊
+            (
+                lambda: ScheduleOverlapError("時段重疊錯誤", {}),
+                "時段重疊錯誤",
+                409,
+                "SERVICE_SCHEDULE_OVERLAP",
+                {},
+            ),
+            # 帶詳細資訊測試
+            (
+                lambda: ScheduleOverlapError("時段重疊錯誤", {"existing": 123}),
+                "時段重疊錯誤",
+                409,
+                "SERVICE_SCHEDULE_OVERLAP",
+                {"existing": 123},
+            ),
+            # ===== System 層級錯誤測試 =====
+            # ServiceUnavailableError 測試
+            # 基本測試
+            (
+                lambda: ServiceUnavailableError("服務錯誤"),
+                "服務錯誤",
+                503,
+                "SERVICE_UNAVAILABLE",
+                {},
+            ),
+            # 邊界測試：空詳細資訊
+            (
+                lambda: ServiceUnavailableError("服務錯誤", {}),
+                "服務錯誤",
+                503,
+                "SERVICE_UNAVAILABLE",
+                {},
+            ),
+            # 帶詳細資訊測試
+            (
+                lambda: ServiceUnavailableError("服務錯誤", {"duration": "2小時"}),
+                "服務錯誤",
+                503,
+                "SERVICE_UNAVAILABLE",
+                {"duration": "2小時"},
+            ),
+            # ===== HTTPException 測試 =====
+            # 基本測試：有 detail 屬性
+            (
+                lambda: HTTPException(status_code=400, detail="HTTP錯誤"),
+                "HTTP錯誤",
+                400,
+                "HTTP_400",
+                {"detail": "HTTP錯誤"},
+            ),
+            # 邊界測試：空 detail 屬性
+            (
+                lambda: HTTPException(status_code=400, detail=''),
+                "請求錯誤",
+                400,
+                "HTTP_400",
+                {},
+            ),
+            # 帶詳細資訊測試
+            (
+                lambda: HTTPException(status_code=404, detail="Not Found"),
+                "Not Found",
+                404,
+                "HTTP_404",
+                {"detail": "Not Found"},
+            ),
+            # ===== 一般異常測試 =====
+            # 基本測試
+            (
+                lambda: ValueError("一般錯誤"),
+                "一般錯誤",
+                500,
+                "INTERNAL_ERROR",
+                {"error": "一般錯誤"},
+            ),
+            # 邊界測試：空詳細資訊
+            (
+                lambda: Exception(),
+                "",
+                500,
+                "INTERNAL_ERROR",
+                {"error": ""},
+            ),
+            # 帶詳細資訊測試
+            (
+                lambda: Exception("一般錯誤", {"error": "一般錯誤"}),
+                "('一般錯誤', {'error': '一般錯誤'})",
+                500,
+                "INTERNAL_ERROR",
+                {"error": "('一般錯誤', {'error': '一般錯誤'})"},
+            ),
+        ],
+    )
     @patch('app.errors.formatters.get_utc_timestamp')
-    def test_format_api_error(self, mock_timestamp):
-        """測試格式化 APIError。"""
+    def test_format_error_response(
+        self,
+        mock_timestamp,
+        error_factory,
+        expected_message,
+        expected_status_code,
+        expected_code,
+        expected_details,
+    ):
+        """測試格式化各種錯誤類型。"""
         mock_timestamp.return_value = "2024-01-01T00:00:00Z"
 
-        error = ValidationError("驗證失敗", {"field": "email"})
+        error = error_factory()
         result = format_error_response(error)
 
         expected = {
             "error": {
-                "message": "驗證失敗",
-                "status_code": 422,
-                "code": "ROUTER_VALIDATION_ERROR",
+                "message": expected_message,
+                "status_code": expected_status_code,
+                "code": expected_code,
                 "timestamp": "2024-01-01T00:00:00Z",
-                "details": {"field": "email"},
+                "details": expected_details,
             }
         }
         assert result == expected
 
+    @pytest.mark.parametrize(
+        "error_factory",
+        [
+            # APIError 基礎類別
+            lambda: APIError("基礎錯誤", "TEST_ERROR"),
+            # CRUD 層級
+            lambda: DatabaseError("資料庫錯誤"),
+            # Router 層級
+            lambda: BadRequestError("請求錯誤"),
+            lambda: AuthenticationError("認證錯誤"),
+            lambda: AuthorizationError("權限錯誤"),
+            lambda: ValidationError("驗證錯誤"),
+            # Service 層級
+            lambda: BusinessLogicError("業務錯誤"),
+            lambda: ScheduleNotFoundError(123),
+            lambda: UserNotFoundError(456),
+            lambda: ConflictError("衝突錯誤"),
+            lambda: ScheduleCannotBeDeletedError(123),
+            lambda: ScheduleOverlapError("時段重疊錯誤"),
+            # System 層級
+            lambda: ServiceUnavailableError("服務錯誤"),
+            # HTTPException
+            lambda: HTTPException(status_code=400, detail="HTTP錯誤"),
+            # 一般錯誤
+            lambda: ValueError("一般錯誤"),
+        ],
+    )
     @patch('app.errors.formatters.get_utc_timestamp')
-    def test_format_api_error_without_details(self, mock_timestamp):
-        """測試格式化沒有詳細資訊的 APIError。"""
-        mock_timestamp.return_value = "2024-01-01T00:00:00Z"
-
-        error = AuthenticationError("認證失敗")
-        result = format_error_response(error)
-
-        expected = {
-            "error": {
-                "message": "認證失敗",
-                "status_code": 401,
-                "code": "ROUTER_AUTHENTICATION_ERROR",
-                "timestamp": "2024-01-01T00:00:00Z",
-                "details": {},
-            }
-        }
-        assert result == expected
-
-    @patch('app.errors.formatters.get_utc_timestamp')
-    def test_format_http_exception_with_detail(self, mock_timestamp):
-        """測試格式化帶詳細資訊的 HTTPException。"""
-        mock_timestamp.return_value = "2024-01-01T00:00:00Z"
-
-        error = HTTPException(status_code=400, detail="請求參數錯誤")
-        result = format_error_response(error)
-
-        expected = {
-            "error": {
-                "message": "請求參數錯誤",
-                "status_code": 400,
-                "code": "HTTP_400",
-                "timestamp": "2024-01-01T00:00:00Z",
-                "details": {"detail": "請求參數錯誤"},
-            }
-        }
-        assert result == expected
-
-    @patch('app.errors.formatters.get_utc_timestamp')
-    def test_format_http_exception_without_detail(self, mock_timestamp):
-        """測試格式化沒有詳細資訊的 HTTPException。"""
-        mock_timestamp.return_value = "2024-01-01T00:00:00Z"
-
-        error = HTTPException(status_code=500)
-        result = format_error_response(error)
-
-        # HTTPException 會自動生成 detail
-        expected = {
-            "error": {
-                "message": "Internal Server Error",
-                "status_code": 500,
-                "code": "HTTP_500",
-                "timestamp": "2024-01-01T00:00:00Z",
-                "details": {"detail": "Internal Server Error"},
-            }
-        }
-        assert result == expected
-
-    @patch('app.errors.formatters.get_utc_timestamp')
-    def test_format_http_exception_with_none_detail(self, mock_timestamp):
-        """測試格式化 detail 為 None 的 HTTPException。"""
-        mock_timestamp.return_value = "2024-01-01T00:00:00Z"
-
-        error = HTTPException(status_code=404, detail=None)
-        result = format_error_response(error)
-
-        # HTTPException 會自動生成 detail
-        expected = {
-            "error": {
-                "message": "Not Found",
-                "status_code": 404,
-                "code": "HTTP_404",
-                "timestamp": "2024-01-01T00:00:00Z",
-                "details": {"detail": "Not Found"},
-            }
-        }
-        assert result == expected
-
-    @patch('app.errors.formatters.get_utc_timestamp')
-    def test_format_generic_exception(self, mock_timestamp):
-        """測試格式化一般異常。"""
-        mock_timestamp.return_value = "2024-01-01T00:00:00Z"
-
-        error = ValueError("一般錯誤")
-        result = format_error_response(error)
-
-        expected = {
-            "error": {
-                "message": "一般錯誤",
-                "status_code": 500,
-                "code": "INTERNAL_ERROR",
-                "timestamp": "2024-01-01T00:00:00Z",
-                "details": {"error": "一般錯誤"},
-            }
-        }
-        assert result == expected
-
-    @patch('app.errors.formatters.get_utc_timestamp')
-    def test_format_exception_without_message(self, mock_timestamp):
-        """測試格式化沒有訊息的異常。"""
-        mock_timestamp.return_value = "2024-01-01T00:00:00Z"
-
-        error = Exception()
-        result = format_error_response(error)
-
-        expected = {
-            "error": {
-                "message": "",
-                "status_code": 500,
-                "code": "INTERNAL_ERROR",
-                "timestamp": "2024-01-01T00:00:00Z",
-                "details": {"error": ""},
-            }
-        }
-        assert result == expected
-
-    @patch('app.errors.formatters.get_utc_timestamp')
-    def test_format_different_api_errors(self, mock_timestamp):
-        """測試格式化不同類型的 APIError。"""
-        mock_timestamp.return_value = "2024-01-01T00:00:00Z"
-
-        # 測試 BusinessLogicError
-        business_error = BusinessLogicError("業務邏輯錯誤", {"operation": "create"})
-        result = format_error_response(business_error)
-
-        expected = {
-            "error": {
-                "message": "業務邏輯錯誤",
-                "status_code": 400,
-                "code": "SERVICE_BUSINESS_LOGIC_ERROR",
-                "timestamp": "2024-01-01T00:00:00Z",
-                "details": {"operation": "create"},
-            }
-        }
-        assert result == expected
-
-        # 測試 DatabaseError
-        db_error = DatabaseError("資料庫錯誤", {"table": "users"})
-        result = format_error_response(db_error)
-
-        expected = {
-            "error": {
-                "message": "資料庫錯誤",
-                "status_code": 500,
-                "code": "CRUD_DATABASE_ERROR",
-                "timestamp": "2024-01-01T00:00:00Z",
-                "details": {"table": "users"},
-            }
-        }
-        assert result == expected
-
-    @patch('app.errors.formatters.get_utc_timestamp')
-    def test_format_error_response_structure(self, mock_timestamp):
+    def test_format_error_response_structure(self, mock_timestamp, error_factory):
         """測試錯誤回應結構。"""
         mock_timestamp.return_value = "2024-01-01T00:00:00Z"
 
-        error = ValidationError("測試錯誤", {"field": "test"})
+        error = error_factory()
         result = format_error_response(error)
 
         # 檢查回應結構
@@ -216,55 +503,3 @@ class TestFormatErrorResponse:
         assert isinstance(error_obj["code"], str)
         assert isinstance(error_obj["timestamp"], str)
         assert isinstance(error_obj["details"], dict)
-
-    @patch('app.errors.formatters.get_utc_timestamp')
-    def test_format_error_response_timestamp_consistency(self, mock_timestamp):
-        """測試錯誤回應時間戳一致性。"""
-        mock_timestamp.return_value = "2024-01-01T00:00:00Z"
-
-        # 多次調用應該使用相同的時間戳
-        error1 = ValidationError("錯誤1")
-        error2 = BusinessLogicError("錯誤2")
-
-        result1 = format_error_response(error1)
-        result2 = format_error_response(error2)
-
-        assert result1["error"]["timestamp"] == "2024-01-01T00:00:00Z"
-        assert result2["error"]["timestamp"] == "2024-01-01T00:00:00Z"
-        assert result1["error"]["timestamp"] == result2["error"]["timestamp"]
-
-    @patch('app.errors.formatters.get_utc_timestamp')
-    def test_format_error_response_logging(self, mock_timestamp):
-        """測試錯誤格式化日誌記錄。"""
-        mock_timestamp.return_value = "2024-01-01T00:00:00Z"
-
-        with patch('app.errors.formatters.logger') as mock_logger:
-            error = ValidationError("測試錯誤")
-            format_error_response(error)
-
-            # 檢查是否記錄了日誌
-            mock_logger.info.assert_called_once()
-            call_args = mock_logger.info.call_args[0][0]
-            assert "格式化錯誤: ValidationError" in call_args
-
-    def test_format_error_response_with_complex_details(self):
-        """測試格式化帶複雜詳細資訊的錯誤。"""
-        with patch('app.errors.formatters.get_utc_timestamp') as mock_timestamp:
-            mock_timestamp.return_value = "2024-01-01T00:00:00Z"
-
-            complex_details = {
-                "validation_errors": [
-                    {"field": "email", "message": "格式不正確"},
-                    {"field": "password", "message": "長度不足"},
-                ],
-                "request_id": "req-123",
-                "user_id": 456,
-            }
-
-            error = ValidationError("多個驗證錯誤", complex_details)
-            result = format_error_response(error)
-
-            assert result["error"]["details"] == complex_details
-            assert len(result["error"]["details"]["validation_errors"]) == 2
-            assert result["error"]["details"]["request_id"] == "req-123"
-            assert result["error"]["details"]["user_id"] == 456

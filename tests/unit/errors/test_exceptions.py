@@ -117,13 +117,12 @@ class TestAPIError:
     @pytest.mark.parametrize(
         "message,error_code,status_code,details,expected_details",
         [
-            # 基本測試、邊界測試：空詳細資訊
+            # 基本測試
             ("測試錯誤", "TEST_ERROR", status.HTTP_400_BAD_REQUEST, None, {}),
+            # 邊界測試：空詳細資訊
             ("測試錯誤", "TEST_ERROR", status.HTTP_400_BAD_REQUEST, {}, {}),
             # 自定義狀態碼測試
             ("測試錯誤", "TEST_ERROR", status.HTTP_500_INTERNAL_SERVER_ERROR, None, {}),
-            ("測試錯誤", "TEST_ERROR", status.HTTP_404_NOT_FOUND, None, {}),
-            ("測試錯誤", "TEST_ERROR", status.HTTP_401_UNAUTHORIZED, None, {}),
             # 帶詳細資訊測試
             (
                 "測試錯誤",
@@ -181,8 +180,9 @@ class TestDatabaseError:
     @pytest.mark.parametrize(
         "message,details,expected_details",
         [
-            # 基本測試、邊界測試：空詳細資訊
+            # 基本測試
             ("資料庫操作失敗", None, {}),
+            # 邊界測試：空詳細資訊
             ("資料庫連線超時", {}, {}),
             # 帶詳細資訊測試
             ("資料庫操作失敗", {"operation": "INSERT"}, {"operation": "INSERT"}),
@@ -223,8 +223,9 @@ class TestBadRequestError:
     @pytest.mark.parametrize(
         "message,details,expected_details",
         [
-            # 基本測試、邊界測試：空詳細資訊
+            # 基本測試
             ("請求格式錯誤", None, {}),
+            # 邊界測試：空詳細資訊
             ("請求格式錯誤", {}, {}),
             # 帶詳細資訊測試
             (
@@ -268,10 +269,10 @@ class TestAuthenticationError:
     @pytest.mark.parametrize(
         "message,details,expected_details",
         [
-            # 基本測試、邊界測試：空詳細資訊
+            # 基本測試
             ("認證失敗", None, {}),
+            # 邊界測試：空詳細資訊
             ("認證失敗", {}, {}),
-            ("自定義認證錯誤", None, {}),
             # 帶詳細資訊測試
             ("認證失敗", {"token": "invalid"}, {"token": "invalid"}),
         ],
@@ -310,10 +311,12 @@ class TestAuthorizationError:
     @pytest.mark.parametrize(
         "message,details,expected_details",
         [
-            # 基本測試、邊界測試：空詳細資訊
+            # 基本測試
             ("權限不足", None, {}),
+            # 邊界測試：空詳細資訊
             ("權限不足", {}, {}),
-            ("自定義權限錯誤", None, {}),
+            # 帶詳細資訊測試
+            ("權限不足", {"resource": "admin"}, {"resource": "admin"}),
         ],
     )
     def test_authorization_error_creation(
@@ -350,8 +353,9 @@ class TestValidationError:
     @pytest.mark.parametrize(
         "message,details,expected_details",
         [
-            # 基本測試、邊界測試：空詳細資訊
+            # 基本測試
             ("驗證失敗", None, {}),
+            # 邊界測試：空詳細資訊
             ("驗證失敗", {}, {}),
             # 帶詳細資訊測試
             (
@@ -396,8 +400,9 @@ class TestBusinessLogicError:
     @pytest.mark.parametrize(
         "message,details,expected_details",
         [
-            # 基本測試、邊界測試：空詳細資訊
+            # 基本測試
             ("業務邏輯錯誤", None, {}),
+            # 邊界測試：空詳細資訊
             ("業務邏輯錯誤", {}, {}),
             # 帶詳細資訊測試
             (
@@ -441,9 +446,10 @@ class TestScheduleNotFoundError:
     @pytest.mark.parametrize(
         "schedule_id,details,expected_details",
         [
-            # 基本測試、邊界測試：空詳細資訊
+            # 基本測試
             (123, None, {}),
             ("abc123", None, {}),
+            # 邊界測試：空詳細資訊
             (123, {}, {}),
             # 帶詳細資訊測試
             (
@@ -487,10 +493,13 @@ class TestUserNotFoundError:
     @pytest.mark.parametrize(
         "user_id,details,expected_details",
         [
-            # 基本測試、邊界測試：空詳細資訊
+            # 基本測試
             (456, None, {}),
             ("user123", None, {}),
+            # 邊界測試：空詳細資訊
             (456, {}, {}),
+            # 帶詳細資訊測試
+            (456, {"email": "test@example.com"}, {"email": "test@example.com"}),
         ],
     )
     def test_user_not_found_error_creation(
@@ -527,8 +536,9 @@ class TestConflictError:
     @pytest.mark.parametrize(
         "message,details,expected_details",
         [
-            # 基本測試、邊界測試：空詳細資訊
+            # 基本測試
             ("資源衝突", None, {}),
+            # 邊界測試：空詳細資訊
             ("資源衝突", {}, {}),
             # 帶詳細資訊測試
             (
@@ -572,9 +582,10 @@ class TestScheduleCannotBeDeletedError:
     @pytest.mark.parametrize(
         "schedule_id,details,expected_details",
         [
-            # 基本測試、邊界測試：空詳細資訊
+            # 基本測試
             (123, None, {}),
             ("abc123", None, {}),
+            # 邊界測試：空詳細資訊
             (123, {}, {}),
             # 帶詳細資訊測試
             (
@@ -618,8 +629,9 @@ class TestScheduleOverlapError:
     @pytest.mark.parametrize(
         "message,details,expected_details",
         [
-            # 基本測試、邊界測試：空詳細資訊
+            # 基本測試
             ("時段時間重疊", None, {}),
+            # 邊界測試：空詳細資訊
             ("時段時間重疊", {}, {}),
             # 帶詳細資訊測試
             (
@@ -672,10 +684,12 @@ class TestServiceUnavailableError:
     @pytest.mark.parametrize(
         "message,details,expected_details",
         [
-            # 基本測試、邊界測試：空詳細資訊
+            # 基本測試
             ("服務暫時不可用", None, {}),
+            # 邊界測試：空詳細資訊
             ("服務暫時不可用", {}, {}),
-            ("維護中", None, {}),
+            # 帶詳細資訊測試
+            ("維護中", {"duration": "2小時"}, {"duration": "2小時"}),
         ],
     )
     def test_service_unavailable_error_creation(
