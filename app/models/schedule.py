@@ -34,6 +34,7 @@ class Schedule(Base):  # type: ignore[misc,valid-type]
 
     __tablename__ = "schedules"
 
+    # ===== 基本欄位 =====
     id = Column(
         INTEGER(unsigned=True),
         primary_key=True,

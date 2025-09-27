@@ -24,6 +24,7 @@ class User(Base):  # type: ignore[misc,valid-type]
 
     __tablename__ = "users"
 
+    # ===== 基本欄位 =====
     id = Column(
         INTEGER(unsigned=True),
         primary_key=True,
@@ -41,6 +42,8 @@ class User(Base):  # type: ignore[misc,valid-type]
         unique=True,
         comment="電子信箱（唯一）",
     )
+
+    # ===== 審計欄位 =====
     created_at = Column(
         DateTime,
         default=get_local_now_naive,
@@ -54,6 +57,8 @@ class User(Base):  # type: ignore[misc,valid-type]
         nullable=False,
         comment="更新時間（本地時間）",
     )
+
+    # ===== 系統欄位 =====
     deleted_at = Column(
         DateTime,
         nullable=True,

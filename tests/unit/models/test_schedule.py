@@ -50,6 +50,8 @@ class TestScheduleModel:
         assert schedule.deleted_by is None
         assert schedule.deleted_by_role is None
 
+    # app\models\schedule.py 雖有反向關聯，但單元測試中不需要測試反向關聯，因為涉及資料庫關係，應該在整合測試中測試
+
     @pytest.mark.parametrize(
         "property_name, initial_value, modified_value, expected_result",
         [
@@ -92,8 +94,6 @@ class TestScheduleModel:
 
         # Then: 驗證修改後的行為
         assert getattr(schedule, property_name) == expected_result
-
-    # app\models\schedule.py 雖有反向關聯，但單元測試中不需要測試反向關聯，因為涉及資料庫關係，應該在整合測試中測試
 
     def test_schedule_to_dict(self, test_taker_schedule_data):
         """測試 Schedule to_dict 方法。"""
@@ -148,7 +148,7 @@ class TestScheduleModel:
         schedule_data = test_taker_schedule_data
         schedule = Schedule(**schedule_data)
 
-        # When: 模擬 safe_getattr 錯誤（更簡單的方法）
+        # When: 模擬 safe_getattr 錯誤
         mock_safe_getattr = mocker.patch('app.models.schedule.safe_getattr')
         mock_safe_getattr.side_effect = Exception("模擬屬性存取錯誤")
 

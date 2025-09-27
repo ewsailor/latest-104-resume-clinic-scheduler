@@ -9,7 +9,6 @@ import pytest
 from sqlalchemy.orm import Session
 
 # ===== 本地模組 =====
-from app.enums.models import UserRoleEnum
 from app.models.user import User
 
 
@@ -20,7 +19,6 @@ def test_giver_data():
     return {
         "name": "測試 Giver",
         "email": "giver@example.com",
-        "role": UserRoleEnum.GIVER,
     }
 
 
@@ -30,7 +28,6 @@ def test_taker_data():
     return {
         "name": "測試 Taker",
         "email": "taker@example.com",
-        "role": UserRoleEnum.TAKER,
     }
 
 
@@ -40,20 +37,15 @@ def test_system_data():
     return {
         "name": "系統管理員",
         "email": "system@example.com",
-        "role": UserRoleEnum.SYSTEM,
     }
 
 
 @pytest.fixture
 def test_user_data():
-    """提供測試用的通用使用者資料。
-
-    通用使用者預設為 TAKER 角色，因為本專案目前的流程主要是 Taker 預約 Giver 時段、提供方便時段給 Giver。
-    """
+    """提供測試用的通用使用者資料。"""
     return {
         "name": "測試使用者",
         "email": "test@example.com",
-        "role": UserRoleEnum.TAKER,
     }
 
 
@@ -64,7 +56,6 @@ def test_giver_user(db_session: Session) -> User:
     user = User(
         name="測試 Giver",
         email="giver@example.com",
-        role=UserRoleEnum.GIVER,
     )
     db_session.add(user)
     db_session.commit()
@@ -78,7 +69,6 @@ def test_taker_user(db_session: Session) -> User:
     user = User(
         name="測試 Taker",
         email="taker@example.com",
-        role=UserRoleEnum.TAKER,
     )
     db_session.add(user)
     db_session.commit()
@@ -88,14 +78,10 @@ def test_taker_user(db_session: Session) -> User:
 
 @pytest.fixture
 def test_user(db_session: Session) -> User:
-    """提供測試用的通用使用者實例。
-
-    通用使用者預設為 TAKER 角色，因為本專案目前的流程主要是 Taker 預約 Giver 時段、提供方便時段給 Giver。
-    """
+    """提供測試用的通用使用者實例。"""
     user = User(
         name="測試使用者",
         email="test@example.com",
-        role=UserRoleEnum.TAKER,
     )
     db_session.add(user)
     db_session.commit()
@@ -109,12 +95,10 @@ def test_giver_and_taker(db_session: Session) -> tuple[User, User]:
     giver = User(
         name="測試 Giver",
         email="giver@example.com",
-        role=UserRoleEnum.GIVER,
     )
     taker = User(
         name="測試 Taker",
         email="taker@example.com",
-        role=UserRoleEnum.TAKER,
     )
 
     db_session.add_all([giver, taker])
@@ -136,12 +120,10 @@ def test_users(db_session: Session) -> list[User]:
         User(
             name="測試使用者1",
             email="test1@example.com",
-            role=UserRoleEnum.TAKER,
         ),
         User(
             name="測試使用者2",
             email="test2@example.com",
-            role=UserRoleEnum.TAKER,
         ),
     ]
     db_session.add_all(users)
