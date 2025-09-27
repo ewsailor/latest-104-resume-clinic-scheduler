@@ -1449,28 +1449,6 @@ const ChatStateManager = {
     ChatStateManager.set(ChatStateManager.CONFIG.STATE_KEYS.SELECTED_DATE, date);
   },
   
-  // 獲取聊天統計
-  getStats: () => {
-    console.log('ChatStateManager.getStats called');
-    
-    const state = ChatStateManager.getState();
-    const messageHistory = state[ChatStateManager.CONFIG.STATE_KEYS.MESSAGE_HISTORY];
-    
-    const stats = {
-      totalMessages: messageHistory.length,
-      userMessages: messageHistory.filter(msg => msg.type === 'user').length,
-      giverMessages: messageHistory.filter(msg => msg.type === 'giver').length,
-      lastMessageTime: state[ChatStateManager.CONFIG.STATE_KEYS.LAST_MESSAGE_TIME],
-      isActive: state[ChatStateManager.CONFIG.STATE_KEYS.IS_ACTIVE],
-      currentGiver: state[ChatStateManager.CONFIG.STATE_KEYS.CURRENT_GIVER],
-      providedSchedulesCount: state[ChatStateManager.CONFIG.STATE_KEYS.PROVIDED_SCHEDULES].length,
-      bookedSchedulesCount: state[ChatStateManager.CONFIG.STATE_KEYS.BOOKED_SCHEDULES].length,
-      isMultipleTimesMode: state[ChatStateManager.CONFIG.STATE_KEYS.IS_MULTIPLE_TIMES_MODE]
-    };
-    
-    console.log('ChatStateManager.getStats: 統計資料', stats);
-    return stats;
-  },
   
   // 獲取訊息歷史
   getMessageHistory: () => {
@@ -3761,26 +3739,6 @@ const DOM = {
     // 事件監聽器管理工具
     utils: {
       // 獲取事件監聽器統計資訊
-      getStats: () => {
-        console.log('DOM.events.utils.getStats called');
-        const allListeners = DOM.events.getAll();
-        const stats = {
-          total: allListeners.length,
-          byEvent: {},
-          byElement: {}
-        };
-        
-        allListeners.forEach(listener => {
-          // 按事件類型統計
-          stats.byEvent[listener.event] = (stats.byEvent[listener.event] || 0) + 1;
-          
-          // 按元素統計
-          const elementId = listener.element.id || listener.element.tagName || 'anonymous';
-          stats.byElement[elementId] = (stats.byElement[elementId] || 0) + 1;
-        });
-        
-        return stats;
-      },
       
       // 清理所有事件監聽器
       clearAll: () => {
@@ -5897,10 +5855,6 @@ const DOM = {
     // 聊天功能工具
     utils: {
       // 獲取聊天統計
-      getStats: () => {
-        console.log('DOM.chat.utils.getStats called：獲取聊天統計');
-        return ChatStateManager.getStats();
-      },
       
       // 獲取聊天歷史
       getHistory: () => {
@@ -6420,17 +6374,6 @@ const DOM = {
     // 資料載入工具
     utils: {
       // 獲取載入統計
-      getStats: () => {
-        console.log('DOM.dataLoader.utils.getStats called：獲取載入統計');
-        return {
-          isLoading: DOM.dataLoader.state.isLoading,
-          lastLoadTime: DOM.dataLoader.state.lastLoadTime,
-          loadCount: DOM.dataLoader.state.loadCount,
-          errorCount: DOM.dataLoader.state.errorCount,
-          retryCount: DOM.dataLoader.state.retryCount,
-          cacheSize: DOM.dataLoader.state.cache.size
-        };
-      },
       
       // 檢查網路狀態
       checkNetworkStatus: () => {
@@ -6490,7 +6433,6 @@ const DOM = {
       debug: () => {
         console.group('DOM.dataLoader.utils.debug called：資料載入調試資訊');
         console.log('DOM.dataLoader.utils.debug: 載入狀態:', DOM.dataLoader.state);
-        console.log('DOM.dataLoader.utils.debug: 載入統計:', DOM.dataLoader.utils.getStats());
         console.log('DOM.dataLoader.utils.debug: 網路狀態:', DOM.dataLoader.utils.checkNetworkStatus());
         console.log('DOM.dataLoader.utils.debug: 快取項目:', Array.from(DOM.dataLoader.state.cache.keys()));
         console.groupEnd();
@@ -8075,42 +8017,6 @@ const ErrorHandler = {
 
   // 工具方法
   utils: {
-    // 獲取錯誤統計
-    getStats: () => {
-      console.log('ErrorHandler.utils.getStats called: 獲取錯誤統計');
-      const stats = {
-        total: ErrorHandler.errorHistory.length,
-        byType: {},
-        byTime: {
-          lastHour: 0,
-          lastDay: 0,
-          lastWeek: 0
-        }
-      };
-
-      const now = new Date();
-      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-      ErrorHandler.errorHistory.forEach(error => {
-        // 按類型統計
-        stats.byType[error.type] = (stats.byType[error.type] || 0) + 1;
-
-        // 按時間統計
-        if (error.timestamp > oneHourAgo) {
-          stats.byTime.lastHour++;
-        }
-        if (error.timestamp > oneDayAgo) {
-          stats.byTime.lastDay++;
-        }
-        if (error.timestamp > oneWeekAgo) {
-          stats.byTime.lastWeek++;
-        }
-      });
-
-      return stats;
-    },
 
     // 清理錯誤歷史
     clearHistory: () => {
@@ -8118,11 +8024,6 @@ const ErrorHandler = {
       ErrorHandler.errorHistory = [];
     },
 
-    // 獲取最近的錯誤
-    getRecentErrors: (count = 10) => {
-      console.log('ErrorHandler.utils.getRecentErrors called: 獲取最近的錯誤', { count });
-      return ErrorHandler.errorHistory.slice(-count);
-    },
 
     // 檢查是否有特定類型的錯誤
     hasErrorType: (type) => {
@@ -8134,8 +8035,6 @@ const ErrorHandler = {
     debug: () => {
       console.group('DOM.errorHandler.utils.debug called：錯誤處理器調試資訊');
       console.log('DOM.errorHandler.utils.debug: 錯誤歷史:', ErrorHandler.errorHistory);
-      console.log('DOM.errorHandler.utils.debug: 錯誤統計:', ErrorHandler.utils.getStats());
-      console.log('DOM.errorHandler.utils.debug: 最近的錯誤:', ErrorHandler.utils.getRecentErrors());
       console.groupEnd();
     }
   }
