@@ -436,7 +436,7 @@
 │   │   └── main.py               # 主要路由
 │   ├── schemas/                  # Pydantic 資料驗證
 │   ├── services/                 # 業務邏輯層
-│   ├── templates/                # HTML 模板
+│   ├── templates/                # Jinja2 HTML 模板
 │   ├── utils/                    # 工具模組
 │   ├── factory.py                # 應用程式工廠
 │   └── main.py                   # 應用程式入口點
