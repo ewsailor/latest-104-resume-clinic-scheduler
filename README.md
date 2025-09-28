@@ -37,6 +37,7 @@
     - [Postman：Collection Runner 一鍵測試所有 API](#postman-一鍵測試所有-api)
   - [Pytest 測試](#pytest-測試)
     - [測試資料管理：夾具 Fixtures](#夾具-fixtures)
+    - [行為驅動開發 BDD：Given-When-Then](#GIVEN-WHEN-THEN)
     - [參數化測試裝飾器](#參數化測試裝飾器)
     - [單元測試](#單元測試)
     - [整合測試](#整合測試)
@@ -194,6 +195,7 @@
 
 - **FastAPI 自動生成文件**：自動依據路由和 Pydantic 型別生成 OpenAPI 規範文檔，提供互動式測試的 Swagger UI、單頁式閱讀介面的 Redoc，減少維護 API 文件的工作量
 - **依賴注入**：將依賴（資料庫連線、權限驗證、設定檔讀取等邏輯）封裝在一個獨立函式中，需要時透過 Depends() 注入，需升級某功能時只需修改注入的依賴
+- **行為驅動開發 BDD**：用 Given-When-Then 寫測試案例，說明給定什麼前置條件（GIVEN），執行什麼行為（WHEN），會得到什麼結果（Then），以利團隊迅速理解測試程式碼
 - **參數化測試裝飾器**：使用 @pytest.mark.parametrize 裝飾器，用同一段測試程式碼，測試不同輸入參數，避免撰寫大量重複且結構相似的測試案例
 - **pre-commit**：每次提交 commit 前自動檢查 fix_imports.py、autoflake、isort、black、flake8、mypy，確保程式碼品質
 - **CI/CD**：已落實 CI，每次提交程式碼後 GitHub Actions 會自動執行 pre-commit、pytest 測試，確保程式碼變更後沒有破壞現有功能，CD（持續交付、持續部署）將於未來擴充
@@ -670,6 +672,27 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 
 - 路徑：`tests/fixtures/`
 - 說明：集中管理為測試準備的常數、測試環境、測試資料、初始化資源、測試用的資料庫會話
+
+#### <a name="GIVEN-WHEN-THEN"></a>行為驅動開發 BDD：Given-When-Then [返回目錄 ↑](#目錄)
+
+- 說明：BDD 全稱是 Behavior-Driven Development，用行為 Behavior，即 Given-When-Then 寫測試案例，說明給定什麼前置條件（GIVEN），執行什麼行為（WHEN），會得到什麼結果（Then），提高程式碼的可維護性、有利團隊協作
+	- **GIVEN（給定）**：測試的前置條件和初始狀態，如測試資料、模擬物件、設定環境變數等
+	- **WHEN（當）**：執行欲測試的行為，如呼叫被測試的方法、觸發事件等
+	- **THEN（那麼）**：驗證結果和副作用是否如預期
+- 範例程式碼
+
+  ```bash
+  def test_login_with_valid_credentials():
+    """測試使用者登入功能。"""
+    # Given 使用者已註冊帳號
+    username, password = "user", "1234"
+
+    # When 嘗試登入
+    result = login(username, password)
+
+    # Then 登入應成功
+    assert result == "success"
+  ```
 
 #### <a name="參數化測試裝飾器"></a>參數化測試裝飾器 [返回目錄 ↑](#目錄)
 
