@@ -1,67 +1,42 @@
-"""
-整合測試資料庫相關的測試 Fixtures。
+"""整合測試資料庫 fixtures。
 
-提供整合測試用的資料庫會話和相關工具。
-使用真實資料庫連線，適合端到端測試。
+提供整合測試所需的資料庫相關 fixtures。
 """
 
-import os
+# ===== 標準函式庫 =====
+from datetime import date, time
 
 # ===== 第三方套件 =====
-import pytest  # 測試框架
-from sqlalchemy import create_engine  # 資料庫引擎
-from sqlalchemy.orm import Session, sessionmaker  # 資料庫會話
-
-from app.database import Base  # 資料庫基礎類別
+import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 # ===== 本地模組 =====
-# 確保所有模型都被導入，這樣 Base.metadata 才會包含所有表格
-from app.models import schedule, user  # noqa: F401
-from app.models.schedule import Schedule  # 時段模型
-from app.models.user import User  # 使用者模型
+from app.database import Base
+from app.enums.models import ScheduleStatusEnum, UserRoleEnum
+from app.models.schedule import Schedule
+from app.models.user import User
 
 
-@pytest.fixture(scope="session")
-def integration_db_engine():
+@pytest.fixture(scope="function")
+def integration_db_session():
+    """建立整合測試專用的資料庫會話。
+
+    使用記憶體 SQLite 資料庫，每個測試函數都會重新建立。
     """
-    提供整合測試用的資料庫引擎。
+    # 建立記憶體 SQLite 資料庫引擎
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
 
-    使用 session scope，在整個測試會話期間共用同一個資料庫。
-    適合需要真實資料庫連線的整合測試。
-
-    Returns:
-        Engine: 測試用的資料庫引擎
-    """
-    # 使用測試專用的 SQLite 資料庫檔案
-    engine = create_engine("sqlite:///test_integration.db")
-
-    # 建立資料表
+    # 建立所有表格
     Base.metadata.create_all(bind=engine)
 
-    yield engine
-
-    # 清理：刪除測試資料庫檔案
-    if os.path.exists("test_integration.db"):
-        os.remove("test_integration.db")
-
-
-@pytest.fixture
-def integration_db_session(integration_db_engine) -> Session:
-    """
-    提供整合測試用的資料庫會話。
-
-    使用真實資料庫連線，適合端到端測試。
-
-    Args:
-        integration_db_engine: 整合測試資料庫引擎
-
-    Returns:
-        Session: 整合測試用的資料庫會話
-    """
     # 建立會話工廠
-    TestingSessionLocal = sessionmaker(
-        autocommit=False, autoflush=False, bind=integration_db_engine
-    )
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
     # 建立會話
     session = TestingSessionLocal()
@@ -69,54 +44,140 @@ def integration_db_session(integration_db_engine) -> Session:
     try:
         yield session
     finally:
-        # 清理測試資料
-        session.rollback()
         session.close()
 
 
-@pytest.fixture
-def integration_test_data():
-    """
-    提供整合測試用的完整測試資料。
+@pytest.fixture(scope="function")
+def integration_test_data(integration_db_session):
+    """建立整合測試的基礎資料。
 
-    Returns:
-        dict: 包含多個測試實體的完整資料
+    包含測試用的使用者、時段等資料。
     """
+    # 建立測試使用者
+    giver_user = User(id=1, name="測試 Giver", email="giver@test.com")
+
+    taker_user = User(id=2, name="測試 Taker", email="taker@test.com")
+
+    system_user = User(id=3, name="系統管理員", email="system@test.com")
+
+    # 建立測試時段
+    available_schedule = Schedule(
+        id=1,
+        giver_id=1,
+        date=date(2024, 1, 15),
+        start_time=time(9, 0),
+        end_time=time(10, 0),
+        status=ScheduleStatusEnum.AVAILABLE,
+        note="可預約時段",
+        created_by=1,
+        created_by_role=UserRoleEnum.GIVER,
+    )
+
+    pending_schedule = Schedule(
+        id=2,
+        giver_id=1,
+        taker_id=2,
+        date=date(2024, 1, 16),
+        start_time=time(14, 0),
+        end_time=time(15, 0),
+        status=ScheduleStatusEnum.PENDING,
+        note="待確認時段",
+        created_by=2,
+        created_by_role=UserRoleEnum.TAKER,
+    )
+
+    accepted_schedule = Schedule(
+        id=3,
+        giver_id=1,
+        taker_id=2,
+        date=date(2024, 1, 17),
+        start_time=time(10, 0),
+        end_time=time(11, 0),
+        status=ScheduleStatusEnum.ACCEPTED,
+        note="已確認時段",
+        created_by=1,
+        created_by_role=UserRoleEnum.GIVER,
+    )
+
+    # 將資料加入資料庫
+    integration_db_session.add_all(
+        [
+            giver_user,
+            taker_user,
+            system_user,
+            available_schedule,
+            pending_schedule,
+            accepted_schedule,
+        ]
+    )
+    integration_db_session.commit()
+
     return {
-        "users": [
-            {
-                "id": 1,
-                "name": "整合測試 Giver",
-                "email": "giver@example.com",
-                "role": "GIVER",
-            },
-            {
-                "id": 2,
-                "name": "整合測試 Taker",
-                "email": "taker@example.com",
-                "role": "TAKER",
-            },
-        ],
-        "schedules": [
-            {
-                "id": 1,
-                "giver_id": 1,
-                "taker_id": None,
-                "status": "AVAILABLE",
-                "date": "2024-01-01",
-                "start_time": "09:00:00",
-                "end_time": "10:00:00",
-                "note": "整合測試時段 1",
-            },
-            {
-                "id": 2,
-                "giver_id": 1,
-                "taker_id": 2,
-                "status": "PENDING",
-                "date": "2024-01-02",
-                "start_time": "14:00:00",
-                "end_time": "15:00:00",
-                "note": "整合測試時段 2",
-            },
-        ],
+        "users": [giver_user, taker_user, system_user],
+        "schedules": [available_schedule, pending_schedule, accepted_schedule],
+        "giver_user": giver_user,
+        "taker_user": taker_user,
+        "system_user": system_user,
+        "available_schedule": available_schedule,
+        "pending_schedule": pending_schedule,
+        "accepted_schedule": accepted_schedule,
     }
+
+
+@pytest.fixture(scope="function")
+def integration_db_override(integration_db_session):
+    """覆蓋應用程式的資料庫依賴。
+
+    讓整合測試使用測試資料庫而不是實際資料庫。
+    """
+
+    def override_get_db():
+        try:
+            yield integration_db_session
+        finally:
+            pass
+
+    return override_get_db
+
+
+@pytest.fixture(scope="function")
+def integration_test_client(integration_db_session):
+    """建立整合測試客戶端。
+
+    使用測試資料庫的 FastAPI 測試客戶端。
+    """
+    from fastapi.testclient import TestClient
+
+    from app.database import get_db
+    from app.main import app
+
+    def override_get_db():
+        try:
+            yield integration_db_session
+        finally:
+            pass
+
+    # 覆蓋資料庫依賴
+    app.dependency_overrides[get_db] = override_get_db
+
+    client = TestClient(app)
+
+    try:
+        yield client
+    finally:
+        # 清理覆蓋
+        app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="function")
+def integration_clean_database(integration_db_session):
+    """清理整合測試資料庫。
+
+    在測試結束後清理所有資料。
+    """
+    yield
+
+    # 清理所有表格
+    integration_db_session.query(Schedule).delete()
+    integration_db_session.query(User).delete()
+    integration_db_session.commit()

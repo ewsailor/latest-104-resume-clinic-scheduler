@@ -37,7 +37,7 @@
     - [Postman：Collection Runner 一鍵測試所有 API](#postman-一鍵測試所有-api)
   - [Pytest 測試](#pytest-測試)
     - [測試資料管理：夾具 Fixtures](#夾具-fixtures)
-    - [行為驅動開發 BDD：Given-When-Then](#GIVEN-WHEN-THEN)
+    - [行為驅動開發 BDD：Given-When-Then](#given-when-then)
     - [參數化測試裝飾器](#參數化測試裝飾器)
     - [單元測試](#單元測試)
     - [整合測試](#整合測試)
@@ -673,7 +673,7 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 - 路徑：`tests/fixtures/`
 - 說明：集中管理為測試準備的常數、測試環境、測試資料、初始化資源、測試用的資料庫會話
 
-#### <a name="GIVEN-WHEN-THEN"></a>行為驅動開發 BDD：Given-When-Then [返回目錄 ↑](#目錄)
+#### <a name="given-when-then"></a>行為驅動開發 BDD：Given-When-Then [返回目錄 ↑](#目錄)
 
 - 說明：BDD 全稱是 Behavior-Driven Development，用行為 Behavior，即 Given-When-Then 寫測試案例，說明給定什麼前置條件（GIVEN），執行什麼行為（WHEN），會得到什麼結果（Then），提高程式碼的可維護性、有利團隊協作
 	- **GIVEN（給定）**：測試的前置條件和初始狀態，如測試資料、模擬物件、設定環境變數等
