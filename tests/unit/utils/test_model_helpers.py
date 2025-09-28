@@ -9,29 +9,9 @@ from app.utils.model_helpers import (
     safe_getattr,
 )
 
-# ===== 第三方套件 =====
-
 
 class TestModelHelper:
     """model_helpers 工具函式測試。"""
-
-    def setup_method(self):
-        """每個測試前的初始化，建立測試用的物件。"""
-
-        class SampleObject:
-            def __init__(self):
-                self.name = "test"
-
-        self.sample_object = SampleObject()
-
-    def _create_bad_object(self):
-        """建立會拋出例外的測試物件。"""
-
-        class BadObj:
-            def __getattribute__(self, name):
-                raise Exception("error")
-
-        return BadObj()
 
     # ===== format_datetime =====
     def test_format_datetime_with_valid_datetime(self):
@@ -57,6 +37,24 @@ class TestModelHelper:
         assert result is None
 
     # ===== safe_getattr =====
+    def setup_method(self):
+        """每個測試前的初始化，建立測試用的物件實例。"""
+
+        class SampleObject:
+            def __init__(self):
+                self.name = "test"
+
+        self.sample_object = SampleObject()
+
+    def _create_bad_object(self):
+        """建立會拋出例外的測試物件。"""
+
+        class BadObj:
+            def __getattribute__(self, name):
+                raise Exception("error")
+
+        return BadObj()
+
     def test_safe_getattr_existing_attribute(self):
         """測試安全取得屬性 - 存在的屬性。"""
         # GIVEN：使用已設定的測試物件

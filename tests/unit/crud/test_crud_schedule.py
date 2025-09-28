@@ -78,10 +78,9 @@ class TestScheduleCRUD:
         """
         # Given: 使用夾具的時段資料
         schedule_data = test_giver_schedule_data.copy()
-        # 將指定欄位設為無效值
-        schedule_data[field_name] = invalid_value
 
-        # When: 嘗試建立無效時段
+        # When: 嘗試建立無效時段，將指定欄位設為無效值
+        schedule_data[field_name] = invalid_value
 
         # Then: 應該拋出 IntegrityError
         with pytest.raises(IntegrityError):

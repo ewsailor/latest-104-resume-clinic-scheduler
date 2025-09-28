@@ -135,7 +135,6 @@
 - **`CORS` 跨域請求控管**：只允許經授權的網域訪問後端 `API`，避免惡意網站存取後端 `API`
 - **`Jinja2` 模板引擎**：在伺服器端，將資料動態渲染到 `HTML` 模板並回傳給用戶，使用模板繼承保持 `HTML` 結構一致、對變數自動轉義防止 `XSS 攻擊`、支援快取已編譯的模板提高效能
 
-
 #### **品質確保：`API` 與測試**
 
 - **`Swagger`/`OpenAPI`**：`FastAPI` 自動生成的互動式 `API` 文件，可點擊 `Try it out` 測試 `API`
@@ -177,7 +176,7 @@
 以下摘要本專案，落實安全性、可維護性與可擴充性、可靠性、效能、開發效率之技術。
 
 - **安全性**：`.env` 管理環境變數、`Pydantic Settings` 配置管理、`SecretStr` 敏感資料保護、`CORS` 跨域請求控管、`ORM` 避免 `SQL 注入`、最小權限原則
-- **可維護性與可擴充性**：`FastAPI` 自動生成文件、依賴注入、`CI/CD`、`pre-commit`、自定義錯誤處理、錯誤處理 `Decorator`、`Log` `Decorator`、`API` 分層架構、`SQLAlchemy ORM`、`Alembic` 資料庫遷移、`Poetry` 套件管理、`Enum` 列舉型別、軟刪除
+- **可維護性與可擴充性**：`FastAPI` 自動生成文件、依賴注入、`CI/CD`、`pre-commit`、自定義錯誤處理、錯誤處理 `Decorator`、`Log` `Decorator`、`API` 分層架構、`SQLAlchemy ORM`、`Alembic` 資料庫遷移、`Poetry` 套件管理、`Enum` 枚舉型別、軟刪除
 - **可靠性**：`FastAPI` 型別檢查、測試覆蓋率 80%、`Pydantic` 輸入驗證、健康檢查、錯誤處理 `Decorator`、`Log` `Decorator`、資料庫事務管理、資料庫連線池、外鍵約束避免孤兒紀錄、`SQLite` 測試環境、`safe_getattr`
 - **效能**：`FastAPI` 非同步框架、`Eager loading` 解決 `N+1`、`Lazy loading`、資料庫索引、`Jinja2` 模板引擎、分頁、`Bootstrap` 響應式網格、靜態資源預載入
 - **開發效率**：`Cursor` AI 輔助開發、熱重載、`Jira` 專案管理、`Postman` `API` 測試視覺化、`MySQL Workbench` 資料庫視覺化、`Sourcetree` `Git` 視覺化
@@ -206,7 +205,7 @@
 - **SQLAlchemy ORM**：可用直觀的 Python 物件而非 SQL 操作資料庫，且資料庫切換方便因只需改連線設定，不需重寫資料庫操作程式碼
 - **Alembic 資料庫遷移**：讓資料庫遷移像程式碼版本控制一樣，方便回溯與管理
 - **Poetry 套件管理**：用 `pyproject.toml` 定義依賴的版本範圍，用 `poetry.lock` 鎖定確切依賴版本，確保環境一致性
-- **Enum 列舉型別**：修改選項時只需改 Enum 定義，使用的地方會自動更新，降低維護成本
+- **Enum 枚舉型別**：修改選項時只需改 Enum 定義，使用的地方會自動更新，降低維護成本
 - **軟刪除**：避免誤刪資料、方便未來還原資料
 
 ### <a name="可靠性"></a>可靠性 [返回目錄 ↑](#目錄)
@@ -252,6 +251,7 @@
 #### <a name="tech-quickstart-insight"></a>速懂新技術與選型理由 AI Prompt 模板 [返回目錄 ↑](#目錄)
 
 使用方法說明：
+
 1. [點此](./docs/tech-quickstart-insight.md)前往速懂新技術與選型理由 AI Prompt 模板
 2. 在模板中【新名詞】處，填寫想瞭解的【新名詞】
 3. 更新【專案情境】
@@ -260,6 +260,7 @@
 #### <a name="feature-implementation"></a>實作功能 AI Prompt 模板 [返回目錄 ↑](#目錄)
 
 使用方法說明：
+
 1. [點此](./docs/feature-implementation.md)前往實作功能 AI Prompt 模板
 2. 在模板中【實作功能】處，填寫欲【實作的功能】
 3. 更新【專案情境】
@@ -325,7 +326,8 @@
       cp .env.example .env
       ```
 
-   2. 更新 .env 的密碼、資料庫設定等資訊，例如更新以下欄位
+   2. 更新  .env  的密碼、資料庫設定等資訊，例如更新以下欄位
+
       ```bash
       # ===== 應用程式基本設定 =====
       APP_NAME="104 Resume Clinic Scheduler"
@@ -343,7 +345,7 @@
       MYSQL_CHARSET=utf8mb4
       ```
 
-   3. 在 .gitignore 檔案中加入 .env，確保 .env 被 Git 忽略，避免提交敏感資訊到公開的 GitHub
+   3. 在 .gitignore 檔案中加入 .env，確保  .env  被 Git 忽略，避免提交敏感資訊到公開的 GitHub
 
 7. **以 root 身份登入 MySQL**
 
@@ -418,95 +420,94 @@
 
 ```
 104-resume-clinic-scheduler/
-├── .github/workflows/ci.yml      # CI/CD 的 CI
-├── alembic/                      # 資料庫遷移管理
-├── app/                          # 應用程式主目錄
-│   ├── core/                     # 設定管理
-│   ├── crud/                     # CRUD 資料庫操作層
-│   ├── database/                 # 資料庫連線管理
-│   ├── decorators/               # 裝飾器
-│   │   ├── error_handlers.py     # 錯誤處理裝飾器
-│   │   └── logging.py            # 日誌裝飾器
-│   ├── enums/                    # 列舉型別定義
-│   ├── errors/                   # 錯誤處理系統
-│   ├── middleware/               # 中間件 CORS
-│   ├── models/                   # SQLAlchemy 資料模型
-│   ├── routers/                  # API 路由模組
-│   │   ├── api/                  # API 端點
-│   │   │   └── schedule.py       # 時段管理 API
-│   │   ├── health.py             # 健康檢查端點
-│   │   └── main.py               # 主要路由
-│   ├── schemas/                  # Pydantic 資料驗證
-│   ├── services/                 # 業務邏輯層
-│   ├── templates/                # Jinja2 HTML 模板
-│   ├── utils/                    # 工具模組
-│   ├── factory.py                # 應用程式工廠
-│   └── main.py                   # 應用程式入口點
-├── database/                     # 資料庫相關檔案
-│   └── schema.sql                # 資料庫結構檔案
-├── docs/                         # 開發文檔
-│   ├── postman/                  # Postman 測試集合
+├── .github/workflows/ci.yml       # CI/CD
+├── alembic/                       # 資料庫遷移管理
+├── app/                           # 應用程式主目錄
+│   ├── core/                      # 設定管理
+│   │   ├── giver_data.py          # 模擬 Giver 資料，用於伺服器端渲染
+│   │   └── settings.py            # 應用程式設定
+│   ├── crud/                      # CRUD 資料庫操作層
+│   │   └── schedule.py            # 時段 CRUD 操作
+│   ├── database/                  # 資料庫連線層
+│   │   ├── base.py                # 資料庫基礎設定
+│   │   └── connection.py          # 資料庫連線管理
+│   ├── decorators/                # 裝飾器
+│   │   ├── error_handlers.py      # 錯誤處理裝飾器
+│   │   └── logging.py             # 日誌裝飾器
+│   ├── enums/                     # 枚舉型別定義
+│   │   ├── models.py              # 資料庫模型枚舉
+│   │   └── operations.py          # 操作枚舉
+│   ├── errors/                    # 錯誤處理系統
+│   │   ├── error_codes/           # 錯誤代碼
+│   │   │   ├── cors.py            # CORS 錯誤代碼
+│   │   │   ├── crud.py            # CRUD 錯誤代碼
+│   │   │   ├── router.py          # 路由錯誤代碼
+│   │   │   ├── service.py         # 服務錯誤代碼
+│   │   │   └── system.py          # 系統錯誤代碼
+│   │   ├── exceptions.py          # 自定義錯誤例外
+│   │   ├── formatters.py          # 錯誤訊息格式化
+│   │   └── handlers.py            # 錯誤處理輔助函式
+│   ├── middleware/                # 中間件
+│   │   ├── cors.py                # CORS 中間件
+│   │   └── error_handler.py       # 錯誤處理中間件
+│   ├── models/                    # SQLAlchemy 資料模型
+│   │   ├── schedule.py            # 時段模型
+│   │   └── user.py                # 使用者模型
+│   ├── routers/                   # API 路由模組
+│   │   ├── api/                   # API 端點
+│   │   │   └── schedule.py        # 時段管理 API
+│   │   ├── health.py              # 健康檢查 API
+│   │   └── main.py                # 主要 API
+│   ├── schemas/                   # Pydantic 資料驗證
+│   │   └── schedule.py            # 時段資料驗證
+│   ├── services/                  # 業務邏輯層
+│   │   └── schedule.py            # 時段業務邏輯
+│   ├── templates/                 # Jinja2 HTML 模板
+│   │   ├── base.html              # 基礎模板
+│   │   └── giver_list.html        # Giver 列表模板
+│   ├── utils/                     # 工具模組
+│   │   ├── model_helpers.py       # 資料庫模型輔助工具
+│   │   └── timezone.py            # 時區處理工具
+│   ├── factory.py                 # 應用程式工廠
+│   └── main.py                    # 應用程式入口點
+├── database/                      # 資料庫相關檔案
+│   └── schema.sql                 # 資料庫結構
+├── docs/                          # 開發文檔
+│   ├── postman/                   # Postman 測試集合
 │   │   └── 104 Resume Clinic Scheduler.postman_collection.json
-│   ├── testing/                  # 測試相關文件
-│   │   ├── 104_resume_clinic_api_collection.json # Postman 測試集合
-│   │   ├── postman_testing_guide.md       # Postman 測試指南
-│   │   └── schedule_api_examples.md        # 排程 API 範例
-│   ├── README.md                 # 文件說明
-│   └── user-stories.md           # 使用者故事
-├── htmlcov/                      # 測試覆蓋率報告
-├── logs/                         # 日誌檔案
-├── scripts/                      # 開發工具腳本
-│   ├── clear_cache.py            # 清除快取腳本
-│   └── fix_imports.py            # 修復匯入腳本
-├── static/                       # 靜態檔案
-│   ├── css/                      # 樣式檔案
-│   ├── images/                   # 圖片資源
-│   └── js/                       # JavaScript 檔案
-├── tests/                        # 測試檔案
-│   ├── fixtures/                 # 測試固定裝置
-│   │   ├── integration/          # 整合測試固定裝置
-│   │   │   └── database.py       # 資料庫測試固定裝置
-│   │   └── unit/                 # 單元測試固定裝置
-│   │       └── database.py       # 資料庫單元測試固定裝置
-│   ├── integration/              # 整合測試
-│   ├── unit/                     # 單元測試
-│   │   ├── crud/                 # CRUD 測試
-│   │   │   └── test_crud_schedule.py
-│   │   ├── errors/               # 錯誤處理測試
-│   │   │   ├── test_error_codes.py
-│   │   │   ├── test_exceptions.py
-│   │   │   ├── test_formatters.py
-│   │   │   └── test_handlers.py
-│   │   ├── middleware/           # 中間件測試
-│   │   │   ├── test_cors_middleware.py
-│   │   │   └── test_error_handler.py
-│   │   ├── models/               # 模型測試
-│   │   │   ├── test_database.py
-│   │   │   ├── test_schedule.py
-│   │   │   └── test_user.py
-│   │   ├── routers/              # 路由測試
-│   │   │   ├── api/
-│   │   │   │   └── test_schedule.py
-│   │   │   ├── test_health.py
-│   │   │   └── test_main.py
-│   │   ├── schemas/              # 資料驗證測試
-│   │   │   └── test_schedule.py
-│   │   ├── services/             # 服務測試
-│   │   │   ├── test_schedule_service.py
-│   │   │   └── test_schedule.py
-│   │   └── utils/                # 工具測試
-│   │       ├── test_model_helpers.py
-│   │       ├── test_time_slot_generation.py
-│   │       └── test_timezone.py
-│   ├── utils/                    # 測試工具
+│   ├── feature-implementation.md  # 實作功能 AI Prompt 模板
+│   ├── tech-quickstart-insight.md # 速懂新技術與選型理由 AI Prompt 模板
+│   └── user-stories.md            # 使用者故事
+├── htmlcov/                       # 測試覆蓋率報告
+├── logs/                          # 日誌檔案
+├── scripts/                       # 開發工具腳本
+│   ├── clear_cache.py             # 清除快取腳本
+│   └── fix_imports.py             # 修復匯入腳本
+├── static/                        # 靜態檔案
+│   ├── css/                       # 樣式檔案
+│   ├── images/                    # 圖片資源
+│   └── js/                        # JavaScript 檔案
+├── tests/                         # 測試檔案
+│   ├── fixtures/                  # 測試夾具
+│   │   ├── integration/           # 整合測試夾具
+│   │   └── unit/                  # 單元測試夾具
+│   ├── integration/               # 整合測試
+│   │   ├── test_example.py        # 整合測試範例
+│   │   ├── test_fixtures_usage.py # 固定裝置使用範例
+│   │   ├── test_health_routes.py  # 健康檢查路由整合測試
+│   │   ├── test_main_routes.py    # 主要路由整合測試
+│   │   └── test_schedule_routes.py # 時段路由整合測試
+│   ├── unit/                      # 單元測試
+│   │   ├── crud/                  # CRUD 測試
+│   │   ├── errors/                # 錯誤處理測試
+│   │   ├── models/                # 模型測試
+│   │   ├── services/              # 服務測試
+│   │   └── utils/                 # 工具測試
 │   ├── conftest.py               # 測試配置
-│   └── README.md                 # 測試說明
 ├── .env                          # 環境變數（本地開發）
 ├── .env.example                  # 環境變數範本
-├── .flake8                       # Flake8 配置
 ├── .gitignore                    # Git 忽略檔案
 ├── .pre-commit-config.yaml       # pre-commit 配置
-├── coverage.xml                  # 測試覆蓋率報告
 ├── poetry.lock                   # Poetry 依賴鎖定
 ├── pyproject.toml                # Poetry 專案配置
 └── README.md                     # 專案說明文件
@@ -672,13 +673,32 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 
 - 路徑：`tests/fixtures/`
 - 說明：集中管理為測試準備的常數、測試環境、測試資料、初始化資源、測試用的資料庫會話
+- 範例程式碼
+
+  ```bash
+  @pytest.fixture
+  def test_giver_schedule_data():
+    """提供測試用的 Giver 建立時段資料。
+
+    代表 Giver 提供時段給 Taker 預約的情境。
+    """
+    return {
+        "giver_id": 1,
+        "taker_id": None,
+        "status": ScheduleStatusEnum.AVAILABLE,
+        "date": date(2024, 1, 1),
+        "start_time": time(9, 0),
+        "end_time": time(10, 0),
+        "note": "Giver 提供的可預約時段",
+    }
+  ```
 
 #### <a name="given-when-then"></a>行為驅動開發 BDD：Given-When-Then [返回目錄 ↑](#目錄)
 
 - 說明：BDD 全稱是 Behavior-Driven Development，用行為 Behavior，即 Given-When-Then 寫測試案例，說明給定什麼前置條件（GIVEN），執行什麼行為（WHEN），會得到什麼結果（Then），提高程式碼的可維護性、有利團隊協作
-	- **GIVEN（給定）**：測試的前置條件和初始狀態，如測試資料、模擬物件、設定環境變數等
-	- **WHEN（當）**：執行欲測試的行為，如呼叫被測試的方法、觸發事件等
-	- **THEN（那麼）**：驗證結果和副作用是否如預期
+  - **GIVEN（給定）**：測試的前置條件和初始狀態，如測試資料、模擬物件、設定環境變數等
+  - **WHEN（當）**：執行欲測試的行為，如呼叫被測試的方法、觸發事件等
+  - **THEN（那麼）**：驗證結果和副作用是否如預期
 - 範例程式碼
 
   ```bash
@@ -697,8 +717,8 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 #### <a name="參數化測試裝飾器"></a>參數化測試裝飾器 [返回目錄 ↑](#目錄)
 
 - 說明：使用 `@pytest.mark.parametrize` 裝飾器，用同一段測試程式碼，測試不同輸入參數，避免撰寫大量重複且結構相似的測試案例
-	- **參數名稱字串**：可有多個參數名稱，並用逗號隔開
-	- **參數值清單**：每個參數名稱實際傳入的值，包含所有測試案例的資料
+  - **參數名稱字串**：可有多個參數名稱，並用逗號隔開
+  - **參數值清單**：每個參數名稱實際傳入的值，包含所有測試案例的資料
 - 範例程式碼
 
   ```bash
@@ -724,13 +744,13 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 
       使用參數化測試來測試所有 nullable=False 的欄位。
       """
-      # 使用夾具的基本有效時段資料
+      # Given: 使用夾具的時段資料
       schedule_data = test_giver_schedule_data.copy()
 
-      # 將指定欄位設為無效值
+      # When: 嘗試建立無效時段，將指定欄位設為無效值
       schedule_data[field_name] = invalid_value
 
-      # 測試應該拋出 IntegrityError
+      # Then: 應該拋出 IntegrityError
       with pytest.raises(IntegrityError):
           invalid_schedule = Schedule(**schedule_data)
           self.crud.create_schedules(db_session, [invalid_schedule])
