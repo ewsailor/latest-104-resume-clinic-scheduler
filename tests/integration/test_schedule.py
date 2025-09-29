@@ -4,7 +4,6 @@
 """
 
 # ===== 標準函式庫 =====
-
 import json
 import random
 

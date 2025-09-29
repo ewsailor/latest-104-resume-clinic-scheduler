@@ -4,8 +4,6 @@
 展示如何在整合測試中正確使用基本 fixtures。
 """
 
-# ===== 標準函式庫 =====
-
 # ===== 第三方套件 =====
 from fastapi import status
 from fastapi.testclient import TestClient

@@ -7,6 +7,8 @@ from unittest.mock import patch
 # ===== 本地模組 =====
 from app.utils.timezone import TAIWAN_TIMEZONE, get_local_now_naive, get_utc_timestamp
 
+# ===== 第三方套件 =====
+
 
 @patch('app.utils.timezone.datetime')
 def test_get_local_now_naive(mock_datetime):

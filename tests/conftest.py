@@ -8,6 +8,13 @@
 # ===== 第三方套件 =====
 import pytest  # 測試框架
 
+# 匯入整合測試的 fixtures
+from tests.fixtures.integration.database import (  # noqa: F401
+    integration_db_override,
+    integration_db_session,
+    integration_test_client,
+)
+
 # ===== 本地模組 =====
 # 匯入單元測試的 fixtures
 from tests.fixtures.unit.database import (  # noqa: F401
@@ -30,9 +37,6 @@ from tests.fixtures.unit.user import (  # noqa: F401
     test_user_data,
     test_users,
 )
-
-# 匯入整合測試的 fixtures（可選，根據需要啟用）
-# from tests.fixtures.integration.database import integration_db_session, integration_test_data  # noqa: F401
 
 # 確保 pytest-mock 可用
 pytest_plugins = ["pytest_mock"]
