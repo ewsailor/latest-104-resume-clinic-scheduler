@@ -5,17 +5,21 @@
 生產環境部署前應切換回 MySQL 進行完整整合測試。
 """
 
-from fastapi.testclient import TestClient
-
 # ===== 第三方套件 =====
+# isort: off
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+# isort: on
+
+from app.core import settings
 
 # ===== 本地模組 =====
 # from app.core import settings  # TODO: 切換回 MySQL 時需要取消註解
 from app.database import Base, get_db
-from app.main import app  # 使用全域 app 實例，避免 create_app() 的參數問題
+from app.factory import create_app
 
 
 @pytest.fixture(scope="function")
@@ -94,11 +98,16 @@ def integration_db_override(integration_db_session):
 @pytest.fixture(scope="function")
 def integration_test_client(integration_db_session):
     """建立整合測試專用的 FastAPI 測試客戶端。"""
-    # 覆寫資料庫連線的依賴注入，確保 API 呼叫的 DB 是測試 DB
-    app.dependency_overrides[get_db] = create_override_get_db(integration_db_session)
+    # 創建新的應用程式實例，避免使用全域 app（已連接到真實 MySQL）
+    test_app = create_app(settings)
 
-    with TestClient(app) as client:
+    # 覆寫資料庫連線的依賴注入，確保 API 呼叫的 DB 是測試 DB
+    test_app.dependency_overrides[get_db] = create_override_get_db(
+        integration_db_session
+    )
+
+    with TestClient(test_app) as client:
         yield client
 
     # 測試結束後，清除依賴注入的覆寫
-    app.dependency_overrides.clear()
+    test_app.dependency_overrides.clear()

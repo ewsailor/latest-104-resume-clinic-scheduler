@@ -6,11 +6,13 @@
 # ===== 標準函式庫 =====
 from unittest.mock import patch
 
+# ===== 第三方套件 =====
+# isort: off
+import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 
-# ===== 第三方套件 =====
-import pytest
+# isort: on
 
 # ===== 本地模組 =====
 from app.main import app

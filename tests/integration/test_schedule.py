@@ -7,11 +7,13 @@
 import json
 import random
 
+# ===== 第三方套件 =====
+# isort: off
+import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 
-# ===== 第三方套件 =====
-import pytest
+# isort: on
 
 # ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum
