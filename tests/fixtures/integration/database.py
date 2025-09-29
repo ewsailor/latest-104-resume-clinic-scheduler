@@ -1,35 +1,43 @@
 """整合測試資料庫 fixtures。
 
-提供整合測試所需的資料庫相關 fixtures。
+使用 MySQL 提供整合測試所需的資料庫相關 fixtures，確保與生產環境一致。
 """
 
 # ===== 標準函式庫 =====
 from datetime import date, time
 
+from fastapi.testclient import TestClient
+
 # ===== 第三方套件 =====
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+
+from app.core import settings
 
 # ===== 本地模組 =====
-from app.database import Base
+from app.database import Base, get_db
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
+from app.main import app
 from app.models.schedule import Schedule
 from app.models.user import User
 
 
 @pytest.fixture(scope="function")
 def integration_db_session():
-    """建立整合測試專用的資料庫會話。
+    """建立整合測試專用的資料庫會話。"""
+    # 使用 .env 檔案中的 MySQL 配置
+    database_url = settings.mysql_connection_string
 
-    使用記憶體 SQLite 資料庫，每個測試函數都會重新建立。
-    """
-    # 建立記憶體 SQLite 資料庫引擎
+    # 建立 MySQL 引擎
     engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
+        database_url,
+        echo=False,  # 關閉 SQL 查詢日誌
+        pool_pre_ping=True,  # 啟用連線檢查
+        pool_size=5,  # 較小的連線池
+        max_overflow=5,  # 最大溢出連線數
+        pool_timeout=30,  # 連線超時時間
+        pool_recycle=3600,  # 連線池回收時間
     )
 
     # 建立所有表格
@@ -42,6 +50,15 @@ def integration_db_session():
     session = TestingSessionLocal()
 
     try:
+        # 設定 MySQL 特定配置
+        session.execute(text("SET time_zone = '+08:00'"))
+        session.execute(
+            text(
+                "SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO'"
+            )
+        )
+        session.commit()
+
         yield session
     finally:
         session.close()
@@ -146,10 +163,6 @@ def integration_test_client(integration_db_session):
 
     使用測試資料庫的 FastAPI 測試客戶端。
     """
-    from fastapi.testclient import TestClient
-
-    from app.database import get_db
-    from app.main import app
 
     def override_get_db():
         try:
