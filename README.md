@@ -493,25 +493,23 @@
 │   │   ├── integration/           # 整合測試夾具
 │   │   └── unit/                  # 單元測試夾具
 │   ├── integration/               # 整合測試
-│   │   ├── test_example.py        # 整合測試範例
-│   │   ├── test_fixtures_usage.py # 固定裝置使用範例
-│   │   ├── test_health_routes.py  # 健康檢查路由整合測試
-│   │   ├── test_main_routes.py    # 主要路由整合測試
-│   │   └── test_schedule_routes.py # 時段路由整合測試
+│   │   ├── health.py              # 健康檢查路由整合測試
+│   │   ├── main.py                # 主要路由整合測試
+│   │   └── schedule.py            # 時段路由整合測試
 │   ├── unit/                      # 單元測試
 │   │   ├── crud/                  # CRUD 測試
 │   │   ├── errors/                # 錯誤處理測試
 │   │   ├── models/                # 模型測試
 │   │   ├── services/              # 服務測試
 │   │   └── utils/                 # 工具測試
-│   ├── conftest.py               # 測試配置
-├── .env                          # 環境變數（本地開發）
-├── .env.example                  # 環境變數範本
-├── .gitignore                    # Git 忽略檔案
-├── .pre-commit-config.yaml       # pre-commit 配置
-├── poetry.lock                   # Poetry 依賴鎖定
-├── pyproject.toml                # Poetry 專案配置
-└── README.md                     # 專案說明文件
+│   └── conftest.py                # 測試配置
+├── .env                           # 環境變數（本地開發）
+├── .env.example                   # 環境變數範本
+├── .gitignore                     # Git 忽略檔案
+├── .pre-commit-config.yaml        # pre-commit 配置
+├── poetry.lock                    # Poetry 依賴鎖定
+├── pyproject.toml                 # Poetry 專案配置
+└── README.md                      # 專案說明文件
 ```
 
 ### <a name="erd-實體關聯圖"></a>ERD 實體關聯圖 [返回目錄 ↑](#目錄)
