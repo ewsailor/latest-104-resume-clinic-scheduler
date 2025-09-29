@@ -177,7 +177,7 @@
 └── README.md                      # 專案說明文件
 ```
 
-##【Jira】：
+## 【Jira】：
 
 ### 簡介
 
@@ -206,7 +206,7 @@
 
 - 支援在 dev、staging、production 等不同環境的資料庫中，自動套用所有變更
 
-##【Git】：
+## 【Git】：
 請提供可以一鍵複製的內容，節省我思考分支、commit 怎麼下、複製貼上的時間。
 
 - **提交類型 <type>**：請使用 `feat`、`fix`、`docs`、`style`、`refactor`、`test`、`chore` 其中一個
@@ -223,7 +223,7 @@
   - 格式：[Jira issue title] <type>(<scope>): <subject>
   - 例如：[CLINIC-1] chore(alembic): initial setup for migration
 
-##【實作功能】：
+## 【實作功能】：
 
 請提供模組化拆分後，每個檔案的程式碼片段，附上詳細註解，可以直接複製貼上就能運作。
 
