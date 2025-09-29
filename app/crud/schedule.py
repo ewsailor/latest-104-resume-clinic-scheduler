@@ -246,17 +246,10 @@ class ScheduleCRUD:
         if updated_by_role is not None:
             schedule.updated_by_role = updated_by_role  # type: ignore
 
-        updated_fields = self._update_schedule_fields(schedule, **kwargs)
-
-        if updated_fields:
-            logger.info(f"時段 {schedule_id} 更新欄位: {', '.join(updated_fields)}")
+        self._update_schedule_fields(schedule, **kwargs)
 
         db.commit()
         db.refresh(schedule)
-
-        logger.info(
-            f"時段 {schedule_id} 更新成功，更新者: {updated_by} (角色: {updated_by_role.value})"
-        )
 
         return schedule
 

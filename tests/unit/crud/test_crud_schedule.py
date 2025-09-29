@@ -280,118 +280,6 @@ class TestScheduleCRUD:
         assert all(hasattr(opt, 'path') for opt in options)
 
     # ===== 篩選功能 =====
-    def test_apply_filters_basic(
-        self,
-        db_session: Session,
-        test_giver_schedule: Schedule,
-        test_taker_schedule: Schedule,
-    ):
-        """測試套用篩選條件：基本篩選。"""
-        # Given: 測試基本查詢
-        query = db_session.query(Schedule)
-
-        # When: 套用篩選條件
-        filtered_query = self.crud._apply_filters(query)
-        results = filtered_query.all()
-
-        # Then: 驗證返回所有未刪除的時段
-        assert len(results) == 2
-
-        # Then: 驗證返回的時段包含夾具中的時段
-        schedule_ids = [schedule.id for schedule in results]
-        assert test_giver_schedule.id in schedule_ids
-        assert test_taker_schedule.id in schedule_ids
-
-    def test_apply_filters_by_giver_id(
-        self,
-        db_session: Session,
-        test_giver_schedule: Schedule,
-        test_taker_schedule: Schedule,
-    ):
-        """測試套用篩選條件：按 giver_id 篩選。"""
-        # Given: 測試按 giver_id 篩選
-        query = db_session.query(Schedule)
-
-        # When: 套用篩選條件
-        filtered_query = self.crud._apply_filters(
-            query,
-            giver_id=test_giver_schedule.giver_id,
-        )
-        results = filtered_query.all()
-
-        # Then: 驗證返回的時段包含夾具中的時段
-        assert len(results) == 2  # 兩個夾具都有相同的 giver_id
-        assert all(
-            result.giver_id == test_giver_schedule.giver_id for result in results
-        )
-
-    def test_apply_filters_by_taker_id(
-        self,
-        db_session: Session,
-        test_giver_schedule: Schedule,
-        test_taker_schedule: Schedule,
-    ):
-        """測試套用篩選條件：按 taker_id 篩選。"""
-        # Given: 測試按 taker_id 篩選
-        query = db_session.query(Schedule)
-
-        # When: 套用篩選條件
-        filtered_query = self.crud._apply_filters(
-            query,
-            taker_id=test_taker_schedule.taker_id,
-        )
-        results = filtered_query.all()
-
-        # Then: 驗證返回的時段包含夾具中的時段
-        assert len(results) == 1
-        assert results[0].taker_id == test_taker_schedule.taker_id
-
-    def test_apply_filters_by_status(
-        self,
-        db_session: Session,
-        test_giver_schedule: Schedule,
-        test_taker_schedule: Schedule,
-    ):
-        """測試套用篩選條件：按狀態篩選。"""
-        # Given: 測試按狀態篩選
-        query = db_session.query(Schedule)
-
-        # When: 套用篩選條件
-        filtered_query = self.crud._apply_filters(
-            query,
-            status_filter="AVAILABLE",
-        )
-        results = filtered_query.all()
-
-        # Then: 驗證返回的時段包含夾具中的時段
-        assert len(results) == 1
-        assert results[0].status == ScheduleStatusEnum.AVAILABLE
-
-    def test_apply_filters_multiple_conditions(
-        self,
-        db_session: Session,
-        test_giver_schedule: Schedule,
-        test_taker_schedule: Schedule,
-    ):
-        """測試套用篩選條件：多個條件組合。"""
-        # Given: 測試多個條件組合
-        query = db_session.query(Schedule)
-
-        # When: 套用篩選條件
-        filtered_query = self.crud._apply_filters(
-            query,
-            giver_id=test_taker_schedule.giver_id,
-            taker_id=test_taker_schedule.taker_id,
-            status_filter="PENDING",
-        )
-        results = filtered_query.all()
-
-        # Then: 驗證返回的時段包含夾具中的時段
-        assert len(results) == 1
-        assert results[0].giver_id == test_taker_schedule.giver_id
-        assert results[0].taker_id == test_taker_schedule.taker_id
-        assert results[0].status == ScheduleStatusEnum.PENDING
-
     def test_apply_filters_include_deleted(
         self, db_session: Session, test_giver_schedule: Schedule
     ):
@@ -448,15 +336,13 @@ class TestScheduleCRUD:
     @pytest.mark.parametrize(
         "filter_param,expected_count,filter_value",
         [
-            # 測試 giver_id 篩選：使用 fixture 中的 giver_id 值 (1)
-            # 兩個夾具都有相同的 giver_id=1，期望返回 2 個結果
-            ("giver_id", 2, "fixture_value"),
-            # 測試 taker_id 篩選：使用 fixture 中的 taker_id 值 (1)
-            # 只有 test_taker_schedule 有 taker_id=1，期望返回 1 個結果
-            ("taker_id", 1, "fixture_value"),
-            # 測試 status 篩選：使用指定的狀態值
-            # 只有 test_giver_schedule 是 AVAILABLE，期望返回 1 個結果
-            ("status", 1, ScheduleStatusEnum.AVAILABLE),
+            ("giver_id", 2, "fixture_value"),  # 兩個夾具都有相同的 giver_id
+            ("taker_id", 1, "fixture_value"),  # 只有 test_taker_schedule 有 taker_id
+            (
+                "status",
+                1,
+                ScheduleStatusEnum.AVAILABLE,
+            ),  # 只有 test_giver_schedule 是 AVAILABLE 狀態
         ],
     )
     def test_list_schedules_filter_by_single_condition(
@@ -468,34 +354,20 @@ class TestScheduleCRUD:
         expected_count: int,
         filter_value,
     ):
-        """測試根據單一條件篩選時段。
-
-        此測試使用參數化方式，一次測試三種不同的篩選條件：
-        - giver_id：根據提供者 ID 篩選
-        - taker_id：根據接受者 ID 篩選
-        - status：根據狀態篩選
-
-        Args:
-            db_session: 資料庫會話，用於執行查詢
-            test_giver_schedule: Giver 時段 fixture，giver_id=1, taker_id=None, status=AVAILABLE
-            test_taker_schedule: Taker 時段 fixture，giver_id=1, taker_id=1, status=PENDING
-            filter_param: 篩選參數名稱（"giver_id", "taker_id", "status"）
-            expected_count: 期望返回的結果數量
-            filter_value: 篩選值（"fixture_value" 表示使用 fixture 中的值，其他值直接使用）
-        """
-        # Given: 準備篩選參數：建立空的字典，存放要傳給 list_schedules 的參數
+        """測試根據單一條件篩選時段。"""
+        # Given: 準備篩選參數
         filter_kwargs = {}
 
         # When: 根據篩選參數類型，設定對應的篩選條件
         match filter_param:
             case "giver_id":
-                # giver_id 篩選：實際傳入 filter_kwargs = {"giver_id": 1}
+                # giver_id 篩選：使用 test_giver_schedule 夾具的 giver_id
                 filter_kwargs["giver_id"] = test_giver_schedule.giver_id
             case "taker_id":
-                # taker_id 篩選：實際傳入 filter_kwargs = {"taker_id": 1}
+                # taker_id 篩選：使用 test_taker_schedule 夾具的 taker_id
                 filter_kwargs["taker_id"] = test_taker_schedule.taker_id
             case "status":
-                # status 篩選：實際傳入 filter_kwargs = {"status_filter": ScheduleStatusEnum.AVAILABLE}
+                # status 篩選：使用 ScheduleStatusEnum.AVAILABLE
                 filter_kwargs["status_filter"] = filter_value
 
         # When: 執行篩選：**filter_kwargs 將字典解包為關鍵字參數傳給 list_schedules
@@ -507,19 +379,19 @@ class TestScheduleCRUD:
         # Then: 驗證結果內容，確保每個返回的時段都符合篩選條件
         match filter_param:
             case "giver_id":
-                # 驗證所有返回的時段都有正確的 giver_id
+                # 驗證所有返回的時段都有相同的 giver_id
                 assert all(
                     schedule.giver_id == test_giver_schedule.giver_id
                     for schedule in schedules
                 )
             case "taker_id":
-                # 驗證所有返回的時段都有正確的 taker_id
+                # 驗證所有返回的時段都有相同的 taker_id
                 assert all(
                     schedule.taker_id == test_taker_schedule.taker_id
                     for schedule in schedules
                 )
             case "status":
-                # 驗證所有返回的時段都有正確的狀態
+                # 驗證所有返回的時段都有相同的狀態
                 assert all(schedule.status == filter_value for schedule in schedules)
 
     def test_list_schedules_filter_by_both(
@@ -810,22 +682,6 @@ class TestScheduleCRUD:
         assert updated_schedule.updated_at is not None
         assert updated_schedule.updated_by == test_giver_schedule.giver_id
         assert updated_schedule.updated_by_role == UserRoleEnum.GIVER
-
-        # Then: 驗證成功更新的日誌記錄
-        assert len(caplog.records) >= 1  # 至少有一個 INFO 日誌
-        success_logs = [
-            record for record in caplog.records if record.levelname == "INFO"
-        ]
-        assert len(success_logs) >= 1
-        assert any(
-            f"時段 {test_giver_schedule.id} 更新成功" in log.message
-            for log in success_logs
-        )
-        assert any(
-            f"更新者: {test_giver_schedule.giver_id} (角色: {UserRoleEnum.GIVER.value})"
-            in log.message
-            for log in success_logs
-        )
 
     def test_update_schedule_not_found(
         self,

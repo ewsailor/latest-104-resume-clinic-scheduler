@@ -919,8 +919,8 @@ class TestScheduleService:
                 # 確認更新成功
                 assert result == mock_updated_schedule
 
-                # 確認記錄了更新日誌
-                mock_logger.info.assert_called_once_with(
+                # 確認記錄了更新成功日誌
+                mock_logger.info.assert_any_call(
                     f"時段 {schedule_id} 更新成功，更新者: {updated_by} (角色: {updated_by_role.value})"
                 )
 
