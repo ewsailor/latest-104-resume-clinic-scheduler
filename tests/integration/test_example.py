@@ -3,6 +3,7 @@
 展示如何撰寫整合測試的基本範例。
 """
 
+# ===== 標準函式庫 =====
 import random
 
 from fastapi import status
