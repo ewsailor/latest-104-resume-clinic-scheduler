@@ -10,8 +10,6 @@ from unittest.mock import patch
 from fastapi import status
 import pytest
 
-# ===== 本地模組 =====
-
 
 class TestHealthRoutes:
     """健康檢查路由整合測試類別。"""

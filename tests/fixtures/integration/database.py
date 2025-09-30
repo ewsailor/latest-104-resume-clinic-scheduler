@@ -1,7 +1,6 @@
 """整合測試資料庫 fixtures。
 
-注意：理想情況下應使用 MySQL 提供整合測試所需的資料庫相關 fixtures，
-確保與生產環境一致。但為了測試隔離和速度，目前使用 SQLite 臨時檔案資料庫。
+注意：目前使用 SQLite 臨時檔案資料庫，確保測試隔離，避免記憶體資料庫的會話隔離問題。
 生產環境部署前，應切換回 MySQL 進行完整整合測試。
 """
 
@@ -30,11 +29,7 @@ from app.routers import api_router, health_router, main_router
 
 @pytest.fixture(scope="function")
 def integration_db_session():
-    """建立整合測試專用的資料庫會話實例。
-
-    注意：目前使用 SQLite 臨時檔案資料庫，確保測試隔離，避免記憶體資料庫的會話隔離問題。
-    生產環境部署前應切換回 MySQL 進行完整整合測試。
-    """
+    """建立整合測試專用的資料庫會話實例。"""
     # TODO: 生產環境部署前應切換回 MySQL
     # database_url = settings.mysql_connection_string  # MySQL 連接字串
 

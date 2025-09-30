@@ -602,7 +602,7 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 
   ```bash
   # 執行所有測試
-  poetry run pytest 
+  poetry run pytest
 
   # 執行特定類型測試
   poetry run pytest tests/unit/           # 單元測試
@@ -723,32 +723,16 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 
 - 路徑：`tests/integration/`
 - 說明：測試多個組件組合在一起後，能否正確協同工作
-  - 隔離資料庫連線 (The DB Fixture)
-  - **依賴注入**：測試應確保 FastAPI Depends 注入的 ORM Session 或 Repository 服務是測試專用的實例。
-  - **API 端點**：測試 API 路由收到 HTTP 請求，正確返回預期的狀態碼與回應格式
+  - **測試隔離**：
+    - **資料庫隔離**：目前使用 SQLite 臨時檔案資料庫確保測試隔離，生產環境部署前切換回 MySQL 進行完整整合測試
+    - **依賴注入覆蓋**：透過 FastAPI 依賴注入覆蓋機制，將 `get_db` 依賴替換為測試專用的資料庫會話
+    - **建立測試客戶端**：使用 FastAPI TestClient，模擬發送 HTTP 請求，驗證回應狀態碼、JSON 格式
+    - **檔案清除**：測試結束後自動清理臨時檔案，避免數據汙染、資源洩漏
+  - **回傳資料結構符合預期**：測試 API 路由收到 HTTP 請求，正確返回預期的狀態碼與回應格式
   - **Pydantic 資料驗證**：
   - **業務邏輯處理**：
   - **SQLAlchemy ORM 轉換成功**：
-  - **資料正確寫入或讀取 MySQL/SQLite 資料庫**：
-
-  ### 1. 隔離資料庫連線 (The DB Fixture)
-
-使用 **SQLite 記憶體資料庫**和 **Transaction Rollback** 實現測試隔離。
-API 端點能正確呼叫，並與 DB 互動。
-
-使用 SQLite in-memory 資料庫模擬 MySQL 行為，測試能獨立執行。
-
-每次測試結束後，自動 rollback DB 狀態，避免數據汙染。
-
-測試覆蓋率達到 70% 以上（作品集標準）。
-
-能在 CI pipeline 自動執行，失敗時阻擋佈署。
-  「我在 FastAPI + SQLAlchemy 專案會使用 pytest + TestClient 撰寫整合測試，例如模擬一個 POST /users API，驗證是否正確寫入資料庫，並確認回傳 JSON 結構符合預期。挑戰通常是測試資料汙染，我會用 fixture + transaction rollback 避免影響其他測試案例。」
-  資料庫事務隔離： 每個整合測試都應在一個獨立的資料庫事務中執行，並在測試結束後回滾 (Rollback)，確保測試之間零污染。
-  測試健康檢查 API 回傳正確格式、狀態碼
-  - 使用 TestClient 檢查回應狀態碼、JSON 格式
-    用 TestClient（FastAPI 測試工具）模擬請求，驗證回應狀態碼、JSON 格式。
-    使用 pytest fixture 搭配 FastAPI TestClient，在測試會話 (Session) 開始時設定好 DB 連線，在每個測試中注入獨立的 DB Session。
+  - **資料正確寫入或讀取資料庫**：
 - 執行測試
 
   ```bash
@@ -761,14 +745,27 @@ API 端點能正確呼叫，並與 DB 互動。
 
 #### <a name="測試覆蓋率"></a>測試覆蓋率 [返回目錄 ↑](#目錄)
 
-- 覆蓋率配置：`.coveragerc`
-- 80% +
-- 使用 pytest-cov 進行覆蓋率分析，確保關鍵功能、邏輯分支被完整測試
-- 執行測試並生成覆蓋率報告
+- **覆蓋率目標**：80% 以上
+- **配置檔案**：`.coveragerc` 定義覆蓋率分析規則
+- **說明**：使用 `pytest-cov` 進行單元測試、整合測試的覆蓋率分析，確保關鍵功能、邏輯分支被完整測試
+- **執行測試**：
 
   ```bash
+  # 執行測試並生成覆蓋率報告
   poetry run pytest --cov=app --cov-report=html --cov-report=term
+
+  # 只執行整合測試的覆蓋率分析
+  poetry run pytest tests/integration/ --cov=app --cov-report=html
+
+  # 只執行單元測試的覆蓋率分析
+  poetry run pytest tests/unit/ --cov=app --cov-report=html
   ```
+
+- **覆蓋率檢查**：
+  - 確保關鍵業務邏輯有完整的測試覆蓋
+  - 驗證錯誤處理路徑被測試到
+  - 檢查邊界條件和異常情況的測試
+  - 確認 API 端點的所有分支都被測試
 
 ### <a name="自動化測試"></a>自動化測試 [返回目錄 ↑](#目錄)
 

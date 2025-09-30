@@ -38,10 +38,10 @@ class TestMainRoutes:
         assert "<body>" in html_content
 
     def test_health_check(self, client):
-        """測試健康檢查 API 是否正常回應"""
+        """測試存活探測 API 是否正常回應"""
         # GIVEN: 準備測試客戶端
 
-        # WHEN: 請求健康檢查端點
+        # WHEN: 請求存活探測端點
         response = client.get("/healthz")
 
         # THEN: 驗證回應
@@ -50,11 +50,11 @@ class TestMainRoutes:
 
     @patch('app.routers.health.check_db_connection')
     def test_ready_check(self, mock_db_check, client):
-        """測試就緒檢查 API 是否正常回應"""
+        """測試就緒探測 API 是否正常回應"""
         # GIVEN: 準備測試客戶端，模擬資料庫連線正常
         mock_db_check.return_value = None  # check_db_connection 沒有回傳值
 
-        # WHEN: 請求就緒檢查端點
+        # WHEN: 請求就緒探測端點
         response = client.get("/readyz")
 
         # THEN: 驗證回應
@@ -62,19 +62,8 @@ class TestMainRoutes:
         assert response.json() == {"status": "healthy"}
         mock_db_check.assert_called_once()
 
-    def test_root_not_found(self, client):
-        """測試未知路由是否正確回傳 404"""
-        # GIVEN: 準備測試客戶端
-
-        # WHEN: 請求不存在的路由
-        response = client.get("/unknown")
-
-        # THEN: 驗證錯誤回應
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not Found"}
-
     def test_schedule_list_response(self, client):
-        """測試 schedule API 回應格式正確"""
+        """測試 schedule 列表 API 是否正常回應"""
         # GIVEN: 準備測試客戶端
 
         # WHEN: 請求 schedule 列表 API
@@ -85,10 +74,10 @@ class TestMainRoutes:
         data = response.json()
         assert isinstance(data, list)
 
-        # 如果有資料，檢查必填欄位
+        # 如果有資料，檢查必填欄位存在
         if data:
             schedule = data[0]
-            # 檢查必填欄位
+            # 檢查必填欄位存在
             required_fields = [
                 "id",
                 "giver_id",
@@ -106,3 +95,14 @@ class TestMainRoutes:
         else:
             # 無資料時確認返回空陣列
             assert data == []
+
+    def test_root_not_found(self, client):
+        """測試未知路由是否正確回傳 404"""
+        # GIVEN: 準備測試客戶端
+
+        # WHEN: 請求不存在的路由
+        response = client.get("/unknown")
+
+        # THEN: 驗證錯誤回應
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"detail": "Not Found"}

@@ -11,6 +11,7 @@ import pytest
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
 from app.enums.operations import DeletionResult, OperationContext
 from app.errors.exceptions import (
+    BusinessLogicError,
     DatabaseError,
     ScheduleCannotBeDeletedError,
     ScheduleNotFoundError,
@@ -1101,3 +1102,39 @@ class TestScheduleService:
 
             # 確認記錄了警告日誌
             mock_logger.warning.assert_called_once_with(f"時段 {schedule_id} 已經刪除")
+
+    @patch('app.services.schedule.logger')
+    def test_delete_schedule_unknown_result(self, mock_logger, service, mock_db):
+        """測試刪除時段 - 防禦性程式設計：處理未預期的刪除結果。"""
+        # GIVEN：準備測試資料
+        schedule_id = 1
+        deleted_by = 2
+        deleted_by_role = UserRoleEnum.GIVER
+
+        # 使用不存在的枚舉值，模擬未知結果以觸發 case _: 分支
+        unknown_result = "UNKNOWN_RESULT"
+
+        # 模擬 CRUD 層刪除返回未知結果
+        with patch.object(service.schedule_crud, 'delete_schedule') as mock_delete:
+            # 設定模擬返回值為未知結果
+            mock_delete.return_value = unknown_result
+
+            # WHEN & THEN：確認拋出業務邏輯錯誤
+            with pytest.raises(BusinessLogicError) as exc_info:
+                service.delete_schedule(
+                    mock_db, schedule_id, deleted_by, deleted_by_role
+                )
+
+            # 驗證錯誤訊息包含未知結果
+            assert "未知的刪除結果" in str(exc_info.value)
+            assert str(unknown_result) in str(exc_info.value)
+
+            # 驗證 CRUD 層被正確呼叫
+            mock_delete.assert_called_once_with(
+                mock_db, schedule_id, deleted_by, deleted_by_role
+            )
+
+            # 確認記錄了錯誤日誌
+            mock_logger.error.assert_called_once_with(
+                f"時段 {schedule_id} 刪除時發生未知錯誤: {unknown_result}"
+            )
