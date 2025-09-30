@@ -6,14 +6,12 @@
 """
 
 # ===== 第三方套件 =====
-# isort: off
-import pytest
 from fastapi.testclient import TestClient
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-# isort: on
-
+# ===== 本地模組 =====
 from app.core import settings
 
 # ===== 本地模組 =====

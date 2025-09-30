@@ -5,9 +5,7 @@ from datetime import datetime, timezone
 from unittest.mock import patch
 
 # ===== 本地模組 =====
-from app.utils.timezone import TAIWAN_TIMEZONE, get_local_now_naive, get_utc_timestamp
-
-# ===== 第三方套件 =====
+from app.utils.timezone import get_local_now_naive, get_utc_timestamp, TAIWAN_TIMEZONE
 
 
 @patch('app.utils.timezone.datetime')

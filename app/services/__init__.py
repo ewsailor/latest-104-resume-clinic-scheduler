@@ -4,7 +4,7 @@
 """
 
 # ===== 本地模組 =====
-from .schedule import ScheduleService, schedule_service
+from .schedule import schedule_service, ScheduleService
 
 __all__ = [
     # 時段管理服務

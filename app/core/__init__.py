@@ -11,7 +11,7 @@
 """
 
 # ===== 本地模組 =====
-from .settings import Settings, get_project_version, settings
+from .settings import get_project_version, Settings, settings
 
 __all__ = [
     # 設定管理

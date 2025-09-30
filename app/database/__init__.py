@@ -6,12 +6,12 @@
 # ===== 本地模組 =====
 from .base import Base
 from .connection import (
-    SessionLocal,
     check_db_connection,
     create_database_engine,
     engine,
     get_db,
     initialize_database,
+    SessionLocal,
 )
 
 __all__ = [

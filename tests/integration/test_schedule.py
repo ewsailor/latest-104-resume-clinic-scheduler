@@ -8,12 +8,9 @@ import json
 import random
 
 # ===== 第三方套件 =====
-# isort: off
-import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-
-# isort: on
+import pytest
 
 # ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum

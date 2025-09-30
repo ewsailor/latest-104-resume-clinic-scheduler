@@ -110,81 +110,24 @@
 
 ### <a name="技術棧與選型理由"></a>技術棧與選型理由 [返回目錄 ↑](#目錄)
 
-本專案主要使用技術為 `Python`、`FastAPI` 框架 + `SQLAlchemy`、`MySQL`/`MariaDB`資料庫，採分層架構設計避免高耦合，依 `RESTful` 原則設計時段（Schedule）的 `CRUD API`，可於 `Swagger`/`ReDoc`查看 API 請求與回應範例，用 `Postman`、`pytest`、`pre-commit`、`CI/CD` 確保程式碼品質，並有考量安全性、可維護性與可擴充性、可靠性、效能、開發效率。
+本專案主要使用技術棧與選型理由如下：
 
-#### **後端框架**
-
-- **`Python` 3.12.8**：現代 `Python` 版本，支援最新語法特性，效能優化
-  - `Python` 3.9+ 支援語法：
-    - 可用 `dict`、`list`、`set`、`tuple` 替代 `Dict`、`List`、`Set`、`Tuple`，不需額外匯入 `typing` 模組
-  - `Python` 3.10+ 支援語法：
-    - 可用 `match`/`case` 替代大量 `if-elif-else`
-    - 可用 `X | Y` 替代 `Union[X, Y]` 聯合類型
-    - 可用 `X | None` 替代 `Optional[X]` 可選類型
-- **`FastAPI` 框架**：高效能非同步框架、自動生成 `Swagger`/`ReDoc API` 文件、型別檢查支援、依賴注入
-- **`Uvicorn` 非同步/熱重載**：`FastAPI` 官方推薦，`ASGI` 非同步伺服器支援高併發 `API` 請求、支援修改後自動重新啟動伺服器，立即看到修改效果
-- **`Pydantic` 輸入驗證**：FastAPI 官方推薦，輸入資料不符合 `schema` 設定的型別和格式會報錯，確保資料正確性，避免系統崩潰
-
-#### **架構設計**
-
-- **`API` 分層架構**：從用戶請求到回應，依職責拆分成 `CORS` → `Routers` → `Schemas` → `Service` → `CRUD` → `Models` → `DB`，降低耦合度
-- **自訂錯誤處理、`Log Decorator`**：統一錯誤回傳與日誌格式，避免重覆寫 `try...except`、快速定位問題
-- **`Poetry`**：用 `pyproject.toml` 定義依賴的版本範圍，用 `poetry.lock` 鎖定確切依賴版本，確保環境一致性
-- **`Pydantic Settings` 配置管理**：配置參數從 `.env` 讀取避免敏感資訊洩露，且讀取時會驗證每個值的型別，降低錯誤配置風險
-- **健康檢查**：監控應用程式是否存活、就緒，異常發生時自動重啟或流量導向健康的實例，確保服務穩定
-- **`CORS` 跨域請求控管**：只允許經授權的網域訪問後端 `API`，避免惡意網站存取後端 `API`
-- **`Jinja2` 模板引擎**：Python 官方推薦的模板引擎，在伺服器端，將資料動態渲染到 `HTML` 模板並回傳給用戶，使用模板繼承保持 `HTML` 結構一致、對變數自動轉義防止 `XSS 攻擊`、支援快取已編譯的模板提高效能
-
-#### **品質確保：`API` 與測試**
-
-- **`Swagger`/`OpenAPI`**：`FastAPI` 自動生成的互動式 `API` 文件，可點擊 `Try it out` 測試 `API`
-- **`ReDoc`**：`FastAPI` 自動生成的單頁式閱讀 `API`，可快速閱覽 `API` 請求與回應範例
-- **`Postman` `API` 測試**：提供 `API` 測試視覺化介面，有助開發團隊快速測試與驗證 `API`，且可用 `Collection Runner` 一鍵運行集合中所有自動測試腳本，即時查看所有 `API` 的測試結果
-- **`pre-commit`**：官方推薦的 Git 提交前檢查工具，每次提交 `commit` 前自動檢查 `fix_imports.py`、`autoflake`、`isort`、`black`、`flake8`、`mypy`，確保程式碼品質
-- **`Pytest`**：測試框架，支援單元測試、整合測試
-- **`Pytest-cov`**：測試覆蓋率分析
-- **`CI/CD`**：GitHub 官方推薦的持續整合與持續部署工具，已落實 `CI`，每次提交程式碼後 `GitHub Actions` 會自動執行 `pre-commit`、`pytest` 測試，確保程式碼變更後沒有破壞現有功能，`CD`（持續交付、持續部署）將於未來擴充
-
-#### **資料庫與 `ORM`**
-
-- **`MySQL`/`MariaDB` 關聯式資料庫**：適合處理結構化資料如時段預約、支援 `ACID` 事務確保資料一致性
-- **`SQLAlchemy` `ORM`**：Python 官方推薦，以 `Python` 物件而非 `SQL` 操作資料庫、使用參數化查詢避免 `SQL 注入`，切換資料庫方便因只需改連線設定資料庫，降低 `SQL` 拼接錯誤，方便切換資料庫
-- **`Alembic`**：讓資料庫遷移像程式碼版本控制一樣，方便回溯與管理
-- **`SQLite` 測試環境**：不需啟動完整資料庫伺服器即可運行，確保測試失敗代表程式碼問題，而不是環境問題
-
-#### **資料庫優化**
-
-- **資料庫連線池 & 事務管理**：連線池事先準備好一定數量的連線，確保高併發狀況下仍能穩定回應請求，落實 `ACID` 原則，避免資料不一致
-- **`Eager loading` 解決 `N+1`**：`JOIN` 查詢時載入所需關聯資料，避免多次查詢的 `N+1` 問題，適用高頻率查詢場景如查詢時段列表、Giver 資訊、Taker 資訊
-- **`Lazy loading`**：需要時才載入子表，避免不必要資料抓取，適用低頻率查詢場景如
-  審計欄位
-- **資料庫索引**：為高頻率查詢場景建立索引避免全表掃描、低頻率查詢場景不建立索引避免系統負擔
-- **外鍵約束避免孤兒紀錄**：確保子表的外鍵都有對應到父表中存在的主鍵，避免因父表刪除產生孤兒紀錄
-- **最小權限原則**：避免使用 `root 管理者` 進行資料庫操作，而是建立使用者，並只授予其在資料庫上所有資料表必要的權限
-
-#### **前端技術**
-
-- **`HTML5`**：語義化標籤、無障礙功能 (`ARIA`)、`rel="preload"` 資源預載入
-- **`CSS3`**：使用 `:root` 管理 `CSS` 變數、`Flexbox` 彈性布局系統簡化排版和對齊問題
-- **`JavaScript` (ES6+)**：非同步處理、箭頭函式、用 `const` 和 `let` 替代 `var`
-- **`Bootstrap` 響應式網格**：網站依不同裝置（手機、平板、桌面）自動調整版面，減少因不同裝置重新渲染導致頁面載入變慢
-- **分頁機制**：避免大量資料一次載入，提高頁面渲染速度
-- **靜態資源預載入**：透過 `HTML preload`、`prefetch`，在瀏覽器解析 `HTML` 時即開始下載關鍵資源，避免資源使用時才開始下載造成阻塞，提高頁面渲染速度
-
-#### **選型理由**
-
-以下摘要本專案，落實安全性、可維護性與可擴充性、可靠性、效能、開發效率之技術。
-
-- **安全性**：`.env` 管理環境變數、`Pydantic Settings` 配置管理、`SecretStr` 敏感資料保護、`CORS` 跨域請求控管、`ORM` 避免 `SQL 注入`、最小權限原則
-- **可維護性與可擴充性**：`FastAPI` 自動生成文件、依賴注入、`CI/CD`、`pre-commit`、自定義錯誤處理、錯誤處理 `Decorator`、`Log` `Decorator`、`API` 分層架構、`SQLAlchemy ORM`、`Alembic` 資料庫遷移、`Poetry` 套件管理、`Enum` 枚舉型別、軟刪除
-- **可靠性**：`FastAPI` 型別檢查、測試覆蓋率 80%、`Pydantic` 輸入驗證、健康檢查、錯誤處理 `Decorator`、`Log` `Decorator`、資料庫事務管理、資料庫連線池、外鍵約束避免孤兒紀錄、`SQLite` 測試環境、`safe_getattr`
-- **效能**：`FastAPI` 非同步框架、`Eager loading` 解決 `N+1`、`Lazy loading`、資料庫索引、`Jinja2` 模板引擎、分頁、`Bootstrap` 響應式網格、靜態資源預載入
-- **開發效率**：`Cursor` AI 輔助開發、熱重載、`Jira` 專案管理、`Postman` `API` 測試視覺化、`MySQL Workbench` 資料庫視覺化、`Sourcetree` `Git` 視覺化
+| 分類 | 技術棧與選型理由|
+|------|------|
+| 後端 | - **核心架構**：Python 同時適合 Web 開發與資料分析、FastAPI 框架（Uvicorn ASGI 非同步/熱重載伺服器、Pydantic 資料驗證與型別提示、自動生成 API 文件）、依賴注入、Jinja2 伺服器端渲染模板引擎<br>- **相關優化**：錯誤處理與日誌 decorator、健康檢查監控應用程式是否存活與就緒、CORS 僅允許授權網域訪問|
+| 資料庫 | - **核心架構**：MySQL/MariaDB 處理結構化資料如時段預約、SQLAlchemy ORM 以 Python 物件而非 SQL 操作資料庫、SQLite 測試環境資料庫、Alembic 資料庫 Migration、ERD 實體關聯圖 <br>- **相關優化**：Rollback 落實事務管理避免資料不一致、Eager loading 解決 N+1、Lazy loading 需要時才載入子表、索引提升效能、連線池確保高併發穩定、最小權限原則確保安全性、外鍵約束避免孤兒紀錄、Enum 降低維護成本、軟刪除避免誤刪資料 |
+| API | 分層架構避免高耦合、RESTful 原則設計時段（Schedule）的 CRUD API、Swagger/ReDoc 查看 API 請求與回應範例、Postman Collection Runner 一鍵測試所有 API |
+| 測試 | Pytest 框架、測試覆蓋率 90%+、夾具 Fixtures 管理測試資料、Given-When-Then 註解格式、參數化測試裝飾器避免重複程式碼、單元測試確保程式碼按照預期運作、整合測試確保多個組件能正確協同運作 |
+| 自動化測試 | pre-commit 官方推薦的 Git 提交前檢查工具、CI/CD 提交程式碼後自動執行 pre-commit、pytest 測試|
+| 環境 | .env 管理環境變數、.gitignore 避免敏感資訊外洩、Poetry 依賴管理確保環境一致性、Pydantic BaseSettings 配置管理、SecretStr 敏感資料保護|
+| 前端 | HTML5 語義化結構、CSS3 Flexbox 彈性布局系統、JavaScript ES6+ let 與 const 取代 var 避免變數汙染、Bootstrap 響應式網格、Font Awesome ICON、靜態資源預載入加速頁面渲染、分頁機制加速頁面渲染|
+| 開發工具 |Cursor AI 輔助開發、Jira 專案管理、Postman API 測試視覺化、MySQL Workbench 資料庫視覺化、Sourcetree Git 視覺化 |
+| 選型理由 |安全性、可維護性與可擴充性、可靠性、效能、開發效率 |
 
 ### <a name="安全性"></a>安全性 [返回目錄 ↑](#目錄)
 
 - **.env 管理環境變數**：.env 檔案被 .gitignore 忽略，避免敏感資訊被提交到公開的 GitHub
-- **Pydantic Settings 配置管理**：配置參數從 .env 讀取避免敏感資訊洩露，且讀取時會驗證每個值的型別，降低錯誤配置風險
+- **Pydantic BaseSettings 配置管理**：配置參數從 .env 讀取避免敏感資訊洩露，且讀取時會驗證每個值的型別，降低錯誤配置風險
 - **SecretStr 敏感資料保護**：使用 SecretStr 型別包裝敏感資訊如資料庫密碼，防止在日誌、除錯輸出、錯誤訊息中意外洩露，並強制從 .env 檔案讀取避免硬編碼
 - **CORS 跨域請求控管**：只允許經授權的網域訪問後端 API，避免惡意網站存取後端 API
 - **ORM 避免 SQL 注入**：ORM 使用參數化查詢，將傳入資料視為「參數」而不是「指令」，故傳入的惡意資料，即使被拼接也不會被當作 SQL 指令執行而避免 SQL 注入
@@ -205,9 +148,11 @@
 - **API 分層架構**：從用戶請求到回應，依職責拆分成 CORS → Routers → Schemas → Service → CRUD → Models → DB，降低耦合度
 - **SQLAlchemy ORM**：Python 官方推薦，以 Python 物件而非 SQL 操作資料庫、使用參數化查詢避免 SQL 注入，切換資料庫方便因只需改連線設定資料庫，降低 SQL 拼接錯誤，方便切換資料庫
 - **Alembic 資料庫遷移**：SQLAlchemy 官方推薦的 Migration 工具，讓資料庫遷移像程式碼版本控制一樣，方便回溯與管理
-- **Poetry 套件管理**：Python 官方推薦的現代化依賴管理工具，用 `pyproject.toml` 定義依賴的版本範圍，用 `poetry.lock` 鎖定確切依賴版本，確保環境一致性
+- **Poetry 套件管理**：Python 官方推薦的現代化依賴管理工具，用 pyproject.toml 定義依賴的版本範圍，用 poetry.lock 鎖定確切依賴版本，確保環境一致性
 - **Enum 枚舉型別**：修改選項時只需改 Enum 定義，使用的地方會自動更新，降低維護成本
 - **軟刪除**：避免誤刪資料、方便未來還原資料
+- **HTML5 語義化標籤**：標籤本身就帶有語意如 <nav> 代表導覽區塊，而不是只用 <div> 或 <span> 排版
+- **CSS :root 管理變數**：所有子元素都可透過 var(--variable-name) 存取 :root 變數，統一管理顏色、字體大小、間距等所有元素
 
 ### <a name="可靠性"></a>可靠性 [返回目錄 ↑](#目錄)
 
@@ -230,7 +175,7 @@
 - **Lazy loading**：需要時才載入子表，避免不必要資料抓取，適用低頻率查詢場景如審計欄位
 - **資料庫索引**：為高頻率查詢場景建立索引避免全表掃描、低頻率查詢場景不建立索引避免系統負擔、選擇性高欄位放複合索引前面提高效率、覆蓋索引盡可能涵蓋查詢所需欄位
 - **Jinja2 模板引擎**：Python 官方推薦的模板引擎，在伺服器端，將資料動態渲染到 HTML 模板並回傳給用戶，使用模板繼承保持 HTML 結構一致、對變數自動轉義防止 XSS 攻擊、支援快取已編譯的模板提高效能
-- **分頁**：使用分頁避免大量資料載入
+- **分頁**：使用分頁避免大量資料載入，提高頁面渲染速度
 - **Bootstrap 響應式網格**：網站依不同裝置（手機、平板、桌面）自動調整版面，減少因不同裝置重新渲染導致頁面載入變慢
 - **靜態資源預載入**：透過 HTML preload、prefetch，在瀏覽器解析 HTML 時即開始下載關鍵資源，避免資源使用時才開始下載造成阻塞，提高頁面渲染速度
 
