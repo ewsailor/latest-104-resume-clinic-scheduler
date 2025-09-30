@@ -102,8 +102,7 @@ def initialize_database() -> None:
 
 
 def get_db() -> Generator[Session, None, None]:
-    """
-    資料庫會話依賴注入函式。
+    """資料庫會話依賴注入函式。
 
     用於 FastAPI 的依賴注入系統，為每個請求提供獨立的資料庫會話。
     使用 yield 確保無論有無錯誤，請求結束後自動關閉 session 連線，避免資源浪費、洩漏。
