@@ -14,9 +14,6 @@ import pytest
 # ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum
 
-# ===== 測試 Fixtures =====
-# 暫時不使用進階 fixtures，使用基本的方式
-
 
 def generate_unique_schedule_data(date, hour_range, giver_id=1, note="測試時段"):
     """生成唯一的時段資料，使用 set 避免重疊。

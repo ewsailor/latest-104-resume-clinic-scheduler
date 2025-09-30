@@ -6,7 +6,7 @@
 [![Database](https://img.shields.io/badge/Database-MySQL%2FMariaDB-blue.svg)](https://www.mysql.com/)
 [![Poetry](https://img.shields.io/badge/Poetry-2.1.3-green.svg)](https://python-poetry.org/)
 [![CI/CD](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml/badge.svg?branch=main&status=passed)](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml)
-[![Test Coverage](https://img.shields.io/badge/Coverage-90%25+-brightgreen.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
+[![Test Coverage](https://img.shields.io/badge/Coverage-80%25+-brightgreen.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
 
 ## <a name="目錄"></a>目錄
 
@@ -117,7 +117,7 @@
 | 後端       | - **核心架構**：Python 同時適合 Web 開發與資料分析、FastAPI 框架（Uvicorn ASGI 非同步/熱重載伺服器、Pydantic 資料驗證與型別提示、自動生成 API 文件）、依賴注入、Jinja2 伺服器端渲染模板引擎<br>- **相關優化**：錯誤處理與日誌 decorator、健康檢查監控應用程式是否存活與就緒、CORS 僅允許授權網域訪問                                                                                                              |
 | 資料庫     | - **核心架構**：MySQL/MariaDB 處理結構化資料如時段預約、SQLAlchemy ORM 以 Python 物件而非 SQL 操作資料庫、SQLite 測試環境資料庫、Alembic 資料庫 Migration、ERD 實體關聯圖 <br>- **相關優化**：Rollback 落實事務管理避免資料不一致、Eager loading 解決 N+1、Lazy loading 需要時才載入子表、索引提升效能、連線池確保高併發穩定、最小權限原則確保安全性、外鍵約束避免孤兒紀錄、Enum 降低維護成本、軟刪除避免誤刪資料 |
 | API        | 分層架構避免高耦合、RESTful  原則設計時段（Schedule）的  CRUD API、Swagger/ReDoc 查看 API 請求與回應範例、Postman Collection Runner 一鍵測試所有 API                                                                                                                                                                                                                                                              |
-| 測試       | Pytest 框架、測試覆蓋率 90%+、夾具 Fixtures 管理測試資料、Given-When-Then 註解格式、參數化測試裝飾器避免重複程式碼、單元測試確保程式碼按照預期運作、整合測試確保多個組件能正確協同運作                                                                                                                                                                                                                            |
+| 測試       | Pytest 框架、測試覆蓋率 80%+、夾具 Fixtures 管理測試資料、Given-When-Then 註解格式、參數化測試裝飾器避免重複程式碼、單元測試確保程式碼按照預期運作、整合測試確保多個組件能正確協同運作                                                                                                                                                                                                                            |
 | 自動化測試 | pre-commit 官方推薦的 Git 提交前檢查工具、CI/CD 提交程式碼後自動執行 pre-commit、pytest 測試                                                                                                                                                                                                                                                                                                                      |
 | 環境       | .env 管理環境變數、.gitignore 避免敏感資訊外洩、Poetry 依賴管理確保環境一致性、Pydantic BaseSettings 配置管理、SecretStr 敏感資料保護                                                                                                                                                                                                                                                                             |
 | 前端       | HTML5 語義化結構、CSS3 Flexbox 彈性布局系統、JavaScript ES6+ let 與 const 取代 var 避免變數汙染、Bootstrap 響應式網格、Font Awesome ICON、靜態資源預載入加速頁面渲染、分頁機制加速頁面渲染                                                                                                                                                                                                                        |
@@ -158,7 +158,7 @@
 
 - **FastAPI 型別檢查**：自動檢查傳入資料的型別，確保符合 Pydantic 模型定義，避免非法資料導致系統錯誤或崩潰
 - **Pydantic 輸入驗證**：FastAPI 官方推薦，輸入資料不符合 schema 設定的型別和格式會報錯，確保資料正確性，避免系統崩潰
-- **測試覆蓋率 90％+**：透過 pytest 進行單元測試、整合測試，測試覆蓋率 90%+，確保各模組正常運作
+- **測試覆蓋率 80％+**：透過 pytest 進行單元測試、整合測試，測試覆蓋率 80%+，確保各模組正常運作
 - **健康檢查**：監控應用程式是否存活、就緒，異常發生時自動重啟或流量導向健康的實例，確保服務穩定
 - **錯誤處理 Decorator**：攔截錯誤與例外，避免未捕捉錯誤導致服務中斷
 - **Log Decorator**：藉日誌監控應用程式的運行狀態，以提早發現效能瓶頸或不正常行為，如被頻繁呼叫的 API、處理時間過長的請求
@@ -723,12 +723,27 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 
 - 路徑：`tests/integration/`
 - 說明：測試多個組件組合在一起後，能否正確協同工作
+  - 隔離資料庫連線 (The DB Fixture)
   - **依賴注入**：測試應確保 FastAPI Depends 注入的 ORM Session 或 Repository 服務是測試專用的實例。
   - **API 端點**：測試 API 路由收到 HTTP 請求，正確返回預期的狀態碼與回應格式
   - **Pydantic 資料驗證**：
   - **業務邏輯處理**：
   - **SQLAlchemy ORM 轉換成功**：
   - **資料正確寫入或讀取 MySQL/SQLite 資料庫**：
+
+  ### 1. 隔離資料庫連線 (The DB Fixture)
+
+使用 **SQLite 記憶體資料庫**和 **Transaction Rollback** 實現測試隔離。
+API 端點能正確呼叫，並與 DB 互動。
+
+使用 SQLite in-memory 資料庫模擬 MySQL 行為，測試能獨立執行。
+
+每次測試結束後，自動 rollback DB 狀態，避免數據汙染。
+
+測試覆蓋率達到 70% 以上（作品集標準）。
+
+能在 CI pipeline 自動執行，失敗時阻擋佈署。
+  「我在 FastAPI + SQLAlchemy 專案會使用 pytest + TestClient 撰寫整合測試，例如模擬一個 POST /users API，驗證是否正確寫入資料庫，並確認回傳 JSON 結構符合預期。挑戰通常是測試資料汙染，我會用 fixture + transaction rollback 避免影響其他測試案例。」
   資料庫事務隔離： 每個整合測試都應在一個獨立的資料庫事務中執行，並在測試結束後回滾 (Rollback)，確保測試之間零污染。
   測試健康檢查 API 回傳正確格式、狀態碼
   - 使用 TestClient 檢查回應狀態碼、JSON 格式
@@ -747,7 +762,7 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 #### <a name="測試覆蓋率"></a>測試覆蓋率 [返回目錄 ↑](#目錄)
 
 - 覆蓋率配置：`.coveragerc`
-- 90% +
+- 80% +
 - 使用 pytest-cov 進行覆蓋率分析，確保關鍵功能、邏輯分支被完整測試
 - 執行測試並生成覆蓋率報告
 

@@ -3,6 +3,8 @@
 測試首頁路由的完整流程，包括 HTML 渲染和資料傳遞。
 """
 
+from unittest.mock import patch
+
 # ===== 第三方套件 =====
 from fastapi import status
 import pytest
@@ -46,9 +48,11 @@ class TestMainRoutes:
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {"status": "healthy"}
 
-    def test_ready_check(self, client):
+    @patch('app.routers.health.check_db_connection')
+    def test_ready_check(self, mock_db_check, client):
         """測試就緒檢查 API 是否正常回應"""
-        # GIVEN: 準備測試客戶端
+        # GIVEN: 準備測試客戶端，模擬資料庫連線正常
+        mock_db_check.return_value = None  # check_db_connection 沒有回傳值
 
         # WHEN: 請求就緒檢查端點
         response = client.get("/readyz")
@@ -56,6 +60,7 @@ class TestMainRoutes:
         # THEN: 驗證回應
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {"status": "healthy"}
+        mock_db_check.assert_called_once()
 
     def test_root_not_found(self, client):
         """測試未知路由是否正確回傳 404"""

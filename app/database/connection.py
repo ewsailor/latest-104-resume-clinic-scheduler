@@ -37,17 +37,17 @@ def create_database_engine() -> tuple[Engine, sessionmaker]:
             # SQLite 配置
             engine = create_engine(
                 DATABASE_URL,  # SQLite 連接字串
-                echo=False,  # 關閉 SQL 查詢日誌
+                echo=False,  # 關閉 SQL 查詢日誌，避免測試輸出過於冗長
                 pool_pre_ping=False,  # SQLite 不需要連線檢查
                 connect_args={
-                    "check_same_thread": False,  # 允許多執行緒存取
+                    "check_same_thread": False,  # 允許不同執行緒共用同一個資料庫連線，因為 FastAPI 測試時，API 請求和資料庫 session 可能不在同一個執行緒
                 },
             )
         else:
             # MySQL 配置
             engine = create_engine(
                 DATABASE_URL,  # MySQL 連接字串
-                echo=False,  # 關閉 SQL 查詢日誌
+                echo=False,  # 關閉 SQL 查詢日誌，避免測試輸出過於冗長
                 pool_pre_ping=True,  # 啟用連線檢查，確保連線有效性
                 pool_size=10,  # 連線池大小
                 max_overflow=10,  # 最大溢出連線數（通常是 pool_size 的 1-2 倍）
@@ -62,7 +62,8 @@ def create_database_engine() -> tuple[Engine, sessionmaker]:
         with engine.connect():
             logger.info("成功建立資料庫引擎，並連結到資料庫")
 
-        # 建立 session 工廠：每次呼叫 SessionLocal()，就生成一個新 Session 實例，確保每個請求，都有一個獨立的資料庫連線，避免共用連線，導致資料庫操作錯亂
+        # 建立 session 工廠：每次呼叫 SessionLocal()，就生成一個新 Session 實例
+        # 確保每個請求，都有一個獨立的資料庫連線，避免共用連線，導致資料庫操作錯亂
         SessionLocal = sessionmaker(
             bind=engine,  # 指定 Session 連線的資料庫引擎（engine）
             autocommit=False,  # 不自動提交，手動呼叫 .commit() 才會儲存資料
