@@ -14,6 +14,8 @@ def schedule_create_payload():
         "schedules": [
             {
                 "giver_id": 1,
+                # taker_id 為可選，建立時段時通常為 None（表示可預約）
+                # status 由系統自動設定，建立時段時不需要指定
                 "date": "2024-12-25",
                 "start_time": "09:00:00",
                 "end_time": "10:00:00",

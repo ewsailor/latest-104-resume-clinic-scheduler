@@ -31,7 +31,8 @@ class TestScheduleRoutes:
 
     def test_create_schedules_success(self, client, schedule_create_payload):
         """測試建立時段 - 成功。"""
-        # GIVEN：準備測試資料
+        # GIVEN：使用 fixture 提供的資料
+
         # WHEN：呼叫建立時段 API
         response = client.post("/api/v1/schedules", json=schedule_create_payload)
 
@@ -43,15 +44,34 @@ class TestScheduleRoutes:
 
         # 驗證回應資料結構
         schedule = data[0]
+
+        # 基本欄位驗證
         assert "id" in schedule
         assert schedule["giver_id"] == 1
+        assert schedule["taker_id"] is None
+        assert (
+            schedule["status"] == ScheduleStatusEnum.AVAILABLE.value
+        )  # GIVER 建立時段時狀態應為 AVAILABLE
         assert schedule["date"] == "2024-12-25"
-        # 驗證時段資料
         assert schedule["start_time"] == "09:00:00"
         assert schedule["end_time"] == "10:00:00"
-        assert schedule["status"] in [status.value for status in ScheduleStatusEnum]
+        assert schedule["note"] == "測試時段"
         assert schedule["created_by"] == 1
         assert schedule["created_by_role"] == "GIVER"
+        assert schedule["updated_by"] == 1
+        assert schedule["updated_by_role"] == "GIVER"
+
+        # 時間戳記驗證
+        assert "created_at" in schedule
+        assert "updated_at" in schedule
+        assert schedule["created_at"] is not None
+        assert schedule["updated_at"] is not None
+        assert schedule["created_at"] == schedule["updated_at"]
+
+        # 軟刪除相關（建立時應為 null）
+        assert schedule["deleted_at"] is None
+        assert schedule["deleted_by"] is None
+        assert schedule["deleted_by_role"] is None
 
     def test_create_schedules_validation_error(self, client):
         """測試建立時段 - 參數驗證錯誤。"""
