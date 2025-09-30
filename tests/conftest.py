@@ -14,6 +14,11 @@ from tests.fixtures.integration.database import (  # noqa: F401
     integration_db_session,
     integration_test_client,
 )
+from tests.fixtures.integration.schedule import (  # noqa: F401
+    schedule_create_payload,
+    schedule_delete_payload,
+    schedule_update_payload,
+)
 
 # ===== 本地模組 =====
 # 匯入單元測試的 fixtures

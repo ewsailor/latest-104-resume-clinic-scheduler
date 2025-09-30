@@ -5,7 +5,6 @@
 
 # ===== 標準函式庫 =====
 import json
-import random
 
 # ===== 第三方套件 =====
 from fastapi import status
@@ -13,52 +12,6 @@ import pytest
 
 # ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum
-
-
-def generate_unique_schedule_data(date, hour_range, giver_id=1, note="測試時段"):
-    """生成唯一的時段資料，使用 set 避免重疊。
-
-    Args:
-        date: 日期字串 (YYYY-MM-DD)
-        hour_range: 小時範圍 tuple (min_hour, max_hour)
-        giver_id: 提供者 ID
-        note: 備註
-
-    Returns:
-        dict: 唯一的時段資料
-    """
-    used_times = set()
-
-    # 生成唯一的時間
-    while True:
-        hour = random.randint(hour_range[0], hour_range[1])
-        minute = random.randint(0, 59)
-        time_key = f"{hour:02d}:{minute:02d}"
-
-        if time_key not in used_times:
-            used_times.add(time_key)
-            break
-
-    # 計算結束時間，處理分鐘溢出
-    end_minute = minute + 1
-    end_hour = hour
-    if end_minute >= 60:
-        end_minute = 0
-        end_hour = hour + 1
-
-    return {
-        "schedules": [
-            {
-                "giver_id": giver_id,
-                "date": date,
-                "start_time": f"{time_key}:00",
-                "end_time": f"{end_hour:02d}:{end_minute:02d}:00",
-                "note": note,
-            }
-        ],
-        "created_by": giver_id,
-        "created_by_role": "GIVER",
-    }
 
 
 class TestScheduleRoutes:
@@ -76,103 +29,11 @@ class TestScheduleRoutes:
         yield
         # 測試後清理（如果需要）
 
-    @pytest.fixture
-    def sample_schedule_data(self):
-        """建立範例時段資料。"""
-        # 使用 set 來確保時間的唯一性
-        used_times = set()
-
-        # 生成唯一的時間
-        while True:
-            hour = random.randint(8, 20)
-            minute = random.randint(0, 59)
-            time_key = f"{hour:02d}:{minute:02d}"
-
-            if time_key not in used_times:
-                used_times.add(time_key)
-                break
-
-        return {
-            "schedules": [
-                {
-                    "giver_id": 1,
-                    "date": "2024-12-25",
-                    "start_time": f"{time_key}:00",
-                    "end_time": f"{hour:02d}:{minute+1:02d}:00",
-                    "note": "測試時段",
-                }
-            ],
-            "created_by": 1,
-            "created_by_role": "GIVER",
-        }
-
-    @pytest.fixture
-    def sample_schedule_update_data(self):
-        """建立範例時段更新資料。"""
-        # 使用 set 來確保時間的唯一性
-        used_times = set()
-
-        # 生成唯一的時間
-        while True:
-            hour = random.randint(14, 22)  # 使用不同的時間範圍避免重疊
-            minute = random.randint(0, 59)
-            time_key = f"{hour:02d}:{minute:02d}"
-
-            if time_key not in used_times:
-                used_times.add(time_key)
-                break
-
-        # 確保結束時間不會超過 59 分鐘
-        end_minute = (minute + 1) % 60
-        end_hour = hour if end_minute > minute else (hour + 1) % 24
-
-        return {
-            "schedule": {
-                "start_time": f"{time_key}:00",
-                "end_time": f"{end_hour:02d}:{end_minute:02d}:00",
-                "note": "更新後的時段",
-            },
-            "updated_by": 1,
-            "updated_by_role": "GIVER",
-        }
-
-    @pytest.fixture
-    def sample_schedule_delete_data(self):
-        """建立範例時段刪除資料。"""
-        return {"deleted_by": 1, "deleted_by_role": "GIVER"}
-
-    def test_create_schedules_success(self, client, sample_schedule_data):
+    def test_create_schedules_success(self, client, schedule_create_payload):
         """測試建立時段 - 成功。"""
-        # GIVEN：準備測試資料，使用不同的日期避免重疊
-        used_times = set()
-
-        # 生成唯一的時間
-        while True:
-            hour = random.randint(6, 12)
-            minute = random.randint(0, 59)
-            time_key = f"{hour:02d}:{minute:02d}"
-
-            if time_key not in used_times:
-                used_times.add(time_key)
-                break
-
-        # 建立唯一的時段資料
-        unique_schedule_data = {
-            "schedules": [
-                {
-                    "giver_id": 1,
-                    "date": "2024-08-15",  # 使用不同的日期
-                    "start_time": f"{time_key}:00",
-                    "end_time": f"{hour:02d}:{minute+1:02d}:00",
-                    "note": "測試時段",
-                }
-            ],
-            "created_by": 1,
-            "created_by_role": "GIVER",
-        }
-
+        # GIVEN：準備測試資料
         # WHEN：呼叫建立時段 API
-        response = client.post("/api/v1/schedules", json=unique_schedule_data)
+        response = client.post("/api/v1/schedules", json=schedule_create_payload)
 
         # THEN：確認建立成功
         assert response.status_code == status.HTTP_201_CREATED
@@ -184,12 +45,10 @@ class TestScheduleRoutes:
         schedule = data[0]
         assert "id" in schedule
         assert schedule["giver_id"] == 1
-        assert schedule["date"] == "2024-08-15"  # 修正為實際的日期
-        # 使用動態時間驗證，因為我們使用 set 確保唯一性
-        assert (
-            schedule["start_time"] == unique_schedule_data["schedules"][0]["start_time"]
-        )
-        assert schedule["end_time"] == unique_schedule_data["schedules"][0]["end_time"]
+        assert schedule["date"] == "2024-12-25"
+        # 驗證時段資料
+        assert schedule["start_time"] == "09:00:00"
+        assert schedule["end_time"] == "10:00:00"
         assert schedule["status"] in [status.value for status in ScheduleStatusEnum]
         assert schedule["created_by"] == 1
         assert schedule["created_by_role"] == "GIVER"
@@ -281,17 +140,10 @@ class TestScheduleRoutes:
         data = response.json()
         assert "detail" in data
 
-    def test_get_schedule_success(self, client, sample_schedule_data):
+    def test_get_schedule_success(self, client, schedule_create_payload):
         """測試取得單一時段 - 成功。"""
-        # GIVEN：先建立一個時段，使用獨特的時間避免重疊
-        unique_schedule_data = generate_unique_schedule_data(
-            date="2024-12-30",  # 年底日期避免重疊
-            hour_range=(20, 23),  # 晚上時間避免重疊
-            giver_id=1,
-            note="測試時段",
-        )
-
-        create_response = client.post("/api/v1/schedules", json=unique_schedule_data)
+        # GIVEN：先建立一個時段，使用 fixture 提供的唯一資料
+        create_response = client.post("/api/v1/schedules", json=schedule_create_payload)
         assert create_response.status_code == status.HTTP_201_CREATED
         created_schedule = create_response.json()[0]
         schedule_id = created_schedule["id"]
@@ -336,18 +188,11 @@ class TestScheduleRoutes:
         assert "detail" in data
 
     def test_update_schedule_success(
-        self, client, sample_schedule_data, sample_schedule_update_data
+        self, client, schedule_create_payload, schedule_update_payload
     ):
         """測試更新時段 - 成功。"""
-        # GIVEN：先建立一個時段，使用獨特的時間避免重疊
-        unique_schedule_data = generate_unique_schedule_data(
-            date="2024-08-15",  # 8月日期避免重疊
-            hour_range=(1, 5),  # 凌晨時間避免重疊
-            giver_id=1,
-            note="測試時段",
-        )
-
-        create_response = client.post("/api/v1/schedules", json=unique_schedule_data)
+        # GIVEN：先建立一個時段，使用 fixture 提供的唯一資料
+        create_response = client.post("/api/v1/schedules", json=schedule_create_payload)
         assert create_response.status_code == status.HTTP_201_CREATED
         created_schedule = create_response.json()[0]
         schedule_id = created_schedule["id"]
@@ -379,14 +224,12 @@ class TestScheduleRoutes:
         assert data["start_time"] == created_schedule["start_time"]
         assert data["end_time"] == created_schedule["end_time"]
 
-    def test_update_schedule_not_found(self, client, sample_schedule_update_data):
+    def test_update_schedule_not_found(self, client, schedule_update_payload):
         """測試更新時段 - 時段不存在。"""
         # GIVEN：不存在的時段 ID 和有效的更新資料
 
         # WHEN：呼叫更新時段 API
-        response = client.patch(
-            "/api/v1/schedules/99999", json=sample_schedule_update_data
-        )
+        response = client.patch("/api/v1/schedules/99999", json=schedule_update_payload)
 
         # THEN：確認返回找不到錯誤
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -394,17 +237,10 @@ class TestScheduleRoutes:
         assert "error" in data
         assert "時段不存在" in data["error"]["message"]
 
-    def test_update_schedule_validation_error(self, client, sample_schedule_data):
+    def test_update_schedule_validation_error(self, client, schedule_create_payload):
         """測試更新時段 - 參數驗證錯誤。"""
-        # GIVEN：先建立一個時段，使用獨特的時間避免重疊
-        unique_schedule_data = generate_unique_schedule_data(
-            date="2024-10-25",  # 10月日期避免重疊
-            hour_range=(14, 16),  # 下午時間避免重疊
-            giver_id=1,
-            note="測試時段",
-        )
-
-        create_response = client.post("/api/v1/schedules", json=unique_schedule_data)
+        # GIVEN：先建立一個時段，使用 fixture 提供的唯一資料
+        create_response = client.post("/api/v1/schedules", json=schedule_create_payload)
         assert create_response.status_code == status.HTTP_201_CREATED
         created_schedule = create_response.json()[0]
         schedule_id = created_schedule["id"]
@@ -430,18 +266,11 @@ class TestScheduleRoutes:
         assert "error" in data
 
     def test_delete_schedule_success(
-        self, client, sample_schedule_data, sample_schedule_delete_data
+        self, client, schedule_create_payload, schedule_delete_payload
     ):
         """測試刪除時段 - 成功。"""
-        # GIVEN：先建立一個時段，使用獨特的時間避免重疊
-        unique_schedule_data = generate_unique_schedule_data(
-            date="2024-09-30",  # 9月日期避免重疊
-            hour_range=(6, 8),  # 早上時間避免重疊
-            giver_id=1,
-            note="測試時段",
-        )
-
-        create_response = client.post("/api/v1/schedules", json=unique_schedule_data)
+        # GIVEN：先建立一個時段，使用 fixture 提供的唯一資料
+        create_response = client.post("/api/v1/schedules", json=schedule_create_payload)
         assert create_response.status_code == status.HTTP_201_CREATED
         created_schedule = create_response.json()[0]
         schedule_id = created_schedule["id"]
@@ -450,7 +279,7 @@ class TestScheduleRoutes:
         response = client.request(
             "DELETE",
             f"/api/v1/schedules/{schedule_id}",
-            content=json.dumps(sample_schedule_delete_data).encode('utf-8'),
+            content=json.dumps(schedule_delete_payload).encode('utf-8'),
             headers={"Content-Type": "application/json"},
         )
 
@@ -458,7 +287,7 @@ class TestScheduleRoutes:
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.content == b""
 
-    def test_delete_schedule_not_found(self, client, sample_schedule_delete_data):
+    def test_delete_schedule_not_found(self, client, schedule_delete_payload):
         """測試刪除時段 - 時段不存在。"""
         # GIVEN：不存在的時段 ID 和有效的刪除資料
 
@@ -466,7 +295,7 @@ class TestScheduleRoutes:
         response = client.request(
             "DELETE",
             "/api/v1/schedules/99999",
-            content=json.dumps(sample_schedule_delete_data).encode('utf-8'),
+            content=json.dumps(schedule_delete_payload).encode('utf-8'),
             headers={"Content-Type": "application/json"},
         )
 
