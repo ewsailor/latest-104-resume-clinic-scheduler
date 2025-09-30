@@ -5,8 +5,8 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.116+-green.svg)](https://fastapi.tiangolo.com/)
 [![Database](https://img.shields.io/badge/Database-MySQL%2FMariaDB-blue.svg)](https://www.mysql.com/)
 [![Poetry](https://img.shields.io/badge/Poetry-2.1.3-green.svg)](https://python-poetry.org/)
-[![CI/CD](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml/badge.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml)
-[![Test Coverage](https://img.shields.io/badge/Coverage-83%25-brightgreen.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
+[![CI/CD](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml/badge.svg?branch=main&status=passed)](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml)
+[![Test Coverage](https://img.shields.io/badge/Coverage-90%25+-brightgreen.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
 
 ## <a name="目錄"></a>目錄
 
@@ -112,17 +112,17 @@
 
 本專案主要使用技術棧與選型理由如下：
 
-| 分類 | 技術棧與選型理由|
-|------|------|
-| 後端 | - **核心架構**：Python 同時適合 Web 開發與資料分析、FastAPI 框架（Uvicorn ASGI 非同步/熱重載伺服器、Pydantic 資料驗證與型別提示、自動生成 API 文件）、依賴注入、Jinja2 伺服器端渲染模板引擎<br>- **相關優化**：錯誤處理與日誌 decorator、健康檢查監控應用程式是否存活與就緒、CORS 僅允許授權網域訪問|
-| 資料庫 | - **核心架構**：MySQL/MariaDB 處理結構化資料如時段預約、SQLAlchemy ORM 以 Python 物件而非 SQL 操作資料庫、SQLite 測試環境資料庫、Alembic 資料庫 Migration、ERD 實體關聯圖 <br>- **相關優化**：Rollback 落實事務管理避免資料不一致、Eager loading 解決 N+1、Lazy loading 需要時才載入子表、索引提升效能、連線池確保高併發穩定、最小權限原則確保安全性、外鍵約束避免孤兒紀錄、Enum 降低維護成本、軟刪除避免誤刪資料 |
-| API | 分層架構避免高耦合、RESTful 原則設計時段（Schedule）的 CRUD API、Swagger/ReDoc 查看 API 請求與回應範例、Postman Collection Runner 一鍵測試所有 API |
-| 測試 | Pytest 框架、測試覆蓋率 90%+、夾具 Fixtures 管理測試資料、Given-When-Then 註解格式、參數化測試裝飾器避免重複程式碼、單元測試確保程式碼按照預期運作、整合測試確保多個組件能正確協同運作 |
-| 自動化測試 | pre-commit 官方推薦的 Git 提交前檢查工具、CI/CD 提交程式碼後自動執行 pre-commit、pytest 測試|
-| 環境 | .env 管理環境變數、.gitignore 避免敏感資訊外洩、Poetry 依賴管理確保環境一致性、Pydantic BaseSettings 配置管理、SecretStr 敏感資料保護|
-| 前端 | HTML5 語義化結構、CSS3 Flexbox 彈性布局系統、JavaScript ES6+ let 與 const 取代 var 避免變數汙染、Bootstrap 響應式網格、Font Awesome ICON、靜態資源預載入加速頁面渲染、分頁機制加速頁面渲染|
-| 開發工具 |Cursor AI 輔助開發、Jira 專案管理、Postman API 測試視覺化、MySQL Workbench 資料庫視覺化、Sourcetree Git 視覺化 |
-| 選型理由 |安全性、可維護性與可擴充性、可靠性、效能、開發效率 |
+| 分類       | 技術棧與選型理由                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 後端       | - **核心架構**：Python 同時適合 Web 開發與資料分析、FastAPI 框架（Uvicorn ASGI 非同步/熱重載伺服器、Pydantic 資料驗證與型別提示、自動生成 API 文件）、依賴注入、Jinja2 伺服器端渲染模板引擎<br>- **相關優化**：錯誤處理與日誌 decorator、健康檢查監控應用程式是否存活與就緒、CORS 僅允許授權網域訪問                                                                                                              |
+| 資料庫     | - **核心架構**：MySQL/MariaDB 處理結構化資料如時段預約、SQLAlchemy ORM 以 Python 物件而非 SQL 操作資料庫、SQLite 測試環境資料庫、Alembic 資料庫 Migration、ERD 實體關聯圖 <br>- **相關優化**：Rollback 落實事務管理避免資料不一致、Eager loading 解決 N+1、Lazy loading 需要時才載入子表、索引提升效能、連線池確保高併發穩定、最小權限原則確保安全性、外鍵約束避免孤兒紀錄、Enum 降低維護成本、軟刪除避免誤刪資料 |
+| API        | 分層架構避免高耦合、RESTful  原則設計時段（Schedule）的  CRUD API、Swagger/ReDoc 查看 API 請求與回應範例、Postman Collection Runner 一鍵測試所有 API                                                                                                                                                                                                                                                              |
+| 測試       | Pytest 框架、測試覆蓋率 90%+、夾具 Fixtures 管理測試資料、Given-When-Then 註解格式、參數化測試裝飾器避免重複程式碼、單元測試確保程式碼按照預期運作、整合測試確保多個組件能正確協同運作                                                                                                                                                                                                                            |
+| 自動化測試 | pre-commit 官方推薦的 Git 提交前檢查工具、CI/CD 提交程式碼後自動執行 pre-commit、pytest 測試                                                                                                                                                                                                                                                                                                                      |
+| 環境       | .env 管理環境變數、.gitignore 避免敏感資訊外洩、Poetry 依賴管理確保環境一致性、Pydantic BaseSettings 配置管理、SecretStr 敏感資料保護                                                                                                                                                                                                                                                                             |
+| 前端       | HTML5 語義化結構、CSS3 Flexbox 彈性布局系統、JavaScript ES6+ let 與 const 取代 var 避免變數汙染、Bootstrap 響應式網格、Font Awesome ICON、靜態資源預載入加速頁面渲染、分頁機制加速頁面渲染                                                                                                                                                                                                                        |
+| 開發工具   | Cursor AI 輔助開發、Jira 專案管理、Postman API 測試視覺化、MySQL Workbench 資料庫視覺化、Sourcetree Git 視覺化                                                                                                                                                                                                                                                                                                    |
+| 選型理由   | 安全性、可維護性與可擴充性、可靠性、效能、開發效率                                                                                                                                                                                                                                                                                                                                                                |
 
 ### <a name="安全性"></a>安全性 [返回目錄 ↑](#目錄)
 
