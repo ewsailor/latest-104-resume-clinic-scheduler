@@ -9,12 +9,10 @@ import random
 
 # ===== 第三方套件 =====
 from fastapi import status
-from fastapi.testclient import TestClient
 import pytest
 
 # ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum
-from app.main import app
 
 # ===== 測試 Fixtures =====
 # 暫時不使用進階 fixtures，使用基本的方式
@@ -70,9 +68,9 @@ class TestScheduleRoutes:
     """時段路由整合測試類別。"""
 
     @pytest.fixture
-    def client(self):
+    def client(self, integration_test_client):
         """建立測試客戶端。"""
-        return TestClient(app)
+        return integration_test_client
 
     @pytest.fixture(autouse=True)
     def cleanup_database(self):

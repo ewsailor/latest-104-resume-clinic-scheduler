@@ -99,6 +99,18 @@ def integration_test_client(integration_db_session):
     # 創建新的應用程式實例，避免使用全域 app（已連接到真實 MySQL）
     test_app = create_app(settings)
 
+    # 設定錯誤處理器
+    from app.middleware.error_handler import setup_error_handlers
+
+    setup_error_handlers(test_app)
+
+    # 註冊路由
+    from app.routers import api_router, health_router, main_router
+
+    test_app.include_router(main_router)
+    test_app.include_router(health_router)
+    test_app.include_router(api_router)
+
     # 覆寫資料庫連線的依賴注入，確保 API 呼叫的 DB 是測試 DB
     test_app.dependency_overrides[get_db] = create_override_get_db(
         integration_db_session

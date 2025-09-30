@@ -8,20 +8,18 @@ from unittest.mock import patch
 
 # ===== 第三方套件 =====
 from fastapi import status
-from fastapi.testclient import TestClient
 import pytest
 
 # ===== 本地模組 =====
-from app.main import app
 
 
 class TestHealthRoutes:
     """健康檢查路由整合測試類別。"""
 
     @pytest.fixture
-    def client(self):
+    def client(self, integration_test_client):
         """建立測試客戶端。"""
-        return TestClient(app)
+        return integration_test_client
 
     # ===== 存活探測 =====
     def test_liveness_probe_success(self, client):

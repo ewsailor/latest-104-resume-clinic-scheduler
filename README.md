@@ -129,14 +129,15 @@
 - **.env 管理環境變數**：.env 檔案被 .gitignore 忽略，避免敏感資訊被提交到公開的 GitHub
 - **Pydantic BaseSettings 配置管理**：配置參數從 .env 讀取避免敏感資訊洩露，且讀取時會驗證每個值的型別，降低錯誤配置風險
 - **SecretStr 敏感資料保護**：使用 SecretStr 型別包裝敏感資訊如資料庫密碼，防止在日誌、除錯輸出、錯誤訊息中意外洩露，並強制從 .env 檔案讀取避免硬編碼
-- **CORS 跨域請求控管**：只允許經授權的網域訪問後端 API，避免惡意網站存取後端 API
 - **ORM 避免 SQL 注入**：ORM 使用參數化查詢，將傳入資料視為「參數」而不是「指令」，故傳入的惡意資料，即使被拼接也不會被當作 SQL 指令執行而避免 SQL 注入
+- **CORS 跨域請求控管**：只允許經授權的網域訪問後端 API，避免惡意網站存取後端 API
 - **最小權限原則**：避免使用 root 進行資料庫操作，而是建立使用者，並只授予其在資料庫上所有資料表必要的權限
 
 ### <a name="可維護性與可擴充性"></a>可維護性與可擴充性 [返回目錄 ↑](#目錄)
 
 - **FastAPI 自動生成文件**：FastAPI 官方內建，自動依據路由和 Pydantic 型別生成 OpenAPI 規範文檔，提供互動式測試的 Swagger UI、單頁式閱讀介面的 Redoc，減少維護 API 文件的工作量
 - **依賴注入**：將依賴（資料庫連線、權限驗證、設定檔讀取等邏輯）封裝在一個獨立函式中，需要時透過 Depends() 注入，需升級某功能時只需修改注入的依賴
+- **API 分層架構**：從用戶請求到回應，依職責拆分成 CORS → Routers → Schemas → Service → CRUD → Models → DB，降低耦合度
 - **行為驅動開發 BDD**：用 Given-When-Then 寫測試案例，說明給定什麼前置條件（GIVEN），執行什麼行為（WHEN），會得到什麼結果（Then），以利團隊迅速理解測試程式碼
 - **Pytest 測試框架**：Python 社群最受歡迎的測試框架，語法簡單、失敗時顯示「實際值 vs 預期值」可讀性高，支援 fixture、參數化測試、CI/CD 流程、pytest-cov（測試覆蓋率）等
 - **參數化測試裝飾器**：使用 @pytest.mark.parametrize 裝飾器，用同一段測試程式碼，測試不同輸入參數，避免撰寫大量重複且結構相似的測試案例
@@ -145,7 +146,6 @@
 - **自定義錯誤處理**：自定義不同層級可能遇到的錯誤類型，除錯時能快速定位是哪個層級拋出的錯誤
 - **錯誤處理 Decorator**：統一錯誤回傳格式，避免在每個函式中寫重覆的 try...except
 - **Log Decorator**：統一日誌記錄格式，除錯時能快速定位問題根源
-- **API 分層架構**：從用戶請求到回應，依職責拆分成 CORS → Routers → Schemas → Service → CRUD → Models → DB，降低耦合度
 - **SQLAlchemy ORM**：Python 官方推薦，以 Python 物件而非 SQL 操作資料庫、使用參數化查詢避免 SQL 注入，切換資料庫方便因只需改連線設定資料庫，降低 SQL 拼接錯誤，方便切換資料庫
 - **Alembic 資料庫遷移**：SQLAlchemy 官方推薦的 Migration 工具，讓資料庫遷移像程式碼版本控制一樣，方便回溯與管理
 - **Poetry 套件管理**：Python 官方推薦的現代化依賴管理工具，用 pyproject.toml 定義依賴的版本範圍，用 poetry.lock 鎖定確切依賴版本，確保環境一致性
@@ -157,8 +157,8 @@
 ### <a name="可靠性"></a>可靠性 [返回目錄 ↑](#目錄)
 
 - **FastAPI 型別檢查**：自動檢查傳入資料的型別，確保符合 Pydantic 模型定義，避免非法資料導致系統錯誤或崩潰
-- **測試覆蓋率 80％**：透過 pytest 進行單元測試、整合測試，測試覆蓋率 80%，確保各模組正常運作
 - **Pydantic 輸入驗證**：FastAPI 官方推薦，輸入資料不符合 schema 設定的型別和格式會報錯，確保資料正確性，避免系統崩潰
+- **測試覆蓋率 90％+**：透過 pytest 進行單元測試、整合測試，測試覆蓋率 90%+，確保各模組正常運作
 - **健康檢查**：監控應用程式是否存活、就緒，異常發生時自動重啟或流量導向健康的實例，確保服務穩定
 - **錯誤處理 Decorator**：攔截錯誤與例外，避免未捕捉錯誤導致服務中斷
 - **Log Decorator**：藉日誌監控應用程式的運行狀態，以提早發現效能瓶頸或不正常行為，如被頻繁呼叫的 API、處理時間過長的請求
@@ -499,7 +499,8 @@ Client Response 客戶端接收回應
 
 #### <a name="restful-api"></a>RESTful API [返回目錄 ↑](#目錄)
 
-本專案遵循 `RESTful (Representational State Transfer)` 原則設計 `API`，使用 `HTTP` 方法對資源執行操作。
+- 本專案遵循 `RESTful (Representational State Transfer)` 原則設計 `API`，使用 `HTTP` 方法對資源執行操作。
+- `RESTful API` 以資源為中心：解決以動作為中心的 API，如 `/api/getAllSchedules` 需定義許多動作名稱，且人人命名習慣不一致等協作問題。
 
 | 方法   | 端點                     | 描述         | 回應成功狀態碼 |
 | ------ | ------------------------ | ------------ | -------------- |
@@ -563,7 +564,7 @@ FastAPI 會自動依據路由和 Pydantic 型別生成 OpenAPI 規範文檔，�
      ```
    - 瀏覽器訪問：http://localhost:8000
 
-2. **訪問 API 文檔**
+2. **訪問 API 文檔，查看 API 請求與回應範例**
 
    - Swagger UI: `http://localhost:8000/docs`
    - ReDoc: `http://localhost:8000/redoc`
@@ -601,16 +602,15 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 
   ```bash
   # 執行所有測試
-  poetry run pytest # 建議使用：確保測試環境的一致性和可靠性
-  pytest            # 使用系統預設的環境，快速，但可能與專案所需套件版本不一致
+  poetry run pytest 
 
-  # 執行特定類型的測試
-  pytest tests/unit/           # 單元測試
-  pytest tests/integration/    # 整合測試
+  # 執行特定類型測試
+  poetry run pytest tests/unit/           # 單元測試
+  poetry run pytest tests/integration/    # 整合測試
 
-  # 執行特定模組的測試
-  pytest tests/unit/services/   # 服務層測試
-  pytest tests/integration/api/ # API 測試
+  # 執行特定模組測試
+  poetry run pytest tests/unit/services/   # 只執行單元測試中的服務層測試
+  poetry run pytest tests/integration/test_health.py # 只執行整合測試中的 test_health.py 檔案
   ```
 
 #### <a name="夾具-fixtures"></a>測試資料管理：夾具 Fixtures [返回目錄 ↑](#目錄)
@@ -713,38 +713,46 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 
   ```bash
   # 執行整個單元測試
-  pytest tests/unit/
+  poetry run pytest tests/unit/
 
   # 執行特定模組的單元測試
-  pytest tests/unit/services/
+  poetry run pytest tests/unit/services/  # 只執行單元測試中的服務層測試
   ```
 
 #### <a name="整合測試"></a>整合測試 [返回目錄 ↑](#目錄)
 
 - 路徑：`tests/integration/`
 - 說明：測試多個組件組合在一起後，能否正確協同工作
-  - **Routers 路由層**：測試 API 路由能正確處理 HTTP 請求，並返回預期的狀態碼與回應格式
-  - **健康檢查**：測試健康檢查 API 回傳正確格式、狀態碼
+  - **依賴注入**：測試應確保 FastAPI Depends 注入的 ORM Session 或 Repository 服務是測試專用的實例。
+  - **API 端點**：測試 API 路由收到 HTTP 請求，正確返回預期的狀態碼與回應格式
+  - **Pydantic 資料驗證**：
+  - **業務邏輯處理**：
+  - **SQLAlchemy ORM 轉換成功**：
+  - **資料正確寫入或讀取 MySQL/SQLite 資料庫**：
+  資料庫事務隔離： 每個整合測試都應在一個獨立的資料庫事務中執行，並在測試結束後回滾 (Rollback)，確保測試之間零污染。
+  測試健康檢查 API 回傳正確格式、狀態碼
   - 使用 TestClient 檢查回應狀態碼、JSON 格式
     用 TestClient（FastAPI 測試工具）模擬請求，驗證回應狀態碼、JSON 格式。
+    使用 pytest fixture 搭配 FastAPI TestClient，在測試會話 (Session) 開始時設定好 DB 連線，在每個測試中注入獨立的 DB Session。
 - 執行測試
 
   ```bash
   # 執行整個整合測試
-  pytest tests/integration/
+  poetry run pytest tests/integration/
 
   # 執行特定模組的整合測試
-  pytest tests/integration/api/
+  poetry run pytest tests/integration/test_health.py # 只執行整合測試中的 test_health.py 檔案
   ```
 
 #### <a name="測試覆蓋率"></a>測試覆蓋率 [返回目錄 ↑](#目錄)
 
 - 覆蓋率配置：`.coveragerc`
+- 90% +
 - 使用 pytest-cov 進行覆蓋率分析，確保關鍵功能、邏輯分支被完整測試
 - 執行測試並生成覆蓋率報告
 
   ```bash
-  pytest --cov=app --cov-report=html --cov-report=term
+  poetry run pytest --cov=app --cov-report=html --cov-report=term
   ```
 
 ### <a name="自動化測試"></a>自動化測試 [返回目錄 ↑](#目錄)

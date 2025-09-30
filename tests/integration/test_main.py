@@ -5,20 +5,18 @@
 
 # ===== 第三方套件 =====
 from fastapi import status
-from fastapi.testclient import TestClient
 import pytest
 
 # ===== 本地模組 =====
-from app.main import app
 
 
 class TestMainRoutes:
     """主要路由整合測試類別。"""
 
     @pytest.fixture
-    def client(self):
+    def client(self, integration_test_client):
         """建立測試客戶端。"""
-        return TestClient(app)
+        return integration_test_client
 
     def test_index_page(self, client):
         """測試首頁路由是否正常回應"""
