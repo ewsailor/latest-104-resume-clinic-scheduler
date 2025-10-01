@@ -29,7 +29,7 @@ class TestScheduleRoutes:
     def test_create_schedules_success(
         self, client, integration_db_session, schedule_create_payload
     ):
-        """測試建立時段 - 成功。"""
+        """測試建立時段 - 成功（201）。"""
         # GIVEN：使用 fixture 提供的資料
 
         # WHEN：呼叫建立時段 API
@@ -217,9 +217,9 @@ class TestScheduleRoutes:
         assert "input" in error_detail
 
     # ===== 查詢時段列表 =====
-    def test_list_schedules_success(self, client):
-        """測試查詢時段列表 - 成功。"""
-        # GIVEN：資料庫中有時段資料
+    def test_list_schedules_success(self, client, schedule_in_db):
+        """測試查詢時段列表 - 成功（200）。"""
+        # GIVEN：資料已經在資料庫中（通過夾具）
 
         # WHEN：呼叫查詢時段列表 API
         response = client.get("/api/v1/schedules")
@@ -228,39 +228,98 @@ class TestScheduleRoutes:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert isinstance(data, list)
+        assert len(data) == 1
 
-    def test_list_schedules_with_filters(self, client):
-        """測試查詢時段列表 - 使用篩選條件。"""
-        # GIVEN：查詢參數
+        # 驗證回傳資料的格式和內容
+        schedule_data = data[0]
+        assert "id" in schedule_data
+        assert schedule_data["giver_id"] == 1
+        assert schedule_data["date"] == "2024-12-25"
+        assert schedule_data["start_time"] == "09:00:00"
+        assert schedule_data["end_time"] == "10:00:00"
+        assert schedule_data["note"] == "資料庫中的時段資料"
+
+    @pytest.mark.parametrize(
+        "query_params,expected_count",
+        [
+            # 測試 giver_id 篩選
+            ("giver_id=1", 1),  # 找到 1 筆資料
+            ("giver_id=2", 0),  # 找不到資料
+            # 測試 taker_id 篩選
+            ("taker_id=1", 0),  # 找不到資料（夾具沒有設定 taker_id）
+            ("taker_id=2", 0),  # 找不到資料
+            # 測試 status 篩選
+            ("status_filter=DRAFT", 1),  # 找到 1 筆資料（預設狀態）
+            ("status_filter=AVAILABLE", 0),  # 找不到資料
+            ("status_filter=PENDING", 0),  # 找不到資料
+            # 測試組合篩選
+            ("giver_id=1&status_filter=DRAFT", 1),  # 找到 1 筆資料
+            ("giver_id=1&status_filter=AVAILABLE", 0),  # 找不到資料
+            ("giver_id=2&status_filter=DRAFT", 0),  # 找不到資料
+        ],
+    )
+    def test_list_schedules_with_filters(
+        self, client, schedule_in_db, query_params, expected_count
+    ):
+        """測試查詢時段列表 - 使用篩選條件（200）。"""
+        # GIVEN：資料已經在資料庫中（通過夾具）
 
         # WHEN：使用篩選條件查詢時段列表
-        response = client.get("/api/v1/schedules?giver_id=1&status_filter=AVAILABLE")
+        response = client.get(f"/api/v1/schedules?{query_params}")
 
         # THEN：確認查詢成功
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert isinstance(data, list)
+        assert len(data) == expected_count
 
-    def test_list_schedules_invalid_filters(self, client):
-        """測試查詢時段列表 - 無效篩選條件。"""
-        # GIVEN：無效的查詢參數（giver_id 必須大於 0）
+    @pytest.mark.parametrize(
+        "invalid_query_params",
+        [
+            # 測試無效的 giver_id
+            "giver_id=0",  # giver_id 必須大於 0
+            "giver_id=-1",  # giver_id 不能為負數
+            # 測試無效的 taker_id
+            "taker_id=0.5",  # taker_id 不能為小數
+            "taker_id=0",  # taker_id 必須大於 0
+            # 測試無效的 status
+            "status_filter=NONE_EXIST",  # 不存在的狀態
+            "status_filter=INVALID",  # 無效的狀態值
+            "status_filter=123",  # 非字串狀態值
+            # 測試無效的組合
+            "giver_id=0&status_filter=DRAFT",  # 無效 giver_id + 有效 status
+            "giver_id=1&status_filter=INVALID",  # 有效 giver_id + 無效 status
+        ],
+    )
+    def test_list_schedules_invalid_filters(self, client, invalid_query_params):
+        """測試查詢時段列表 - 無效篩選條件（422）。"""
+        # GIVEN：無效的查詢參數
 
         # WHEN：使用無效的篩選條件查詢
-        response = client.get("/api/v1/schedules?giver_id=0")
+        response = client.get(f"/api/v1/schedules?{invalid_query_params}")
 
         # THEN：確認返回驗證錯誤
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         data = response.json()
         assert "detail" in data
 
+        # 驗證 422 錯誤的完整格式
+        detail = data["detail"]
+        assert isinstance(detail, list)
+        assert len(detail) > 0
+
+        # 驗證錯誤詳情的結構
+        error_detail = detail[0]
+        assert "type" in error_detail
+        assert "loc" in error_detail
+        assert "msg" in error_detail
+        assert "input" in error_detail
+
     # ===== 取得單一時段 =====
-    def test_get_schedule_success(self, client, schedule_create_payload):
-        """測試取得單一時段 - 成功。"""
-        # GIVEN：先建立一個時段，使用 fixture 提供的唯一資料
-        create_response = client.post("/api/v1/schedules", json=schedule_create_payload)
-        assert create_response.status_code == status.HTTP_201_CREATED
-        created_schedule = create_response.json()[0]
-        schedule_id = created_schedule["id"]
+    def test_get_schedule_success(self, client, schedule_in_db):
+        """測試取得單一時段 - 成功（200）。"""
+        # GIVEN：資料已經在資料庫中（通過夾具）
+        schedule_id = schedule_in_db.id
 
         # WHEN：呼叫取得單一時段 API
         response = client.get(f"/api/v1/schedules/{schedule_id}")
@@ -268,16 +327,15 @@ class TestScheduleRoutes:
         # THEN：確認取得成功
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert "id" in data
         assert data["id"] == schedule_id
-        assert "giver_id" in data
-        assert "date" in data
-        assert "start_time" in data
-        assert "end_time" in data
-        assert "status" in data
+        assert data["giver_id"] == 1
+        assert data["date"] == "2024-12-25"
+        assert data["start_time"] == "09:00:00"
+        assert data["end_time"] == "10:00:00"
+        assert data["note"] == "資料庫中的時段資料"
 
     def test_get_schedule_not_found(self, client):
-        """測試取得單一時段 - 時段不存在。"""
+        """測試取得單一時段 - 時段不存在（404）。"""
         # GIVEN：不存在的時段 ID
 
         # WHEN：呼叫取得單一時段 API
@@ -290,7 +348,7 @@ class TestScheduleRoutes:
         assert "時段不存在" in data["error"]["message"]
 
     def test_get_schedule_invalid_id(self, client):
-        """測試取得單一時段 - 無效的時段 ID。"""
+        """測試取得單一時段 - 無效的時段 ID（422）。"""
         # GIVEN：無效的時段 ID（必須大於 0）
 
         # WHEN：使用無效的時段 ID 呼叫 API
@@ -309,7 +367,7 @@ class TestScheduleRoutes:
         schedule_create_payload,
         schedule_update_payload,
     ):
-        """測試更新時段 - 成功。
+        """測試更新時段 - 成功（200）。
 
         測試流程：
         request → CORS → Router → Schema → Service → CRUD → Model → DB → response。
@@ -464,7 +522,7 @@ class TestScheduleRoutes:
         schedule_create_payload,
         schedule_delete_payload,
     ):
-        """測試刪除時段 - 成功。
+        """測試刪除時段 - 成功（200）。
 
         測試流程：
         request → CORS → Router → Schema → Service → CRUD → Model → DB → response。

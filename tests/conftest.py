@@ -17,6 +17,7 @@ from tests.fixtures.integration.database import (  # noqa: F401
 from tests.fixtures.integration.schedule import (  # noqa: F401
     schedule_create_payload,
     schedule_delete_payload,
+    schedule_in_db,
     schedule_update_payload,
 )
 
