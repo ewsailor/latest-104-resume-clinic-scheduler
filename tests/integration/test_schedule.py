@@ -25,13 +25,7 @@ class TestScheduleRoutes:
         """建立測試客戶端。"""
         return integration_test_client
 
-    @pytest.fixture(autouse=True)
-    def cleanup_database(self):
-        """自動清理資料庫，避免測試間互相影響。"""
-        # 測試前清理
-        yield
-        # 測試後清理（如果需要）
-
+    # ===== 建立時段 =====
     def test_create_schedules_success(
         self, client, integration_db_session, schedule_create_payload
     ):
@@ -137,57 +131,92 @@ class TestScheduleRoutes:
         assert db_schedule.deleted_by is None
         assert db_schedule.deleted_by_role is None
 
-    def test_create_schedules_validation_error(self, client):
-        """測試建立時段 - 參數驗證錯誤。"""
-        # GIVEN：無效的時段建立資料（缺少必要欄位）
-        invalid_data = {
-            "schedules": [
-                {
-                    "giver_id": 1,
-                    # 缺少 date 欄位
-                    "start_time": "09:00:00",
-                    "end_time": "10:00:00",
-                }
-            ],
-            "created_by": 1,
-            "created_by_role": "GIVER",
-        }
+    def test_create_schedules_end_before_start(self, client, schedule_create_payload):
+        """測試建立時段 - 結束時間早於開始時間（400）。"""
+        # GIVEN：使用夾具資料並修改為無效的時間邏輯
+        invalid_payload = schedule_create_payload.copy()
+        invalid_payload["schedules"][0]["start_time"] = "10:00:00"
+        invalid_payload["schedules"][0]["end_time"] = "09:00:00"  # 結束時間早於開始時間
 
         # WHEN：呼叫建立時段 API
-        response = client.post("/api/v1/schedules", json=invalid_data)
-
-        # THEN：確認返回驗證錯誤
-        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-        data = response.json()
-        assert "detail" in data
-        assert isinstance(data["detail"], list)
-
-    def test_create_schedules_time_validation_error(self, client):
-        """測試建立時段 - 時間邏輯錯誤。"""
-        # GIVEN：時間邏輯錯誤的時段資料（開始時間晚於結束時間）
-        invalid_time_data = {
-            "schedules": [
-                {
-                    "giver_id": 1,
-                    "date": "2024-01-15",
-                    "start_time": "10:00:00",
-                    "end_time": "09:00:00",  # 結束時間早於開始時間
-                    "note": "無效時段",
-                }
-            ],
-            "created_by": 1,
-            "created_by_role": "GIVER",
-        }
-
-        # WHEN：呼叫建立時段 API
-        response = client.post("/api/v1/schedules", json=invalid_time_data)
+        response = client.post("/api/v1/schedules", json=invalid_payload)
 
         # THEN：確認返回時間邏輯錯誤
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         data = response.json()
         assert "error" in data
-        assert "開始時間必須早於結束時間" in data["error"]["message"]
 
+        # 驗證錯誤回應的完整格式
+        error = data["error"]
+        assert error["message"] == "開始時間必須早於結束時間"
+        assert error["status_code"] == 400
+        assert error["code"] == "ROUTER_BAD_REQUEST"
+        assert "timestamp" in error
+        assert "details" in error
+
+    def test_create_schedules_time_conflict(self, client, schedule_create_payload):
+        """測試建立時段 - 時段衝突錯誤（409）。"""
+        # GIVEN：先建立一個時段，然後嘗試建立重疊的時段
+        # 1. 先建立第一個時段
+        first_payload = schedule_create_payload.copy()
+        first_payload["schedules"][0]["date"] = "2024-01-15"
+        first_payload["schedules"][0]["start_time"] = "09:00:00"
+        first_payload["schedules"][0]["end_time"] = "10:00:00"
+
+        # 建立第一個時段
+        first_response = client.post("/api/v1/schedules", json=first_payload)
+        assert first_response.status_code == status.HTTP_201_CREATED
+
+        # 2. 建立重疊的時段
+        conflict_payload = schedule_create_payload.copy()
+        conflict_payload["schedules"][0]["date"] = "2024-01-15"
+        conflict_payload["schedules"][0]["start_time"] = "09:30:00"  # 與第一個時段重疊
+        conflict_payload["schedules"][0]["end_time"] = "10:30:00"
+
+        # WHEN：呼叫建立時段 API
+        response = client.post("/api/v1/schedules", json=conflict_payload)
+
+        # THEN：確認返回時段衝突錯誤
+        assert response.status_code == status.HTTP_409_CONFLICT
+        data = response.json()
+        assert "error" in data
+
+        # 驗證錯誤回應的完整格式
+        error = data["error"]
+        assert "檢測到" in error["message"] and "重疊時段" in error["message"]
+        assert error["status_code"] == 409
+        assert error["code"] == "SERVICE_SCHEDULE_OVERLAP"
+        assert "timestamp" in error
+        assert "details" in error
+        assert "overlapping_schedules" in error["details"]
+
+    def test_create_schedules_validation_error(self, client, schedule_create_payload):
+        """測試建立時段 - 參數驗證錯誤（422）。"""
+        # GIVEN：使用夾具資料並移除必填欄位
+        invalid_payload = schedule_create_payload.copy()
+        invalid_payload["schedules"][0].pop("date")  # 移除必填欄位創造 422 錯誤
+
+        # WHEN：呼叫建立時段 API
+        response = client.post("/api/v1/schedules", json=invalid_payload)
+
+        # THEN：確認返回驗證錯誤
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        data = response.json()
+        assert "detail" in data
+
+        # 驗證 422 錯誤的完整格式
+        detail = data["detail"]
+        assert isinstance(detail, list)
+        assert len(detail) > 0
+
+        # 驗證錯誤詳情的結構
+        error_detail = detail[0]
+        assert "type" in error_detail
+        assert "loc" in error_detail
+        assert "msg" in error_detail
+        assert "input" in error_detail
+
+    # ===== 查詢時段列表 =====
     def test_list_schedules_success(self, client):
         """測試查詢時段列表 - 成功。"""
         # GIVEN：資料庫中有時段資料
@@ -224,6 +253,7 @@ class TestScheduleRoutes:
         data = response.json()
         assert "detail" in data
 
+    # ===== 取得單一時段 =====
     def test_get_schedule_success(self, client, schedule_create_payload):
         """測試取得單一時段 - 成功。"""
         # GIVEN：先建立一個時段，使用 fixture 提供的唯一資料
@@ -271,6 +301,7 @@ class TestScheduleRoutes:
         data = response.json()
         assert "detail" in data
 
+    # ===== 更新時段 =====
     def test_update_schedule_success(
         self,
         client,
@@ -425,6 +456,7 @@ class TestScheduleRoutes:
         data = response.json()
         assert "error" in data
 
+    # ===== 刪除時段 =====
     def test_delete_schedule_success(
         self,
         client,

@@ -73,15 +73,15 @@ def integration_db_session():
         # )
         # session.commit()
 
-        # 使用 yield 確保會話在測試結束後正確關閉
+        # 將 session 傳遞給測試使用，pytest 會在測試結束後自動執行 finally 清理
         yield session
     except Exception as e:
         # 錯誤處理：會話操作失敗時回滾並重新拋出異常
         session.rollback()
         raise Exception(f"整合測試資料庫會話操作失敗：{str(e)}")
     finally:
-        # 確保會話在測試結束後正確關閉，避免資源洩漏
-        session.close()
+        session.rollback()  # 確保任何未提交的更改被回滾
+        session.close()  # 確保會話在測試結束後正確關閉，避免資源洩漏
 
 
 @pytest.fixture(scope="function")
@@ -135,3 +135,23 @@ def integration_test_client(integration_db_session):
 
     # 測試結束後，清除依賴注入的覆寫，避免影響其他測試
     test_app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def cleanup_database(integration_db_session):
+    """自動清理資料庫，避免測試間互相影響。
+
+    這個 fixture 會自動在每個測試前後清理資料庫，
+    確保測試間的資料隔離。
+    """
+    # 測試前清理：確保資料庫是乾淨的
+    integration_db_session.query(Schedule).delete()
+    integration_db_session.query(User).delete()
+    integration_db_session.commit()
+
+    yield
+
+    # 測試後清理：清理測試產生的資料
+    integration_db_session.query(Schedule).delete()
+    integration_db_session.query(User).delete()
+    integration_db_session.commit()

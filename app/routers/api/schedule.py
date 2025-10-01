@@ -98,7 +98,7 @@ router = APIRouter(prefix="/api/v1", tags=["Schedules"])
                         "error": {
                             "message": "檢測到 1 個重疊時段，請調整時段之時間",
                             "status_code": 409,
-                            "code": "SERVICE_CONFLICT",
+                            "code": "SERVICE_SCHEDULE_OVERLAP",
                             "timestamp": "2024-01-01T00:00:00Z",
                             "details": {
                                 "overlapping_schedules": [
@@ -163,7 +163,7 @@ async def create_schedules(
         created_by_role=request.created_by_role,
     )
 
-    # 格式轉換：將 Python 物件（如 SQLAlchemy 模型）轉換為 Pydantic 模型
+    # 資料序列化：使用 Pydantic 將 SQLAlchemy ORM 模型轉換為 API 回應格式
     return [ScheduleResponse.model_validate(schedule) for schedule in schedules]
 
 
