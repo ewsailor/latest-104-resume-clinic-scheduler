@@ -67,4 +67,7 @@ def schedule_update_payload():
 @pytest.fixture
 def schedule_delete_payload():
     """時段刪除請求資料。"""
-    return {"deleted_by": 1, "deleted_by_role": "GIVER"}
+    return {
+        "deleted_by": 1,
+        "deleted_by_role": "GIVER",
+    }

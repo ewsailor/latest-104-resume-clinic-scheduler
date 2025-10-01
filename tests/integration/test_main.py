@@ -10,8 +10,6 @@ from unittest.mock import patch
 from fastapi import status
 import pytest
 
-# ===== 本地模組 =====
-
 
 class TestMainRoutes:
     """主要路由整合測試類別。"""

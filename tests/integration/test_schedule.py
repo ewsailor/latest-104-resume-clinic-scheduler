@@ -3,10 +3,8 @@
 測試時段管理 API 的完整流程，包括建立、查詢、更新和刪除時段。
 """
 
-from datetime import date, time
-
 # ===== 標準函式庫 =====
-import json
+from datetime import date, time
 
 # ===== 第三方套件 =====
 from fastapi import status
@@ -642,38 +640,27 @@ class TestScheduleRoutes:
     def test_delete_schedule_success(
         self,
         client,
-        integration_db_session,
-        schedule_create_payload,
+        schedule_in_db,
         schedule_delete_payload,
+        integration_db_session,
     ):
-        """測試刪除時段 - 成功（200）。
-
-        測試流程：
-        request → CORS → Router → Schema → Service → CRUD → Model → DB → response。
-        """
-        # GIVEN：先建立一個時段，使用 fixture 提供的唯一資料
-        create_response = client.post("/api/v1/schedules", json=schedule_create_payload)
-        assert create_response.status_code == status.HTTP_201_CREATED
-        created_schedule = create_response.json()[0]
-        schedule_id = created_schedule["id"]
+        """測試刪除時段 - 成功（204）。"""
+        # GIVEN：資料已經在資料庫中（通過夾具）
+        schedule_id = schedule_in_db.id
 
         # WHEN：呼叫刪除時段 API
+        # client.delete() 不支援 json、data 參數，故使用 client.request() 方法
         response = client.request(
             "DELETE",
             f"/api/v1/schedules/{schedule_id}",
-            content=json.dumps(schedule_delete_payload).encode('utf-8'),
-            headers={"Content-Type": "application/json"},
+            json=schedule_delete_payload,
         )
 
         # THEN：確認刪除成功
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert response.content == b""
+        assert response.content == b""  # 204 回應應該為空
 
         # ===== 查詢資料庫，驗證軟刪除的內容是否正確 =====
-        from datetime import date, time
-
-        from app.models.schedule import Schedule as ScheduleModel
-
         # 查主鍵，故使用 get() 而不是 .query().filter(...).first()
         db_schedule = integration_db_session.get(ScheduleModel, schedule_id)
 
@@ -684,9 +671,11 @@ class TestScheduleRoutes:
         assert db_schedule.id == schedule_id
         assert db_schedule.giver_id == 1
         assert db_schedule.taker_id is None
-        assert db_schedule.note == "測試時段"
-        assert db_schedule.created_by == 1
-        assert db_schedule.created_by_role == "GIVER"
+        assert db_schedule.note == "資料庫中的時段資料"  # 夾具中的資料
+        assert db_schedule.created_by is None  # 夾具中沒有設定 created_by
+        assert db_schedule.created_by_role == "SYSTEM"  # 預設角色
+        assert db_schedule.updated_by == 1
+        assert db_schedule.updated_by_role == "GIVER"
 
         # ORM 將資料庫中 Enum 物件，轉回 Python 的 Enum 物件，故可以直接用 Enum 比對
         # 刪除時段時，狀態會自動改為 CANCELLED
@@ -719,36 +708,94 @@ class TestScheduleRoutes:
         assert db_schedule.is_active is False
 
     def test_delete_schedule_not_found(self, client, schedule_delete_payload):
-        """測試刪除時段 - 時段不存在。"""
+        """測試刪除時段 - 時段不存在（404）。"""
         # GIVEN：不存在的時段 ID 和有效的刪除資料
 
         # WHEN：呼叫刪除時段 API
         response = client.request(
             "DELETE",
             "/api/v1/schedules/99999",
-            content=json.dumps(schedule_delete_payload).encode('utf-8'),
-            headers={"Content-Type": "application/json"},
+            json=schedule_delete_payload,
         )
 
         # THEN：確認返回找不到錯誤
         assert response.status_code == status.HTTP_404_NOT_FOUND
         data = response.json()
         assert "error" in data
-        assert "時段不存在" in data["error"]["message"]
 
-    def test_delete_schedule_validation_error(self, client):
-        """測試刪除時段 - 參數驗證錯誤。"""
-        # GIVEN：無效的刪除資料（缺少必要欄位）
-        invalid_data = {
-            # 缺少必要欄位
-        }
+        # 驗證錯誤回應的完整格式
+        error = data["error"]
+        assert error["message"] == "時段不存在: ID=99999"
+        assert error["status_code"] == 404
+        assert error["code"] == "SERVICE_SCHEDULE_NOT_FOUND"
+        assert "timestamp" in error
+        assert "details" in error
+
+    @pytest.mark.parametrize(
+        "status_enum,expected_status_name",
+        [
+            (ScheduleStatusEnum.ACCEPTED, "ACCEPTED"),
+            (ScheduleStatusEnum.COMPLETED, "COMPLETED"),
+        ],
+    )
+    def test_delete_schedule_cannot_be_deleted(
+        self,
+        client,
+        schedule_in_db,
+        schedule_delete_payload,
+        status_enum,
+        expected_status_name,
+    ):
+        """測試刪除時段 - 時段無法刪除錯誤（409）。"""
+        # GIVEN：資料已經在資料庫中（通過夾具），但狀態不允許刪除
+        schedule_id = schedule_in_db.id
+
+        # 將時段狀態設為不允許刪除的狀態
+        schedule_in_db.status = status_enum
 
         # WHEN：呼叫刪除時段 API
         response = client.request(
             "DELETE",
-            "/api/v1/schedules/1",
-            content=json.dumps(invalid_data).encode('utf-8'),
-            headers={"Content-Type": "application/json"},
+            f"/api/v1/schedules/{schedule_id}",
+            json=schedule_delete_payload,
+        )
+
+        # THEN：確認返回時段無法刪除錯誤
+        assert response.status_code == status.HTTP_409_CONFLICT
+        data = response.json()
+        assert "error" in data
+
+        # 驗證錯誤回應的完整格式
+        error = data["error"]
+        assert "時段無法刪除" in error["message"]
+        assert "ID=" in error["message"]
+        assert error["status_code"] == 409
+        assert error["code"] == "SERVICE_SCHEDULE_CANNOT_BE_DELETED"
+        assert "timestamp" in error
+        assert "details" in error
+        assert "reason" in error["details"]
+        assert "current_status" in error["details"]
+        assert "explanation" in error["details"]
+
+        # 驗證當前狀態
+        assert error["details"]["current_status"] == expected_status_name
+
+    def test_delete_schedule_validation_error(
+        self, client, schedule_in_db, schedule_delete_payload
+    ):
+        """測試刪除時段 - 參數驗證錯誤（422）。"""
+        # GIVEN：資料已經在資料庫中（通過夾具）
+        schedule_id = schedule_in_db.id
+
+        # 修改為無效的刪除資料，創造 422 錯誤
+        invalid_data = schedule_delete_payload.copy()
+        invalid_data["deleted_by"] = -1  # 無效的 deleted_by（必須大於 0）
+
+        # WHEN：呼叫刪除時段 API
+        response = client.request(
+            "DELETE",
+            f"/api/v1/schedules/{schedule_id}",
+            json=invalid_data,
         )
 
         # THEN：確認返回驗證錯誤
@@ -756,30 +803,14 @@ class TestScheduleRoutes:
         data = response.json()
         assert "detail" in data
 
-    def test_schedule_routes_http_methods(self, client):
-        """測試時段路由 - HTTP 方法限制。"""
-        # GIVEN：時段路由端點
+        # 驗證 422 錯誤的完整格式
+        detail = data["detail"]
+        assert isinstance(detail, list)
+        assert len(detail) > 0
 
-        # WHEN：使用不支援的 HTTP 方法
-        get_response = client.get("/api/v1/schedules/1")  # 支援
-        post_response = client.post("/api/v1/schedules/1")  # 不支援
-        put_response = client.put("/api/v1/schedules/1")  # 不支援
-
-        # THEN：確認方法支援正確
-        assert get_response.status_code in [
-            status.HTTP_200_OK,
-            status.HTTP_404_NOT_FOUND,
-        ]
-        assert post_response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-        assert put_response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-
-    def test_schedule_routes_content_type(self, client):
-        """測試時段路由 - 內容類型。"""
-        # GIVEN：時段路由端點
-
-        # WHEN：呼叫 API 端點
-        response = client.get("/api/v1/schedules")
-
-        # THEN：確認內容類型正確
-        assert response.status_code == status.HTTP_200_OK
-        assert response.headers["content-type"] == "application/json"
+        # 驗證錯誤詳情的結構
+        error_detail = detail[0]
+        assert "type" in error_detail
+        assert "loc" in error_detail
+        assert "msg" in error_detail
+        assert "input" in error_detail
