@@ -57,8 +57,6 @@ def schedule_update_payload():
     """時段更新請求資料。"""
     return {
         "schedule": {
-            "start_time": "14:00:00",
-            "end_time": "15:00:00",
             "note": "更新後的時段",
         },
         "updated_by": 1,
