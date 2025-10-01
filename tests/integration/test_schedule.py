@@ -3,6 +3,8 @@
 測試時段管理 API 的完整流程，包括建立、查詢、更新和刪除時段。
 """
 
+from datetime import date, time
+
 # ===== 標準函式庫 =====
 import json
 
@@ -12,6 +14,7 @@ import pytest
 
 # ===== 本地模組 =====
 from app.enums.models import ScheduleStatusEnum
+from app.models.schedule import Schedule as ScheduleModel
 
 
 class TestScheduleRoutes:
@@ -29,7 +32,9 @@ class TestScheduleRoutes:
         yield
         # 測試後清理（如果需要）
 
-    def test_create_schedules_success(self, client, schedule_create_payload):
+    def test_create_schedules_success(
+        self, client, integration_db_session, schedule_create_payload
+    ):
         """測試建立時段 - 成功。"""
         # GIVEN：使用 fixture 提供的資料
 
@@ -38,40 +43,99 @@ class TestScheduleRoutes:
 
         # THEN：確認建立成功
         assert response.status_code == status.HTTP_201_CREATED
-        data = response.json()
-        assert isinstance(data, list)
+        data = response.json()  # 轉成 Python 物件
+        assert isinstance(data, list)  # 回傳格式是 list
         assert len(data) == 1
 
-        # 驗證回應資料結構
-        schedule = data[0]
+        # ===== 驗證回應資料結構 =====
+        schedule_json = data[0]
 
         # 基本欄位驗證
-        assert "id" in schedule
-        assert schedule["giver_id"] == 1
-        assert schedule["taker_id"] is None
+        assert "id" in schedule_json
+        assert schedule_json["giver_id"] == 1
+        assert schedule_json["taker_id"] is None
+        assert schedule_json["note"] == "測試時段"
+        assert schedule_json["created_by"] == 1
+        assert schedule_json["created_by_role"] == "GIVER"
+        assert schedule_json["updated_by"] == 1
+        assert schedule_json["updated_by_role"] == "GIVER"
+
+        # JSON Response 只能存字串或數字，不能存 Python Enum 物件
+        # 用 .value 取出 Python Enum 物件的值
         assert (
-            schedule["status"] == ScheduleStatusEnum.AVAILABLE.value
+            schedule_json["status"] == ScheduleStatusEnum.AVAILABLE.value
         )  # GIVER 建立時段時狀態應為 AVAILABLE
-        assert schedule["date"] == "2024-12-25"
-        assert schedule["start_time"] == "09:00:00"
-        assert schedule["end_time"] == "10:00:00"
-        assert schedule["note"] == "測試時段"
-        assert schedule["created_by"] == 1
-        assert schedule["created_by_role"] == "GIVER"
-        assert schedule["updated_by"] == 1
-        assert schedule["updated_by_role"] == "GIVER"
+
+        # JSON Response 中，date、time 是字串格式
+        assert schedule_json["date"] == "2024-12-25"
+        assert schedule_json["start_time"] == "09:00:00"
+        assert schedule_json["end_time"] == "10:00:00"
 
         # 時間戳記驗證
-        assert "created_at" in schedule
-        assert "updated_at" in schedule
-        assert schedule["created_at"] is not None
-        assert schedule["updated_at"] is not None
-        assert schedule["created_at"] == schedule["updated_at"]
+        assert "created_at" in schedule_json
+        assert "updated_at" in schedule_json
+        assert schedule_json["created_at"] is not None
+        assert schedule_json["updated_at"] is not None
+
+        # 建立時，create 和 update 以下 3 個欄位應該相同
+        assert schedule_json["created_at"] == schedule_json["updated_at"]
+        assert schedule_json["created_by"] == schedule_json["updated_by"]
+        assert schedule_json["created_by_role"] == schedule_json["updated_by_role"]
 
         # 軟刪除相關（建立時應為 null）
-        assert schedule["deleted_at"] is None
-        assert schedule["deleted_by"] is None
-        assert schedule["deleted_by_role"] is None
+        assert schedule_json["deleted_at"] is None
+        assert schedule_json["deleted_by"] is None
+        assert schedule_json["deleted_by_role"] is None
+
+        # ===== 查詢資料庫，驗證寫入的內容是否正確 =====
+        # 從 API 回傳取得 id
+        schedule_id = schedule_json["id"]
+
+        # 查主鍵，故使用 get() 而不是 .query().filter(...).first()
+        db_schedule = integration_db_session.get(ScheduleModel, schedule_id)
+
+        # 驗證記錄存在
+        assert db_schedule is not None
+
+        # 驗證欄位值寫入正確
+        assert db_schedule.id == schedule_json["id"]
+        assert db_schedule.giver_id == 1
+        assert db_schedule.taker_id is None
+        assert db_schedule.note == "測試時段"
+        assert db_schedule.created_by == 1
+        assert db_schedule.created_by_role == "GIVER"
+        assert db_schedule.updated_by == 1
+        assert db_schedule.updated_by_role == "GIVER"
+
+        # ORM 將資料庫中 Enum 物件，轉回 Python 的 Enum 物件，故可以直接用 Enum 比對
+        assert db_schedule.status == ScheduleStatusEnum.AVAILABLE
+
+        # 驗證 ORM 資料型別轉換
+        # 1. 請求階段，API 傳入的 date、time 是 JSON 字串格式
+        # 2. Pydantic schema 將 JSON 字串，轉成 Python 的 date、time 物件
+        # 3. ORM 將 Python 的 date、time 物件，寫入 MySQL/MariaDB 資料庫成 DATE、TIME 物件
+        # 4. 查詢資料庫時，ORM 將資料庫中 DATE、TIME 物件，轉回 Python 的 date、time 物件
+        assert db_schedule.date == date(2024, 12, 25)
+        assert db_schedule.start_time == time(9, 0, 0)
+        assert db_schedule.end_time == time(10, 0, 0)
+        # 驗證 ORM 物件轉為字串後，與原始請求一致 (JSON 格式)
+        assert str(db_schedule.date) == "2024-12-25"
+        assert str(db_schedule.start_time) == "09:00:00"
+        assert str(db_schedule.end_time) == "10:00:00"
+
+        # 時間戳記驗證
+        assert db_schedule.created_at is not None
+        assert db_schedule.updated_at is not None
+
+        # 建立時，create 和 update 以下 3 個欄位應該相同
+        assert db_schedule.created_at == db_schedule.updated_at
+        assert db_schedule.created_by == db_schedule.updated_by
+        assert db_schedule.created_by_role == db_schedule.updated_by_role
+
+        # 軟刪除相關（建立時應為 null）
+        assert db_schedule.deleted_at is None
+        assert db_schedule.deleted_by is None
+        assert db_schedule.deleted_by_role is None
 
     def test_create_schedules_validation_error(self, client):
         """測試建立時段 - 參數驗證錯誤。"""
@@ -208,9 +272,17 @@ class TestScheduleRoutes:
         assert "detail" in data
 
     def test_update_schedule_success(
-        self, client, schedule_create_payload, schedule_update_payload
+        self,
+        client,
+        integration_db_session,
+        schedule_create_payload,
+        schedule_update_payload,
     ):
-        """測試更新時段 - 成功。"""
+        """測試更新時段 - 成功。
+
+        測試流程：
+        request → CORS → Router → Schema → Service → CRUD → Model → DB → response。
+        """
         # GIVEN：先建立一個時段，使用 fixture 提供的唯一資料
         create_response = client.post("/api/v1/schedules", json=schedule_create_payload)
         assert create_response.status_code == status.HTTP_201_CREATED
@@ -233,9 +305,11 @@ class TestScheduleRoutes:
 
         # THEN：確認更新成功
         assert response.status_code == status.HTTP_200_OK
-        data = response.json()
+        data = response.json()  # 轉成 Python 物件
         assert "id" in data
         assert data["id"] == schedule_id
+
+        # ===== 驗證回應資料結構 =====
         # 驗證更新後的資料
         assert data["note"] == "更新後的時段"
         assert data["updated_by"] == 1
@@ -243,6 +317,72 @@ class TestScheduleRoutes:
         # 驗證時間沒有改變
         assert data["start_time"] == created_schedule["start_time"]
         assert data["end_time"] == created_schedule["end_time"]
+        # 驗證其他欄位保持不變
+        assert data["giver_id"] == 1
+        assert data["taker_id"] is None
+        assert data["status"] == ScheduleStatusEnum.AVAILABLE.value
+        assert data["date"] == "2024-12-25"
+        assert data["created_by"] == 1
+        assert data["created_by_role"] == "GIVER"
+
+        # 時間戳記驗證
+        assert "created_at" in data
+        assert "updated_at" in data
+        assert data["created_at"] is not None
+        assert data["updated_at"] is not None
+        # 更新後，updated_at 應該不同於 created_at（或相同，取決於時間精度）
+
+        # 軟刪除相關（更新時應仍為 null）
+        assert data["deleted_at"] is None
+        assert data["deleted_by"] is None
+        assert data["deleted_by_role"] is None
+
+        # ===== 查詢資料庫，驗證寫入的內容是否正確 =====
+
+        # 從 API 回傳取得 id
+        schedule_id = data["id"]
+
+        # 查主鍵，故使用 get() 而不是 .query().filter(...).first()
+        db_schedule = integration_db_session.get(ScheduleModel, schedule_id)
+
+        # 驗證記錄存在
+        assert db_schedule is not None
+
+        # 驗證欄位值更新正確
+        assert db_schedule.id == data["id"]
+        assert db_schedule.giver_id == 1
+        assert db_schedule.taker_id is None
+        assert db_schedule.note == "更新後的時段"  # 驗證備註已更新
+        assert db_schedule.created_by == 1
+        assert db_schedule.created_by_role == "GIVER"
+        assert db_schedule.updated_by == 1  # 驗證更新者
+        assert db_schedule.updated_by_role == "GIVER"
+
+        # ORM 將資料庫中 Enum 物件，轉回 Python 的 Enum 物件，故可以直接用 Enum 比對
+        assert db_schedule.status == ScheduleStatusEnum.AVAILABLE
+
+        # 驗證 ORM 資料型別轉換
+        # 1. 請求階段，API 傳入的 date、time 是 JSON 字串格式
+        # 2. Pydantic schema 將 JSON 字串，轉成 Python 的 date、time 物件
+        # 3. ORM 將 Python 的 date、time 物件，寫入 MySQL/MariaDB 資料庫成 DATE、TIME 物件
+        # 4. 查詢資料庫時，ORM 將資料庫中 DATE、TIME 物件，轉回 Python 的 date、time 物件
+        assert db_schedule.date == date(2024, 12, 25)
+        assert db_schedule.start_time == time(9, 0, 0)
+        assert db_schedule.end_time == time(10, 0, 0)
+        # 驗證 ORM 物件轉為字串後，與原始請求一致 (JSON 格式)
+        assert str(db_schedule.date) == "2024-12-25"
+        assert str(db_schedule.start_time) == "09:00:00"
+        assert str(db_schedule.end_time) == "10:00:00"
+
+        # 時間戳記驗證
+        assert db_schedule.created_at is not None
+        assert db_schedule.updated_at is not None
+        # 更新後，created_at 應該保持不變，updated_at 應該被更新
+
+        # 軟刪除相關（更新時應仍為 null）
+        assert db_schedule.deleted_at is None
+        assert db_schedule.deleted_by is None
+        assert db_schedule.deleted_by_role is None
 
     def test_update_schedule_not_found(self, client, schedule_update_payload):
         """測試更新時段 - 時段不存在。"""
@@ -286,9 +426,17 @@ class TestScheduleRoutes:
         assert "error" in data
 
     def test_delete_schedule_success(
-        self, client, schedule_create_payload, schedule_delete_payload
+        self,
+        client,
+        integration_db_session,
+        schedule_create_payload,
+        schedule_delete_payload,
     ):
-        """測試刪除時段 - 成功。"""
+        """測試刪除時段 - 成功。
+
+        測試流程：
+        request → CORS → Router → Schema → Service → CRUD → Model → DB → response。
+        """
         # GIVEN：先建立一個時段，使用 fixture 提供的唯一資料
         create_response = client.post("/api/v1/schedules", json=schedule_create_payload)
         assert create_response.status_code == status.HTTP_201_CREATED
@@ -306,6 +454,55 @@ class TestScheduleRoutes:
         # THEN：確認刪除成功
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.content == b""
+
+        # ===== 查詢資料庫，驗證軟刪除的內容是否正確 =====
+        from datetime import date, time
+
+        from app.models.schedule import Schedule as ScheduleModel
+
+        # 查主鍵，故使用 get() 而不是 .query().filter(...).first()
+        db_schedule = integration_db_session.get(ScheduleModel, schedule_id)
+
+        # 驗證記錄存在（軟刪除不會真正刪除記錄）
+        assert db_schedule is not None
+
+        # 驗證基本欄位保持不變
+        assert db_schedule.id == schedule_id
+        assert db_schedule.giver_id == 1
+        assert db_schedule.taker_id is None
+        assert db_schedule.note == "測試時段"
+        assert db_schedule.created_by == 1
+        assert db_schedule.created_by_role == "GIVER"
+
+        # ORM 將資料庫中 Enum 物件，轉回 Python 的 Enum 物件，故可以直接用 Enum 比對
+        # 刪除時段時，狀態會自動改為 CANCELLED
+        assert db_schedule.status == ScheduleStatusEnum.CANCELLED
+
+        # 驗證 ORM 資料型別轉換
+        # 1. 請求階段，API 傳入的 date、time 是 JSON 字串格式
+        # 2. Pydantic schema 將 JSON 字串，轉成 Python 的 date、time 物件
+        # 3. ORM 將 Python 的 date、time 物件，寫入 MySQL/MariaDB 資料庫成 DATE、TIME 物件
+        # 4. 查詢資料庫時，ORM 將資料庫中 DATE、TIME 物件，轉回 Python 的 date、time 物件
+        assert db_schedule.date == date(2024, 12, 25)
+        assert db_schedule.start_time == time(9, 0, 0)
+        assert db_schedule.end_time == time(10, 0, 0)
+        # 驗證 ORM 物件轉為字串後，與原始請求一致 (JSON 格式)
+        assert str(db_schedule.date) == "2024-12-25"
+        assert str(db_schedule.start_time) == "09:00:00"
+        assert str(db_schedule.end_time) == "10:00:00"
+
+        # 時間戳記驗證
+        assert db_schedule.created_at is not None
+        assert db_schedule.updated_at is not None
+
+        # 軟刪除相關（刪除後應設定）
+        assert db_schedule.deleted_at is not None  # 刪除時間應該被設定
+        assert db_schedule.deleted_by == 1  # 刪除者應為 1
+        assert db_schedule.deleted_by_role == "GIVER"  # 刪除者角色應為 GIVER
+
+        # 驗證 is_deleted 屬性
+        assert db_schedule.is_deleted is True
+        assert db_schedule.is_active is False
 
     def test_delete_schedule_not_found(self, client, schedule_delete_payload):
         """測試刪除時段 - 時段不存在。"""

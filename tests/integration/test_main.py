@@ -3,6 +3,7 @@
 測試首頁路由的完整流程，包括 HTML 渲染和資料傳遞。
 """
 
+# ===== 標準函式庫 =====
 from unittest.mock import patch
 
 # ===== 第三方套件 =====

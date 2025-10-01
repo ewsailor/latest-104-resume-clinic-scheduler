@@ -115,12 +115,12 @@
 | 分類       | 技術棧與選型理由                                                                                                                                                                                                                                                                                                                                                                                                  |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 後端       | - **核心架構**：Python 同時適合 Web 開發與資料分析、FastAPI 框架（Uvicorn ASGI 非同步/熱重載伺服器、Pydantic 資料驗證與型別提示、自動生成 API 文件）、依賴注入、Jinja2 伺服器端渲染模板引擎<br>- **相關優化**：錯誤處理與日誌 decorator、健康檢查監控應用程式是否存活與就緒、CORS 僅允許授權網域訪問                                                                                                              |
-| 資料庫     | - **核心架構**：MySQL/MariaDB 處理結構化資料如時段預約、SQLAlchemy ORM 以 Python 物件而非 SQL 操作資料庫、SQLite 測試環境資料庫、Alembic 資料庫 Migration、ERD 實體關聯圖 <br>- **相關優化**：Rollback 落實事務管理避免資料不一致、Eager loading 解決 N+1、Lazy loading 需要時才載入子表、索引提升效能、連線池確保高併發穩定、最小權限原則確保安全性、外鍵約束避免孤兒紀錄、Enum 降低維護成本、軟刪除避免誤刪資料 |
+| 資料庫     | - **核心架構**：MySQL/MariaDB 處理結構化資料如時段預約、SQLAlchemy ORM 以 Python 物件而非手寫 SQL 操作資料庫、SQLite 測試環境資料庫、Alembic 資料庫 Migration、ERD 實體關聯圖 <br>- **相關優化**：最小權限原則確保安全性、Rollback 落實事務管理避免資料不一致、軟刪除避免誤刪資料、Eager loading 解決 N+1、Lazy loading 需要時才載入子表、索引提升效能、連線池確保高併發穩定、外鍵約束避免孤兒紀錄、Enum 降低維護成本 |
 | API        | 分層架構避免高耦合、RESTful  原則設計時段（Schedule）的  CRUD API、Swagger/ReDoc 查看 API 請求與回應範例、Postman Collection Runner 一鍵測試所有 API                                                                                                                                                                                                                                                              |
 | 測試       | Pytest 框架、測試覆蓋率 80%+、夾具 Fixtures 管理測試資料、Given-When-Then 註解格式、參數化測試裝飾器避免重複程式碼、單元測試確保程式碼按照預期運作、整合測試確保多個組件能正確協同運作                                                                                                                                                                                                                            |
 | 自動化測試 | pre-commit 官方推薦的 Git 提交前檢查工具、CI/CD 提交程式碼後自動執行 pre-commit、pytest 測試                                                                                                                                                                                                                                                                                                                      |
 | 環境       | .env 管理環境變數、.gitignore 避免敏感資訊外洩、Poetry 依賴管理確保環境一致性、Pydantic BaseSettings 配置管理、SecretStr 敏感資料保護                                                                                                                                                                                                                                                                             |
-| 前端       | HTML5 語義化結構、CSS3 Flexbox 彈性布局系統、JavaScript ES6+ let 與 const 取代 var 避免變數汙染、Bootstrap 響應式網格、Font Awesome ICON、靜態資源預載入加速頁面渲染、分頁機制加速頁面渲染                                                                                                                                                                                                                        |
+| 前端       | HTML5 語義化結構、CSS3 Flexbox 彈性布局系統、JavaScript ES6+ let 與 const 取代 var 避免變數汙染、Bootstrap 響應式網格、Font Awesome 支援 React, Vue, Angular, Bootstrap 框架的 Icons、靜態資源預載入加速頁面渲染、分頁機制加速頁面渲染                                                                                                                                                                                                                        |
 | 開發工具   | Cursor AI 輔助開發、Jira 專案管理、Postman API 測試視覺化、MySQL Workbench 資料庫視覺化、Sourcetree Git 視覺化                                                                                                                                                                                                                                                                                                    |
 | 選型理由   | 安全性、可維護性與可擴充性、可靠性、效能、開發效率                                                                                                                                                                                                                                                                                                                                                                |
 
@@ -139,14 +139,14 @@
 - **依賴注入**：將依賴（資料庫連線、權限驗證、設定檔讀取等邏輯）封裝在一個獨立函式中，需要時透過 Depends() 注入，需升級某功能時只需修改注入的依賴
 - **API 分層架構**：從用戶請求到回應，依職責拆分成 CORS → Routers → Schemas → Service → CRUD → Models → DB，降低耦合度
 - **行為驅動開發 BDD**：用 Given-When-Then 寫測試案例，說明給定什麼前置條件（GIVEN），執行什麼行為（WHEN），會得到什麼結果（Then），以利團隊迅速理解測試程式碼
-- **Pytest 測試框架**：Python 社群最受歡迎的測試框架，語法簡單、失敗時顯示「實際值 vs 預期值」可讀性高，支援 fixture、參數化測試、CI/CD 流程、pytest-cov（測試覆蓋率）等
+- **Pytest 測試框架**：Python 社群最受歡迎的測試框架，使用斷言（assert）驗證結果、失敗時顯示「實際值 vs 預期值」可讀性高，支援 fixture、參數化測試、CI/CD 流程、測試覆蓋率等
 - **參數化測試裝飾器**：使用 @pytest.mark.parametrize 裝飾器，用同一段測試程式碼，測試不同輸入參數，避免撰寫大量重複且結構相似的測試案例
 - **pre-commit**：官方推薦的 Git 提交前檢查工具，每次提交 commit 前自動檢查 fix_imports.py、autoflake、isort、black、flake8、mypy，確保程式碼品質
 - **CI/CD**：GitHub 官方推薦的持續整合與持續部署工具，已落實 CI，每次提交程式碼後 GitHub Actions 會自動執行 pre-commit、pytest 測試，確保程式碼變更後沒有破壞現有功能，CD（持續交付、持續部署）將於未來擴充
 - **自定義錯誤處理**：自定義不同層級可能遇到的錯誤類型，除錯時能快速定位是哪個層級拋出的錯誤
 - **錯誤處理 Decorator**：統一錯誤回傳格式，避免在每個函式中寫重覆的 try...except
 - **Log Decorator**：統一日誌記錄格式，除錯時能快速定位問題根源
-- **SQLAlchemy ORM**：Python 官方推薦，以 Python 物件而非 SQL 操作資料庫、使用參數化查詢避免 SQL 注入，切換資料庫方便因只需改連線設定資料庫，降低 SQL 拼接錯誤，方便切換資料庫
+- **SQLAlchemy ORM**：Python 官方推薦 ORM (Object Relational Mapping 物件關聯對應)，以 Python 物件而非手寫 SQL 操作資料庫、使用參數化查詢避免 SQL 注入，切換資料庫方便因只需改連線設定資料庫
 - **Alembic 資料庫遷移**：SQLAlchemy 官方推薦的 Migration 工具，讓資料庫遷移像程式碼版本控制一樣，方便回溯與管理
 - **Poetry 套件管理**：Python 官方推薦的現代化依賴管理工具，用 pyproject.toml 定義依賴的版本範圍，用 poetry.lock 鎖定確切依賴版本，確保環境一致性
 - **Enum 枚舉型別**：修改選項時只需改 Enum 定義，使用的地方會自動更新，降低維護成本
@@ -171,10 +171,10 @@
 ### <a name="效能"></a>效能 [返回目錄 ↑](#目錄)
 
 - **Uvicorn ASGI 伺服器**：FastAPI 官方推薦的 ASGI 非同步伺服器，利用 async/await 提升吞吐量，支援高併發 API 請求、支援熱重載功能
+- **Jinja2 模板引擎**：Python 官方推薦的模板引擎，在伺服器端，將資料動態渲染到 HTML 模板並回傳給用戶，使用模板繼承保持 HTML 結構一致、對變數自動轉義防止 XSS 攻擊、支援快取已編譯的模板提高效能
 - **Eager loading 解決 N+1**：JOIN 查詢時載入所需關聯資料，避免多次查詢的 N+1 問題，適用高頻率查詢場景如查詢時段列表、Giver 資訊、Taker 資訊
 - **Lazy loading**：需要時才載入子表，避免不必要資料抓取，適用低頻率查詢場景如審計欄位
 - **資料庫索引**：為高頻率查詢場景建立索引避免全表掃描、低頻率查詢場景不建立索引避免系統負擔、選擇性高欄位放複合索引前面提高效率、覆蓋索引盡可能涵蓋查詢所需欄位
-- **Jinja2 模板引擎**：Python 官方推薦的模板引擎，在伺服器端，將資料動態渲染到 HTML 模板並回傳給用戶，使用模板繼承保持 HTML 結構一致、對變數自動轉義防止 XSS 攻擊、支援快取已編譯的模板提高效能
 - **分頁**：使用分頁避免大量資料載入，提高頁面渲染速度
 - **Bootstrap 響應式網格**：網站依不同裝置（手機、平板、桌面）自動調整版面，減少因不同裝置重新渲染導致頁面載入變慢
 - **靜態資源預載入**：透過 HTML preload、prefetch，在瀏覽器解析 HTML 時即開始下載關鍵資源，避免資源使用時才開始下載造成阻塞，提高頁面渲染速度
@@ -182,7 +182,7 @@
 ### <a name="開發效率"></a>開發效率 [返回目錄 ↑](#目錄)
 
 - **Cursor AI 輔助開發**：能根據上下文即時生成或補全程式碼、排除語法錯誤和潛在邏輯問題、快速重新命名變數提取函式、降低拼寫錯誤造成的 bug 等
-- **熱重載**：Uvicorn 啟動時加上 --reload 參數，修改後自動重新啟動伺服器，立即看到修改效果
+- **Uvicorn 熱重載**：Uvicorn 啟動時加上 --reload 參數，修改後自動重新啟動伺服器，立即看到修改效果
 - **Jira 專案管理**：有助開發團隊管理任務、掌握分工與優先順序、追蹤進度
   - ![Jira 專案管理](static/images/tools/jira/jira.png)
 - **Postman API 測試視覺化**：提供 API 測試視覺化介面，有助開發團隊快速測試與驗證 API，且可用 Collection Runner 一鍵運行集合中所有自動測試腳本，即時查看所有 API 的測試結果
@@ -469,8 +469,8 @@
 
 從用戶請求到回應，依職責拆分成 CORS → Routers → Schemas → Service → CRUD → Models → DB，降低耦合度。
 
-- **Routers 路由層**：處理 HTTP 請求和回應、FastAPI 自動文件生成
 - **Middleware CORS 中介層**：處理跨域請求，只允許經授權的網域訪問後端 API，避免惡意網站存取後端 API
+- **Routers 路由層**：處理 HTTP 請求和回應、FastAPI 自動文件生成
 - **Schemas 驗證層**：Pydantic 資料驗證、型別提示、FastAPI 自動文件生成
 - **Service 服務層**：業務邏輯處理，錯誤處理、事務管理
 - **CRUD 資料存取層**：資料庫 CRUD 操作
@@ -480,9 +480,9 @@
 ```
 Client Request 客戶端發送請求
     ↓
-Routers 路由層：app/routers/api/
-    ↓
 Middleware CORS 中介層：app/middleware/
+    ↓
+Routers 路由層：app/routers/api/
     ↓
 Schemas 驗證層：app/schemas/
     ↓
@@ -597,7 +597,7 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 
 ### <a name="pytest-測試"></a>Pytest 測試 [返回目錄 ↑](#目錄)
 
-- 說明：Pytest 是 Python 社群最受歡迎的測試框架，語法簡單、失敗時顯示「實際值 vs 預期值」可讀性高，支援 fixture、參數化測試、CI/CD 流程、pytest-cov（測試覆蓋率）等
+- 說明：Pytest 是 Python 社群最受歡迎的測試框架，使用斷言（assert）驗證結果、失敗時顯示「實際值 vs 預期值」可讀性高，支援 fixture、參數化測試、CI/CD 流程、測試覆蓋率等
 - 執行測試
 
   ```bash
@@ -702,8 +702,9 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
 
 #### <a name="單元測試"></a>單元測試 [返回目錄 ↑](#目錄)
 
-- 路徑：`tests/fixtures/`
+- 路徑：`tests/unit/`
 - 說明：測試程式碼中最小的可獨立測試單元（通常是一個函式、方法或類別）之正常狀況、錯誤狀況、邊界條件，以確保程式碼按照預期運作，使用 SQLite 作為測試環境提高測試效率
+- 測試覆蓋：
   - **CRUD 資料存取層**：測試資料庫 CRUD 操作
   - **錯誤處理**：測試發生特定錯誤時，API 能返回正確的 HTTP 狀態碼和錯誤訊息，並正確格式化
   - **Model 資料模型層**：驗證模型欄位、關聯是否正確（透過 migration + fixture 測試 DB 結構）
@@ -728,11 +729,17 @@ Postman 提供視覺化介面，有助開發團隊快速測試與驗證 API，�
     - **依賴注入覆蓋**：透過 FastAPI 依賴注入覆蓋機制，將 `get_db` 依賴替換為測試專用的資料庫會話
     - **建立測試客戶端**：使用 FastAPI TestClient，模擬發送 HTTP 請求，驗證回應狀態碼、JSON 格式
     - **檔案清除**：測試結束後自動清理臨時檔案，避免數據汙染、資源洩漏
-  - **回傳資料結構符合預期**：測試 API 路由收到 HTTP 請求，正確返回預期的狀態碼與回應格式
-  - **Pydantic 資料驗證**：
-  - **業務邏輯處理**：
-  - **SQLAlchemy ORM 轉換成功**：
-  - **資料正確寫入或讀取資料庫**：
+  - **從用戶請求到回應，資料傳遞流程**：CORS → Routers → Schemas → Service → CRUD → Models → DB
+    - **API 回應驗證**：
+      - **驗證層級**：Routers → Schemas → Service
+      - **驗證內容**：API 路由收到 HTTP 請求，返回的 HTTP 狀態碼、資料格式、資料欄位內容符合預期
+    - 資料庫內容驗證：
+      - **驗證層級**：Service → CRUD → Models → DB
+      - **驗證內容**：查詢資料庫，驗證資料存在資料庫、資料格式正確經 ORM 轉換、資料欄位內容符合預期
+- 測試覆蓋：
+  - **主要路由**：`test_main.py`，驗證首頁模板有無成功渲染、路由是否正常回應
+  - **健康檢查路由**：`test_health.py`，驗證系統是否存活、就緒
+  - **時段管理路由**：`test_schedule.py`，驗證時段的 CRUD 操作是否如預期回應
 - 執行測試
 
   ```bash
