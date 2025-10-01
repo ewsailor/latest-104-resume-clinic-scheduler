@@ -390,8 +390,8 @@ class TestScheduleRoutes:
         assert "timestamp" in error
         assert "details" in error
 
-    def test_get_schedule_invalid_id(self, client):
-        """測試取得單一時段 - 無效的時段 ID（422）。"""
+    def test_get_schedule_validation_error(self, client):
+        """測試取得單一時段 - 參數驗證錯誤（422）。"""
         # GIVEN：無效的時段 ID（必須大於 0）
 
         # WHEN：使用無效的時段 ID 呼叫 API
@@ -514,7 +514,7 @@ class TestScheduleRoutes:
         assert db_schedule.deleted_by is None
         assert db_schedule.deleted_by_role is None
 
-    def test_update_schedule_validation_error(
+    def test_update_schedule_end_before_start(
         self, client, schedule_in_db, schedule_update_payload
     ):
         """測試更新時段 - 參數驗證錯誤（400）。"""
@@ -605,7 +605,7 @@ class TestScheduleRoutes:
         assert "details" in error
         assert "overlapping_schedules" in error["details"]
 
-    def test_update_schedule_validation_error_422(
+    def test_update_schedule_validation_error(
         self, client, schedule_in_db, schedule_update_payload
     ):
         """測試更新時段 - 參數驗證錯誤（422）。"""
