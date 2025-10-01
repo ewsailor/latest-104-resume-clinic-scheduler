@@ -189,9 +189,7 @@ class TestScheduleRoutes:
         assert "details" in error
         assert "overlapping_schedules" in error["details"]
 
-    def test_create_schedules_validation_error_422(
-        self, client, schedule_create_payload
-    ):
+    def test_create_schedules_validation_error(self, client, schedule_create_payload):
         """測試建立時段 - 參數驗證錯誤（422）。"""
         # GIVEN：使用夾具資料並移除必填欄位
         invalid_payload = schedule_create_payload.copy()
@@ -516,7 +514,7 @@ class TestScheduleRoutes:
         assert db_schedule.deleted_by is None
         assert db_schedule.deleted_by_role is None
 
-    def test_update_schedule_validation_error_400(
+    def test_update_schedule_validation_error(
         self, client, schedule_in_db, schedule_update_payload
     ):
         """測試更新時段 - 參數驗證錯誤（400）。"""
@@ -782,7 +780,7 @@ class TestScheduleRoutes:
         # 驗證當前狀態
         assert error["details"]["current_status"] == expected_status_name
 
-    def test_delete_schedule_validation_error_422(
+    def test_delete_schedule_validation_error(
         self, client, schedule_in_db, schedule_delete_payload
     ):
         """測試刪除時段 - 參數驗證錯誤（422）。"""
