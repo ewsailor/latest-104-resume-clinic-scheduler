@@ -47,8 +47,11 @@ jobs:
       - name: Run unit tests
         run: poetry run pytest tests/unit/ -v --maxfail=3 --disable-warnings --tb=short
 
+      - name: Run integration tests
+        run: poetry run pytest tests/integration/ -v --maxfail=3 --disable-warnings --tb=short --config-file=pytest-integration.ini
+
       - name: Generate test coverage report
-        run: poetry run pytest tests/unit/ --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing
+        run: poetry run pytest tests/ --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing
 
       - name: Set CI Status
         id: ci-status
@@ -67,6 +70,7 @@ jobs:
           if [ "${{ steps.ci-status.outputs.success }}" == "true" ]; then
             echo "- ✅ 程式碼檢查 (lint + format + type check)" >> $GITHUB_STEP_SUMMARY
             echo "- ✅ 單元測試 (Unit Tests)" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ 整合測試 (Integration Tests)" >> $GITHUB_STEP_SUMMARY
             echo "- ✅ 測試覆蓋率報告 (Test Coverage Report)" >> $GITHUB_STEP_SUMMARY
             echo "- 🎉 **所有檢查通過，可以合併到 main 分支！**" >> $GITHUB_STEP_SUMMARY
           else

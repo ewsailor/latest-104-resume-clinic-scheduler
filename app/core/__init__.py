@@ -4,10 +4,6 @@
 - 應用程式設定管理
 - 專案版本資訊
 - 環境配置處理
-
-匯入說明：
-- 外部模組使用：from app.core import settings
-- 內部模組使用：from .settings import Settings
 """
 
 # ===== 本地模組 =====

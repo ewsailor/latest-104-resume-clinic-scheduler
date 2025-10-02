@@ -13,7 +13,9 @@ from typing import Any
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# 日誌記錄功能初始化，只顯示 INFO 級別以上的事件。
 logging.basicConfig(level=logging.INFO)
+# 建立日誌記錄器：可在日誌中看到訊息從哪個模組來，利於除錯與維運
 logger = logging.getLogger(__name__)
 
 

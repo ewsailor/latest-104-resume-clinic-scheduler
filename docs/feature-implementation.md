@@ -88,8 +88,7 @@
 ├── alembic/                       # 資料庫遷移管理
 ├── app/                           # 應用程式主目錄
 │   ├── core/                      # 設定管理
-│   │   ├── giver_data.py          # 模擬 Giver 資料，用於伺服器端渲
-染
+│   │   ├── giver_data.py          # 模擬 Giver 資料，用於伺服器端渲染
 │   │   └── settings.py            # 應用程式設定
 │   ├── crud/                      # CRUD 資料庫操作層
 │   │   └── schedule.py            # 時段 CRUD 操作
@@ -141,8 +140,7 @@
 │   ├── postman/                   # Postman 測試集合
 │   │   └── 104 Resume Clinic Scheduler.postman_collection.json
 │   ├── feature-implementation.md  # 實作功能 AI Prompt 模板
-│   ├── tech-quickstart-insight.md # 速懂新技術與選型理由 AI Prompt
-模板
+│   ├── tech-quickstart-insight.md # 速懂新技術與選型理由 AI Prompt 模板
 │   └── user-stories.md            # 使用者故事
 ├── htmlcov/                       # 測試覆蓋率報告
 ├── logs/                          # 日誌檔案
