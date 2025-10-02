@@ -17,25 +17,6 @@ class OperationContext(str, Enum):
     ARCHIVE = "封存"  # 未來可能的新操作
 
 
-class ValidationContext(str, Enum):
-    """驗證上下文枚舉"""
-
-    PRE_SAVE = "儲存前"
-    POST_SAVE = "儲存後"
-    PRE_DELETE = "刪除前"
-    PRE_UPDATE = "更新前"
-
-
-class AuditAction(str, Enum):
-    """審計操作枚舉"""
-
-    CREATE = "建立"
-    UPDATE = "更新"
-    DELETE = "刪除"
-    VIEW = "查看"
-    EXPORT = "匯出"
-
-
 class DeletionResult(str, Enum):
     """刪除結果枚舉"""
 

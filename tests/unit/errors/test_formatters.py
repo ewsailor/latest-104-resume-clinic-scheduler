@@ -1,5 +1,4 @@
-"""
-錯誤格式化測試模組。
+"""錯誤格式化測試模組。
 
 測試錯誤格式化功能。
 """
@@ -7,9 +6,8 @@
 # ===== 標準函式庫 =====
 from unittest.mock import patch
 
-from fastapi import HTTPException
-
 # ===== 第三方套件 =====
+from fastapi import HTTPException
 import pytest
 
 # ===== 本地模組 =====

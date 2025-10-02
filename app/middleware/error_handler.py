@@ -5,10 +5,9 @@
 
 # ===== 標準函式庫 =====
 import logging
-
-# ===== 第三方套件 =====
 from typing import Callable
 
+# ===== 第三方套件 =====
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware

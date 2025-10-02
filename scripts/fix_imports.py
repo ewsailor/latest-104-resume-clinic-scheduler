@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
-"""
-自定義腳本：將函式內部的 import 語句移到檔案頂部
+"""自定義腳本。
+
+將函式內部的 import 語句移到檔案頂部
 """
 
+# ===== 標準函式庫 =====
 import ast
 from pathlib import Path
 import sys
 
 
 def extract_imports_from_functions(file_path: str) -> tuple[list[str], list[str]]:
-    """
-    從檔案中提取函式內部的 import 語句
+    """從檔案中提取函式內部的 import 語句。
 
     Args:
         file_path: 檔案路徑
@@ -76,8 +77,7 @@ def extract_imports_from_functions(file_path: str) -> tuple[list[str], list[str]
 
 
 def fix_imports_in_file(file_path: str) -> bool:
-    """
-    修復檔案中的 import 語句
+    """修復檔案中的 import 語句。
 
     Args:
         file_path: 檔案路徑
@@ -180,7 +180,7 @@ def fix_imports_in_file(file_path: str) -> bool:
 
 
 def main():
-    """主函式"""
+    """主函式。"""
     if len(sys.argv) < 2:
         print("用法：python fix_imports.py <檔案路徑>")
         sys.exit(1)

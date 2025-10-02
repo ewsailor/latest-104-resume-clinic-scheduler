@@ -7,7 +7,7 @@
 
 # ===== 本地模組 =====
 from .models import ScheduleStatusEnum, UserRoleEnum
-from .operations import AuditAction, OperationContext, ValidationContext
+from .operations import OperationContext
 
 __all__ = [
     # 模型相關
@@ -15,6 +15,4 @@ __all__ = [
     "ScheduleStatusEnum",
     # 操作相關
     "OperationContext",
-    "ValidationContext",
-    "AuditAction",
 ]

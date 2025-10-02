@@ -1,12 +1,11 @@
-"""
-測試配置檔案。
+"""測試配置檔案。
 
 設定 pytest 的共用配置和全域 fixtures。
 負責匯入和管理所有測試相關的 fixtures。
 """
 
 # ===== 第三方套件 =====
-import pytest  # 測試框架
+import pytest
 
 # 匯入整合測試的 fixtures
 from tests.fixtures.integration.database import (  # noqa: F401
@@ -33,15 +32,7 @@ from tests.fixtures.unit.schedules import (  # noqa: F401
     test_taker_schedule_data,
 )
 from tests.fixtures.unit.user import (  # noqa: F401
-    test_giver_and_taker,
-    test_giver_data,
-    test_giver_user,
-    test_system_data,
-    test_taker_data,
-    test_taker_user,
-    test_user,
     test_user_data,
-    test_users,
 )
 
 # 確保 pytest-mock 可用

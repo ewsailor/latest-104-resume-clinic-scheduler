@@ -8,11 +8,7 @@
 
 # ===== 本地模組 =====
 # 絕對路徑導入（跨模組）
-from app.enums.operations import (
-    AuditAction,
-    OperationContext,
-    ValidationContext,
-)
+from app.enums.operations import OperationContext
 
 # 相對路徑導入（同模組）
 from .schedule import schedule_crud
@@ -21,7 +17,5 @@ __all__ = [
     # CRUD 操作實例
     "schedule_crud",
     # 操作相關 ENUM
-    "AuditAction",
     "OperationContext",
-    "ValidationContext",
 ]

@@ -1,5 +1,4 @@
-"""
-Schedule 模型單元測試。
+"""Schedule 模型單元測試。
 
 測試 Schedule 模型的基本功能。
 """

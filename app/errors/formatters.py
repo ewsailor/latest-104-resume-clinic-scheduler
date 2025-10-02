@@ -17,6 +17,7 @@ from app.utils.timezone import get_utc_timestamp
 # 相對路徑導入（同模組）
 from .exceptions import APIError
 
+# 建立日誌記錄器：可在日誌中看到訊息來自哪個模組，利於除錯與維運
 logger = logging.getLogger(__name__)
 
 

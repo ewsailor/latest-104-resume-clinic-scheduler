@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-清除 Python 快取文件的腳本。
+"""清除 Python 快取文件的腳本。
 
 這個腳本會清除專案中的所有 Python 快取文件，包括：
 - __pycache__ 目錄
@@ -15,6 +14,7 @@
     --quiet          減少輸出訊息
 """
 
+# ===== 標準函式庫 =====
 import argparse  # 解析命令行參數
 from pathlib import Path
 import shutil  # 刪除目錄和文件
@@ -22,7 +22,7 @@ import sys  # 退出腳本
 
 
 def clear_python_cache(include_venv=False, quiet=False):
-    """清除 Python 快取文件"""
+    """清除 Python 快取文件。"""
     if not quiet:
         print("🧹 開始清除 Python 快取文件...")
 
@@ -259,7 +259,7 @@ def clear_python_cache(include_venv=False, quiet=False):
 
 
 def main():
-    """主函數，處理命令行參數"""
+    """主函數，處理命令行參數。"""
     parser = argparse.ArgumentParser(
         description="清除 Python 快取文件",
         formatter_class=argparse.RawDescriptionHelpFormatter,
