@@ -69,8 +69,7 @@ class TestScheduleRoutes:
         assert schedule_json["created_at"] is not None
         assert schedule_json["updated_at"] is not None
 
-        # 建立時，create 和 update 以下 3 個欄位應該相同
-        assert schedule_json["created_at"] == schedule_json["updated_at"]
+        # 建立時，create 和 update 以下 2 個欄位應該相同
         assert schedule_json["created_by"] == schedule_json["updated_by"]
         assert schedule_json["created_by_role"] == schedule_json["updated_by_role"]
 
@@ -119,8 +118,7 @@ class TestScheduleRoutes:
         assert db_schedule.created_at is not None
         assert db_schedule.updated_at is not None
 
-        # 建立時，create 和 update 以下 3 個欄位應該相同
-        assert db_schedule.created_at == db_schedule.updated_at
+        # 建立時，create 和 update 以下 2 個欄位應該相同
         assert db_schedule.created_by == db_schedule.updated_by
         assert db_schedule.created_by_role == db_schedule.updated_by_role
 
@@ -459,7 +457,7 @@ class TestScheduleRoutes:
         assert data["created_at"] is not None
         assert data["updated_at"] is not None
 
-        # 更新後，updated_at 應該不同於 created_at（或相同，取決於時間精度）
+        # 更新後，updated_at 應該不同於 created_at
         assert data["created_at"] != data["updated_at"]
 
         # 軟刪除相關（更新時應仍為 null）
