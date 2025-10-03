@@ -1,12 +1,13 @@
 # 104 履歷診療室 - 平台內諮詢時間媒合系統
 
-[![Version](https://img.shields.io/badge/Version-0.1.0-blue.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
+[![Version](https://img.shields.io/badge/Version-0.1.0-blue.svg)](https://github.com/ewsailor/latest-104-resume-clinic-scheduler)
 [![Python](https://img.shields.io/badge/Python-3.12.8-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.116+-green.svg)](https://fastapi.tiangolo.com/)
 [![Database](https://img.shields.io/badge/Database-MySQL%2FMariaDB-blue.svg)](https://www.mysql.com/)
+[![Alembic](https://img.shields.io/badge/Alembic-Database%20Migration-blue.svg)](https://alembic.sqlalchemy.org/)
 [![Poetry](https://img.shields.io/badge/Poetry-2.1.3-green.svg)](https://python-poetry.org/)
-[![CI/CD](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml/badge.svg?branch=main&status=passed)](https://github.com/ewsailor/104-resume-clinic-scheduler/actions/workflows/ci.yml)
-[![Test Coverage](https://img.shields.io/badge/Coverage-80%25+-brightgreen.svg)](https://github.com/ewsailor/104-resume-clinic-scheduler)
+[![CI/CD](https://github.com/ewsailor/latest-104-resume-clinic-scheduler/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ewsailor/latest-104-resume-clinic-scheduler/actions/workflows/ci.yml)
+[![Test Coverage](https://img.shields.io/badge/Coverage-80%25+-brightgreen.svg)](https://github.com/ewsailor/latest-104-resume-clinic-scheduler)
 
 ## <a name="目錄"></a>目錄
 
@@ -238,7 +239,7 @@
 1. **複製專案**
 
    ```bash
-   git clone https://github.com/ewsailor/104-resume-clinic-scheduler.git
+   git clone https://github.com/ewsailor/latest-104-resume-clinic-scheduler.git
    cd 104-resume-clinic-scheduler
    ```
 

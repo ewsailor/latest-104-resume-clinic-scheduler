@@ -21,7 +21,7 @@ from app.errors import (
 from app.models.schedule import Schedule
 from app.utils.timezone import get_local_now_naive
 
-# 模組級別 logger
+# 建立日誌記錄器：可在日誌中看到訊息從哪個模組來，利於除錯與維運
 logger = logging.getLogger(__name__)
 
 

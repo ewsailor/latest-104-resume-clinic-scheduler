@@ -20,6 +20,7 @@ from app.decorators import handle_generic_errors_sync
 from app.errors import create_database_error, create_service_unavailable_error
 from app.errors.exceptions import APIError
 
+# 建立日誌記錄器：可在日誌中看到訊息從哪個模組來，利於除錯與維運
 logger = logging.getLogger(__name__)
 
 

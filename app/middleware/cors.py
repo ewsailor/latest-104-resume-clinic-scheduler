@@ -10,6 +10,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+# 建立日誌記錄器：可在日誌中看到訊息從哪個模組來，利於除錯與維運
 logger = logging.getLogger(__name__)
 
 

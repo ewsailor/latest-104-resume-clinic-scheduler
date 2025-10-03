@@ -15,6 +15,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 # ===== 本地模組 =====
 from app.errors import format_error_response
 
+# 建立日誌記錄器：可在日誌中看到訊息從哪個模組來，利於除錯與維運
 logger = logging.getLogger(__name__)
 
 

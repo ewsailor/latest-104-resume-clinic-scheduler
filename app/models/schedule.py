@@ -21,9 +21,8 @@ from sqlalchemy import (
 from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import relationship
 
-from app.database import Base
-
 # ===== 本地模組 =====
+from app.database import Base
 from app.enums.models import ScheduleStatusEnum, UserRoleEnum
 from app.utils.model_helpers import format_datetime, safe_getattr
 from app.utils.timezone import get_local_now_naive
