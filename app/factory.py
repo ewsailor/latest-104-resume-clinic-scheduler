@@ -78,10 +78,10 @@ def create_app(settings: Settings) -> FastAPI:
     # 記錄應用程式啟動資訊
     log_app_startup(app)
 
-    # ===== CORS 中間件設定 =====
+    # CORS 中間件設定
     setup_cors_middleware(app)
 
-    # ===== 資料庫初始化 =====
+    # 資料庫初始化
     initialize_database()
 
     # 掛載靜態檔案服務

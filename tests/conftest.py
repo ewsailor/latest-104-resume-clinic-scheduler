@@ -39,7 +39,7 @@ from tests.fixtures.unit.user import (  # noqa: F401
 pytest_plugins = ["pytest_mock"]
 
 
-# ===== 全域測試配置 =====
+# 全域測試配置
 def pytest_configure(config):
     """pytest 配置設定。"""
     # 設定測試標記

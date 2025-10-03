@@ -85,12 +85,7 @@
 ```
 104-resume-clinic-scheduler/
 ├── .github/workflows/ci.yml       # CI/CD
-├── alembic/                       # 資料庫遷移管理
-│   ├── versions/                  # 遷移版本檔案
-│   ├── env.py                     # Alembic 環境配置
-│   ├── script.py.mako             # 遷移腳本模板
-│   └── README                      # Alembic 說明
-├── alembic.ini                    # Alembic 配置檔案
+├── alembic/                       # 資料庫遷移管理配置
 ├── app/                           # 應用程式主目錄
 │   ├── core/                      # 設定管理
 │   │   ├── giver_data.py          # 模擬 Giver 資料，用於伺服器端渲染
@@ -153,8 +148,6 @@
 │   ├── function_index.html        # 函式覆蓋率
 │   └── ...                        # 其他覆蓋率報告檔案
 ├── logs/                          # 日誌檔案
-│   ├── app.log                    # 應用程式日誌
-│   └── error.log                  # 錯誤日誌
 ├── scripts/                       # 開發工具腳本
 │   ├── clear_cache.py             # 清除快取腳本
 │   └── fix_imports.py             # 修復匯入腳本
@@ -180,13 +173,14 @@
 ├── .coveragerc                    # 測試覆蓋率配置
 ├── .env                           # 環境變數（本地開發）
 ├── .env.example                   # 環境變數範本
+├── .flake8                        # flake8 配置
 ├── .gitignore                     # Git 忽略檔案
 ├── .pre-commit-config.yaml        # pre-commit 配置
-├── coverage.xml                   # 覆蓋率 XML 報告
+├── alembic.ini                    # Alembic 配置檔案
 ├── poetry.lock                    # Poetry 依賴鎖定
 ├── pyproject.toml                 # Poetry 專案配置
-├── pytest.ini                    # pytest 主要配置
-├── pytest-integration.ini        # pytest 整合測試配置
+├── pytest-integration.ini         # pytest 整合測試配置
+├── pytest.ini                     # pytest 主要配置
 └── README.md                      # 專案說明文件
 ```
 
