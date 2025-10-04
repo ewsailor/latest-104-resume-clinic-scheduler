@@ -29,7 +29,7 @@ from app.utils.timezone import get_local_now_naive
 
 
 class Schedule(Base):  # type: ignore[misc,valid-type]
-    """諮詢時段資料模型。"""
+    """時段資料模型。"""
 
     __tablename__ = "schedules"
 
@@ -38,7 +38,7 @@ class Schedule(Base):  # type: ignore[misc,valid-type]
         INTEGER(unsigned=True),
         primary_key=True,
         autoincrement=True,
-        comment="諮詢時段 ID",
+        comment="時段 ID",
     )
     giver_id = Column(
         INTEGER(unsigned=True),
@@ -47,7 +47,7 @@ class Schedule(Base):  # type: ignore[misc,valid-type]
             ondelete="RESTRICT",
         ),  # 保護：不能刪除有時段的 Giver
         nullable=False,
-        comment="Giver 使用者 ID",
+        comment="Giver ID",
     )
     taker_id = Column(
         INTEGER(unsigned=True),
@@ -56,18 +56,18 @@ class Schedule(Base):  # type: ignore[misc,valid-type]
             ondelete="SET NULL",
         ),  # 靈活：Taker 刪除時設為 NULL（時段變可預約）
         nullable=True,
-        comment="Taker 使用者 ID，可為 NULL（表示 Giver 提供時段供 Taker 預約）",
+        comment="Taker ID，可為 NULL（表示 Giver 提供時段供 Taker 預約）",
     )
     status: "Column[ScheduleStatusEnum]" = Column(
         Enum(ScheduleStatusEnum),
         nullable=False,
         default=ScheduleStatusEnum.DRAFT,
-        comment="諮詢時段狀態",
+        comment="時段狀態（後端會根據操作者角色自動決定：GIVER→AVAILABLE，TAKER→PENDING，其他→DRAFT）",
     )
     date = Column(
         Date,
         nullable=False,
-        comment="日期",
+        comment="時段日期",
     )
     start_time = Column(
         Time,
@@ -82,7 +82,7 @@ class Schedule(Base):  # type: ignore[misc,valid-type]
     note = Column(
         String(255),
         nullable=True,
-        comment="備註，可為空",
+        comment="備註",
     )
 
     # ===== 審計欄位 =====
@@ -99,7 +99,7 @@ class Schedule(Base):  # type: ignore[misc,valid-type]
             ondelete="SET NULL",
         ),  # 指向 users 表
         nullable=True,
-        comment="建立者的使用者 ID，可為 NULL（表示系統自動建立）",
+        comment="建立者的 ID，可為 NULL（表示系統自動建立）",
     )
     created_by_role: "Column[UserRoleEnum]" = Column(
         Enum(UserRoleEnum),
@@ -121,7 +121,7 @@ class Schedule(Base):  # type: ignore[misc,valid-type]
             ondelete="SET NULL",
         ),  # 指向 users 表
         nullable=True,
-        comment="最後更新的使用者 ID，可為 NULL（表示系統自動更新）",
+        comment="最後更新者的 ID，可為 NULL（表示系統自動更新）",
     )
     updated_by_role: "Column[UserRoleEnum]" = Column(
         Enum(UserRoleEnum),
@@ -143,7 +143,7 @@ class Schedule(Base):  # type: ignore[misc,valid-type]
             ondelete="SET NULL",
         ),  # 指向 users 表
         nullable=True,
-        comment="刪除者的使用者 ID，可為 NULL（表示系統自動刪除）",
+        comment="刪除者的 ID，可為 NULL（表示系統自動刪除）",
     )
     deleted_by_role: "Column[UserRoleEnum]" = Column(
         Enum(UserRoleEnum),

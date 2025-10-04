@@ -31,7 +31,7 @@ class User(Base):  # type: ignore[misc,valid-type]
         comment="使用者 ID",
     )
     name = Column(
-        String(50),
+        String(100),
         nullable=False,
         comment="使用者姓名",
     )

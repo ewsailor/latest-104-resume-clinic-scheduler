@@ -4,13 +4,21 @@
 """
 
 # ===== 標準函式庫 =====
-from typing import Any
+from datetime import date, datetime, time
+from typing import Any, Union
 
 
 def format_datetime(
-    dt: Any,
+    dt: Union[datetime, date, time, None],
 ) -> str | None:
-    """格式化日期時間為 ISO 字串，如果為 None 則返回 None。"""
+    """格式化日期時間為 ISO 字串，如果為 None 則返回 None。
+
+    支援多種日期時間類型：
+    - datetime.datetime: 完整日期時間
+    - datetime.date: 僅日期
+    - datetime.time: 僅時間
+    - None: 返回 None
+    """
     return dt.isoformat() if dt is not None else None
 
 
